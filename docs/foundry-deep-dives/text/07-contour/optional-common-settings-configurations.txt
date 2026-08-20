@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+[Optional] Common Settings Configurations
+This lesson covers some settings to confirm in Contour that can assist with troubleshooting common issues. You do not need to complete these steps now, but reading through them now will help you recognize common issues that may occur later.
+Selecting a Dataset Path
+If your screen resembles the picture below at this stage, please click Select dataset and then navigate to and select the parts dataset as described in the previous task.
+
+Editing Mode
+Before proceeding with the following steps, please check that you're set to Editing mode near the top-right corner of your screen.
+
+Locked Analysis If you see an indicator that your Contour analysis is locked as pictured below, please close any other browser tabs opened to the same analysis to proceed.
+Timezone Settings To see a few options you have for configuring your analysis, click on the Settings button located in the left-hand sidebar (cogwheel icon). One setting to note is Visualization timezone. Contour implicitly expects timestamps to be in UTC, and you can configure to display all boards to render this timestamp in the local timezone (your current timezone) or a fixed timezone.
+
+

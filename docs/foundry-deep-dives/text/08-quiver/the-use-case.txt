@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+The Use Case
+Scenario Overview Welcome to your training as a Data Analyst for the notional TitaniumWorks Manufacturing company! As a Data Analyst, you're often tasked with reporting out analytic insights, and for this training, you'll be identifying and prioritizing which equipment should be next for inspection. You'll use Quiver to:
+Perform no-code transformations: Apply a wide range of transformations to equipment and parts objects without needing to write code. Visualize object data: Explore and analyze data trends over time and understand relationships between equipment and parts data. Create and share interactive dashboards: Build a parameterized dashboard that can be embedded into operational applications and shared with your team.
+Your Role As a Data Analyst, you'll identify the most critical equipment for inspection and maintenance based on parts quality and equipment performance.
+Your Goal is to
+Prepare and join objects for analysis. Create derived columns to identify high-risk machinery given average part purity and equipment capacity. Create reusable visual functions. Visualize the data and create a dashboard for easy interpretation and decision-making. Learn where Quiver dashboard elements can be embedded for operational use.
+
+

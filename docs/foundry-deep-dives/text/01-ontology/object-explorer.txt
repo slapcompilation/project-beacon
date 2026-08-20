@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Object Explorer
+There are many Foundry applications that let you work with objects and the Ontology. We will start with the simplest of them, which is Object Explorer. Object Explorer is used for object searches and for basic exploration and analysis across sets of objects.
+Step 1: Open Object Explorer
+1. Open Object explorer You will find this in the Applications menu in the left side bar
+You should then see something like this:
+
+

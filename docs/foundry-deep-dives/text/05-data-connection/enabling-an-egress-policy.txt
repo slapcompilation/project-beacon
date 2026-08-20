@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Enabling an Egress Policy
+To create new data sources and egress policies in Foundry, you need to have the appropriate permissions. See the previous Permissions & Help lessons for more information.
+Note: If there is already an existing egress policy, you don't need permission to create one, and can simply import the existing one. See the Set-up a Direct connection Egress Policy lesson for more information
+To create egress policies when using Data Connection in Foundry, you must have the Information Security Officer role on your Enrollment.
+To check if you have the appropriate permissions:
+1. Navigate to the Foundry Control Panel. 2. Click All Settings 3. Either scroll down until you find the Network egress setting under Networking, or search
+for it in the search bar If the setting is greyed out, like for Artifact repositories and Authentication below, you do not have the necessary permissions.
+
+In this case, you need to request access, or request your organization's Foundry administrator to allow egress to the following network endpoints and give you permissions to import the policy:
+s3-bucket.sandbox.training.palantir.com.s3.eu-west-1.amazonaws.com (Port 443) database.sandbox.training.palantir.com (Port 5432) 52.17.120.168 (Port 5432) api.sandbox.training.palantir.com (Port 443)
+If this tab is active, like in the screenshot above, then you have the necessary permissions. In this case, no further action is needed at this step, and you can proceed with setting up the necessary egress policies as part of the tutorial.
+Notice Please be aware that the resource URLs and credentials provided for this tutorial are accurate as of the publication date. They are not guaranteed to remain valid indefinitely. Always ensure you are using current and active resources when working with Foundry.
+Learn more
+Configuring Egress Policies Enabling External Connections in Code Repositories
+
+

@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+All of the resources you create in Foundry need to live inside a Project. For production use cases, these resources likely need to be shared across your organization. It is recommended you create a Project for each stage of the workflow, as noted in our online documentation.
+During this learning course, you will be creating resources that will be specific to your learning experience. Depending on how your environment is set up, you will want to use a naming convention to easily distinguish your resources from those of other users. We will use the convention <username> throughout this course to represent your user login id. Wherever you see <username> , please replace it with your own user login id.
+We advise using a single Foundry Project to store all your training materials for all courses on this site. You should then create a dedicated Folder within your training Project for each learning course. If your organization prefers a different Project set-up convention, you may need to adapt some instructions. Contact your platform support team for more details.
+
+

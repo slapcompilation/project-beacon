@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Input Connection Details
+Step 1: Update the S3 connection settings
+1. Input the following API credentials. Domain base URL: Enter api.sandbox.training.palantir.com . Authentication: Select None - authentication is going to be handled in the logic for making the calls. Port: Type in 443 , which is the standard port for HTTPS connections.
+2. Input the following into the 'Additional secrets' section:
+Name: Secret Secret value: secretToken
+
+Learn more Data Connection: Set up a Source
+
+

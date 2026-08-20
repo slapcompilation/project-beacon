@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Create a Foundry Learning Project Step 1: Create a Project
+If you already have your own Learning Project on your Foundry instance you can skip this step and move on to the next step to create your course-specific folder.
+1. Click on Files in the left sidebar 2. Click on Projects in the top bar 3. Click on New project in the top right
+Note: If you do not have permissions to create a project, please select a project you feel comfortable using and continue with the next instructions to create a folder.
+
+4. Give your project a name, such as: Learning (<username>) 5. Give your project a description that would help another user understand what the project
+contains and is used for 6. Select your organization's namespace from the dropdown
+If you don't see this dropdown option then you don't need to do this step. 7. Set the default role to Viewer 8. Click on Create
+
+

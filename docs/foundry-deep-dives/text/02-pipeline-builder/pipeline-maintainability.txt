@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Pipeline Maintainability
+As you grow your data infrastructure in Foundry, maintaining the performance and accuracy of your pipelines is essential. Proper maintenance ensures that the pipeline remains reliable, efficient, and up-to-date with evolving data structures and business requirements. Future trainings will focus more broadly on comprehensive maintenance strategies, so here is a highlight of the key areas you might want to dive deeper on.
+Each of these areas plays a vital role in maintaining a robust and effective data pipeline. By leveraging Pipeline Builder out-of-the-box functionality and adhering to best practices, you can ensure that your pipeline remains a reliable asset for data-driven decision-making. For a more comprehensive understanding of pipeline maintenance, consider exploring the dedicated training modules available on these topics.
+Scheduling
+A key next step after implementing the logic of your data processing is implementing a scheduling strategy, to ensure data is refreshed at regular intervals, keeping it current with the source and relevant for the workflows. Pipeline Builder offers out-of-the-box scheduling capabilities that can be configured directly in your pipeline to meet your specific needs. For a detailed guide on setting up and managing pipeline schedules, refer to the Foundry Scheduling Documentation. In the documentation, you will also find a variety of Scheduling Best Practices to consider.
+
+Branching
+Once your pipeline is used across multiple workflows, enforcing branching is an important practice for maintaining a stable data pipeline while iterating on new features or updates. Learn more about branching strategies and how to implement branching in Pipeline Builder by visiting the Foundry Branching Documentation.
+Data Expectations
+Setting data expectations, or "data quality checks," helps in proactively monitoring the health of your data. These checks can validate data against predefined criteria, such as data type constraints, value ranges, or uniqueness, to catch anomalies early. Foundry's data expectations tools are discussed in more detail in the Foundry Data Expectations Documentation.
+
+Incremental Transforms
+For efficiency, especially with large volumes of data, incremental transforms process only the data that has changed since the last pipeline run, rather than reprocessing the entire dataset. This can significantly reduce the computational load and speed up the time-to-insight. Foundry's capabilities for incremental processing are detailed in the Foundry Incremental Transforms Documentation.
+
+

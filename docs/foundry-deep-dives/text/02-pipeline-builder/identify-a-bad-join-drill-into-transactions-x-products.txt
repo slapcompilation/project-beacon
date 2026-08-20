@@ -1,0 +1,37 @@
+
+
+
+
+Lessons
+
+Identify a Bad Join: Drill into Transactions x Products
+In some cases, a bad join occurs when two datasets are combined incorrectly, leading to inaccurate, duplicate, or missing data in the resulting dataset. This can significantly impact the quality of the insights derived from the data and, ultimately, the decisions made based on those insights.
+When working with data, it's crucial to understand the relationships between different datasets and the keys used to join them. In many cases, a bad join can be the result of using the wrong key or not considering all relevant keys in the join condition. This can lead to a dataset that is either too large, due to duplicate entries, or too small, due to missing data.
+It is a recommended practice to analyze the outputs of your joins and the techniques introduced in the sections before, such as the Preview functionality, are a great starting point for small datasets. In this section, however, you will leverage a different Foundry tool, Contour, to help analyze the joins that you created in the previous steps. In most cases, you'd be able to do your basic analyses in Preview, however Contour allows you to look through the entire data and discover bugs that would otherwise be impossible to find in Preview.
+For more information about Contour as a Foundry tool, please refer to the Foundry Documentation.
+Step 1: Analyze the transactions x products result using Preview
+1. Click on the transactions x products node and open the Preview tab at the bottom of the page. Notice that there are 172 rows in the output, whereas cleaned transactions only has 50 rows. The expectation would be that each transaction is enriched after the join, but not multiplied. This means that the join likely introduces multiplications.
+
+2. You can double check the number of rows in cleaned transactions using Preview as well.
+Step 2: Open the materialized dataset using Contour
+1. From the transactions x products dataset, click Analyze in Contour.
+2. A new tab will open. Navigate to it and click Save as to save your Contour analysis in your working folder.
+
+Step 3: Check for transaction_id primary key uniqueness
+1. Hover the cursor over the downward pointing arrow just above Start your analysis to reveal three options: Edit path, Insert board and Paste board
+2. Click Insert board. 3. Search and select Histogram.
+3. Plot the count of the transaction_id. This board will then display how many times each primary key occurs in the dataset. Any count more than 1 denotes duplication.
+
+4. Notice that some transaction_ids appear up to 9 times, meaning that there was duplication introduced by the join.
+Step 4: Drill into one of the duplicated ids.
+1. Click on the top result. This will automatically filter to the selected values.
+
+Step 5: Open the data and notice the duplication on product_id but the uniqueness of products_variation_id
+1. Open the filtered data, by clicking the Show data button on the bottom left.
+2. Notice that all columns have the same value, except for the ones prefixed with products_.
+3. This means that the product_id s are not unique, and instead each product has a unique variation_id which is what introduced the duplication in the join.
+Step 6: Return to the pipeline and fix the join
+1. Return to your Pipeline Builder resource. 2. Change the match condition in the transactions x products join to be based off
+variation_id. 3. Apply the changes and return to the main screen with dataset nodes.
+
+

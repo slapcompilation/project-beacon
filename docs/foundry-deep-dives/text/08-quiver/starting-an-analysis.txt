@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Starting an Analysis
+Quiver's interface is divided into several key sections, organized into Canvas mode and Graph mode layouts. We'll open a new analysis, which will start in Canvas mode by default.
+Step 1: Create an Analysis
+1. In your Foundry folder, click the top right + New dropdown, select Analytics & Operations then Quiver Analysis.
+
+2. Name your analysis by clicking into Quiver Analysis Created [Date] in the top left corner and updating to Equipment Analysis. Hit the return/enter key.
+
+3. Click the Save button at the top. Save your analysis whenever you've made a change that you want to maintain.
+Note: If your Foundry instance has a toggle here for `New Quiver,' toggle it on at this step. This training will be based on the `New Quiver' experience.
+You'll see the option to add data to your analysis and perform various operations via the Toolbar in the middle of the screen. Each operation is performed within a card. Quiver offers a wide array of capabilities, making it a powerful and versatile tool for analysis. To identify equipment for inspection, we'll walk through some of these together.
+
+

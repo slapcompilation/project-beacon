@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Generate a Pivot Table to Identify High-Capacity Plants
+Another useful view would be a summary of which equipment in which plants are producing the greatest variety of parts. One way to display this is as a pivot table.
+Step 1: Add a Pivot table
+1. In the board toolbar, Transform > Pivot Table 2. Configure the pivot table
+1. Rows: Add equipment_plant and equipment_id 2. Columns: Leave empty
+While you have the option to select a column for a deeper analysis of each aggregated row, we'll leave it blank for this simple analysis. 3. Aggregates: Select part_id and ensure that Unique count is selected. 3. Click Compute
+
+This data contains only five plants and equipment. Currently you see only three in this pivot table because of the filter applied in the histogram board above to only equipment with a high inspection alert level. Given the small data range, it's easy to pick out which equipment to perform inspections on. But for users like plant managers that may need to allocate resource while wrangling many thousands of rows, this repeatable drill-down to the aggregated pivot table serves as a quick tool for analysis.
+
+Step 2: Toggle pivoted data on and off
+In addition to data visualization, a pivot table can be used to transform the data for later boards. 1. Click Show data 2. Toggle on Switch to pivoted data 3. Toggle off Switch to pivoted data 4. Click Hide data
+Other boards, such as this Histogram board, will also let you pivot to aggregated data like this.
+
+

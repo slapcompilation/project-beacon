@@ -1,0 +1,11 @@
+
+
+
+
+Lessons
+
+Introduction
+In this section you will install the marketplace bundle that contains the datasets and create your Code Repository including the cleaning transformations to prepare your datasets. All the code you will be writing in this tutorial will be located in this repository.
+claims_raw.csv: A raw csv file containing all claims submitted by insurance customers in the years 2023 and 2024. policies_raw.csv: A raw csv file containing all policies the insurance has held in the years 2023 and 2024 together with the allocation to the respective line of business.
+
+

@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Create Histogram for Inspection Alerts
+In this section, we'll explore how patterns and trends in the data can be made more apparent using visualizations.
+Step 1: Add a Histogram of inspection alerts
+1. In the board toolbar, Visualize > Histogram 2. Configure the board to show a count of inspection alerts
+1. Under Y-Axis, Column: inspection_alert 2. Under X-Axis, select Count 3. Click Compute
+
+You can modify the X-Axis options to perform different operations on your columns. For this analysis, however, we'll leave Count as the selected option. This will tally the number of rows (parts) associated with equipment bucketed into low, medium, and high inspection alerts.
+Step 2: Use the Histogram as a filter
+1. Click on the bar representing high values
+
+A grey bar at the bottom of the board will appear displaying, "Keep rows where inspection_alert is high ." This will filter the data in all subsequent boards.
+Histogram boards are one of the most commonly used boards in Contour. Users will often implement histogram and other visualization boards to perform filtering steps in lieu of filter boards because they offer an easy way to both view your data and apply filtering functionality simultaneously.
+
+

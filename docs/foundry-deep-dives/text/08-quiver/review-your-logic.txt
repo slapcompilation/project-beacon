@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Review Your Logic
+Step 1: Save and review analysis
+1. Click Save to ensure all data preparation steps are saved. 2. Click Graph to review all implemented logic in visual form to track operations in sequence
+and validate the steps are correctly linked.
+
+3. After you've reviewed, toggle back to the Canvas mode.
+Takeaway
+We've only covered a small subset of the point-and-click transformations Quiver supports. You can learn more about these table transformations here.
+Chaining multiple transformations in a single card can help keep the logic grouped and the analysis more manageable. However, consider separating transformations into different cards, especially for aggregations, which we'll cover in the next step. This allows you to use the outputs of these separate cards as different inputs for further analysis.
+
+To confirm your logic clearly, use Graph Mode to visualize the analysis sequence and ensure you've selected the correct cards as inputs for subsequent operations.
+In addition to AIP Generate, Quiver offers AIP Configure which enables users to create new cards or change pre-existing card configurations by describing how data or a card should be manipulated. This includes configuring output visualizations such as layouts, colors, orientation, and titles. AIP Configure provides suggestions that you can accept or reject.
+
+

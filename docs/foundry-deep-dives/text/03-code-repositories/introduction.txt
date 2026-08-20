@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Introduction
+This course is continuously updated. If you have feedback, please email training-feedback@palantir.com.
+In the next 60 minutes, you will learn how to build your first data transformation in Foundry's Code Repositories.
+What is Code Repositories in Foundry?
+Code Repositories provides a web-based integrated development environment (IDE) for writing and collaborating on production-ready code in Foundry. With Code Repositories, data engineers can create efficient pipelines in bulk.
+Example workflows that are a good fit for Code Repositories include: A daily pipeline at high data scale which requires incremental compute. A high-visibility pipeline with strict governance requirements to be able to revert to previous versions of historical code, or gate code changes on unit tests passing.
+Learning objectives of the course
+You will complete this course being able to create and manage code repositories, perform data transformations, and collaborate effectively.
+By the end of this course, you will have created a PySpark Transform including casting and filtering, used joins and aggregations, worked collaboratively with other people using Branching, seen how Code Repositories interact with other Foundry tools like Data Lineage and Job Tracker.
+We advise to plan on spending 60 mins running through this course.
+
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Feel free to use the video to follow along as you complete the course material.
+
+

@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Download the Data Sources
+Now that you have your training location set up, you can upload the data you'll be working with. Below are the different files you'll need to download and then upload into Foundry. Click the names of the files below to download them to your device.
+ products_raw.snappy.parquet: A raw parquet file containing information about
+the products sold at the store.
+ customers_raw.csv: A raw csv file with basic information about the customers.  transactions_raw.json: A raw json file containing transaction records, with
+details about the product, the customer, date, and quantity sold.
+Important Downloading Tip: your browser might open the files themselves instead of downloading them (especially for the json file), use Ctrl + S or cmd + S to save the file.
+If you are unable to download datasets from this site or are unable to manually upload datasets to your Foundry instance due to lack of permissions, you may be able to deploy the datasets to Foundry via the Marketplace application. Move on to the [Optional] Deploy Datasets via Marketplace section for instructions.
+
+

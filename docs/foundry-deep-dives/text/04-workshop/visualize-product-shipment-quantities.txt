@@ -1,0 +1,47 @@
+
+
+
+
+Lessons
+
+Visualize product shipment quantities
+At this point, we can track the number and dates of shipments passing between different locations. However, the shipment managers who would be the eventual users of this application will need further information. They will need to know which specific products are included in these shipments, as well as the capacity left in the shipping vehicle, before they will be able to effectively consolidate multiple shipments into one. Let's add this additional information.
+To do this, we will use the Product Shipment object type. A Shipment has a one-tomany relationship with Product Shipments. That means one Shipment may contain multiple Product Shipments. (You can confirm this definition in the Ontology Manager application if you want to.)
+Starting with the set of Shipments that we are already tracking, you will use this relationship to build an object set of all related Product Shipments. You will then update the Chart to display this richer information.
+Step 1: Create a Filtered Product Shipments variable
+1. Click into the Variables tab 2. Click the + to add a new variable 3. Create an Object set > Object set definition 4. Rename the new variable to Filtered Product Shipments 5. Set Starting object set to the existing Filtered Shipments variable 6. Traverse to > Get linked objects > [<username>] Product Shipment 7. Click the X in the top right to close the variable definition box
+
+Workshop tracks which variables are being used and which are not. In edit mode, it warns the user about unused variables. In between creating this variable and using it, Workshop will display an orange warning to the left of the blue Save and publish button. Given that you are about to use the variable, the warning can be ignored. In other cases, it is best practices to remove variables that are not being used.
+
+Step 2: Add a layer to your Chart
+You can visualize the product shipment quantities alongside the existing shipment counts. 1. Select the Chart: XY widget 2. In the widget configuration, under PLOT LAYERS, click Add a layer
+3. Click into second Layer (bar) configuration 4. Set the title to Product shipments 5. Under DATA INPUT, Select object set variable > Filtered Product Shipments 6. Under X AXIS PROPERTY, select Arriving Destination Date 7. Set BUCKETING: Day 8. Replace the BAR SERIES with a sum of quantity
+1. Under BAR SERIES, hover over the existing Count and click X to delete it 2. Click Add step > Sum 3. Select a property: Quantity 4. Under SEGMENT BY, Select a property > Product Description
+
+This adds a new layer to the chart that shows the sum of each kind of product arriving each day. The segment configuration means that each bar is split into a number of segments based on how many values of the selected property there are. In this case, the three colors indicate that there are three kinds of products, the descriptions of which you can see in the tooltip: Blue Triangles , Red Squares , and Yellow Circles .
+
+The tooltip also has a fourth value labeled Count . This value is coming from the previous layer on the chart: the shipment counts. The shipment counts (in the tens per day) and the product shipment quantities (in the hundreds of thousands per day) are many orders of magnitude apart, so they would be better visualized on a separate Y axis.
+Step 3: Customize the Y axis
+1. Return to the Chart Editor 1. Scroll to the top of the layer configuration 2. Click Chart Editor
+2. Under Y AXIS, click Customize
+
+This will give you a separate Y axis on each side of the chart:
+
+However, the two sets of bars coming from the two layers still don't provide a very clear visualization of the data.
+Step 4: Convert the first layer to a line chart
+1. Scroll back up to the PLOT LAYERS section 2. Click into Layer (bar)
+This is the first layer listed, if you did not previously rename your second layer in Step 2 above 3. Under LAYER TYPE, select Line Chart 4. Configure this line to be dashed gray 1. Scroll down 2. Set COLOR to Gray 1 3. Set LINE STYLE to Dashed
+
+Step 5: Further customize the Chart
+At this point, you have navigated through the Chart widget's configuration a couple times. There are still some improvements that could be made to the Chart.
+Make the following improvements to the Chart on your own:
+1. Rename the axes 1. Rename Axis 1 to Count of Shipments 2. Rename Axis 2 to Product Quantities
+2. Reformat the numbers on Axis 2 to be easier to read 1. For example, enable numerical format grouping to switch from 110000 to 110,000 (depending on your locale)
+3. Add a Legend at the top of the Chart 1. Place the legend at the top of the chart, either inside the chart or next to it
+4. Change the bar segment colors to match the product descriptions 1. Click on Add Segment under the segment display overrides. 2. Enter the corresponding segment key, for example "Blue Triangles" and select the desired color. 3. Use Blue 3, Red 3, and Gold 3 for the Blue Triangles, Red Squares, and Yellow Circles, respectively.
+
+Step 6: Save your progress
+1. Click Save and publish
+If you now open the app in View mode, you can check that things look and feel as you expect. For example, you can now use the app to see how much of each product will be arrive in the New York Facility from the St. Louis Facility on the 24th of April by applying the corresponding filters.
+
+

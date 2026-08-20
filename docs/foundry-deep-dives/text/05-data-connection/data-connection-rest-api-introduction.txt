@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Introduction
+In this lesson, you will learn how to establish a connection from Foundry to a REST API, with a view to retrieving data for use within the platform The architecture of this connection is illustrated in the diagram below:
+
+REST APIs, or Representational State Transfer Application Programming Interfaces, are a prevalent architectural style for creating networked applications. They are the backbone of web communication, enabling client and server applications to exchange data seamlessly using a set of well-defined principles, conventions, and constraints.
+By leveraging HTTP protocol methods (GET, POST, PUT, and DELETE), REST APIs interact with resources identified by URLs. Their simplicity, scalability, and broad compatibility make REST APIs especially useful when interacting with the outside world, as many external systems use APIs to provide access to public data and services.
+It's important to note that the example provided here focuses on a REST API, but the general process for connecting to any system that exposes HTTP endpoints will be similar.
+Learn more REST APIs External transforms
+
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

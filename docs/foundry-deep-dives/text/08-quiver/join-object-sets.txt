@@ -1,0 +1,31 @@
+
+
+
+
+Lessons
+
+Join Object Sets
+You've now added an object table with all equipment data to your canvas. In the top navigation bar, you can add more data (objects, time series) or cards. As a reminder, cards in Quiver are discrete blocks of logic to help you operate on and visualize your data.
+If you hover over your current card, the card's Toolbar at the bottom of your last board lets you take the next logical step in your analysis, using the currently selected card as input. We'll incorporate these cards sequentially to perform data preparation steps on the equipment and parts objects.
+Note that cards don't necessarily have to be displayed in order of operation in Canvas mode. You may even remove (hide) cards completely from the Canvas while still using them in a chain of cards. In contrast, Graph mode will always show the logical dependencies of your different cards.
+Step 1: Add the Part Object to the analysis
+1. In the top navigation bar, select Objects next to Add Data
+
+2. Search for the [yourUsername] part Object 3. Click Add object set.
+
+You should now see two object tables, one titled Equipment and one title Parts. In the next steps, we'll join join the equipment dataset with parts data.
+Step 2: Join the Objects
+1. Select the Equipment card so that it's highlighted in blue. 2. Choose Join to transform table to perform a left join. A new Transform table card will display beneath the Parts card. For this join, the Equipment Object set is the left table and Parts Object set is the right table.
+3. In the right configuration panel of the Transform Table, select LEFT join type. 4. Select Parts under the JOIN TABLE section to specify which table to join Equipment to 5. Leave all columns selected under CURRENT COLUMNs section.
+
+6. Under JOINED COLUMNS, add Part Id, Part Material, Part Production Date, Part Purity, Part Type, to keep only the relevant columns and make your analysis easier to manage. You may always return to the configurations options by selecting the cog icon, then Join to transform table if you select too few or too many columns.
+7. Under Match Conditions, leave MATCH STYLE toggled to ALL. 8. In MATCHES, select Equipment Id for the INPUT dropdown (left table) and Eq Id for the
+JOINED dropdown (right table). 9. Click Save at the top.
+Note, in future analyses, you may add additional join conditions via the Add match button below.
+
+Step 3: Name the transform table
+
+1. Double click Transform table card title, and rename it to Equipment - Parts Join. It's good practice to name your cards to easily track different operations in your analysis.
+The cards Toolbar also offers AIP Generate, a feature that allows you to add and configure cards by generating the next steps in the analysis based on natural language prompts. It helps in creating meaningful graphs and analyses by interpreting your queries.
+
+

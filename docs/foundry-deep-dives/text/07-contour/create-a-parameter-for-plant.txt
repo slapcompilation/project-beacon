@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Create a Parameter for Plant
+Looking ahead, we may want the view of the data and the inspection alerts you've just created to vary based on inputs from the viewing user. For example, that user might only care about data associated with a given manufacturing plant. This can be done through the use of parameters.
+Step 1: Create a new parameter
+1. Click on the Parameters icon (x) from the left-hand sidebar 2. Click the + Create parameter button at the center of the left panel.
+
+Step 2: Configure the new parameter
+1. Name: plant This will also set the Display Name
+2. Toggle on Allow multiple values 3. Toggle on Suggest values from linked column 4. In the Link to values of a column dropdown, choose equipment > equipment_plant. 5. Click the blue Create button at the top right of the panel 6. Close the Parameters sidebar by clicking on the (x) tab again
+
+

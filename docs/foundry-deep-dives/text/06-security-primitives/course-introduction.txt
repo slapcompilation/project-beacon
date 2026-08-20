@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Course Introduction
+This course is continuously updated. If you have feedback, please email trainingfeedback@palantir.com.
+Robust data governance is essential for ensuring that data is managed, accessed, and utilized in a consistent and secure manner. An effective data governance framework establishes the policies and procedures that dictate how data is stored, accessed, and protected, ensuring adherence to regulatory requirements and internal standards. By implementing these practices, organizations can bolster their data privacy, promote accountability, and maintain transparency--all while supporting comprehensive data analytics.
+To facilitate this, our products are equipped with off-the-shelf tools that empower data stewards to quickly implement security and data governance best practices. During the initial integration of data into our customers' instances of the Palantir platform, these tools help establish strict governance controls. By prioritizing both data governance and security, organizations can safeguard their assets and leverage them effectively to drive innovation and meet strategic goals. Features such as Access Controls, Markings, and Restricted Views within Foundry offer highly customizable controls, enhancing governance and supporting data minimization initiatives.
+Key Data Governance Best Practices
+While data governance practices are not a panacea for all data security challenges, they are critical for managing data effectively throughout its lifecycle. Key practices include:
+Defining projects: Projects are the primary way to organize work in Foundry, and the primary security boundary. You will likely want to set your pipeline up as a series of Projects. To collaborate with others, you will grant various users and groups roles on each Project. Together, Projects and roles are how discretionary access control is managed across Foundry. Implementing robust access controls: Deploy granular security policies to ensure that only authorized users have access to sensitive data. This involves using role-based access controls, continuous monitoring, and regular audits to detect and mitigate potential risks, thereby protecting data from unauthorized access. Setting up markings: Standardize data classifications and labels to ensure that data is handled appropriately according to its sensitivity. Clearly defined markings elevate data
+
+security and facilitate automated handling of data, improve traceability, and ensure that data is processed in accordance with regulatory and internal requirements. Enabling Restricted Views: Limit data exposure by creating customized views that offer tailored access levels based on user roles. Restricted views help prevent unauthorized data disclosure while still providing approved users with the insights they need to make informed decisions.
+By the end of this course, you will gain a comprehensive understanding of how to leverage these advanced tools to enhance your organization's privacy posture. You will become proficient in applying data governance principles to improve data security and ensure compliance, empowering your organization to manage data more effectively and drive innovative strategies.
+To do many of the tasks in this course you will need to have access to the Data Governance Officer role in Foundry - contact your administrator to be added to the group.
+
+

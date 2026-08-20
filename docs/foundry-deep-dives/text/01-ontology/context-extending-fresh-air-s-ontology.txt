@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Context: Extending Fresh Air's Ontology
+Now that you've seen the structure and some of the value of the Fresh Air Ontology, let's extend it.
+As mentioned earlier, whenever a Flight is delayed, cancelled, or diverted, it would be useful to have an object to represent this situation. Each Flight Alert can then be responded to by Fresh Air's Flight Operations department. This is an example of an operational workflow in Foundry.
+In this section, you'll build your own version of the Flight Alert object type. (You can use the existing version as a reference if you get stuck.) This will include a link to the relevant Flight and an action to update the root cause of the alert.
+
+

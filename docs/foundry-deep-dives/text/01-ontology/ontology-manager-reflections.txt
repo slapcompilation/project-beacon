@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Reflections
+The action you just defined here is very basic, recording only a single Root Cause value. However, as you saw, this action has a semantic meaning, and it provides strong controls on who can make what kinds of changes to Ontology data. It also captures a single human conclusion back into Foundry.
+If we were to continue build out this workflow for the Flight Operations teams, you can imagine other decisions and the resulting actions they might want to make:
+Assign an incoming Flight Alert to a given Flight Operations operator Forward the alert to the local Flight Maintenance team for processing Reassign the flight crew Queue for passenger rebooking Update the gate assignment Reschedule this aircraft's next flight Swap aircraft for this aircraft's next scheduled flight Make as resolved
+As you focus on these decisions that the Flight Operations team needs to make, it shines a light on what additional data they will need in the Ontology to inform those decisions:
+Flight crew status and availability Plane availability for swaps Passenger counts and destinations to inform tradeoffs between plane swaps and rebooking
+As this workflow grows in complexity, the Flight Operations team would quickly leave Object Explorer behind. Custom Workshop applications--as you built in the earlier Endto-End Speedrun course--would provide more appropriate and targeted tools. But those Workshop applications would reuse everything you built here: data pipeline, object type, links, and actions.
+
+This is illustrates another value of the Ontology. By focusing on real-world concepts, tailored to a specific organization and reflecting its processes, it lets us build solutions around daily decisions that need to be made. This produces a dynamic "digital twin" of the organization.
+
+

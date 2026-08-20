@@ -1,0 +1,30 @@
+
+
+
+
+Lessons
+
+Configuring the Checkpoint Step 1: Navigate to Configuration
+1. Within the Checkpoints application, click Configuration from the top bar.
+
+2. Select the green button labeled Configure new checkpoint. A pop-up window should appear.
+
+Step 2: Configure the parameters of your checkpoint
+1. Under Checkpoint types, search for and select Compass Export. 2. Under Scope, select the Namespace your organization created for the purpose of this
+training 3. Select Additional conditions, then User submitting checkpoint, and choose your user
+only, before clicking Next.
+This configuration will raise a checkpoint when only your user attempts to export a dataset from Foundry. In real scenarios you would likely want to apply this checkpoint to all users or a specific group of users, but for the purpose of this training, and in order to not impact the workflow of others in your organization, the scope needs to be kept narrow.
+
+4. In the Title field enter: [yourUsername] Checkpoint Download Test 5. In the Prompt field enter: Test checkpoint for preventing dataset downloads for
+the Deep Dive: Data Protection Tools course. 6. In the Description field enter This field is optional and will appear on the
+checkpoint in lighter text between the checkpoint prompt and justification. 7. Click Next.
+
+8. On the Justification tab, select Acknowledgment. 9. Input text similar to: I acknowledge that the action I am about to undertake
+carries some risks of data leaks as I download data from the platform onto my local drive.
+
+10. On the Frequency tab, leave the default sections as-is. 11. Click Next.
+12. Input a Checkpoint configuration title - this can be as simple as [Username] Test. This will appear on the Checkpoints configuration application as the name of this Checkpoint - it is not viewable to non-Admins.
+13. Click Create a checkpoint configuration.
+14. You should now see your checkpoint appear on the Checkpoints home screen.
+
+

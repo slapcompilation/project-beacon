@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Running the Scan Step 1: Review and run the scan
+1. Review the configuration of the scan on the Review and Run screen. 2. Click Run One-Time Scan.
+
+3. You should then see a green confirmation banner at the top of your screen confirming the scan has started, as well as a Scan running indicator in the lower right side of your screen. The scan may take a couple minutes to run.
+
+Step 2: Review the results of your scan
+1. When the scan completes, you should see a summary page similar to the one below, with an orange bar indicating that matches were found. If you do not see your employee_data dataset listed under Matches found, refresh your page.
+2. Hover over the Marital Status match condition. You should see one column name here that the scan highlighted - MaritalDesc.
+
+Note that in this scenario scanning a single dataset may seem unnecessary, as one could simply examine the dataset directly. However, in real production scenarios, this type of example is unlikely to be limited to a single data file. Organizations typically manage hundreds, if not thousands, of datasets across various projects, with new data entering Foundry daily. By leveraging the Sensitive Data Scanner, they can save valuable time, as manually processing every file would be impractical.
+
+

@@ -1,0 +1,41 @@
+
+
+
+
+Lessons
+
+Install the Marketplace Bundle
+This course requires a specific Marketplace bundle to be installed to provide the necessary data, pipelines, and object types.
+If someone else has already installed it on your Foundry instance, you can likely reuse it. Otherwise, you will need to install your own copy.
+Having trouble?
+If you're having trouble installing Marketplace products, your organization may be controlling which users are able to install Marketplace products or create new resources such as Projects, Objects, Actions, etc. Please check your local Training app or reach out to your platform administrator for help. See the earlier Permissions & Help section for details.
+
+Step 1: Open Marketplace
+1. Click on Applications on the left side of the screen
+
+2. Search for Marketplace and open it.
+Step 2: Open Deep Dive: Creating Your First Ontology
+1. Search for the Deep Dive: Creating Your First Ontology product in the top search bar labeled Search products... (not the lower search bar labeled Search stores...)
+2. Click into the corresponding product
+
+You can then check if there are any installations listed on the right side of the screen:
+If there are any existing installations: You can skip the rest of this lesson and try using one of these installations starting with the Object Explorer section of this course. If there are no installations OR if you later run into ontology permission issues in this course: Continue below with these instructions to install your own version of the course resources.
+
+Step 3: Start the installation
+1. Click Install or Install again in the top right corner
+Step 4: Customize the installation
+1. Set your username as the installation suffix 1. Toggle on Installation suffix 2. Enter your own <username>
+2. Change the installation location to your course-specific training folder 1. Click Use existing location 2. Click Browse 3. Browse to your Learning (<username> ) project If you do not have one yet from completing other tutorials, click Create new project and create a project named Learning (<username>) where <username> is your
+
+own username. 4. Create a new Deep Dive: Creating your first Ontology folder 5. Click Save 3. Click Next
+Step 5: Confirm the content
+1. Decide whether to prefix ontology entity names 1. If there are many existing installations, you can Prefix ontology entities with your username. 2. If this is the first installation of this product, you can skip this.
+
+2. Click Next
+Step 6: Install
+1. Ensure that all validations have passed 2. Click Install
+
+Step 7: Complete the installation
+1. Wait for the installation to finish It generally takes 5 to 8 minutes to install resources It then takes 5 to 10 more minutes to build them And potentially another 10 minutes or so (not shown in the UI here) to finishing indexing all object data into the object layer
+
+

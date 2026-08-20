@@ -1,0 +1,38 @@
+
+
+
+
+Lessons
+
+Encrypt the Sensitive Column in Pipeline Builder Step 1: Create a Pipeline Builder resource
+Navigate back to your folder for this course.
+1. Click the green + New button in the top right and search for Pipeline Builder. 2. Name the file something similar to [YourUsername] Cipher Test Pipeline. 3. Select Batch pipeline. 4. Click Create pipeline.
+
+5. Click on Add Foundry data.
+
+6. Select the employee_data.csv dataset and click Add. 7. You should now see the dataset appear as a node in your Pipeline Builder graph.
+Step 2: Use the Cipher encryption transform in Pipeline Builder
+1. Click the employee_data node and select Transform.
+
+2. In the query box, type Cipher encrypt and select the option. 3. In the Expression box, select the Employee _Name column. We are looking to encrypt this
+value. 4. In the Cipher license rid box, select the Cipher license you just created. It should be
+stored in your folder for this course.
+5. Click Apply. 6. In the dataset preview box towards the bottom of the page, ensure Output table is
+selected. 7. In the Employee_Name column, you should now see CIPHER values instead of the
+employee names, indicating the data is encrypted.
+
+8. Click back to the Input table tab to see the data pre-encryption, and then back to the Output table tab to see the result of the data after our Cipher encryption transform.
+9. At the top of the page, click X Close to return to the Pipeline Builder graph. You should now see the transform node for the Cipher transform.
+10. Click on the Cipher transform node and select Add output and then New dataset.
+11. On the right-side panel, rename your dataset to [yourUsername] Encrypted Employee Data and ensure all 19 columns are mapped (this should be done automatically).
+12. Click Save. 13. Click Deploy.
+
+14. One the right-side screen, ensure all configuration options are checked and click Deploy pipeline. This will create a dataset from your Pipeline Builder file that can be used in other analyses in the platform.
+
+Step 3: Review your encrypted data
+1. Navigate back to your folder for this course. You should now see a dataset file for [YourUsername] Encrypted Employee Data.
+2. Double click on the dataset to open it. 3. Click on the Employee_Name column. The stats toolbar should pop-up from the bottom
+of the page. 4. Take a look at the column stats and notice that the Distinct value is 300. This verifies that
+each employee name in the column now has a unique, encrypted identifier rather than the listed employee name. You can see the an example of the full encrypted value on the right hand of the stats pop-up. This dataset can now be used for further analysis in the platform without the risk of users seeing the true employee name values.
+
+

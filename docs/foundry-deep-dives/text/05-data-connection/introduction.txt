@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Introduction
+This course is continuously updated. If you have feedback, please email training-feedback@palantir.com.
+In the next 60 minutes, you will learn how to efficiently set up data connections in Foundry by connecting to real data sources. You do not need to provide your own datasources. You can connect to Palantir provided datasources for this training. You will be guided through the three most common types of data sources.
+This tutorial is highly modular -- feel free to only do the tutorial for the connection types relevant to you:
+Relational databases (15 minutes) S3 Buckets (15 minutes) REST APIs (20 minutes)
+
+Connecting to data sources in Foundry is often the first step to leveraging value from the platform. Foundry's data connection tools support an extensive array of standard enterprise data sources, including cloud-based object stores, file systems, databases, and data warehouses. This versatility enables organizations to integrate a variety of data types--structured, unstructured, or semi-structured--using different data transfer methods such as batch, micro-batch, or streaming.
+By connecting to these data sources, users gain the ability to access and manage data pipelines via an intuitive frontend interface, simplifying complex technical tasks. Additionally, Foundry's open architecture promotes interoperability with third-party software and open-source tools, enhancing the ease of working with data across different formats and systems.
+
+You will start by ensuring you have all the necessary permissions, set up your working project and folder, then delve into the data ingestion process, showing you how to get data into Foundry. Finally, you will wrap up the course with some pointers towards additional learning resources. By the end of this training, you'll be equipped with the knowledge and skills to effectively connect and manage data within Foundry.
+Throughout the tutorial, you'll find links to relevant sections of the Foundry documentation. These resources are available for you to read or bookmark for later, offering a more in-depth understanding of the topics discussed.
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Feel free to use the video to follow along as you complete the course material.
+Learn more
+Data Connection
+
+

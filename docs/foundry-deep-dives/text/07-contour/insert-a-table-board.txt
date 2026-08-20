@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Insert a Table Board
+Step 1: Add a Table board
+1. In the board toolbar, click Suggested > Table
+
+The added Table board provides a view of the columns, their data types, and a preview of 1,000 rows.
+You can also see a view of the dataset by clicking Show data at the bottom left of the input dataset board or any later board in your analysis path. This will present a preview of data as computed at the selected board, which is useful to quickly double check your logic at any point of the analysis.
+
+

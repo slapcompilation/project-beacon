@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Interact with Your Dashboard
+Step 1: Add a parameter
+1. Expand the left Dashboard panel again and in the Add to Dashboard section, find the parameter for Equipment Plant
+2. Click the three dots and select + Add to Dashboard 3. Collapse the left panel
+
+The parameter is now populated at the bottom of the dashboard and is available for any end user to select from.
+1. Click and hold your mouse to grab the top left button and drag the parameter block under the dashboard title. Note, you can rearrange any of the dashboard blocks this way.
+
+Step 2: Publish your dashboard
+1. Click the Publish icon and save your dashboard as Equipment Analysis Dashboard to your folder. Note that publishing a Dashboard automatically saves your analysis.
+2. Click the Preview button to see how the dashboard looks to end users.
+Note, if you select the lefthand Equipment Analysis Dashboard button, you can access the production version and send this link to colleagues with appropriate permissions to view.
+
+

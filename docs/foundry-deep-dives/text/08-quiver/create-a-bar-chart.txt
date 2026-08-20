@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Create a Bar Chart
+Quiver supports a variety of visualizations to help you analyze and present data effectively. Some visualizations include categorical charts, time series visualizations, Vega plots (box plots, sunbursts, radar charts, etc.), heat grids, and overlay charts (combines line charts, bar charts, and categorical scatter plots on the same set of axes).
+Step 1: Create a bar chart comparing capacity and actual output
+1. On your first canvas, select the Aggregated Parts Summary card, and click Visualize category in the cards Toolbar
+2. Select Categorical plot from transform table 3. In the GROUP BY dropdown, choose equipment_name_group_name 4. In the SERIES section, select Max as the METRIC 5. Select count under PROPERTY 6. Click + Add Series, and again, select Max 7. Select capacity under PROPERTY
+
+8. Click the Display tab and change the SEGMENT OPTIONS to Grouped 9. Update CATEGORICAL AXIS TITLE to Equipment and VALUE AXIS TITLE to Output 10. Beside VALUE AXIS FORMAT, click the cog icon and select Visual Format 11. Under Use Grouping, toggle Use grouping on. This setting formats long numbers in a
+more readable way.
+
+12. Enter Output by Equipment as the name of the board
+13. Click the dashboard icon, then Add to new dashboard. Quiver dashboards are most commonly used for embedding Quiver charts into Workshop applications, Foundry's low, no-code application builder.
+
+

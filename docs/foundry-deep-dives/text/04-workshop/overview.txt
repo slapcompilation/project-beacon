@@ -1,0 +1,11 @@
+
+
+
+
+Lessons
+
+Overview
+In this section of the course, you will start creating the Workshop application. You will create a simple visualization based on the product shipment data in the Ontology. We will also cover saving and publishing your Workshop application.
+Having the right data visualized is often a necessary first step for a user to make a datadriven decision.
+
+

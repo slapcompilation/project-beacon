@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+User-Defined Functions (UDFs)
+The pre-built data transformations in Pipeline Builder are powerful, but they may not meet all the specific requirements of every data engineering task. As an advanced capability of Pipeline Builder, User Defined Functions (UDFs) can be leveraged in your pipeline to define custom functionality written in a programming language supported by Foundry.
+For more information on how to create a UDF, please refer to the Foundry Documentation. After publishing a UDF to Pipeline Builder, you can leverage it in your transforms through the Pipeline Builder boards. Once published, a UDF cannot be unpublished.
+
+Best Practices for UDFs
+Identify the need for UDFs. Before creating a UDF, ensure that the operation you need cannot be accomplished with the existing built-in transformations. UDFs should be a last resort due to their potential impact on performance and maintainability. Minimize usage. Only use UDFs when necessary. Leverage built-in functions whenever possible as they are typically optimized for performance. Keep it simple. Write UDFs that are simple, perform a single task, and minimize overlap with other built-in transformations. Complex UDFs are harder to maintain and can be less
+
+efficient.
+
+

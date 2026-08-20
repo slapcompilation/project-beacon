@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Summary
+Congratulations! You have completed the Deep Dive: Building Your First Application course.
+In this course, you have built the Shipment Operations Center application from scratch. This is an operational application. By building upon the Ontology, it allows shipment managers to understand what is happening across their organization's supply chain. They can then make data-driven decisions to make the supply chain more efficient. Through actions, their decisions are captured back into the Ontology to the benefit of all users and workflows that rely on the same objects.
+Along the way, you learned:
+How to create a new Workshop application (module) Saving, versioning, and viewing a module Adding and configuring Workshop widgets Connecting widgets to each other through the use of variables Managing module layouts by using sections Implementing style changes with headers, colors, icons, and conditional formatting Defining actions for specific workflow, either by using a point-and-click definition for a simple action or creating a function-based action if more complex logic is required
+Looking to continue learning?
+Check out the related content listed in the Application Developer Training Track. Start with the Workshop documentation, where you can learn about many other available widgets. You can also learn more about defining Action types, authoring Functions, and using functions in Workshop for more than just actions.
+
+

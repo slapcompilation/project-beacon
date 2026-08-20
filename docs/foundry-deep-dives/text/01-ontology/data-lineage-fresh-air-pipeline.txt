@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Data Lineage: Fresh Air pipeline
+Step 1: Explore the data lineage of an Airline
+1. In Object Explorer, open the Fresh Air Inc object 2. In the top right, select More > Advanced > Explore data lineage
+You should then find yourself in the Data Lineage application:
+
+Step 2: Add other [OFT] object types
+1. In the right side panel, switch to the Search Foundry tab (which has a magnifying glass icon)
+2. Select Object types 3. If prompted, select your ontology 4. Filter by [OFT] 5. Select each of the 7 object types to add them to your graph - Airline, Aircraft, Route,
+Flight, Airport, Runway and Flight Alert.
+
+Step 3: Expand all nodes
+1. Select all nodes on your graph. 1. You can do this manually with your mouse by holding Shift and dragging a box over all nodes or you can press Ctrl+A / Cmd+A your keyboard
+2. Click the Expand button in the top toolbar 3. Click the << button to Expand parents 4. Click Add 30 nodes
+Step 4: Arrange all nodes
+1. Select all nodes again 2. Click the Layout button in the top toolbar 3. Click Layout all nodes
+You can also reposition nodes manually.
+At this point, you can see that you have 11 uploaded (raw input) datasets that produce a pipeline of 35 other datasets, leading to 7 object types.
+
+

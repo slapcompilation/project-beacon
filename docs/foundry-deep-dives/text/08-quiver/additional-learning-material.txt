@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Additional Learning Material
+We hope you enjoyed this introductory course on Quiver! As next steps, we'd encourage you to explore our Training Tracks for further material most-relevant to your work in Foundry.
+Below are some other relevant learning materials, specifically for Quiver.
+Foundry Documentation: Quiver Overview Foundry Documentation: Time Series in Quiver Palantir Developers YouTube: Quiver Series (5 videos) Ontologize YouTube: Quiver Visual Functions Example: Ontology Aggregations with Quiver (also available via the Examples app in Foundry) Example: Vega Plots for Advanced Charting in Quiver (also available via the Examples app in Foundry)
+Additionally, if you'd like to leave any feedback on this course, please do so in the following lesson for Course Feedback. If you have any other feedback on how we can improve our course content, please email us at training-feedback@palantir.com.
+
+

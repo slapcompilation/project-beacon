@@ -1,0 +1,52 @@
+
+
+
+
+Lessons
+
+Provide product shipment details via a table
+The app now provides a good view of incoming shipments. However, you can't yet see which which specific product shipments are linked to a given shipment or the vehicle being used. These details can be provided in a table.
+Step 1: Add a new section below the chart
+While in Workshop's Edit mode:
+1. Open the Layout tab on the left side of the screen This will show an outline of your module's structure, including a header, page, sections, and widgets.
+2. Click the Section that contains the Chart: XY While selected, you'll see a faint ROWS label next to the Section name in the outline. This indicates the section's layout. In a rows layout, new sections are added above or below existing sections to form rows. In a columns layout, new sections are added to the left or right of existing sections to form columns.
+
+3. At the top of the screen, click Add section inside
+This will add a new section below the chart. This new section will appear in the layout hierarchy as well.
+
+4. Click into the new section within the application This will open the section's configuration panel on the right. Also, the controls at the top of the screen will change to include a MOVE section with two arrows.
+5. Move the section up and down That is, move the section to above the chart and then back to under the chart. You can also do this by dragging the Section entry in the Layout hierarchy.
+By nesting and moving sections like this, you can control the layout of your application.
+
+Step 2: Add an Object table widget
+In your new section: 1. Click Add widget 2. Search for and select Object table The new table widget will also appear in the Layout hierarchy.
+Step 3: Configure the Object table
+With the Object table selected, configure it on the right-side of the screen: 1. Under INPUT DATA, Select object set variable > Filtered Product Shipments
+As you make this selection, you may notice other widgets become highlighted in the background. Workshop is showing you where else this variable is used. 2. Under COLUMN CONFIGURATION, click Add column to add the following columns: 1. Shipment Name 2. Origin Location Name 3. Destination Location Name 4. Departing Origin Date 5. Arriving Destination Date 6. Product Description 7. Quantity 8. Vehicle Name
+
+3. Under DEFAULT SORT(S), Select a property to sort by > Product Shipment Name 4. Under DISPLAY & FORMATTING, toggle on FIT COLUMNS HORIZONTALLY
+As you make these changes, you may notice that configuration options in the widget configuration have question mark icons beside them. If you hover over these, they will explain what that option does. You can use these to understand what options are available whenever you are learning to use a new widget.
+
+Step 4: Improve the application's layout
+The Object table now provides the desired functionality. It shows the details of the specific product shipments that are shown on the chart.
+However, the module's sections and the widgets within them provide a cramped layout. There is no spacing between the sections, no differentiation between the different areas of the application screen, only very thin and faint borders, and the sections are still titled with the default Section titles.
+
+Explore on your own and use what you have learned so far to fix each of the issues below. The screenshots below can serve as hints if you get stuck. If you need to zoom in on an image, right-click on it and open it in a new tab.
+1) Add compact padding between the three sections
+1. First, adjust the padding of the layout of the top level Page 2. Then adjust the padding of the layout of the right section
+
+2) Add a header to the chart and the table widgets 1. Select each widget and use the toolbar at the top of the screen 2. Toggle on the section header for the section that contains each of these two widgets
+3) Configure the Chart header
+
+1. Use a Callout header style 2. Set the title to Product Shipment Arrivals 3. Use a flow-end icon 4. Color everything Sepia 3 5. Use the Standard (rather than large) size
+4) Configure the Table header 1. Use the same style and size as the Chart header... 2. but set the title to Shipment Details , icon to path-search, and color to Indigo 3.
+
+5) Configure the Filter list header
+1. Use the same style and size as the other two headers, but set the title to Filters , icon to filter, and color to Gray 5.
+2. Make this section collapsible.
+
+Step 6: Save your progress
+1. Click Save and publish
+If you switch to View mode, the spacing, colored section headers, and other stylistic changes should provide a more polished user experience. You can now also collapse the Filters section on the left to get more space.
+
+

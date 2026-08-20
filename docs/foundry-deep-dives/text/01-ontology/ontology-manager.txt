@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Ontology Manager
+Step 1: Open Ontology Manager
+1. Open Ontology Manager 1. This can be found by searching the Applications menu found in the left side bar
+You should then see an app header that looks like this:
+
+Ontology Manager (sometimes called the Ontology Management Application or OMA) enables you to build and maintain your organization's Ontology.
+While you can also define object and link types from Pipeline Builder (as you did in the End-to-End Speedrun course), Ontology Manager offers many more capabilities and options. Because you can currently (at the time of this writing) only edit ontology type definitions from the application you used to originally create it, it is generally recommended that you use Ontology Manager as your default ontology tool, unless you know that Pipeline Builder's lighter feature set will be sufficient for your needs.
+
+

@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Adding Data to Your Analysis
+Step 1: Add Equipment Object
+1. Click the Add Data to analysis button in Toolbar and find the [yourUsername] equipment Object you deployed earlier.
+Once selected, a green modal, Object set added to analysis, will appear at the top of the page. This will add all equipment data to your analysis. Note, you may alternatively add a single equipment object to your analysis by clicking Add Data and searching by the name of the individual object.
+2. Click the top-right X button to close the data modal and view the canvas.
+
+

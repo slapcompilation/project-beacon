@@ -1,0 +1,33 @@
+
+
+
+
+Lessons
+
+Create a New Pipeline
+In this step, you will create a new batch pipeline using Pipeline Builder, where you will add the raw data as input, and will clean the data to be later used for analysis and further data integration. The pipeline is the central place where you will be transforming your data.
+Step 1: Add a new pipeline
+1. In your working directory, create a new pipeline.
+
+Step 2: Rename and select batch
+1. Name your new pipeline "Pipeline" 2. Select the pipeline style as Batch pipeline 3. Select the batch compute as Standard 4. Click on Create pipeline
+
+Step 3: Add the data for the pipeline
+1. When opening Pipeline Builder, choose Upload data from your computer. If you deployed the datasets using marketplace, use the Add Foundry data option.
+2. When the window opens, select the products (parquet) and customers (CSV) datasets from your device.
+Note: We'll upload these two files together as the platform is able to infer the schema (column names) of these two data types. The import option for the json file will look slightly different in the next steps.
+
+3. In the following window, rename the datasets by clicking into the existing name. Name the parquet file products and the CSV file customers .
+4. Select Upload as individual structured datasets. 5. Click Upload.
+
+6. You should now see the products and customers datasets in your pipeline represented as rectangular nodes
+
+7. Next, we need to upload the json file for transactions. 8. From the top left bar, select Add Data and Browse & upload from your computer
+9. Find and select the json file for transactions on your device
+
+10. Rename the file to transactions 11. Select Upload to a new unstructured dataset 12. Click Upload
+Note that the 'transactions' name doesn't carry over to the name of the node representing the dataset in your pipeline as we need to complete some extra steps to extract the schema of the json file into a proper dataset. For now, we will manually rename the node for naming consistency. 13. Right / control-click on the node representing the transactions data 14. Click Rename and input transactions
+
+15. You should now have three nodes on your screen for customers , products , and transactions
+
+

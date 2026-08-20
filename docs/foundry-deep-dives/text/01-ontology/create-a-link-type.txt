@@ -1,0 +1,26 @@
+
+
+
+
+Lessons
+
+Create a link type
+It would be useful to be able to quickly navigate from each Flight Alert to its corresponding Flight object. There is a lot of ancillary information available on the Flight object that we don't need to repeat on the Flight Alert object, but that might be useful to users who are responding to an alert.
+Each Flight Alert includes a Flight Id property that contains the primary key of the corresponding Flight.
+Step 1: Create Flight Alert <> Flight link
+1. Click New > Link type in the top right corner of the screen 2. Create a foreign key relationship type
+1. Select Object type foreign keys 2. Click Next 3. Choose the two object types 1. On the left: [<username>] Flight Alert (where <username> is your username) 2. On the right: [OFT] Flight 4. Set the Foreign key for Flight Alert: Flight Id 1. Click Next 5. Set Cardinality: One Flight to Many Flight Alerts 6. Click Submit
+You should then have a link type definition that looks something like this:
+
+Concepts Foreign key
+Similar to the concept used in relational databases, a foreign key property in one object type contains values that appear as a primary key value in another object type.
+Cardinality
+This is another data modeling concept that is not specific to Foundry. The cardinality of a relationship indicates how many entities might be involved on the two sides of that relationship.
+
+This will depend on your underlying data and how you are modeling the world. For example, if you are modelling the relationship between an Airline and its Aircraft as "present-day ownership", it would be one-to-many: Each Airline might own many Aircraft, but each Aircraft is owned by only one Airline at a time.
+On the other hand, if you are modeling ownership over time (where planes are sold from one airline to another) or operations (where partner airlines might use codeshares or an airline might lease aircraft to its subsidiary airlines), then the relationship would be many-to-many: An Airline has many Aircraft, while an Aircraft is operated by many Airlines. (The Airline-Aircraft link in the Fresh Air Ontology is many-to-many if you would like to see an example.)
+With regards to the Flight Alert you just created, for this notional data pipeline, we generated only one Flight Alert per significantly delayed, cancelled, or diverted Flight. This would make this a practically one-to-one relationship. However, that is not a constraint we would want to impose here. Conceptually (and perhaps in a future version of this pipeline), we would expect this to be a one-to-many relationship: While each Flight Alert should only be related to one Flight, a Flight might generate multiple Alerts. For example a flight could depart late and then, several hours later, be redirected to a different airport. This would ideally produce two separate alerts.
+Step 2: Save your changes
+1. Click Save in the top right of the screen 2. Click Save to ontology 3. Click Save changes
+
+

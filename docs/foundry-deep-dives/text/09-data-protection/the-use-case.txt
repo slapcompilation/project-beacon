@@ -1,0 +1,11 @@
+
+
+
+
+Lessons
+
+The Use Case
+In today's data-driven world, maintaining robust data governance is crucial for organizations to ensure data integrity, security, and compliance with regulatory requirements. A well-structured data protection workflow not only helps in managing data effectively but also safeguards sensitive information from unauthorized access and misuse. This workflow leverages advanced tools such as Checkpoints, Cipher, and Sensitive Data Scanner to create comprehensive and secure data management systems.
+In this workflow, we will start by setting up purpose justifications to ensure that there are robust tracking mechanisms for any data downloaded onto local machines by users. Next, we will leverage the Sensitive Data Scanner to determine whether sensitive data is contained within a specific project. Users may sometimes forget that certain data is sensitive and should be limited in terms of viewership. The Sensitive Data Scanner allows you to track these types of sensitive actions and apply necessary measures. Finally, we will utilize Cipher, Palantir's obfuscation tooling. Data minimization is essential for lowering the risk of data breaches and unauthorized access, especially when dealing with highly confidential information.
+
+

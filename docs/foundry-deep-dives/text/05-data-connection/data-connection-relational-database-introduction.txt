@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Introduction
+In this lesson, you will learn how to establish a connection from Foundry to a Postgres relational database. Your objective is to retrieve data for use within the platform. The architecture of this connection is illustrated in the diagram below:
+
+A relational database is a database management system (DBMS) that organizes data in a structured format, typically using tables, columns, and rows. These tables represent various entities and their relationships, which facilitates efficient data retrieval and manipulation.
+Please note that, for this example, you will be using using an AWS RDS hosted Postgres database. However, the process you'll learn for connecting to this database is similar to the steps you would follow for any other database that supports the JDBC protocol.
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

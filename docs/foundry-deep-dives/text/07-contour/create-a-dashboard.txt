@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Create a Dashboard
+Often you may find that you want to share the results of your data analysis with decision makers or other users. In this case, you will typically want to point them to only a subset of the boards in your analysis and potentially provide additional contextual notes or information. Building a Contour dashboard lets you do this.
+Step 1: Create a dashboard of your analysis
+1. Scroll to your Histogram board 2. Click Add to dashboard at the top of that board
+The dashboard preview panel will appear on the left side of your screen and a blue Dashboard button will appear at the top. 3. Title this board: Inspection Alerts Histogram The box in the center of the Histogram card in the dashboard preview allows you to title this board within the dashboard. 4. Add a title to your dashboard 1. Click into the text box at the top of the dashboard preview, which says Untitled dashboard 2. Enter: Inspection Prioritization Dashboard 5. Add your pivot table to the dashboard 1. Scroll to your pivot table board 2. Click Add to dashboard 3. Title the board: Count of Parts by Plant 6. Add your bar chart to the dashboard 1. Scroll to your pivot table board 2. Click Add to dashboard 3. Title the board: Count of Parts by Equipment and Average Purity
+
+

@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Configure Code for Accessing Data
+Step 1: Add code to access data via API
+You are now ready to write the code that will retrieve data from the API. 1. Open the Files panel and select the spark-transform.py file.
+
+Copy down the path of the Output dataset as you will need to reference it shortly. Depending on your working project and folder, it should look like this:
+/Organization/(your_username) Data Connection Training/plants
+
+2. Remove all the code in this file and replace it with the following code snippet:
+from transforms.api import transform_df, Output from transforms.external.systems import external_systems, Source
+@external_systems( rest_api_source=Source("<<SOURCE RID>> ") ) @transform_df( Output("<<OUTPUT_PATH>> ") ) def compute(rest_api_source, ctx): url = rest_api_source.get_https_connection().url + "/secretPlants" auth_token = rest_api_source.get_secret("additionalSecretSecret") # client is a pre-configured Session object from Python `requests` library. client = rest_api_source.get_https_connection().get_client()
+headers = { "Authorization" : auth_token } response = client.get(url, headers=headers) response.raise_for_status() json_content = response.json()
+# the data fetched and parsed from the external system are written to the output dataset return ctx.spark_session.createDataFrame(json_content)
+4. Replace the <<SOURCE RID>> with the rid of your source. This can be found in the external system tab (globe).
+5. Replace <<OUTPUT_PATH>> with your dataset path, for example /Organization/(your_username) Data Connection Training/plants.
+After making these replacements, your code should be configured like the screenshot below to retrieve data from the REST API and save it to the specified dataset. Note that you may need to indent your code from line 11 downward (as pictured) to avoid syntax errors.
+
+Learn more Writing external transforms
+
+

@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Calculate Average Purity
+Now that we can see which equipment produced each part, it might be useful to know whether some equipment produces parts with higher purity than other equipment. In this step, you'll use Contour's Expression board to create a new column for part purity via a code snippet.
+Step 1: Add an Expression board
+1. In the board toolbar, Transform > Expression 2. Click the Editor tab
+Step 2: Add an avg_purity column
+1. Leave Add new column selected in the top bar 2. In the New column name field, enter: avg_purity 3. In the subsequent code text box, input the code below to calculate the average purity by
+equipment:
+format_number(avg("part_purity") OVER ( PARTITION BY "equipment_id" ), 2)
+4. Click Apply
+
+This code partitions the data by equipment_id and then computes the average part_purity for each of those partitions. It then rounds each average purity result to 2 decimal places.
+
+Contour's Expression board lets you use an expression language to update existing columns, derive new columns, perform sophisticated filtering, use CAST and CASE statements, window functions, obtain complex aggregations, and other functions. With an Expression board, you can perform SQL-like operations on refreshed data, without having to re-run queries and then transferring data extracts to Excel for further analysis each time a report is due.
+When editing in the Expression board, click the Help icon for a quick reference of the expression syntax. Click the Documentation link for the full list of supported functions. As you type, suggested functions appear in a dropdown and suggested columns appear to help autofill your expressions. Click or use the Enter key to select desired functions.
+You've now created a column to calculate the average part_purity per equipment since the start of 2024. You could alternatively evaluate the minimum or maximum value.
+Following this, we'll implement simple case logic to assess whether a piece of equipment requires an inspection.
+
+

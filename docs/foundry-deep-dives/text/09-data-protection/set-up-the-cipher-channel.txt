@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Set Up the Cipher Channel Step 1: Create a Cipher Channel
+This may have already been completed by your Administrator. If you do not see a Cipher Channel created under the Foundry Learning Project, please create one.
+1. Navigate to your Foundry Learning Project and your folder for this course. 2. Click on New 3. Type Cipher , then select Cipher channel.
+
+4. Save your Cipher resource as [yourUsername] Test Cipher 5. Under Cryptosystem, select the first option for Probabilistic encryption. 6. Click Next.
+
+7. On the next page, select Key Derivation. 8. Click Create Cipher channel.
+
+

@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Introduction
+In this module, you will focus on fundamental aspects of building a data pipeline in Foundry. The exercises in this section revolve around cleaning raw data, but the concepts and techniques discussed here are applicable beyond just data cleaning and preprocessing.
+Building a data pipeline involves ensuring that the raw data coming directly from the source is consistent, accurate, and ready for analysis. This is crucial for downstream tasks, such as operational insights or further data integration. Foundry's Pipeline Builder simplifies these tasks by providing pre-built Spark modules that make it easy to address common data processing challenges, such as data type casting, file format conversion, string formatting, and many more.
+In this module, you will walk through key data pipeline building concepts and understand how to leverage them using Pipeline Builder. For more information on Pipeline Builder, please refer to the Foundry Documentation.
+At the end of this module, you will have implemented a cleaning step for each of the uploaded raw datasets.
+
+This course is being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

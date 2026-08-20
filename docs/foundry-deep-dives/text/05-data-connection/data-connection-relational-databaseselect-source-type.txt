@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Select Source Type
+Step 1: Select the PostgreSQL source type
+1. Select PostgreSQL as the source type. Use the search box to help narrow down your selection if needed.
+
+2. This action will initiate the new source creation workflow. Click Continue in the bottom right corner.
+
+Learn more JDBC Sources
+
+

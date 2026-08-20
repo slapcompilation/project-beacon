@@ -1,0 +1,23 @@
+
+
+
+
+Lessons
+
+Set-up a Direct connection Egress Policy
+As with the S3 connection, you must ensure the PostgreSQL database is securely accessible to Foundry by creating or importing a network egress policy for the connection. This policy whitelists the data source, allowing secure access from your Foundry instance. This step is only required once--if someone has already set up the policy during a previous training session, you can reuse it.
+Foundry will suggest the recommended next steps based on the URL you've inputted in the previous step. Note that we are creating two Egress Policies in this section.
+Step 1a: Select an existing Egress Policy
+1. If the database.sandbox.training.palantir.com policy already exists, import it by clicking Import existing policy.
+
+Step 1b: Create a new Egress Policy
+1. If neither of the two policies exist, you will need to create them. Click on Create this policy to initiate the policy creation workflow for the database.sandbox.training.palantir.com policy.
+
+2. Leave the 'How to reach an address' field as Direct connection since the database used in this tutorial are accessible over the public Internet.
+3. Assign a descriptive name to the policy, such as Postgres Training . 4. If not automatically populated, enter the DNS
+database.sandbox.training.palantir.com and the port 5432 . 5. Click Next to proceed.
+6. Finally, click Save to save the policy. It will then be automatically applied to your source configuration.
+
+Learn more Configuring Egress
+
+

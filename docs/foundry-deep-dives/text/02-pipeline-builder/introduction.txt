@@ -1,0 +1,23 @@
+
+
+
+
+Lessons
+
+Introduction
+This course is continuously updated. If you have feedback, please email training-feedback@palantir.com.
+In the next 60 minutes, you will learn how to build your first data pipeline in Foundry's Pipeline Builder.
+What is a data pipeline?
+A data pipeline is a series of data processing steps that systematically transform raw data into valuable insights. Data pipelines clean, process, and integrate data, powering data-driven analyses and decision making within an organization.
+An example end-to-end data flow in Foundry could look something like the below diagram, where the outputs of your data pipeline feed directly into the Ontology to power operational applications.
+
+Why are data pipelines important?
+In Foundry, pipelines are the backbone of the flow and transformation of data from its source form (raw) into a state that is operationally valuable. Mastering pipelines is mastering the art of turning data into actionable intelligence. It's the difference between having a sea of indecipherable data points and a well-organized dataset ready for strategic use.
+
+What is Pipeline Builder?
+Pipeline Builder is Foundry's key low-code/no-code tool for effectively creating and managing of data pipelines. With Pipeline Builder, you can construct robust data processing workflows without the need for extensive coding. It's an intuitive interface that provides access to a suite of pre-built Spark modules, enabling you to tackle common data challenges with ease.
+The Training
+This training will guide you through the creation of a pipeline and the logic that powers it in Pipeline Builder. By the end of this session, you'll be equipped to take data from its raw state and transform it into something operationally valuable. The training will also briefly touch on surrounding aspects of pipeline construction -- such as branching, builds, schedules, and data validation. By the end of the training, you would have built a fully functional pipeline with minimal, if any, coding requirements, similar to the below:
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Feel free to use the video to follow along as you complete the course material.
+
+

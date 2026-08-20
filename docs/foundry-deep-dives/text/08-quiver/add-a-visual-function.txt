@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Add a Visual Function
+Visual functions in Quiver are reusable blocks of logic built using Quiver's point-andclick interface. They consist of one or more Quiver cards that load, combine logical steps to data inputs, and transform data within a Quiver analysis. These functions can be used multiple times within the same or other Quiver analyses and can be shared with other users. Visual functions allow you to build reusable logic without code, collaborate with colleagues, and simplify large analyses.
+Step 1: Calculate the average part purity
+We'll derive the average part purity, which can be dynamically filtered in our dashboard by Plant Managers.
+1. Select the Update Part Purity Column card 2. Select Calculate from the card Toolbar, then select Transform table aggregation
+Note that the card is automatically added to the bottom of the analysis and you may update the INPUT TABLE as needed.
+3. Change the AGGREGATION selection to Average 4. Select Part_purity in the COLUMN dropdown 5. Update the table name to Average Part Purity.
+
+Step 2: Create a new function
+1. In the left panel, select Visual Functions, then Create new functions. 2. You'll automatically be presented with a graph view where you can configure your visual
+function.
+
+3. Select the Average Part Purity on the graph; this will be output of your function. 4. Click Set as output at the bottom of the screen.
+
+5. Now, we'll set the function input. Eligible inputs in the analysis graph will be highlighted in purple.
+6. Select the Parts Object Set at the top of the screen 7. Click the black Set as input button
+8. Click the Publish button 9. Title the function [yourUsername]_avg_parts_purity_function and save Your function is now published and available for others to use on the platform.
+
+

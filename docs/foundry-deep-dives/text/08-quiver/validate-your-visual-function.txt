@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Validate Your Visual Function
+Step 1: Test your function
+In this section, you will double check that your function is working as expected.
+1. Click Exit Function on the top left 2. Click the + at the bottom of your page to add a new canvas 3. Add Part Object Type via the blue + Add data to analysis 4. Expand the Visual Functions in the left navigation panel 5. Click the + to add [yourUsername]_avg_parts_purity_function 6. In the configuration panel, select the Parts Object Set under PARTS. Make sure the
+variable name (e.g., $Z at the top of the card) corresponds with the new Parts object set that you just added. 7. Toggle on Auto-update to ensure that whenever a new function version is published, it's automatically applied to the analysis.
+The value in the screenshot below is what is expected for the average.
+
+

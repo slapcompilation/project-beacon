@@ -1,0 +1,28 @@
+
+
+
+
+Lessons
+
+Set Up Restricted Views
+Step 1: Create a New Project
+When you create a restricted view of a dataset, store the original (backing) dataset and the derived restricted-view dataset in two separate projects. Keeping them apart enforces clear project-level permissions: users with access to the restricted view do not automatically inherit access to the full dataset, and administrators can manage each project's access controls independently. This separation is essential for maintaining least-privilege access and preventing accidental exposure of sensitive data.
+1. Create a new project by following the instructions under "Create a Foundry Learning Project."
+2. Name the new project the same as your original project, but append "Restricted Views" to the end of the name.
+Note: In a real-world scenario, you should choose an appropriate name that reflects the purpose of the restricted data and the user base it will serve.
+Step 2: Establish a Restricted View
+1. Navigate to the project where you originally stored the employee_data dataset. Rightclick on the dataset, select Actions and Create restricted view.
+
+2. Save the file with the suggested naming convention (it should roughly look like so: employee_data restricted view) in the project you created under Step 1 and 2.
+Note: In a real-world scenario, you should choose an appropriate name that reflects the purpose of the restricted data and the user base it will serve.
+Step 2: Set up the Conditions
+1. You will automatically be asked to create a policy. Select + Add a condition and choose the Column State is equal to "MA" under static value. Thereafter, select + Add a condition again and this time, choose Current user's group ids matches any and type the group you previously created (Test_Foundry_Governance_Learning ). Once you select this you can exit the panel.
+
+Step 3: Validate the Restricted View Policy
+1. Verify that your policy has been applied correctly by clicking on Open testing panel
+2. Select another user who is not a member of the group assigned under Step 2 (consult the documentation for instructions on how to find user groups). Type out MA on the free text form before clicking on Evaluate policy. If the policy is functioning as intended, it should render an error message validating that the selected user is unable to view the information. Next, choose a user who belongs to the group, the content should appear without any error message. This simple test confirms that the access restrictions are working properly, ensuring users can only see data from groups they belong to.
+
+Conclusion
+This simplified workflow demonstrates a basic application of restricted views. However, restricted views offer a wide range of additional functionalities and use cases. We strongly recommend exploring our comprehensive documentation to gain a deeper understanding of how to effectively leverage restricted views within your organization. The documentation provides detailed insights into various advanced applications and best practices for implementing restricted views to enhance data security and access control.
+
+

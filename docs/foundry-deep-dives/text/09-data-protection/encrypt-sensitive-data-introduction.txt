@@ -1,0 +1,11 @@
+
+
+
+
+Lessons
+
+Introduction
+In this section, you will cover the basics of utilizing Cipher to strengthen your organization's data governance practices. Cipher is a powerful tool within Foundry that allows for the obfuscation of sensitive data, ensuring that critical information remains secure without hindering essential analysis. By leveraging Cipher, you can enhance data minimization efforts by obfuscating data in a manner that prevents unauthorized access while still allowing for necessary operational use. This tool promotes compliance with data protection standards by providing robust encryption mechanisms that safeguard sensitive information. Users can manage encryption and decryption settings to maintain a high level of security and transparency.
+Before proceeding, it is recommended you familiarize yourself with important concepts behind Cipher in our Foundry documentation.
+
+

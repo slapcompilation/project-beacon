@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Conclusion
+Congratulations on completing the Foundry Data Connection tutorial! You've taken a significant step towards unlocking the full potential of your organization's data. By setting up and managing data connections, you've made it possible to sync data from various sources into Foundry, enabling seamless data integration, modeling, and ontology layers. This accomplishment not only simplifies a typically complex technical task but also empowers more users within your organization to perform data connections.
+
+With Foundry Data Connection, you've laid the foundation for robust, extensible, and easy-to-use data pipelines. Your work will help your organization access and analyze data from a wide array of sources, leading to better-informed decisions and more efficient operations. As you continue to explore and sync new data, you'll contribute to the development of use cases at scale while complying with the full range of governance controls required for managing source systems. Keep up the great work, and remember that your efforts are instrumental in driving your organization's data-driven success!
+Looking to continue learning?
+Explore the Data Engineer Training Track for more courses and resources related to this course.
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

@@ -1,0 +1,27 @@
+
+
+
+
+Lessons
+
+Create a New Repository
+In your training folder Code Repo Training , you will first create a dedicated folder called logic where your Code Repository will live, followed by the Code Repository itself.
+Step 1: Create a subfolder for your repository
+1. Navigate to your training folder. This folder should currently contain one folder called data.
+2. Create a dedicated folder for your repo called "logic". 1. click +New in your training folder. 2. Choose Folder.
+
+3. Name the folder "logic". 4. Open the new logic folder.
+Step 2: Create your repository 1. Click on  New and choose Code Repository from the drop-down list.
+
+2. Choose Pipelines.
+
+3. Choose Python.
+4. Name your repository Claims Transforms (Python) . 5. Leave the location as is (this should be your logic folder created above). 6. Click Initialize repository.
+
+7. Depending on your Foundry instance, you might now land on the following Code Workspaces screen (with a black or white background). If you do, click on Code Repositories in the top and then Open without syncing.
+9. Sometimes, at this point or after the next step, Foundry informs you about Code Repositories news. You can ignore this here and close a potential dialogue.
+10. Click Skip and start with a blank repository in the next screen:
+
+Your code repository is now set up and open.
+
+

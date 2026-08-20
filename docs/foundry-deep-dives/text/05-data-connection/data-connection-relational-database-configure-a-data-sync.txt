@@ -1,0 +1,23 @@
+
+
+
+
+Lessons
+
+Configure a Data Sync
+Step 1: Explore the Data Source and configure an Export
+1. On the summary screen, click Explore to access and browse the Relational Database source you have just created.
+
+2. You will be directed to the Source Explorer (Explore source) view. Here you will view the datasets within the source that you have access to. Note it may take up to a few minutes for the source content to load on the initial connection.
+
+3. Locate and click on the plants table to preview its contents. Clicking on the + sign next to the table name will schedule the data for a Foundry sync (same functionality as clicking Add dataset to sync).
+
+4. Click on Create sync for 1 dataset. This action will finalize the data sync setup and trigger the initial import operation.
+5. Once the sync is created, a pop-up will appear. Click on the Open build details button within this pop-up to monitor the build's progress.
+
+6. After some time, you should observe a successful build indicating that the data import is complete.
+7. In the Data Connection tab, if your screen looks like the below, you can return to source by clicking on the left arrow at the top left side of the screen.
+
+Learn more Configure JDBC Syncs
+
+

@@ -156,7 +156,7 @@ function quotations(text) {
   const flush = (i = lines.length) => {
     if (block) {
       // A trailing `— path` attributes the quotation to an image.
-      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.md)\s*$/s.exec(block.text)
+      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.(?:md|txt))\s*$/s.exec(block.text)
       const body = normalise(attributed ? attributed[1] : block.text)
       if (body.length >= MIN_LEN) {
         out.push({
@@ -270,7 +270,7 @@ for (const name of readings) {
   }
 
   for (const q of quotations(text)) {
-    if (q.image !== null && q.image.endsWith('.md')) {
+    if (q.image !== null && /\.(md|txt)$/.test(q.image)) {
       // The learn.palantir.com courses are on disk and CLAUDE.md says to read
       // them, so a reading may cite one — but ONLY from the courses, and the
       // text has to be in the file. Allowing any `.md` attribution would let a
@@ -449,7 +449,7 @@ const sqlQuotations = (sql) => {
       // only readings had the `— path.png` form, while the header comment of
       // this file says screenshots carry the most weight of anything here. Same
       // rule as a reading — the file must exist on disk.
-      const shot = /[—-]{1,2}\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.md)\s*$/.exec(text)
+      const shot = /[—-]{1,2}\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.(?:md|txt))\s*$/.exec(text)
       const spans = text.split('"').filter((_, i) => i % 2 === 1)
       for (const span of spans) {
         const t = normalise(span)
@@ -507,7 +507,7 @@ for (const file of added) {
   }
 
   for (const q of sqlQuotations(sql)) {
-    if (q.image !== null && q.image.endsWith('.md')) {
+    if (q.image !== null && /\.(md|txt)$/.test(q.image)) {
       // Same contract as a reading's: only the courses may be cited as a file,
       // and the text has to be IN it.
       migChecked += 1

@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Generate Summary Statistics
+Step 1: Add a Calculation board of unique parts
+1. In the board toolbar, click Visualize > Calculation 2. Calculate the number of unique parts
+1. Column: part_id 2. Aggregate: Unique count
+Step 2: Add a calculation of unique equipment to the board
+1. Scroll to the top of the Data panel 2. Click Add calculation 3. Calculate the number of unique equipment IDs
+1. Column: eq_id 2. Aggregate: Unique count 4. Click Compute
+
+The Calculation board allows you to compute summary statistics and understand the shape of the dataset. This is useful to validate your logic when performing joins, window functions, or complex data transformations. In this case, we see that there 3,428 unique parts and 5 unique equipment. We can compare to these counts as we progress through the analysis.
+
+

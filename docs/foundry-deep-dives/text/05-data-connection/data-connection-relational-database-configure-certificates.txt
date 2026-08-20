@@ -1,0 +1,23 @@
+
+
+
+
+Lessons
+
+Configure Certificates
+For the PostgreSQL connection, you also need to configure certificates. SSL certificates are used to establish a secure, encrypted connection between the client (in this case, Foundry) and the server (the PostgreSQL database). This ensures that the data transmitted over the network cannot be intercepted or tampered with, which is critical for sensitive information. The SSL certificate also verifies the identity of the server to prevent man-in-the-middle attacks.
+You didn't need to configure certificates before because S3 connections are secured using AWS's built-in mechanisms.
+Step 1: Add Certificate details to the connection
+1. Still on the Connection Details tab, scroll to the Certificates section 2. Select Create new certificate and then Server certificate bundle from the dropdown.
+
+3. Add the certificate details. To get the server certificate, open the file attached to this lesson in a text editor and copy its entire contents into the text box. Bundle name: This can be anything you want (e.g "Training Certificate Bundle") Alias: server.pem Certificate content: server-certificate.txt (attached to this lesson, download at the bottom of this page) Select next.
+
+4. On the Configure permissions sub-tab you can leave this blank and select Create server certificate bundle.
+5. Select Add Certificate and select the Server certificate bundle that you just created, then click Confirm selection.
+
+6. Set the SSL mode to require. 7. On the configuration screen, click Save and continue in the bottom right corner.
+
+Downloads
+ server-certificate.txt
+
+

@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Add a New Path to the Analysis
+Step 1: Add a new path
+1. Click on New path at the top of the analysis 2. Select Paths in this analysis > parts
+
+In the new tab, the first input board will display parts (resulting set) as the title. This means the output of the parts path will flow as input into this new path.
+Step 2: Rename the path
+1. Double-click on the title of the input board 2. Rename it: Parts and Equipment Join After the rename, you'll notice the title of the tab at the top of the analysis has also updated to reflect the new name.
+When creating a new path, Contour allows you to select any dataset on your Foundry stack, any dataset already referenced in your Contour analysis, or the result of any previous path to continue building your analysis.
+
+To ensure a well-organized and easily comprehensible analysis, it's recommended to manage the cleaning of disparate datasets in distinct paths. For instance, you may want to join the cleaned parts data to an additional finance dataset to allow for further maintenance prioritization. For optimal performance and clarity in your analysis, it is advisable to confine your work to no more than five paths, each with a maximum of 20 boards.
+
+

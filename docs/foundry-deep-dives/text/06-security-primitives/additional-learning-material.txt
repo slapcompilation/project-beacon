@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Additional Learning Material
+If you are interested in learning more, we encourage you to review our Documentation to learn more about Markings and Restricted Views. We also encourage you to continue leveraging Palantir's Developer Community platform to ask questions and learn from various Palantir users from around the globe.
+Explore the Training Tracks on the Palantir Learn homepage for further material mostrelevant to your work in Foundry!
+Additionally, if you'd like to leave any feedback on this course, please do so in the following lesson for Course Feedback (this also requires an account). If you have any other feedback on how we can improve our course content, please email us at trainingfeedback@palantir.com.
+
+

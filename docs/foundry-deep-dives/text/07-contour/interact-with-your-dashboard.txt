@@ -1,0 +1,44 @@
+
+
+
+
+Lessons
+
+Interact with Your Dashboard
+Let's see what this dashboard will look like to viewers of your analysis.
+Step 1: Open your dashboard
+1. Click Open dashboard at the top of the left dashboard panel Alternatively, you can click the blue Dashboard button in the top right of the screen.
+
+Step 2: Explore your dashboard filters
+In your dashboard, you may see the filters applied to each board as you selected or defined them in your analysis. These are interactive for viewers of the dashboard. 1. Click on the high bar in the Histogram
+Note how the two lower boards update accordingly. Also, the note at the bottom of the Histogram board indicates that the analysis's saved filters have been overridden. 2. Click Reset This is the curved arrow in the lower right of the Histogram board.
+Step 3: Explore your dashboard parameters
+On the left side of the page: 1. Click the (x) to view the Parameters
+
+1. In the Plant filter, select Plant 2 2. Click Apply at the bottom of the Parameters panel
+1. The boards in the dashboard will dynamically update based upon your selection. 3. Clear the parameter
+1. Click the X in the Plant text field to remove the list of plants 2. Click Apply
+
+Step 4: Explore your dashboard filters
+In your dashboard, you may see the filters applied to each board as you selected or defined them in your analysis. These are interactive for viewers of the dashboard.
+1. Click on the high bar in the Histogram Note how the two lower boards update accordingly. Also, the note at the bottom of the Histogram board indicates that the analysis's saved filters have been overridden.
+2. Click Reset This is the curved arrow in the lower right of the Histogram board.
+
+Step 5: Export to PDF
+Although sending people to your dashboard in Foundry gives them the ability to interact with it and explore the analysis that produced it, sometimes you need a static snapshot. 1. In the top right of the screen, click Actions > Export as PDF > Portrait
+It will take Foundry a few seconds to generate the PDF. Any filters and overrides applied in the dashboard are included in the PDF report.
+[Optional] Step 5: Email to User
+You may not have the permissions required to complete this step. This step is not necessary for completing the course, so you can skip it.
+You can configure the dashboard report to be automatically emailed to a specified Foundry user, as follows: 1. Enable data refresh whenever the analysis is opened
+1. Click Back to analysis in the top left of the dashboard view 2. Open Settings in the left panel by selecting the cogwheel icon 3. Under Data settings, toggle on Refresh analysis data on open
+
+2. Return the Dashboard view using the blue button at the top of the screen 3. Select Actions > Email on a schedule
+4. In the right panel, click Email this Contour dashboard on a schedule This start to create a recipe. On the Foundry platform, recipes are used to monitor for conditions of interest, to automatically send notifications through Foundry or email to other users, and to deliver a preview of additional context related to the conditions of interest.
+5. Configure the recipe 1. Select a recipient (such as yourself) or user group 2. Customize the message with a subject and message
+
+3. Click Next 4. Configure the reporting cadence 5. Click Next 6. Configure the name, description, and expiration of the recipe that sends this email 7. Click Save recipe An email will be sent to the specified users with a link to the Foundry resource and a PDF of the configured dashboard.
+At this point, you've built a dashboard tailored for plant managers to showcase your analytical findings in an easily understandable format. The dashboard can auto-update whenever new data is available. The audience will benefit from several features,
+
+including chart-to-chart filtering, inline parameter references, a fullscreen presentation view, and the capability to export as PDF. Contour dashboards empower users to interact with live data and results, thereby facilitating the sharing of findings and insights in a well-organized and directed manner.
+
+

@@ -1,0 +1,41 @@
+
+
+
+
+Lessons
+
+Install the Marketplace Product
+With your working location created, you're now ready to install the resources required for this training through the Foundry Marketplace. Marketplace is a storefront application that allows you to discover and install various data products or "bundles." You'll be installing a bundle that contains all the resources you'll need for the training, including pipelines and notional datasets.
+Having trouble?
+If you're having trouble installing Marketplace products, your organization may be controlling which users are able to install Marketplace products or create new resources such as Projects, Objects, Actions, etc. Please check your local Training app or reach out to your platform administrator for help. See the earlier Getting Help section for details.
+You may also reach out to training-feedback@palantir.com for assistance.
+
+Step 1: Open Marketplace
+1. Click on Applications on the left side of the screen
+
+2. Search for Marketplace and open it.
+Step 2: Open Deep Dive: Data Analysis in Quiver Marketplace product
+1. Search the Deep Dive: Data Analysis in Quiver product in the top search bar labeled Search products... (not the lower search bar labeled Search stores...)
+2. Click into the corresponding product
+
+Step 3: Start the installation
+1. Click Install or Install again in the top right corner
+Step 4: Customize the installation
+1. Set your username as the installation suffix 1. Toggle on Installation suffix 2. Enter your own <username>
+2. Change the installation location to your course-specific training folder 1. Click Use existing location
+
+2. Click Browse 3. Browse to your Learning (<username> ) > Deep Dive: Data Analysis in Quiver folder 4. Click Save 3. Click Next
+Step 5: Confirm the content
+1. Ensure the content you are installing is similar to the one below 2. It is recommended to enable "Prefix ontology entities" and enter your username within
+this field. 3. Click Next
+
+Step 6: Install
+1. Ensure that all validations pass 2. Click Install
+
+Step 7: Navigate to the installation
+1. Wait for the installation and builds to finish 2. Click View installation 3. Click the Installed in hyperlink at the top of the screen to go to your course-specific
+folder
+
+Your course folder should now contain something like this:
+
+

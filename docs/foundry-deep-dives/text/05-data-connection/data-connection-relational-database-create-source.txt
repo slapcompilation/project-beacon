@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Create Source
+Step 1: Create the Source connection
+1. Provide a name for your source. For example, Data Connection Training - Postgres (your_name) .
+
+2. Select the Project and folder where you want to save the Source. If you have created an existing Learning Project, continue to use that Project for this course.
+
+3. Click Create source and continue in the bottom right corner to finalize the creation process and proceed.
+Learn more Data Connection: Source Permissions Best Practices
+
+

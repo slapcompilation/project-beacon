@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Create a Scatter Chart
+Step 1: Create a scatter chart for displaying Part Purity
+1. Select the Update Part Purity Column card, and click Visualize category in the cards Toolbar
+2. Select Categorical plot from transform table 3. For the GROUP BY, select Part Production Date with BUCKETING by Month 4. In the SERIES section, select Average as METRIC 5. Set PROPERTY as Part Purity and SEGMENT BY the Equipment Name. You'll note that
+the production date has to be configured as the horizontal axis.
+
+6. Select Display, and update VISUALIZATION TYPE to Scatter Chart 7. Change CATEGORICAL AXIS TITLE to Part Production Date 8. Update the VALUE AXIS TITLE to Part Purity
+
+9. Click the dashboard icon, then Dashboard 1
+
+

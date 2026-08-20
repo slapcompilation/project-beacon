@@ -1,0 +1,27 @@
+
+
+
+
+Lessons
+
+Creating Markings and their Application
+The Concept behind Markings
+Markings are typically established at the beginning of a project but can be created at any time as needed. Administrative users have the authority to create Markings and Marking categories, as well as manage their metadata, visibility, and membership. Access to the Marking section within Platform Settings is restricted and requires special platform permissions.
+To better understand how Markings work, consider this example: When you apply a "PII" (Personally Identifiable Information) Marking to a folder, all files and subfolders within that folder automatically inherit the "PII" designation. This inheritance principle extends further: If you create a new dataset derived from a "PII"-marked dataset, the new dataset also inherits the "PII" classification, even if it's stored in a completely different location. This cascading effect ensures consistent data protection and classification across your information ecosystem.
+The instructions on how to build out Markings can be found below:
+Step 1: Creating a Marking Category
+1. Navigate to Foundry Settings by clicking on the bottom left of the screen, on your Account name.
+2. Click on the Markings tab and select + New marking category.
+
+3. Create the Category Name Data Governance Training Marking. Keep the visibility category to Visible and make sure your organization is selected before clicking Create category. (Note that once created, marking categories cannot be deleted)
+Note: In most cases, the names and descriptions of Markings and categories are not sensitive information and should be visible even to users who do not have Marking access. This behavior is determined by the category visibility, which is Visible by default. To learn more, review the documentation.
+
+Step 2: Create a Marking
+1. Once you have created a marking category, find it on the list and click on it. Make sure to add a description and scroll to the bottom of the screen to click on + New marking...
+
+2. Name the marking Data Governance Training and include a brief description before saving.
+
+Step 3: Add a Group to a Marking
+1. Finally, once you see the Marking appear on the list, select it from the list and click on Manage under Marking permissions, add your Test_Foundry_Governance_Learning group which you previously created and assign them Manage permissions rights before saving. For more information on what Markings permissions allow, refer to the documentation.
+
+

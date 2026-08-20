@@ -1,0 +1,53 @@
+
+
+
+
+Lessons
+
+Create an object type
+Aside: Permissions
+You may not have permission to create new object types in the default Ontology at your organization. If you run into an issue creating a new object type in the next step, see the Permissions & Help lesson early in this tutorial, the Install the Marketplace Bundle lesson, and/or try these two potential fixes:
+1) Change the current Ontology. In the top left corner of the Ontology Manager application, there is a drop-down to select between different Ontologies (if more than one is available). If you explore this drop-down, you may find an Ontology that you have permission to edit and that contains the rest of the Fresh Air (OFT) Ontology.
+
+2) Use Ontology Proposals. Some organizations limit edits to the production Ontology via Ontology Proposals. If you are unable to create new Objects in an available Ontology, you may need to create a custom branch for the steps below and seek approval from your organization's Administrator for merging in the changes.
+
+Step 1: Create Flight Alert
+1. Click New > Object type in the top right corner of the screen 2. Select the flight_alerts dataset from the Deep Dive: Creating Your First Ontology folder as
+an existing datasource 1. Click Use existing datasource 2. Click Select datasource 3. Search for the flight_alerts dataset found in you Deep Dive: Creating Your First
+Ontology/data/flight alerts/ontology/ folder 4. Click Next 3. Name your object type [<username>] Flight Alert (where <username> is your own username) 1. For example, if your username is jsmith, you would create [jsmith] Flight Alert 2. The Plural name should update accordingly 3. Click Next 4. Set the Primary key and Title properties 1. Set Primary key to Flight Alert Id 2. Set Title to Alert Title 3. Click Next 5. Skip creating any generic action types 6. Click the green Create button
+This should result in an overview of your new object type:
+
+Concepts Mapping a datasource to an object type
+When you define a new object type, you are defining a kind of blueprint or template. This object type is backed by one or more datasources. This datasource is typically a dataset, but it could also be restricted view, virtual table, etc.
+Each row of data in the backing datasource will produce one object that is a specific instance of that object type. Each column typically maps to a property. The permissions a user has to the backing datasource(s) also determines whether they can see the corresponding object data.
+Here is example using Customers:
+
+You can explore this row-to-object mapping in Ontology Manager. If you look at the bottom of your screen, you'll find a preview of the backing datasource. At the top of that panel, click Preview objects to preview the objects that correspond to each row.
+By using actions, it is possible for users to create additional objects that do not exist in the backing datasource. Users can also delete objects. Therefore, over time, the mapping from rows to objects may not always exist for all rows.
+Columns verses Properties
+By default, when you create a new object type, each column of the backing datasource is mapped to a property in the new object type. However, you can change this mapping. For example, you can rename a property or choose not to map some columns to properties.
+It is also possible to add properties that are not backed by a column. If you create a new property, you can set its Source to User edits. These values can only be created or changed later through actions on a per-object basis.
+
+If you look through the preview of the flights_alerts dataset, you'll find that the root_cause column is empty (contains only null values). When initially building this pipeline, there was no satisfactory way to determine the root_cause for each alert from the other data available. Instead, we plan to collect this information from Flight Operations users as they investigate and close each alert. In this case, the Root Cause would have been a good candidate for an edit-only property without a backing column. However, creating an empty column as part of the data pipeline also works. This will make it easier to insert a data-derived root cause value later if we should ever integrate another data source that would let us update the data pipeline to determine at least some instances of this automatically.
+The takeaway here is that, while datasource columns inform which object properties you have, they do not always map 1-to-1 because object data is separate from datasource data. (We'll explore this in a little more detail in Object Storage below.)
+Primary Keys and Titles
+Every object must have a unique identifier that is consistent for the life of that object. This is its Primary key property. When selecting a primary key, you must choose a column that will contain a unique value for each row and that is never null. Strings are typically the best data type to use for this.
+If your backing datasource doesn't contain a column that will serve as a valid identifier, you might derive a new column that concatenates multiple columns (and optionally hashes the result) to generate a valid key. This must be a deterministic repeatable process. You should never generate a random ID or GUID for this purpose as part of a data pipeline, because, if the pipeline is ever rerun, all of your object IDs will change.
+Every object should also have a Title. This property is used as the user-friendly and human-readable name of the object in search results and in most Foundry applications. While the primary key can also be used for this purpose, unique keys are often fairly unreadable or opaque to everyday users. Again, you might derive a useful title from other columns as part of your backing data pipeline.
+Actions
+Actions provide a controlled way to create, edit, and/or delete objects. Ontology Manager offers to create a generic version of these when you create a new object type.
+
+In this example Fresh Air use case, we plan to only create new Flight Alerts through the data pipeline, so we don't need a Create action for users to do so manually. While we will resolve alerts, we won't delete them, so we also don't need a Delete action. We will allow users to edit an alert, but only by touching certain fields. So we will create a more targeted action for that purpose in a later step.
+Step 2: Save your changes
+1. Click Save in the top right of the screen 2. Click Save to ontology 3. Click Save changes
+If other users have made changes to the ontology while you were working, you may be prompted to update your view of the Ontology to pull in their changes before you can save your own.
+If you get any errors at this point, you can review the steps above to see if you made any mistakes in configuring the object type. If you get stuck, you can discard all of your edits and start over.
+Concepts Object Storage
+Once you save, you'll see a little progress spinner appear in the upper left of the screen:
+This indicates that Foundry is currently building an index of all of your object data for this object type in Object Storage v2. If you click this spinner, you can view the progress. This will take you the Datasources tab:
+
+If Foundry encounters any issues--such as non-unique primary keys--you'll be able to get to detailed job details and error messages from here.
+Only once this indexing pipeline completes successfully will you be able to see your new objects in Object Explorer and other Foundry applications. Once it's done, you can refresh the page to see an object count in top left of your screen: 183, 999 objects.
+You do not need to wait for this pipeline to finish running to move on to the next step of this tutorial.
+
+

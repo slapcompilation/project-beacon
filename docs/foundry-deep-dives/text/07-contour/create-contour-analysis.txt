@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Create Contour Analysis
+Next, you'll create your Contour Analysis within your folder for this course and confirm its name.
+Step 1: Analyze the parts dataset in Contour
+1. Right-click on the parts dataset to pull up the task options Or you can use CTRL + click on a Mac
+2. Select Actions > Analyze in Contour We'll use the equipment dataset later in the training.
+
+Step 2: Save your analysis
+1. In the top right of your screen, click on the green Save as... button 2. Rename your analysis: Equipment Analysis 3. Confirm that you are saving into your course folder 4. Click Save
+
+

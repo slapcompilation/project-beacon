@@ -1,0 +1,27 @@
+
+
+
+
+Lessons
+
+Add a Dataset Output
+The nodes in your pipeline so far are each intermediate transformations. Materializing outputs refers to the process of storing the results of a data transformation or join operation as a new dataset, which can be reused for other use cases and analyses within Foundry.
+Materializing outputs is particularly beneficial when working with large or complex data transformations, as it allows you to break down your pipelines to encapsulate the results. Materializing outputs can improve the maintainability and traceability of your data pipeline, so you can track the lineage of each dataset and understand how it was derived.
+Materialized outputs can not be further used as inputs to other transformations, and they represent the outcome of your pipeline. For more information on Pipeline Builder outputs, please reference the Foundry Documentation.
+In your current example, you will materialize the outputs of both the transactions x products join and the transactions x products x customers join, since they will be operationally valuable for various use cases further down the line.
+Step 1: Add a new dataset output to transactions x products
+1. Navigate to the transactions x products node and select the Add output option in the list.
+
+2. Select New dataset. 3. Give the generated dataset a relevant name on the right hand side.
+
+Step 2: Add a new dataset output to transactions x customers
+1. Navigate to the transactions x customers node and select the Add output option in the list.
+
+2. Choose New dataset. 3. Give the dataset a relevant name.
+
+Step 3: Save all changes and deploy the pipeline
+1. Click Save 2. Click Deploy and note the pop-up stating that a build is starting.
+
+Once the pipeline is deployed, your outputs will be materialized into Foundry resources and will be created in the folder of the pipeline.
+
+

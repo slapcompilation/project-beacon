@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Introduction
+In this lesson, you will learn how to establish a connection from Foundry to an AWS S3 bucket. Your objective is to retrieve data for use within the Foundry platform. The architecture of this connection is illustrated in the diagram below:
+
+Amazon Simple Storage Service (AWS S3) is a scalable, durable, secure, and costeffective object storage service offered by Amazon Web Services (AWS). It enables users to store and retrieve virtually unlimited amounts of data, from small files to extensive datasets, at any time and from any location. Due to these advantages, AWS S3 is a popular choice among many enterprises.
+Please note that while this training focuses on AWS S3, the methodology for connecting to other cloud object storage solutions--such as Google Cloud Storage (GCS), Microsoft Azure Blob Storage, or other S3-compatible services--is quite similar. This means the skills you acquire here will be broadly applicable across different cloud storage platforms.
+Learn more
+AWS S3 Integration
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

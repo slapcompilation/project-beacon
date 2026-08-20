@@ -1,0 +1,32 @@
+
+
+
+
+Lessons
+
+Filter Data and Implement a Parameter
+Step 1: Filter the transform table
+In our analyses, we often need to filter the data to only rows that meet specific criteria. For our analysis, we're going to exclude historical parts data to ensure we're using only recently manufactured parts as a basis for our decision-making.
+1. Click on the Filter dropdown from the Cards Toolbar, then select the Filter transform table card.
+
+You have the option to keep or remove rows that meet a single filter or multiple filter criteria. In this case, we'll keep all rows that match all filters.
+2. Under CONDITIONS, select Part Production Date 3. In the subsequent dropdown, select On or after 4. Choose Jan 1, 2024 from the date selector 5. The objects that meet our filter condition are returned in the new Transform table.
+Rename this table as Parts produced after Jan 1, 2024.
+
+Step 2: Implement a parameter
+In future steps, we'll create a dashboard populated with outputs from our analysis to share with plant managers. Each plant manager will want to filter for the plant location relevant to them, and will want to interact with the dashboard at the same time. Unlike filtering for parts produced this year, we'll implement a parameter to filter dynamically and prevent users from overwriting others' selections.
+1. In the left panel, select Parameters
+
+2. Click + Create parameter then hover over Selection. 3. Choose Property value to enable the user to select a value from a dropdown.
+Note Time, Numeric, String, Other, and Boolean options require manual input or can be configured to evaluate against other column values for an object.
+
+4. In the right configuration panel, select Equipment as the OBJECT SET and Equipment Plant for PROPERTY TYPE
+5. Scroll to the Parts produced after Jan 2024 card and click the cog icon to open the configuration panel. You'll see the New transform table (object set) follow by Filter transform table.
+6. Click Filter transform table.
+
+7. Click + Add filter and select Equipment Plant. 8. In the following dropdown, select Is in array. Note that if you select Is (string), no default
+value is passed through unless specified in the parameter configuration, and no objects will be returned in the card. 9. In the dropdown below Is in array, select Equipment Plant Select Parameter
+
+10. Lastly, update the table name to Filter on equipment plant and parts production date.
+
+

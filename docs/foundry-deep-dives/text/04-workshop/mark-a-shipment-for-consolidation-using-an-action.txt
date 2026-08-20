@@ -1,0 +1,94 @@
+
+
+
+
+Lessons
+
+Mark a shipment for consolidation using an action
+Users will locate shipments that are eligible for consolidation in the Gantt chart. They should be able to select them from within the Gantt and then mark them as eligible.
+Step 1: Enable selection in the Gantt chart
+1. Select the Gantt chart widget 2. Click into the Layer configuration 3. Under OUTPUT, toggle on ENABLE SELECTION 4. Under SELECTED OBJECT SET, Select object set variable > New object set variable 5. Rename the variable from Gantt chart 1 Selected object set to Selected Shipment
+You can test this by selecting a shipment in the Gantt chart. The current value of the Selected Shipment variable should update. You can view its value in the Variables panel or by clicking on the variable in the widget configuration.
+
+Step 2: Open Ontology Manager
+Next, users will need to be able run an action in Foundry to mark the selected shipments appropriately. You will need to switch to the Ontology Manager to do this. 1. Click Save and publish 2. In the left gray navigation bar, open Applications > Ontology Manager in a new tab
+To open in a new tab, right-click on on the Ontology Manager entry. If you do this, you will be able to switch between the two applications more easily
+Step 3: Select a valid ontology
+In the Ontology Manager: 1. Check at top-left of the screen that the target Namespace and Ontology (if listed) are the
+same are the same as the Namespace and Ontology options you selected when installing the Marketplace product at the start of this course 2. If they are not the same, click on the drop-down and update the namespace and ontology.
+If you have multiple options and you do not know which one to pick, contact your Foundry platform administrator. You will need to choose an ontology to which you have Ontology Editor permissions in order to create a new action in the following steps.
+
+Step 4: Enable edits for Shipments
+1. Search for and open your [<username>] Shipment object type 2. Switch to the Datasources tab 3. In the Edits section, toggle on Allow edits 4. Save your ontology changes
+Step 5: Create a new action type
+1. Click New > Action type in the top-right of the screen
+
+This will open a popup for creating the action type.
+Step 6: Configure the new action type
+1. Define the Action type to modify Shipments 1. Under Object type, Choose an object type: [<username>] Shipment 2. Under Object actions, select Modify object(s) 3. Click Next
+2. Define the Mapping to set the Status property
+
+1. Click Add property > Status 2. Under Map to, change Status to Static value > Eligible for Consolidation 3. Click Next This means that, rather than prompting the user to enter a Status property value, this action will always set the Status directly to Eligible for Consolidation.
+3. Define the Metadata 1. Action type name: Mark [<username>] Shipment for Consolidation (where <username> is your own username) 2. Description: Sets Status of the shipment to "Eligible for Consolidation" 3. (You can leave the icon as the default icon) 4. Click Next
+
+4. Define the Submission criteria to let yourself execute this action type 1. Switch to the User tab 2. Set User is to your own user account 3. Click Create
+You should now see the full definition for your new action type.
+Step 7: Tour and clean up the action type
+1. Click into Rules on the left hand side of the screen
+
+This page shows the current effect of the action type. It shows that the Status property of a Shipment object is set to Eligible for Consolidation . This page also shows the TypeScript code equivalent of the point-and-click action type definition.
+2. Click into User Interface This user interface is presented to a user whenever the action is invoked in Foundry. At the moment, there is one Shipment object input in the rules and a string parameter Status that is unused. The Shipment object is the one for which the status is changed. The string parameter was added automatically as an option to allow the user to define what the Status should be set to. However, the parameter is marked as unused because the effects of the action, defined in the rules, do not use this property. Instead the Status property is set to a static string. 3. Delete the unused Status parameter
+Hover over it and click the X that appears on the right-hand side
+
+Step 8: Save the action type
+1. Save your changes 1. Click the green Save button in the top-right of the screen 2. Click Save to ontology 3. Click Save changes
+The action type has now been added to the ontology and can be used in applications.
+Step 9: Add an action button in Workshop
+We will add a button just above the Gantt chart to execute this new action .
+
+1. Return to your Workshop app 2. Add a button group above the Gantt chart
+1. Select the indigo section header above the Gantt chart Two + icons should appear in the header
+2. Click the right + icon 3. Search for and select the Button group widget
+3. Click into the Button 1 configuration
+
+4. Configure the Button 1 as follows: 1. TEXT: Mark Shipment for Consolidation 2. INTENT: SUCCESS 3. LEFT ICON: Search merge and select the data-lineage icon under interface 4. ON CLICK: Select Action 5. Select an action: Mark [<username>] Shipment for Consolidation
+
+If you now click the button in the section header, a popup will open. This is the action form. It will include the option to select the parameters for the action (the shipment) and then submit the action. Instead of asking the user to select the shipment, ideally the form would automatically populate this field with the shipment selected in the Gantt chart. Close the popup for now.
+
+5. Continue to configure Button 1 1. Under PARAMETER DEFAULTS, Select parameter to configure > [<username>] Shipment 2. Under LOCAL DEFAULT VALUE, Select a variable > Selected Shipment
+To test this change, select a shipment in the Gantt chart and then click the button in the section header again. This time the shipment in the action form should automatically populate to the Shipment you selected. Close the popup without clicking Submit.
+
+Step 10: Add Status formatting to the Gantt chart
+Currently, the Shipment's Status property is not shown or used anywhere in the application. Therefore, when a Shipment is marked for consolidation, this change will not be reflected in the application.
+The Gantt chart allows coloring of the events it displays based on a property of the objects. We can use that to indicate current Shipment status.
+1. Select the Gantt chart widget 2. Click onto the Layer configuration 3. Under DISPLAY AND FORMATTING: EVENT COLOR, select Property 4. Under CONDITIONAL FORMATTING PROPERTY, select Status
+Widgets in Workshop applications can base their formatting of object properties on formatting rules defined in the Ontology. This means that the formatting rules can be defined once in the Ontology and used across multiple applications.
+5. Click Save and publish to ensure you don't lose your work so far 6. Under CONDITIONAL FORMATTING RULES, click Configure
+This will open your [<username>] Shipment object type in Ontology Manager in a new tab
+
+7. Select the Status property The property configuration will open on the right
+8. Click the Display tab at the top of the property configuration 9. Under Conditional Formatting, click Add rule
+This will open the editor for the formatting rule.
+The rule is defined on the left-hand side of the popup and the formatting effect is on the right-hand side. The formatting rule should highlight shipments that have been marked for consolidation.
+
+11. On the left-hand side, under is exactly, enter: Eligible for Consolidation This will be the value of the Status property after the action is executed.
+12. On the right-hand side, click Success and change this to Warning 13. Click Update rule
+Let's add another rule that takes care of the formatting for all other statuses. 14. Click Add rule 15. On the left side, select Always true
+This means this rule will always apply. After defining the rule, you can define the order that they are evaluated so that the formatting of this rule only applies if the other rule doesn't apply. 16. On the right-hand side, change Intent to Blueprint This will give you more colors to choose from 17. Change Green 3 to Light Gray 1 18. Click Update rule
+
+As mentioned, the conditional formatting rules are evaluated from top to bottom and only the first match applies. Right now, if the Status property has the value "Eligible for Consolidation", it will get marked in orange. Otherwise, the "always true" rule at the bottom acts as a catch-all for other Status values and will color those values light gray.
+19. Save your ontology changes 1. Click Save in the top right 2. Click Save to ontology 3. Click Save changes
+
+20. Return to your Workshop tab 21. Refresh the page in your browser to pull in the Ontology changes 22. Select the Gantt chart widget to open its configuration 23. Click into the Layer configuration
+Under DISPLAY AND FORMATTING, you should now see the formatting rules you just defined in the ontology manager.
+
+Step 11: Test Status formatting
+When the user captures their decision that shipments should be consolidated, that decision will now be reflected visually.
+1. Switch to View mode 2. Filter to the shipments leaving the St. Louis facility and arriving at the New York facility. 3. Switch to the Schedule tab 4. Find a pair of shipments that can be consolidated
+For example, Shipment 57 (5,000 units with a 15,000 unit capacity) and Shipment 41 (14,000 units with a 20,000 unit capacity) can be consolidated. 5. Mark one of these shipments for consolidation 1. Select the shipment bar in the Gantt chart 2. Click the Mark Shipment for Consolidation button 3. Click Submit in the action form
+That shipment should then be marked in orange in the Gantt chart 6. Repeat to mark the other shipment for consolidation as well
+
+Step 12: Add Status to tool tip
+1. Return to Edit mode 2. Open the Gantt chart > Layer configuration 3. Under PROPERTIES TO SHOW ON HOVER, add Status 4. Save and publish your changes
+
+

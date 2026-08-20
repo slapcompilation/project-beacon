@@ -1,0 +1,39 @@
+
+
+
+
+Lessons
+
+Add and visualize shipment data
+Now we will add shipment data from the ontology to your application and visualize it in a chart that shows the number of shipments arriving across all locations on a given date.
+Workshop applications are made up of widgets such as charts, tables, buttons, maps and filters. Widgets are laid out in sections. Sections and the widgets within them make up the visual layer of an application.
+Widgets are powered by data. The data must come from the Ontology. (You cannot build Workshop applications directly from datasets.) You can visualize and interact with the supply chain ontology by passing objects from that ontology into widgets.
+Data in workshop is stored and passed around using variables. Widgets take an input variable that tells that widget what data to present. Most widgets will also produce output variables. For example, a widget might produce a variable containing the set of objects that the user has currently selected in that widget. The details of input and output variables will depend on the particular widget. The details can found in the widget's configuration panel and in the Foundry documentation.
+Much of the configuration of a Workshop module involves using the output of one widget as input into another, possibly with some intermediate manipulation of the data in those variables. Workshop variables are statically typed according to the data they contain. Variables can be of a primitive type (such as string, boolean, numerical, date, timestamp), or they can contain objects using the object set type. The type of the variable dictates how it can be used. This provides type safety when building applications in workshop.
+To start on the Shipment Operations Center, we want to visualize the number of shipments arriving each day across all locations. To do this, you first need to create a variable that contains the relevant Shipment data. You will then use variable as input to a Chart widget.
+
+Step 1: Create an All Shipments variable
+In the left side panel of Workshop, there are several different tabs (icons). If you mouse over them, you'll find that they include Overview, Layout, Variables, Changelog, Profiler, and Settings. If you click on an open tab, it will collapse the side panel. Click it again to reopen it. 1. Click on the Variables tab
+2. Click the + icon at the top of the variable panel 3. Select Object set > Object set definition
+
+This will create a new object set variable named var1 and open the interface for defining how that object set should be computed.
+4. Create an object set of all your Shipment object types 1. Under Starting object set, find your [<username>] Shipment object type 2. Click Select
+5. Rename your variable from var1 to All Shipments in the top left 6. Click the X in the top right to close the variable definition
+
+You now have an All Shipments variable that contains the set of all Shipment objects. Object sets like this can be defined in multiple ways. In this case, you used the graphical object set builder, but it is also possible to use a function (written in TypeScript or Python) or to transform other variables in the Workshop application. Even when using the graphical object set builder, it's possible to provide more complex logic, such as by applying static or dynamic filters or traversing links to linked objects.
+Step 2: Add a Chart: XY to visualize All Shipments
+The Workshop application currently contains three empty sections:
+A horizontal header running across the top of the application A smaller vertical section on the left-hand side A larger vertical section on the right-hand side
+You can also see these section outlined in the Sections tab of the left side panel. If the left section does not look smaller than the right, you can maximize your browser window, collapse the left side panel, and/or change your browser's zoom level.
+1. Click Add widget in the larger right-hand section
+
+This will open the interface for selecting which widget to add. There are many widgets to choose from, such as tables, metric cards, buttons, filters, charts, and maps. 2. Search for Chart and select the Chart: XY widget
+Every widget has a widget configuration that defines what data the widget uses and how that data is presented. The widget configuration will appear on the right-hand side of the screen. It will show the configuration for whichever widget is currently selected.
+
+The Chart: XY widget can display multiple layers of data as defined in the PLOT LAYERS section of the widget configuration. 3. Click into the existing Layer (bar) configuration
+4. Plot All Shipments by Arriving Destination Date 1. Under DATA INPUT: Select object set variable > All Shipments 2. Under X AXIS PROPERTY: Select a property > Arriving Destination Date 3. Set BUCKETING: Day
+Retain the other default values, such as 1 day (unit) per bucket and plotting the count of shipments for each day.
+
+You should now have a chart that shows the number of shipments arriving across all locations on a given date. From the chart, you can see that April 24th 2024 has the greatest number of shipments arriving. (Your data may vary.)
+
+

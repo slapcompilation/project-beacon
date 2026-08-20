@@ -1,0 +1,33 @@
+
+
+
+
+Lessons
+
+Merge Your Branch into Master
+Now that we have verified that our change creates the desired result and checks run successfully, we will merge the code change into the master branch via a Pull Request.
+Step 1: Create a new pull request
+1. Open Branches from the top navigation bar 2. Click on Propose changes in the panel belonging to your feature branch
+
+3. A new screen called New pull request will open 4. The title is autofilled. Modify if desired, e.g. "Computing average claim value by line of
+business" 5. Add a meaningful description which helps your colleagues understand the need and the
+specifics of your change, e.g. "Creating a new table with line of business and average claim value per such lob (as per CFO request)." 6. Leave the rest as is. 7. Click Create pull request
+
+Step 2: Merge your changes
+After clicking Create pull request in the previous step, you will land on the following screen. This is a summary of your pull request.
+In our example, a warnings panel shows which indicates that some of the datasets have not yet been built with the latest code changes. Normally, it's a good practice to build the dataset on a branch first (see optional steps below) but in our case we can also go ahead and merge without these. [Optional steps]
+
+[optional] Click on Configure and build [optional] In the new panel that opens, click on Build 1 affected dataset
+[optional] Open the running build in a new tab by clicking on View progress (with ctrl/cmd) in the green notification that shows at the top.
+[optional] Refresh your screen to see the screen without the warnings panel. [End of optional steps] 1. Explore the bottom part of this screen further:
+Review the updated files by clicking in the Files changed 1 tab. View a graph of your raw and prepared datasets under Pipeline review. Review the Commits you made by clicking in the Commits 1 tab. Add reviewers where it currently says "No code approval required." Find a teammate's name from the list to add them.
+
+2. When you are done exploring, hit Squash and merge.
+General note: "Squash and merge" combines all the commits from a pull request into a single commit before merging it into the master, resulting in a cleaner, more concise commit history. On the other hand, "Merge" integrates all individual commits from the pull request as they are, preserving the detailed commit history but potentially making the commit log more cluttered. 3. Leave the Commit Message as is and hit Squash & Merge
+
+4. Your Pull request will show as merged afterwards and the count next to Pull requests in the top navigation bar will show 0.
+5. Click back on Code. Code Repositories will notify you that "A new commit has been made to this branch", which in this case means the master branch.
+6. Click "Update to most recent version" to see the changes made.
+Your code file will now entail the latest changes merged in from your Pull request.
+
+

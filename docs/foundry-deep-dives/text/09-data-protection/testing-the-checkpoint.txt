@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Testing the Checkpoint Step 1: Download a file
+1. Navigate to the folder where you stored the employee_data.csv dataset. 2. Double click on the dataset to open it. 3. Select All actions at the top right and choose Download as CSV.
+
+Step 2: Acknowledge the justification
+1. Your new checkpoint should appear. 2. Check the acknowledgement box and click Submit. The data should download.
+
+Step 3: Confirm your Checkpoint is working
+1. Navigate back to the Checkpoints application. 2. On the home page, under the Review tab, you should see a log item detailing your user's
+download of the dataset. Here is where admins would review downloaded items and action any review needed.
+Congratulations, you have established your first Checkpoints Notification!
+
+

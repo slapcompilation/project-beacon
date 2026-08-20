@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Basic Transforms: Clean the Products Dataset
+You are ready to start transforming your data right away. Typically, raw data is likely to present certain challenges, stemming either from the ingestion phase or directly from anomalies in the storage system of the source. The products dataset has some minor issues which can be addressed with pre-built Pipeline Builder modules in a cleaning transform. These out-of-the-box transforms make it easy to perform common data cleaning tasks quickly and efficiently.
+In this section, you will solve the following issues:
+The product name column has trailing whitespaces. The price column has been ingested as a string, but it should be a double data type.
+Step 1: Create a new transform for raw products dataset
+1. Select the products dataset and choose Transform.
+
+2. Give the transform a relevant name (rename the transform from the top left corner).
+Step 2: Remove whitespaces in product name
+1. Search for the Trim whitespace transformation.
+2. Select column product_name and Apply.
+Step 3: Cast price to double
+1. Search for the Cast transform, select it, and cast the price column to double. (For accuracy, currency is often stored as integers in the smallest unit (e.g., cents) to avoid rounding errors. In this course, we use double for simplicity, as our values are small and precision issues are unlikely)
+
+Step 4: Apply all changes
+1. Click Apply all changes. 2. Click Close to take you back to the page displaying dataset nodes.
+
+

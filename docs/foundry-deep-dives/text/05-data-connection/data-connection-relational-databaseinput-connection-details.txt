@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Input Connection Details
+Step 1: Configure the connection settings
+1. Input the following database connection details. Use the screenshot below for guidance. Host type: Select 'hostname' from the options. Hostname: Enter database.sandbox.training.palantir.com Port: Type in 5432 Database name: Use postgres as the database name.
+
+2. Next, enter the access credentials provided below. Username: postgres_user Password: <redacted>
+
+Learn more Data Connection: Set up a Source
+
+

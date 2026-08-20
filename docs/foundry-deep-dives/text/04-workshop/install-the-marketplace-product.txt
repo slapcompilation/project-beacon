@@ -1,0 +1,43 @@
+
+
+
+
+Lessons
+
+Install the Marketplace product
+To proceed with this course, you need to install the Marketplace product which contains the Supply Chain Ontology. This means you can focus on application building without having to first build the Ontology.
+Having trouble?
+If you're having trouble installing Marketplace products, your organization may be controlling which users are able to install Marketplace products or create new resources such as Projects, Objects, Actions, etc. Please check your local Training app or reach out to your platform administrator for help. See the earlier Getting Help section for details.
+You may also reach out to training-feedback@palantir.com for assistance.
+
+Step 1: Open Marketplace
+1. Click on Applications on the left side of the screen 2. Search for Marketplace and open it.
+
+Step 2: Open Deep Dive: Building your first Application
+1. Search for the Deep Dive: Building your first Application product Use the top search bar labeled Search products, not the lower search bar labeled Search stores
+2. Click into the corresponding product
+Step 3: Start the installation
+1. Click Install or Install again in the top right corner
+
+Step 4: Customize the installation
+1. Set your username as the installation suffix 1. Toggle on Installation suffix 2. Enter your own <username>
+2. Change the installation location to your course-specific training folder 1. Click Use existing location 2. Click Browse 3. Browse to your Learning (<username> ) > Deep Dive: Building your first Application folder 4. Click Save
+3. Select a valid namespace If you have multiple options and you do not know which one to pick, contact your Foundry platform administrator.
+4. Select a valid ontology that you have permission to edit If you have multiple options and you do not know which one to pick, contact your Foundry platform administrator.
+5. Click Next
+
+Step 5: Customize your ontology content
+1. Set your username as the ontology prefix 1. Toggle on Prefix ontology entities 2. Enter your own <username>
+2. Keep the other default settings 3. Click Next
+
+Step 6: Install
+1. Click the green Install button 2. Wait for the installation and built to finish 3. Click the blue View installation button
+
+The subsequent page shows the resources that have been installed. These resources make up the supply chain ontology. It is a mix of datasets and object types.
+Step 7: Navigate to the installation
+1. Click the Installed in hyperlink at the top of the screen to go to your course-specific folder
+
+You should now see the five installed datasets and another resource that represents the installation:
+This folder will serve as the main working directory for the rest of this course. You are now ready to start the course.
+
+

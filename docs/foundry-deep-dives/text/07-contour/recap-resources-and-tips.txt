@@ -1,0 +1,31 @@
+
+
+
+
+Lessons
+
+Recap, Resources, and Tips
+Throughout this training, we've explored various features and functionalities of Contour, Palantir Foundry's analytic tool, including data cleaning, joining datasets, creating derived columns, building parameters, visualizing data, and designing an interactive dashboard.
+Recap
+You've learned how to:
+1. Create a new Contour analysis. 2. Use boards to analyze and operate on data, such as creating charts, performing
+calculations, and removing columns. The board toolbar, located at the bottom of the last board, helps you to perform the next logical step of your analysis. 3. Insert a Table board to add a tabular view of the active dataset, providing a view of columns, their data types, and a preview of 1,000 rows. 4. Use Show data to preview the data backing any board. 5. Use the Calculation board to compute summary statistics and understand the dataset's shape, which is useful for validating logic when performing joins, window functions, or complex data transformations. 6. Use the Multi-Column Editor to rename and drop columns and the Convert types option to change data types of columns. 7. Implement flexible filtering configurations with a Filter board to keep or remove rows, filter on multiple conditions, any data type or column, and on wildcards. 8. Join datasets using Contour's capability to join and union datasets, with the option to join one or more columns across the chosen tables. 9. Derive new columns using an Expression board, which provides an expression language that also be used to update existing columns, perform sophisticated filtering, and more. 10. Create Parameters to input a specific value(s) into the left parameter panel to filter consistently across multiple paths where the filter board is enabled. 11. Create Visualizations such as Histograms, Pivot Tables, and Charts to help interpret and analyze data. 12. Create and interact with Dashboards that can be easily exported as a PDF or configured to be automatically emailed to a specified Foundry user.
+
+You also learned best practices for enabling our analysis to power operational decisionmaking:
+1. Clean and prepare data in separate paths: Manage the cleaning of disparate datasets in distinct paths to maintain consistency, minimize redundancy, and facilitate the use of results from one path as inputs for another.
+2. Check your logic and validate data at each step: Use Calculation Boards, Table Boards, and Data bottom drawers to inspect columns, review summary statistics, and validate your logic throughout the analysis. You can always remove boards after validation!
+3. Create Parameters for consistent filtering: Implement Parameters to input specific values for filtering across multiple paths and to allow users to interact with different values in dashboards.
+4. Optimize performance with limited paths and boards: Aim to confine your work to no more than five paths, each with a maximum of 20 boards, for optimal performance and clarity in your analysis.
+Resources
+For more detailed information and to further enhance your understanding of Contour, consider these resources:
+Foundry Documentation - Contour Overview Foundry Documentation - Contour FAQ Foundry Documentation - Board Descriptions Foundry Documentation - Expression Language Foundry Documentation - Optimizing your Analysis Foundry Documentation - Contour Compute Usage Palantir Developers YouTube - Contour | Building a Year Over Year Sales Dashboard
+Practice is key to mastering Contour. The more you use it, the more comfortable you'll become with its functionalities and features!
+Tips
+Contour is the right tool to use when you seek to analyze data that comes from datasets. Although we started with cleaning up and joining that data (which is very often a necessary first step!), Contour's real strength lies in analysis, visualization, and dashboarding.
+
+If you don't need to produce any visualizations but are instead looking to only clean or transform data--especially if that cleaned data might be used for multiple different purposes rather than only a one-off transformation specific to a single analysis--you might consider using Pipeline Builder instead. Pipeline Builder offers more data transformation options, as well as branching and more robust controls appropriate for maintaining a production data pipeline. Even if you start in Contour, you can export your logic to Pipeline Builder.
+If you need to analyze and visualize data from objects (instead of from tabular datasets), or if you need to work with time-series data, then consider Quiver.
+Finally, if you want or need to work in code, rather than with a point-and-click tool, consider Code Repositories and Code Workspaces.
+Deep Dive courses are also available (or are coming soon) for these other applications.
+
+

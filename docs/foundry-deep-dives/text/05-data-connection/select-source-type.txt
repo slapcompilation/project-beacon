@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Select Source Type
+Step 1: Set-up an S3 source
+1. Search for and choose the S3 connector type. This will initiate the new source creation workflow.
+
+2. Click Continue in the bottom right corner to proceed to the next step in the process.
+
+

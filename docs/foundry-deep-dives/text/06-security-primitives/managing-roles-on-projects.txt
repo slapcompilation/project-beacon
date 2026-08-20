@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Managing Roles on Projects
+Roles are sets of permissions that provide varying levels of access to resources. Typically assigned at the Project level, roles are discretionary permissions that offer consistent capabilities across all resources within the Project's scope. However, it's important to note that mandatory controls like Organizations and Markings always take precedence, preventing access for ineligible users regardless of their assigned role.
+The default roles in Foundry, listed from most to least powerful, are: Owner, Editor, Viewer, and Discoverer. Each role can assign other users the same role or any less powerful role. For instance, an Owner can grant any other user the Owner, Editor, Viewer, or Discoverer role, while a Discoverer can only assign the Discoverer role to others. These default roles can be customized, and entirely new roles can be created as needed.
+A key feature of roles is their inheritance property, similar to mandatory controls. When a user is granted a role on a Project or folder, that role applies to all resources contained within that Project or folder. For example, granting Viewer access on a Project gives the user Viewer permissions for all resources in that Project. Typically, roles are assigned to groups of users at the Project level for efficient management.
+After initially creating a project using Project Templates, you may find it necessary to modify access permissions at a later date. This section will guide you through the process of editing Project access post-creation. For this training exercise, we will demonstrate this by assigning a role to the group you previously created in the Use Case section.
+Step 1: Navigate to the Access tab
+1. Navigate to the project view, bring your cursor to the right-hand side of the screen and click on the "Lock" icon.
+
+Step 2: Add a Group to a Role
+1. Click on "Manage" under "Roles". Under "Manage Roles", add the group Test_Foundry_Governance_Learning which you previously created, and grant them "Editor" Roles. To learn more about roles, review the documentation.
+Note: Users can view a project but may not be able to access all its contents, in order to learn more about how users can request access, please refer to this documentation.
+
+

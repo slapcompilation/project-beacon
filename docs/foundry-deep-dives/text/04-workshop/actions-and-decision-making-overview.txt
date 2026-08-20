@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Overview
+The application now provides the user enough data to get an understanding of upcoming shipments, as well as the data to make a decision on which shipments should be consolidated to increase supply chain efficiency. Shipments can be combined when they:
+Depart the origin location on the same date Arrive at the destination location on the same date The unit quantities of the combined shipments are less than the vehicle unit capacity
+The user has the data needed to make a decision. The next step is to allow the user to capture that decision. Capturing the decision means that it is written to Foundry and/or downstream datasources. Once written in this way, other users across the organization can see the result and incorporate it into their own workflows and decisions. For example, other users might approve or reject the decision, adjust their forecasts, make use of the spare vehicle, or make additional related decisions. The decision might also need to be pushed to the external database that stores the master shipment schedules.
+In this part of the course, you will first allow the user to mark shipments as eligible for consolidation, one shipment at a time. You will then implement a Foundry function that enables marking multiple shipments at the same time.
+
+

@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Build Your Dataset
+Previously, we only previewed our results and committed them to save our code.
+Preview produces a sample output without committing changes, running checks, or materializing any datasets in Foundry. Committing saves our work and triggers Checks, but it doesn't build the defined outputs as datasets. Build actually builds the dataset(s) which you define as your output in the code file(s). It also commits the latest code changes and runs checks as part of this.
+1. Click the Build button
+
+2. If you get the following message, click Update then build.
+
+3. Building your dataset will kick off Checks automatically which you see in the bottom part of your screen.
+
+You can toggle the Build details on and off by clicking the Build tab in the bottom navigation bar. The build might take a couple of minutes to complete. 4. Once the build is finished, it shows the preview of the dataset in the bottom of your code repository. 5. Open the dataset by clicking on "claims" just above the preview table, ideally holding ctrl/cmd to open it in a new tab.
+6. Verify that the dataset now exists in the prepared folder.
+
+Congratulations. You have built your first dataset using Code Repositories.
+
+

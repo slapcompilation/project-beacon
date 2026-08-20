@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Recap, Tips, and Resources
+Course Recap
+Through this training, you've learned to: 1. Perform data preparation steps, including adding and joining object sets, implementing static and parameterized filters, and update column values and data types 2. Create derived columns with point-and-click operations and formulas. 3. Create visual functions, reusable blocks of logic that simplify large analyses and improve performance. 4. Create visualizations, including bar charts, scatter charts, and Vega plots to present data effectively. 5. Build an interactive dashboard to share analysis outputs with stakeholders with dynamic interactions. 6. Embed Quiver dashboards into Workshop applications, Object Views, Carbon Workspaces, and Notepad to enhance data analysis and sharing.
+We also have learned best practices for enabling our analysis to power operational decisionmaking.
+Chaining Transformations: Group multiple transformations in a single card to keep logic organized. Separate transformations into different cards when necessary, especially for aggregations. Use Graph Mode: Visualize the analysis sequence to confirm your logic and ensure correct card inputs. Reuse Functions: Leverage visual functions to reduce duplicative work and maintain consistency. Integrate Seamlessly: Embed Quiver insights in other Foundry applications for a more interactive and integrated data analysis environment.
+For more insights and detailed instructions, please visit the following lesson on Additional Learning Material.
+
+

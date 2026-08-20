@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Course Introduction
+About Quiver Quiver is an analytical and dashboarding tool that enables you to search, visualize, and analyze object and time series data. It supports a wide range of no-code transformations and allows you to build interactive, parameterized dashboards that can be embedded into operational applications. Quiver also offers robust time series capabilities that include the ability to create, transform, visualize, and forecast time series data.
+Key Features:
+Visualizing time series and object data. Exploring relationships between connected object types. Implementing no-code data transformations. Creating and sharing of interactive dashboards.
+Quiver vs. Other Tools
+Quiver: Ideal for time series analysis, object data visualization, and embedding analyses into other applications. It supports no-code transformations and can write back to the Ontology. Note that Quiver only supports analysis for Ontology objects. Contour: Best for exploratory analysis and drilling down on specific issues with support for any dataset on the stack, not only Objects. It supports chart-to-chart filtering, inline parameter references, fullscreen presentation view, and PDF exports. Pipeline Builder: Recommended for building and maintaining production pipelines in a low- to no-code interface. It offers easy collaboration, secure and consistent schemas, a wide range of type-safe functions, and incremental transform mode. Workshop: Provides full customization and layout flexibility, supports multi-step workflows, embedding content from Quiver and other Foundry applications, and allows for writeback.
+When to Use Other Tools
+Complex Data Transformations: Pipeline Builder or Code Repositories are better suited for tabular datasets that require highly complex data transformations beyond Quiver's
+
+support for no-code out-of-the-box transformations and simple formulas. Advanced Statistical Analysis: Create dataset models, configure automatic submission of models, leverage visualization libraries, and perform advanced statistical analyses in Code Workspaces or Code Repositories.
+Quiver and AIP Quiver is equipped with several key features from Foundry's Artificial Intelligence Platform (AIP). While this training doesn't focus on AIP, we'll highlight relevant features throughout the course for you to independently explore and enhance your analysis. For more details, refer to Foundry's documentation. Your Foundry platform may not have AIP enabled yet, so you might not see everything shown in the course images. If you're interested in enabling AIP and using these features to accelerate your analyses, contact your Palantir representative or Palantir Support via the Issues Application.
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Fe free to use the video to follow along as you complete the course material.
+
+

@@ -1,0 +1,33 @@
+
+
+
+
+Lessons
+
+Update Column Values and Data Type
+Step 1: Clean data with Find and Replace
+It's often essential to transform column values and update data types to ensure operations can be performed efficiently and consistently across multiple datasets in our analyses. In this step, we'll remove a letter and a dash from the parts_purity column values then convert it from a string to a numerical data type, so that it's in a suitable format for numerical operations in future steps.
+1. Select the Filter on equipment plant and parts production date table, then the Transform category from the cards Toolbar.
+You'll notice many options to operate on your data including columns editing, comparisons, data type specific comparisons, and functions, which allows you to leverage published functions written in Code Repositories. For this analysis, we want to remove the `p-' from the parts_purity values so we can display them in a numerical chart. Edit values allows users to manually update row values from any selected columns, which is not scalable for our case.
+2. Scroll to String operations, and select Find and replace.
+
+3. In the right hand configuration panel, input Purity as the new title to the output column
+
+4. In INPUT STRING field, select Use variable input and choose Part Purity as the column to evaluate
+5. In FIND STRING field, input p-. Leave REPLACE STRING as blank. Leave CASE SENSITIVE and USE REGEX as False
+6. Scroll to the right in the table and find a new column, Purity, which has been derived from the existing one.
+Step 2: Use a transform operation
+Quiver supports chaining multiple transformations in card to organize logic into single blocks. 1. In the Transformations panel within the current card, click the blue Add Transformation
+button
+
+The Transforms modal offers a host of operations to perform in the same card. 2. Select the Number operations tab, then String to number.
+3. In the OUTPUT COLUMN NAMES section, input Part Purity 4. Click Use variable input for the INPUT selection and select Purity.
+
+The original Part Purity (string) and the Purity columns are now no longer needed.
+5. In the configuration panel, toggle to the Display tab. 6. Click the red eye icon next to both columns to remove them from the table, and make our
+analysis more manageable.
+
+7. Title the table as Update Part Purity Column.
+You can confirm that the new column has been created by scrolling to the right-most column in the card, and that it is of Number data type. This could also be confirmed in in the configuration panel by the `123' icon.
+
+

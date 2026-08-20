@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+Branching in Foundry Code Repositories is a powerful feature that allows you to create independent lines of development within your project, enabling multiple team members to work on different tasks simultaneously without interfering with the main codebase. By creating branches, you can experiment with new features, perform bug fixes, or implement enhancements in isolation, ensuring that the master branch remains stable and production-ready. This approach not only facilitates collaboration and code review processes but also supports efficient version control and project management within Foundry. Foundry branching implements an industry-standard Git-like version control paradigm. For the scope of this training, we'll be working with Code Repositories branches, as opposed to Foundry branches. See our Foundry documentation for more info on the latter.
+In this module, you will explore the following concepts:
+protecting your master branch, creating a new branch, perform a transform on your new branch, merge the changes to your master branch.
+
+

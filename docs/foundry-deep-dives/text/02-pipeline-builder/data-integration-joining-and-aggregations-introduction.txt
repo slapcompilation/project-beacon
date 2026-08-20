@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Introduction
+In this module, you will build upon the clean data generated previously, in order to derive operationally valuable datasets, focusing on generating a Customer Lifetime Value (CLV) dataset. The cleaned data in your pipeline is a valuable foundation for key metrics and analyses, and while it is essential, it becomes even more valuable when integrated to break down data silos and provide comprehensive insights.
+Throughout this section, you will gain hands-on experience with critical data processing techniques, such as joins and aggregations. Additionally, you will learn how to interpret the results of your pipeline to ensure that it delivers meaningful and accurate information.
+In this module, you will explore the following concepts:
+Joining and aggregation: Learn how to combine and summarize datasets, while being mindful of potential pitfalls such as duplicates, incorrect join conditions, and the computational expense of joins. Materializing outputs: Understand the significance of outputs and why they matter. Validating the output of the join: Learn the importance of validating your joined dataset, as joins can sometimes introduce duplicates or errors if not executed correctly.
+By the end of this section, you will have gained valuable insights into advanced pipeline building concepts and techniques. These skills will enable you to create more sophisticated, reliable, and efficient pipelines that effectively transform raw data into actionable intelligence.
+At the end of this section, you will have created a pipeline similar to the one below:
+
+This course is being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

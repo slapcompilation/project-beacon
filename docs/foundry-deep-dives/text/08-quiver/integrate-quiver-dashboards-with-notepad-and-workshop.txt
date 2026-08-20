@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Integrate Quiver Dashboards with Notepad and Workshop
+Foundry provides the option to integrate Quiver into Workshop applications, Object Views, Carbon Workspaces, and Notepad to enhance data analysis, visualization, and sharing. We'll preview how to embed cards and dashboards into Notepad for automatic report sharing, and how to embed dashboards in Workshop applications. For more insights into Quiver integrations, please visit the documentation.
+Step 1: Integrate Quiver insights into Notepad Report
+1. Return to your analysis by clicking Exit Dashboard and scroll to the Output by Equipment chart
+2. Click More Actions, represented by the three dots button, and select Copy embeddable chart
+3. The chart is now ready to paste in a Notepad document
+
+Within the Notepad application, you may also embed an entire Quiver dashboard via the Widget button, and automate the report distribution by the Action dropdown and configuring an Automation to send regular emails to specified Foundry users. This functionality allows for seamless integration of advanced analytics into comprehensive reports and ensures that insights are easily accessible and shared efficiently.
+Step 2: Embed Quiver Dashboard into a Workshop Application
+
+While we won't walk through the implementation steps together, it's useful to embed Quiver dashboards into Workshop module to create a more interactive and integrated data analysis environment and to preserve maintainability across resources. To do so, you simply need to add the Quiver dashboard widget to the desired Workshop module, and configure the input object sets (and optional output object sets for interactive Quiver dashboards).
+Deploy this Example to your Foundry instance to view a reference use case of a Quiver graph embedded in a Workshop application. Further details are available in the Foundry documentation.
+
+

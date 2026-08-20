@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Create Source
+Step 1: Create source and and save to your Project
+1. Assign a name to your source, for example, Data Connection Training - S3 (your_name) .
+
+2. Choose your working project as the location to save your new Source. If you have created a new folder within your Learning Project specifically for this training, use that folder as your location.
+
+3. Click Create source and continue in the bottom right corner to finalize the creation process and proceed.
+
+Learn more Data Connection: Source Permissions Best Practices
+
+

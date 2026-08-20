@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Build Your Dataset
+As a final step, you will build your desired dataset on master. You will also investigate the data lineage that we saw at the very beginning of this course.
+Step 1: Build the final dataset on master
+1. Click Preview to ensure your merged changes create the desired 2 column table.
+
+2. Click Build. Just like we've seen before, Checks will run automatically. The build then gets initialized. Then the build runs and the build panel shows its progress with this view from job tracker.
+
+Your dataset will show at the bottom of the page as soon as the build has completed.
+Step 2: View the data lineage
+1. Click claims with cmd/ctrl to open the newly built dataset in a new tab.
+2. Click on Explore Pipeline and then Explore data lineage.
+
+3. The graph shows you your pipeline created with Code Repository where your two input datasets get joined to your output dataset.
+Note if you only see the claims box and not its ancestors, you can add them to the graph by clicking the little arrow to the left on the claims box.
+
+
