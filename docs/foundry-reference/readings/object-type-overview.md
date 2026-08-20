@@ -148,6 +148,83 @@ stored:
 | API name, ID, RID | `api_name`, `id`, `rid` | the list, partly |
 | Index status | the indexing state | the list's tag |
 
+## 4. Verification pass — three decisions did not survive it
+
+The operator asked whether these match the documentation exactly before building.
+They do not. What follows is the adversarial pass, and it found that **I had
+grepped the mirror and not the courses** — CLAUDE.md rule 3 says to read
+`docs/foundry-deep-dives/` before concluding anything, and it is where the
+decisive evidence was.
+
+**CONFIRMED, and twice over.** `foundry-deep-dives/01-ontology.md` independently
+records the same page:
+
+> Object type Overview page: Plural name, Description, Aliases, Point of contact, Contributors,
+> Ontology, **API name** (`UsernameFlightAlerts`); right box: **Status: Experimental ▾**, Visibility:
+> Normal ▾, Edits: Disabled; **ID** (`username-flight-alerts`), **RID "Set on save"**.
+> — docs/foundry-deep-dives/01-ontology.md
+
+Same seven fields, same order, same right-hand box. It adds two things the
+screenshot could not: **`RID` reads `Set on save`** before a type is first saved,
+and the right box on a new type has **no `Index status` row** — that row appears
+only once there is an index to have a status.
+
+**Status and Visibility as dropdowns is confirmed in prose**, not just by a caret:
+
+> 1. Select the dropdown next to the current status.
+> 2. Select the new status.
+
+— `object-link-types/metadata-statuses.md`
+
+**`Edits` is no longer an inference.** It maps to a real per-object-type feature:
+
+> logging all edits to an object is desired, [edit history](/docs/foundry/object-edits/user-edit-history/) can be enabled for an object type
+
+— `action-types/action-log.md`
+
+**FALSIFIED — Decision 6 was wrong.** I decided the plural name gets no
+auto-derivation because no page said how it derives. Two sources say it does:
+
+> 2. Name: `[<username>] Flight Alert` (plural auto-updates).
+> — docs/foundry-deep-dives/01-ontology.md
+
+> Note that the **Plural name** and **Object type ID** will auto-populate from **Name** for convenience.
+
+— `pipeline-builder/outputs-add-ontology-output.md`
+
+Migration 415's column comment had this right all along and I contradicted our
+own migration. **Its wording, though, is a quotation of nothing:** the string it
+quotes appears in no mirrored page, because the substance comes from the course
+material. `check:readings` cannot trace it and never re-checks an applied
+migration. Re-attributed rather than left as a false citation.
+
+**CONTRADICTED — Decision 4 is a divergence, not a match.** §1 lists Dependents
+and Usage as sections **5 and 7 of the Overview page**. Choosing to leave them as
+tabs is us being *less complete* than Foundry, which is allowed but must be
+scoped and declared rather than described as a match.
+
+**UNVERIFIABLE — Decision 2's vocabulary.** Both fields are confirmed as object
+type fields by two independent sources, and `None` for empty comes from the
+screenshot. But **nothing states what a point of contact may be.** The only
+prose on the concept is about Projects, and there it may be a **group**:
+
+> Setting contact details for a group can be useful if you want to set a group as a Project point of contact in the Project resource sidebar.
+
+— `platform-security-management/manage-groups.md`
+
+415 made it `uuid REFERENCES auth.users(id)` — users only. If object types follow
+projects, that is too narrow. Neither the API nor any page settles it:
+`pointOfContact` and `contributors` **do not appear in the object type API at
+all**, so the two-vocabularies rule applies and the Ontology Manager's prose wins
+by default — except there is no prose.
+
+### What the deep dive adds that we do not have
+
+Its per-type left rail is `Overview, Properties, Security, Datasources,
+Capabilities, Object views, Interfaces, Materializations, Automations, Usage,
+History`. Ours has no `Object views`, `Automations` or `History`. Recorded, not
+scoped here.
+
 ## Decisions
 
 1. **Build section ① as a card at the top of our Overview tab**, in Foundry's
@@ -165,11 +242,23 @@ stored:
 5. **Do not build ②, ③ or ⑥ in this pass.** A read-only Properties list, an
    Action types section and a Data sync list are each their own engine, and
    bundling them makes a large change impossible to attribute.
-6. **`plural_label` gets no auto-derivation.** Migration 415's column comment
-   records that the surface derives it and the operator may override — but the
-   page read here does not say *how* it derives, and an invented pluraliser
-   would be a mechanism nobody documented. The field is editable and empty
-   until set.
+6. **REVERSED after verification: `plural_label` DOES auto-derive from the
+   name, and the operator may override.** The course material says the plural
+   auto-updates and Pipeline Builder says it auto-populates from Name for
+   convenience. Migration 415 had this right; my first decision contradicted our
+   own migration because I grepped the mirror and not the courses.
+7. **Declared divergence, scoped:** our Overview will carry section ① and ④ only.
+   Foundry's has all seven. Sections ⑤ and ⑦ stay as tabs — we have them, and
+   duplicating them onto the Overview buys nothing until it is a real dashboard.
+   ②, ③ and ⑥ are unbuilt engines. This is us being *less complete* than Foundry,
+   not stricter, and it is recorded here so nobody reads the Overview as finished.
+8. **`RID` shows `Set on save` until the type is first saved**, and the
+   `Index status` row is absent until there is an index — both from the course
+   material, neither visible in the screenshot.
+9. **Do not narrow or widen `point_of_contact` in this pass.** It stays a user
+   reference. Whether a group may hold it is unsettled — the only prose on the
+   concept is about Projects, where a group may — and widening it on that
+   analogy would be inventing a mechanism. Question 5.
 
 ## Questions
 
@@ -182,3 +271,7 @@ stored:
    `Disabled`. The mapping is inference, not quotation.
 4. **Does `Open in ▾` have a meaning for us?** It lists other Foundry
    applications, most of which we do not have.
+5. **May a group be an object type's point of contact?** For a Project it may.
+   For an object type no page says, and the field is absent from the API.
+6. **Where do `Object views`, `Automations` and `History` belong?** The course
+   material lists all three on a type's left rail and we have none of them.

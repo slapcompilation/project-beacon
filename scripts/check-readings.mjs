@@ -135,7 +135,7 @@ function quotations(text) {
   const flush = () => {
     if (block) {
       // A trailing `— path` attributes the quotation to an image.
-      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg))\s*$/s.exec(block.text)
+      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg|md))\s*$/s.exec(block.text)
       const body = normalise(attributed ? attributed[1] : block.text)
       if (body.length >= MIN_LEN) {
         out.push({ at: block.at, text: body, image: attributed ? attributed[2] : null })
@@ -245,6 +245,29 @@ for (const name of readings) {
   }
 
   for (const q of quotations(text)) {
+    if (q.image !== null && q.image.endsWith('.md')) {
+      // The learn.palantir.com courses are on disk and CLAUDE.md says to read
+      // them, so a reading may cite one — but ONLY from the courses, and the
+      // text has to be in the file. Allowing any `.md` attribution would let a
+      // quote name a mirrored page and skip the check that page exists to make.
+      checked += 1
+      if (!q.image.startsWith('docs/foundry-deep-dives/')) {
+        failures.push({ name, at: q.at, why: `only docs/foundry-deep-dives/ may be cited as a file: ${q.image}` })
+      } else if (!fs.existsSync(q.image)) {
+        failures.push({ name, at: q.at, why: `course file not on disk: ${q.image}` })
+      } else {
+        // Normalise BOTH sides. The quote has already been through it, so
+        // comparing it against raw file text can never match a line that wraps
+        // or carries markdown.
+        const course = normalise(fs.readFileSync(q.image, 'utf8')).toLowerCase()
+        for (const f of fragments(q.text)) {
+          if (!course.includes(f.toLowerCase())) {
+            failures.push({ name, at: q.at, why: `not in ${q.image}: "${f.slice(0, 90)}"` })
+          }
+        }
+      }
+      continue
+    }
     if (q.image) {
       checked += 1
       // An image quotation is checked by provenance: the screenshot has to be
@@ -543,4 +566,4 @@ if (failures.length > 0) {
 // warning is a thing that gets scrolled past.
 if (overstated.length > 0) process.exit(1)
 
-console.log('every checked citation traces to a mirrored page or a screenshot on disk')
+console.log('every checked citation traces to a mirrored page, a screenshot, or a course on disk')
