@@ -10,6 +10,13 @@
 // both need it. So the next best thing is to assert the agreement, and to assert
 // both against the page rather than against each other — two implementations
 // agreeing on the same mistake is not a passing test.
+//
+// THE LIMIT OF THAT, learned in 599. `PUBLISHED` below is a HAND-COPIED
+// restatement of the page, so it catches drift between the database and
+// TypeScript and cannot catch a token that was wrong in all three from the
+// start. `cipher` sat here for as long as it sat in the CHECK, because the page
+// says "Cipher text" and the copy dropped a word. Three things agreeing is not
+// three witnesses when one of them was copied from the other two.
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -47,7 +54,7 @@ const PUBLISHED: Record<string, { title: boolean; primary: 'yes' | 'discouraged'
   geopoint: { title: true, primary: 'no' },
   geoshape: { title: false, primary: 'no' },
   marking: { title: false, primary: 'no' },
-  cipher: { title: true, primary: 'no' },
+  cipher_text: { title: true, primary: 'no' },
 }
 
 describe.skipIf(noDb)('the property vocabulary', () => {
