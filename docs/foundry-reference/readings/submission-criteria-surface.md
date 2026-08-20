@@ -114,6 +114,52 @@ A `none` logical operator over a `group_ids` condition is exactly that shape. Th
 page calls it a misconfiguration and explains the mechanism, so this is an
 `ontology_warnings()` arm — advisory, because the page warns rather than refuses.
 
+## 5. The gate IS enforced, and this reading first said otherwise
+
+I wrote that `apply_action` does not read these rows. **It does**, on the line
+after its required-parameter loop:
+
+```
+pk_val := public.submission_criteria_verdict(p_action_type, p_parameters);
+IF pk_val IS NOT NULL THEN
+  RAISE EXCEPTION 'Actions:SubmissionCriteriaFailed — %', pk_val;
+END IF;
+```
+
+`submission_criteria_verdict` conjoins the roots and returns the first failure's
+message; `eval_criterion` walks the tree, implements `all`/`any`/`none`, and
+handles **all ten operators**. That is the whole evaluation half, built and
+wired, and its position matches the order `action-types/test-run` prints for the
+execution log:
+
+> **Execution log:** A step-by-step breakdown of the run, covering metadata loading, dependency validation, submission criteria, parameter validation, and edits calculation.
+
+— `action-types/test-run.md`
+
+**What is genuinely missing is narrower and more interesting.** The left side of a
+condition evaluates for the `parameter` template and for `current_user.user_id`.
+The other two user fields raise:
+
+```
+RAISE EXCEPTION 'Actions:CriterionNotEvaluable — current_user.% is not modeled yet'
+  USING HINT = 'Groups and user attributes do not exist here; only user_id evaluates.';
+```
+
+**That hint is stale.** Groups exist — the security phase built them and
+`auth_group_ids()` is a live helper. The branch was written before they did and
+nobody revisited it, which is CLAUDE.md's "verify we do not have X" failure
+sitting inside our own evaluator. It is also the exact field the page's worked
+example needs, twice:
+
+> Since a user in our example is a member of many groups but the comparison is to a single group, we need to select the `includes` operator to check for an overlap.
+
+— `action-types/submission-criteria.md`
+
+So a criterion of the kind the page teaches raises rather than evaluates.
+
+**And I said the opposite to the operator before checking.** Third time today a
+"we do not have X" claim of mine was wrong, against a rule that is written down.
+
 ## Decisions
 
 1. **Build the editor as the page draws it**: a card, a root logical operator
@@ -133,15 +179,21 @@ page calls it a misconfiguration and explains the mechanism, so this is an
    parameter types are removed from the selection panel."
 7. **No test run in this pass.** The page ends by pointing at one; it is a
    separate page and a separate engine.
+8. **Make `current_user.group_ids` evaluable**, using `auth_group_ids()`. The
+   evaluator refuses it on a hint that stopped being true when the security
+   phase shipped groups, and it is the field the page's own example needs.
+9. **`current_user.attribute` maps to what we actually have**, and fails closed
+   otherwise — the page says "If a user does not have access to an attribute,
+   they will fail the condition", so an unknown attribute name is a failing
+   condition rather than an error.
 
 ## Questions
 
 1. **Where does this live in our Ontology Manager?** The course names a
    "Security & Submission Criteria" tab; the screenshot's card is titled
    `Execution`. We have neither, and `ActionTypesPage` has no tabs at all.
-2. **What evaluates a criterion at submission time?** 421 built the storage.
-   `apply_action` does not read it, and nothing in `ontology_violations()` does
-   either — so the gate is unenforced as well as undrawn.
+2. ~~What evaluates a criterion at submission time?~~ **Answered, and this
+   reading had it wrong — see §5.**
 3. **Is `attribute` enough for "any other multipass attribute"?** Ours stores an
    `attribute_name`; the page also describes an `Other user attribute` field for
    attributes the user cannot see, which may be a second flag.
