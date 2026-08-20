@@ -202,6 +202,18 @@ export interface PropertyDef {
   replacedBy?: string | null
 }
 
+/** The wizard's Plural name, auto-filled from the label and overridable.
+ *  Deliberately naive: Foundry's own example turns `[Example Data] Aircraft`
+ *  into `[Example Data] Aircrafts`, so it does not know English irregulars
+ *  either, and inventing a cleverer rule would diverge from what it produces. */
+export function pluralise(label: string): string {
+  const s = label.trimEnd()
+  if (s === '') return ''
+  if (/(s|x|z|ch|sh)$/i.test(s)) return `${s}es`
+  if (/[^aeiou]y$/i.test(s)) return `${s.slice(0, -1)}ies`
+  return `${s}s`
+}
+
 export interface ObjectTypeDef {
   id: string
   /** The ontology it belongs to. "A space can hold a single ontology", and an
@@ -220,6 +232,20 @@ export interface ObjectTypeDef {
    *  predefined or custom color", so the column stays a hex. Optional for the
    *  same reason `status` is: the database defaults it. */
   iconColor?: string
+  /** The Overview's Plural name — "the name shown to anyone accessing multiple
+   *  objects of this type" (create-object-type). The wizard derives it from the
+   *  label and the operator may override; the database only stores it. */
+  pluralLabel?: string
+  /** Overview fields 415 and 422 added and nothing read until the metadata card.
+   *  Both people fields are auth.users references; neither appears in the object
+   *  type API, so the Ontology Manager's own vocabulary is all there is. */
+  pointOfContact?: string | null
+  contributors?: string[]
+  trackEditHistory?: boolean
+  /** "Alternative names (synonyms) for the object type, usable as search terms."
+   *  The ⌘K search already matched on them; the Overview is where they show. */
+  aliases?: string[]
+  rid?: string | null
   description: string
   properties: PropertyDef[]
   /** Derived values computed from stored properties at read time (P2.4). */

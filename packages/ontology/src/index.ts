@@ -96,7 +96,7 @@ export {
   canBeTitleKey, titleKeyOf, primaryKeyOf, primaryKeyEligibility, primaryKeyAdvice, acceptsInput,
   objectTitle, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug, toCamel, toPascal,
   validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
-  evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig,
+  evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig, pluralise,
 } from './objectTypes/index'
 export type {
   PropertyType, PropertyDef, ObjectTypeDef, ObjectTypeDraft, RecordDraft,
