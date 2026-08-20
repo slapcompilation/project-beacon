@@ -350,6 +350,27 @@ Nothing static catches that — the `authenticated` pass does.
 
 Each line names the failure it prevents; none of it is general advice.
 
+**Attribute a quotation the way a reading does, and it gets checked.** A
+migration header names pages loosely — in parentheses, backticked, or in prose —
+and none of that is checkable: pairing a quote with the nearest page name is a
+guess, measured at 207 of 960 spans pairable and 58 "failures" that were all
+artifacts. One form is verified, the reading's:
+
+```sql
+--   "Object types are limited to a maximum of 70 datasources."
+--   — object-permissioning/multi-datasource-objects.md
+```
+
+Use it and `check:readings` proves the sentence is on that page. The loose forms
+still get the weaker check every quotation gets — that it exists somewhere in the
+mirror — so nothing is worse than before, but only this form is evidence.
+
+**A CHECK that adds a value set names its page**, in a `COMMENT ON CONSTRAINT`
+beginning `Values from <slug>` (601). The platform suite proves every value
+appears there and prints how many sets have not declared one; `check:readings`
+refuses a new migration that adds a set without it. The declaration is on the
+constraint rather than in the file because an applied migration cannot be edited.
+
 **Gate BEFORE `pnpm db`, and never through a pipe.** An applied file cannot be
 edited — `db.mjs` byte-compares it against the ledger — so a citation typo caught
 afterwards becomes another migration. **A pipe's exit status is `tail`'s**, and a

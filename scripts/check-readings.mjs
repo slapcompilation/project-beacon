@@ -450,12 +450,31 @@ const sqlQuotations = (sql) => {
       // this file says screenshots carry the most weight of anything here. Same
       // rule as a reading — the file must exist on disk.
       const shot = /[—-]{1,2}\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.(?:md|txt))\s*$/.exec(text)
+      // A migration may also attribute to a MIRRORED PAGE, in the reading's
+      // form, and then the sentence has to be on that page.
+      //
+      // Deliberately NOT inferred from prose. A migration header names pages
+      // loosely — `(slug)` in parentheses, `mirror/slug.md` backticked, a bare
+      // mention — and pairing a quote with the nearest one is a guess: measured
+      // across all 601 migrations, only 207 of 960 quoted spans pair with a page
+      // at all, 58 of those "fail", and the samples are our own prose in quote
+      // marks or a page named BEFORE its quote rather than after (359 does
+      // exactly that and is correct). A fuzzy pairing check would have been 58
+      // findings and no defects. So this recognises one unambiguous form, which
+      // no migration uses yet — it starts at zero and applies to new work.
+      // The block is joined into one line, so this anchors on the dash and the
+      // `.md`, not on line boundaries.
+      const cited = /[—-]{1,2}\s*`?((?!docs\/)[a-z0-9][a-z0-9-]*\/[a-z0-9/-]+)\.md`?\s*$/.exec(text)
       const spans = text.split('"').filter((_, i) => i % 2 === 1)
       for (const span of spans) {
         const t = normalise(span)
         if (t.length < 30) continue
         if (!/[{}]|=>|import |CREATE |SELECT /.test(t)) {
-          out.push({ at: start, text: t, image: shot ? shot[1] : null })
+          out.push({
+            at: start, text: t,
+            image: shot ? shot[1] : null,
+            page: shot ? null : (cited ? cited[1] : null),
+          })
         }
       }
     }
@@ -558,6 +577,21 @@ for (const file of added) {
     const parts = fragments(q.text)
     if (parts.length === 0) continue
     migChecked += 1
+    // Named its page? Then it has to be on that one, same as a reading's.
+    if (q.page !== null && q.page !== undefined) {
+      const at = { name: file.replace(/^supabase\/migrations\//, ''), at: q.at }
+      const cited = mirror.find((m) => slugOf(m.file) === q.page)
+      if (cited === undefined) {
+        failures.push({ ...at, why: `attributed to a page that is not mirrored: ${q.page}` })
+      } else {
+        for (const p of parts) {
+          if (!cited.lower.includes(p.toLowerCase())) {
+            failures.push({ ...at, why: `real, but not on ${q.page}: "${p.slice(0, 90)}"` })
+          }
+        }
+      }
+      continue
+    }
     for (const p of parts) {
       if (mirror.some((m) => m.lower.includes(p.toLowerCase()))) continue
       // A migration correcting an earlier one quotes what that one SAID, and
