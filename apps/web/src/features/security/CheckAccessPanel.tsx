@@ -29,7 +29,7 @@ function ClauseRow({ c }: { c: Clause }) {
   return (
     <li className="flex items-start gap-2 px-3 py-1.5 text-xs">
       <Icon icon="full-circle" size={8}
-        className={c.satisfied ? 'text-green-500 mt-1' : 'text-red-500 mt-1'} />
+        className={c.satisfied ? 'text-success mt-1' : 'text-red-600 mt-1'} />
       <span className="flex-1">
         {c.requirement}
         {c.detail && <span className="block text-[11px] text-muted-foreground">{c.detail}</span>}

@@ -64,7 +64,7 @@ export function AppearanceSection() {
               className={cn(
                 'group flex flex-col gap-3 rounded-md border p-3 text-left transition-all',
                 active
-                  ? 'border-primary ring-2 ring-primary/30 bg-primary/[0.04]'
+                  ? 'border-primary ring-2 ring-primary/30 bg-muted/20'
                   : 'border-border hover:border-muted-foreground/40 hover:bg-muted/40',
               )}
             >

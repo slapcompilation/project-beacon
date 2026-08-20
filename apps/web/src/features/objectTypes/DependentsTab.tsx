@@ -46,7 +46,7 @@ export function DependentsTab({ type }: { type: ObjectTypeDef }) {
       </div>
 
       <div className="grid grid-cols-[220px_1fr] gap-3">
-        <ul className="divide-y divide-neutral-200 rounded border border-neutral-200">
+        <ul className="divide-y divide-border/60 rounded border border-border">
           {rows.map((r) => (
             <li key={r.kind}>
               <button
@@ -64,7 +64,7 @@ export function DependentsTab({ type }: { type: ObjectTypeDef }) {
           ))}
         </ul>
 
-        <div className="rounded border border-neutral-200">
+        <div className="rounded border border-border">
           {list.isLoading
             ? <div className="p-3"><Spinner size={16} /></div>
             : instances.length === 0
@@ -74,7 +74,7 @@ export function DependentsTab({ type }: { type: ObjectTypeDef }) {
                   description={`No ${rows.find((r) => r.kind === active)?.label.toLowerCase() ?? 'resource'} reads this object type.`}
                   className="!py-6 [&_.bp6-non-ideal-state-visual]:!text-2xl"
                 />
-              : <ul className="divide-y divide-neutral-200">
+              : <ul className="divide-y divide-border/60">
                   {instances.map((d) => (
                     <li key={d.dependent_id} className="flex items-center gap-2 px-2 py-1.5 text-xs">
                       <Icon icon={KIND_ICON[d.kind] ?? 'cube'} size={12} />

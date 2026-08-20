@@ -75,14 +75,14 @@ export function UsageTab({ type }: { type: ObjectTypeDef }) {
               ['Writes', s?.writes ?? 0],
               ['Active users', s?.active_users ?? 0],
             ] as const).map(([label, value]) => (
-              <div key={label} className="rounded border border-neutral-200 px-2 py-1.5">
-                <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
+              <div key={label} className="rounded border border-border px-2 py-1.5">
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
                 <div className="text-base font-semibold tabular-nums">{value}</div>
               </div>
             ))}
           </div>}
 
-      <div className="text-xs text-neutral-600">
+      <div className="text-xs text-muted-foreground">
         Last interaction: <strong>{AGO(s?.last_interaction ?? null)}</strong>
       </div>
 
@@ -90,7 +90,7 @@ export function UsageTab({ type }: { type: ObjectTypeDef }) {
         Application type <Tag minimal round className="tabular-nums">{apps.length}</Tag>
       </h3>
       {apps.length === 0
-        ? <div className="text-xs text-neutral-500">No application has read or written this object type in the window.</div>
+        ? <div className="text-xs text-muted-foreground">No application has read or written this object type in the window.</div>
         : <HTMLTable compact striped className="w-full !text-xs">
             <thead><tr><th>Application</th><th className="text-right">Reads</th><th className="text-right">Writes</th></tr></thead>
             <tbody>

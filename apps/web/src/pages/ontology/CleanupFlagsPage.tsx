@@ -67,13 +67,13 @@ export default function CleanupFlagsPage() {
           <Radio value="default" labelElement={
             <span className="text-xs">
               <strong>Optimized for usage</strong> <Tag minimal>Default</Tag>
-              <span className="block text-neutral-500">Recommended flags for usage optimization</span>
+              <span className="block text-muted-foreground">Recommended flags for usage optimization</span>
             </span>
           } />
           <Radio value="custom" labelElement={
             <span className="text-xs">
               <strong>Custom</strong>
-              <span className="block text-neutral-500">Choose custom flags to use</span>
+              <span className="block text-muted-foreground">Choose custom flags to use</span>
             </span>
           } />
         </RadioGroup>
@@ -81,7 +81,7 @@ export default function CleanupFlagsPage() {
 
       <div>
         <p className="mb-1 text-xs font-semibold">Choose cleanup flags to perform checks</p>
-        <ul className="divide-y divide-neutral-200 rounded border border-neutral-200">
+        <ul className="divide-y divide-border/60 rounded border border-border">
           {flags.map((f) => {
             const d = draft[f.flag]
             const locked = mode === 'default'
@@ -97,7 +97,7 @@ export default function CleanupFlagsPage() {
                     <Tooltip content={<span className="max-w-xs text-xs">{f.note}</span>}>
                       <Tag minimal intent="warning">not computed here</Tag>
                     </Tooltip>}
-                  <span className="text-xs uppercase tracking-wide text-neutral-500">Priority</span>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">Priority</span>
                   <HTMLSelect disabled={locked} value={d?.priority ?? f.priority}
                     options={['high', 'medium', 'low']}
                     onChange={(e) => {

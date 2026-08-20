@@ -46,13 +46,13 @@ export function BackingStep({ projectId, label, value, onChange }: {
     kind: Backing['kind']; icon: 'th-derived' | 'th'; title: string; sub: string
   }) => (
     <Card interactive compact onClick={() => { pick(kind) }}
-      className={`flex flex-1 items-start gap-2 !p-3 ${value.kind === kind ? 'border-blue-500 !border-2' : ''}`}>
-      <Icon icon={icon} size={16} className="mt-0.5 text-neutral-500" />
+      className={`flex flex-1 items-start gap-2 !p-3 ${value.kind === kind ? 'border-primary !border-2' : ''}`}>
+      <Icon icon={icon} size={16} className="mt-0.5 text-muted-foreground" />
       <div className="flex-1">
-        <p className={`text-xs font-semibold ${value.kind === kind ? 'text-blue-600' : ''}`}>{title}</p>
+        <p className={`text-xs font-semibold ${value.kind === kind ? 'text-primary' : ''}`}>{title}</p>
         <p className="text-xs text-muted-foreground">{sub}</p>
       </div>
-      {value.kind === kind && <Icon icon="tick" size={14} className="text-blue-600" />}
+      {value.kind === kind && <Icon icon="tick" size={14} className="text-primary" />}
     </Card>
   )
 
@@ -86,7 +86,7 @@ export function BackingStep({ projectId, label, value, onChange }: {
       {value.kind === 'generate' && (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Icon icon="th-derived" size={12} />
-          <span className="font-medium text-neutral-700">{value.name}</span>
+          <span className="font-medium text-foreground">{value.name}</span>
           <span>in {folders.find((f) => f.id === value.folderId)?.name ?? 'the project root'}</span>
           <Button variant="minimal" size="small" icon="edit" onClick={() => { setNaming(true) }} />
         </div>

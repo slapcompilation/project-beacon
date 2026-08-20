@@ -57,8 +57,8 @@ function FieldDiff({ field, before, after }: { field: string; before: unknown; a
   return (
     <div className="flex items-center gap-2 py-0.5">
       <span className="text-[11px] w-40 shrink-0 text-muted-foreground">{field}</span>
-      {before !== undefined && <span className="text-[11px] line-through opacity-50">{show(before)}</span>}
-      <span className="text-[11px] text-emerald-600 font-medium">{show(after)}</span>
+      {before !== undefined && <span className="text-[11px] line-through opacity-60">{show(before)}</span>}
+      <span className="text-[11px] text-success font-medium">{show(after)}</span>
     </div>
   )
 }
