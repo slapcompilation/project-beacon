@@ -4,46 +4,56 @@
 
 
 /* Design tokens. Exposed as HSL channels so `hsl(var(--x) / opacity)` works.
- * Source: palantir/blueprint palette, tuned for Beacon's hierarchy needs.
- * Don't introduce ad-hoc colors — extend through these tokens. */
+ *
+ * Source: the Blueprint palette AT ITS PUBLISHED VALUES. These used to be
+ * "tuned" — every one darkened a step or two for AAA contrast — and that is why
+ * the product stopped looking like Foundry. Counting the pixels in eleven
+ * mirrored screenshots resolved every Foundry colour to a Blueprint token
+ * exactly, and the page we cite for using Blueprint at all says the palette was
+ * "chosen with WCAG 2.0 compliance in mind". The tuning solved a solved problem.
+ *
+ * Don't introduce ad-hoc colors, and don't re-tune these: the hex beside each
+ * one is Blueprint's, from @blueprintjs/colors' own _colors.scss. */
 
 @media all {
   :root {
     /* ── Light mode ─────────────────────────────────────────────────────────
      * Slight cool undertone on the page so white cards sit visibly elevated.
      * Borders are sharper than Blueprint default so panels read at a glance. */
-    --background:        216 22% 96%;   /* #f1f3f7  page (slightly cooler than default) */
-    --foreground:        213 18% 12%;   /* #1a1f25  text */
+    --background:        220 20% 97%;   /* #f6f7f9  light-gray5 — measured as Foundry's page */
+    --foreground:        213 16% 13%;   /* #1c2127  dark-gray1 */
     --card:              0 0% 100%;     /* #ffffff  elevated */
     --card-foreground:   213 18% 12%;
     --popover:           0 0% 100%;
     --popover-foreground:213 18% 12%;
 
     /* Surface hierarchy — each step is a meaningful depth, not noise. */
-    --surface-0:         216 22% 96%;   /* page */
-    --surface-1:         0 0% 100%;     /* cards / app chrome */
-    --surface-2:         214 18% 93%;   /* nested / hover */
-    --surface-3:         214 14% 87%;   /* pressed / heavier panels */
+    --surface-0:         220 20% 97%;   /* #f6f7f9  light-gray5 — page */
+    --surface-1:         0 0% 100%;     /* #ffffff  white — cards / app chrome */
+    --surface-2:         216 16% 94%;   /* #edeff2  light-gray4 — nested / hover */
+    --surface-3:         210 13% 91%;   /* #e5e8eb  light-gray3 — pressed / heavier */
 
-    /* Intent palette. Primary stays Blueprint blue3; semantic intents added. */
-    --primary:           212 67% 47%;   /* #285aaf  blue3-deep, AAA on white */
+    /* Intent palette — Blueprint's *3 ramp, unmodified. The primary was the
+     * loudest deviation: #215db0 sits two steps below blue3, and it is every
+     * button, link, active nav row and selected tab in the product. */
+    --primary:           215 65% 50%;   /* #2d72d2  blue3 */
     --primary-foreground:0 0% 100%;
-    --destructive:       358 60% 49%;   /* #c3373b  red3-deep */
+    --destructive:       358 58% 53%;   /* #cd4246  red3 */
     --destructive-foreground: 0 0% 100%;
-    --success:           150 56% 35%;   /* #277b5a  green3-deep */
+    --success:           148 58% 33%;   /* #238551  green3 */
     --success-foreground:0 0% 100%;
-    --warning:           34 88% 42%;    /* #c97509  orange3-deep */
+    --warning:           32 78% 44%;    /* #c87619  orange3 */
     --warning-foreground:0 0% 100%;
-    --ring:              212 67% 47%;
+    --ring:              215 65% 50%;
 
-    --secondary:         214 18% 93%;
-    --secondary-foreground: 213 18% 12%;
-    --muted:             214 18% 93%;
-    --muted-foreground:  214 12% 42%;   /* #5d6776  AAA on white */
-    --accent:            214 18% 93%;
-    --accent-foreground: 213 18% 12%;
-    --border:            213 14% 84%;   /* #d0d5dc  one step sharper than Blueprint default */
-    --input:             213 14% 84%;
+    --secondary:         216 16% 94%;   /* #edeff2  light-gray4 */
+    --secondary-foreground: 213 16% 13%;
+    --muted:             216 16% 94%;
+    --muted-foreground:  215 13% 43%;   /* #5f6b7c  gray1 */
+    --accent:            216 16% 94%;
+    --accent-foreground: 213 16% 13%;
+    --border:            213 15% 88%;   /* #dce0e5  light-gray2 — measured */
+    --input:             213 15% 88%;
 
     /* Blueprint rule: 4px everywhere, never rounder. */
     --radius: 0.25rem;
@@ -58,37 +68,37 @@
     /* ── Dark mode ──────────────────────────────────────────────────────────
      * Page deepens past Blueprint's dark-gray1; surface ramp opens up so
      * cards/nav/modals each read as a distinct elevation level. */
-    --background:        215 18% 9%;    /* #13171c  deeper than dark-gray1 for clearer hierarchy */
-    --foreground:        220 17% 96%;   /* #f4f6f9 */
-    --card:              215 14% 16%;   /* #232830  cards/modals — clear lift off page */
+    --background:        215 18% 9%;    /* #111418  deeper than dark-gray1 for clearer hierarchy */
+    --foreground:        220 17% 96%;   /* #f6f7f9 */
+    --card:              215 14% 16%;   /* #252a31  cards/modals — clear lift off page */
     --card-foreground:   220 17% 96%;
-    --popover:           215 14% 18%;   /* #272d35  popovers a half-step above cards */
+    --popover:           215 14% 18%;   /* #252a31  popovers a half-step above cards */
     --popover-foreground:220 17% 96%;
 
     /* Surface ramp — each level is visibly distinct under low ambient light. */
-    --surface-0:         215 18% 9%;    /* #13171c  page */
+    --surface-0:         215 18% 9%;    /* #111418  page */
     --surface-1:         215 16% 13%;   /* #1c2127  app chrome (topbar, dock) */
-    --surface-2:         215 14% 16%;   /* #232830  cards */
-    --surface-3:         215 12% 22%;   /* #2f353e  hover / active */
+    --surface-2:         215 14% 16%;   /* #252a31  cards */
+    --surface-3:         215 12% 22%;   /* #2f343c  hover / active */
 
     /* Intents — Blueprint dark-mode focus values, slightly tuned. */
-    --primary:           213 100% 78%;  /* #91beff  blue5, brighter for dark */
+    --primary:           213 100% 78%;  /* #8abbff  blue5, brighter for dark */
     --primary-foreground:215 18% 9%;
-    --destructive:       358 89% 80%;   /* #faa1a4  red5 */
+    --destructive:       358 89% 80%;   /* #fa999c  red5 */
     --destructive-foreground: 215 18% 9%;
-    --success:           150 60% 65%;   /* #6fd5a3  green5 */
+    --success:           150 60% 65%;   /* #72ca9b  green5 */
     --success-foreground:215 18% 9%;
-    --warning:           34 100% 70%;   /* #ffb866  orange5 */
+    --warning:           34 100% 70%;   /* #fbb360  orange5 */
     --warning-foreground:215 18% 9%;
     --ring:              213 100% 78%;
 
     --secondary:         215 12% 22%;
     --secondary-foreground: 220 17% 96%;
     --muted:             215 16% 13%;
-    --muted-foreground:  214 14% 68%;   /* #a4adbb  AA on dark cards */
+    --muted-foreground:  214 14% 68%;   /* #abb3bf  AA on dark cards */
     --accent:            215 12% 22%;
     --accent-foreground: 220 17% 96%;
-    --border:            215 12% 26%;   /* #383f4a  sharper border for panels */
+    --border:            215 12% 26%;   /* #383e47  sharper border for panels */
     --input:             215 12% 26%;
 
     --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
@@ -376,12 +386,14 @@
  * values below are read off the screenshots in §5.1 and named for their nearest
  * Blueprint token; the rail carries no blue — selection is a lighter block. */
 :root {
-  --platform-sidebar-bg:    #1c2127;  /* Dark Gray2 */
-  --platform-sidebar-row:   #2f343c;  /* Dark Gray4 — hover and active */
-  --platform-sidebar-label: #f6f7f9;  /* Light Gray5 */
-  --platform-sidebar-muted: #8f99a8;  /* Gray3 — icons, hints, section headers */
-  --platform-sidebar-rule:  #252a31;  /* Dark Gray3 */
-  --platform-card-border:   #404854;  /* Dark Gray5 — the login card's 1px edge */
+  /* Measured from compass-files-landing-page.png, where the sidebar is 8.7% of
+   * the image: dark-gray2, not dark-gray1. The names below were off by one. */
+  --platform-sidebar-bg:    #252a31;  /* dark-gray2 — measured */
+  --platform-sidebar-row:   #2f343c;  /* dark-gray3 — hover and active, measured */
+  --platform-sidebar-label: #f6f7f9;  /* light-gray5 */
+  --platform-sidebar-muted: #8f99a8;  /* gray3 — icons, hints, section headers */
+  --platform-sidebar-rule:  #1c2127;  /* dark-gray1 — a darker line on a lighter rail */
+  --platform-card-border:   #404854;  /* dark-gray5 — the login card's 1px edge */
   --platform-star:          #f0a72b;  /* Gold, filled favourite (§5.1) */
   --platform-welcome: linear-gradient(90deg, #5c8ad8 0%, #2d72d2 38%, #1544de 100%);
 }
@@ -586,7 +598,7 @@
   .home-welcome {
     display:flex; align-items:center; gap:22px;
     margin-bottom:28px; padding:16px 26px; border-radius:10px;
-    background:linear-gradient(115deg, #8a5a9c, #6d4fc4 48%, #5646a8);
+    background:linear-gradient(115deg, #8a5a9c, #634dbf 48%, #5642a6);
     border:1px solid #4a3d78; color:#fff;
   }
   .home-welcome-art { width:86px; flex-shrink:0; }
@@ -724,7 +736,7 @@
   background:hsl(var(--muted) / .25); max-height:calc(100vh - 220px); }
 .lineage-canvas { position:relative; }
 .lineage-edges { position:absolute; inset:0; pointer-events:none; }
-.lineage-edge-flow { fill:none; stroke:#8a9ba8; stroke-width:1.5; }
+.lineage-edge-flow { fill:none; stroke:#8f99a8; stroke-width:1.5; }
 .lineage-edge-link { fill:none; stroke:#7961db; stroke-width:1.5; stroke-dasharray:5 4; opacity:.7; }
 .lineage-node { position:absolute; display:flex; align-items:center; gap:8px; padding:0 12px;
   border:1px solid hsl(var(--border)); border-radius:6px; background:hsl(var(--card));
@@ -736,7 +748,7 @@
 .lineage-legend { display:flex; gap:18px; align-items:center; margin-top:10px;
   font-size:11px; color:hsl(var(--muted-foreground)); }
 .lineage-legend > span { display:flex; align-items:center; gap:5px; }
-.lineage-swatch-flow { width:18px; height:0; border-top:2px solid #8a9ba8; }
+.lineage-swatch-flow { width:18px; height:0; border-top:2px solid #8f99a8; }
 .lineage-swatch-link { width:18px; height:0; border-top:2px dashed #7961db; }
 /* The simulation's four documented states, colored as the screenshot has them. */
 .sim-banner { display:flex; align-items:center; gap:10px; margin-bottom:12px;
@@ -748,8 +760,8 @@
 .sim-swatch { width:12px; height:12px; border-radius:3px; border:2px solid transparent; display:inline-block; }
 .sim-swatch.sim-simulated_changes_applied { border-color:#db2c6f; background:#db2c6f14; }
 .sim-swatch.sim-access_affected { border-color:#2d72d2; background:#2d72d214; }
-.sim-swatch.sim-access_unaffected { border-color:#8a9ba8; opacity:.55; }
-.sim-swatch.sim-no_visible_transactions { border-color:#8a9ba8; border-style:dashed; opacity:.55; }
+.sim-swatch.sim-access_unaffected { border-color:#8f99a8; opacity:.55; }
+.sim-swatch.sim-no_visible_transactions { border-color:#8f99a8; border-style:dashed; opacity:.55; }
 
 /* ── Ontology Manager's own chrome (§6) ──────────────────────────────────────
  * The application chrome: a light top bar and a light sidebar, inside the
@@ -907,7 +919,7 @@
 .\!rounded-none { border-radius:0 !important; }
 .\!text-\[10px\] { font-size:10px !important; }
 .\!text-\[9px\] { font-size:9px !important; }
-.\!text-slate-500 { color:#6b7482 !important; }
+.\!text-slate-500 { color:#5f6b7c !important; }
 .\!text-white { color:#fff !important; }
 .\!text-xs { font-size:.75rem !important; }
 .-right-0\.5 { right:-0.125rem; }
@@ -1080,15 +1092,15 @@
 .tabular-nums { font-variant-numeric:tabular-nums; }
 .text-3xl { font-size:1.875rem; }
 .text-4xl { font-size:2.25rem; }
-.text-\[\#6b7482\] { color:#6b7482; }
-.text-\[\#8a93a6\] { color:#8a93a6; }
-.text-\[\#98a1b0\] { color:#98a1b0; }
-.text-\[\#e7e9ee\] { color:#e7e9ee; }
+.text-\[\#5f6b7c\] { color:#5f6b7c; }
+.text-\[\#8f99a8\] { color:#8f99a8; }
+.text-\[\#8f99a8\] { color:#8f99a8; }
+.text-\[\#e5e8eb\] { color:#e5e8eb; }
 .text-\[10px\] { font-size:10px; }
 .text-\[11px\] { font-size:11px; }
 .text-\[13px\] { font-size:13px; }
 .text-\[9px\] { font-size:9px; }
-.text-amber-600 { color:#bf7326; }
+.text-amber-600 { color:#c87619; }
 .text-base { font-size:1rem; }
 .text-black { color:#000; }
 .text-blue-400 { color:#4c90f0; }
@@ -1100,7 +1112,7 @@
 .text-primary { color:hsl(var(--primary)); }
 .text-primary-foreground { color:hsl(var(--primary-foreground)); }
 .text-red-600 { color:#c23030; }
-.text-slate-400 { color:#8a93a6; }
+.text-slate-400 { color:#8f99a8; }
 .text-sm { font-size:.875rem; }
 .text-violet-500 { color:#8f6bd6; }
 .text-white { color:#fff; }
