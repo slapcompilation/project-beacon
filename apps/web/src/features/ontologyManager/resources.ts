@@ -19,8 +19,9 @@ import { overlayRows } from '@/features/branching/overlay'
 import { useSharedProperties } from '@/features/objectTypes/sharedProperties'
 import { useInterfaces } from '@/features/interfaces/hooks'
 import { useActionTypes } from '@/features/actionTypes/api'
+import { useFunctions } from '@/features/functions/api'
 
-export type OmaKind = 'Object type' | 'Shared property' | 'Link type' | 'Action type' | 'Interface'
+export type OmaKind = 'Object type' | 'Shared property' | 'Link type' | 'Action type' | 'Interface' | 'Function'
 
 export interface OmaResource {
   key: string
@@ -41,6 +42,7 @@ export const RESOURCE_NAV: { kind: OmaKind; label: string; icon: IconName; path:
   { kind: 'Link type', label: 'Link types', icon: 'arrows-horizontal', path: '/ontology/link-types' },
   { kind: 'Action type', label: 'Action types', icon: 'take-action', path: '/ontology/action-types' },
   { kind: 'Interface', label: 'Interfaces', icon: 'layers', path: '/ontology/interfaces' },
+  { kind: 'Function', label: 'Functions', icon: 'function', path: '/ontology/functions' },
 ]
 
 const ICON_OF: Record<OmaKind, IconName> =
@@ -86,6 +88,7 @@ export function useOmaResources(): OmaResource[] {
   const { data: shared } = useSharedProperties()
   const { data: linkRows } = useLinkTypes()
   const { data: ifaceRows } = useInterfaces()
+  const { data: fnRows = [] } = useFunctions(ontology?.id ?? null)
   const oid = ontology?.id ?? null
   // Already scoped by the query — action_types.ontology_id is NOT NULL.
   const { data: actionRows } = useActionTypes(oid)
@@ -105,8 +108,10 @@ export function useOmaResources(): OmaResource[] {
         res('Action type', `at:${a.id}`, a.label, a.api_name, '/ontology/action-types')),
       ...ifaceRows.filter((i) => i.ontology_id === oid).map((i) =>
         res('Interface', `if:${i.id}`, i.label, i.api_name, '/ontology/interfaces', i.rid ?? '')),
+      ...fnRows.filter((f) => f.ontology_id === oid).map((f) =>
+        res('Function', `fn:${f.id}`, f.display_name, f.api_name, '/ontology/functions')),
     ]
-  }, [typeRows, shared, linkRows, actionRows, ifaceRows, oid])
+  }, [typeRows, shared, linkRows, actionRows, ifaceRows, fnRows, oid])
 }
 
 export const countOf = (resources: OmaResource[], kind: OmaKind) =>
