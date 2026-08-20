@@ -132,13 +132,38 @@ function quotations(text) {
   let inCode = false
   let block = null
 
-  const flush = () => {
+  /** A quotation may name the page it came from on the line after the block:
+   *
+   *      > "Object types are limited to a maximum of 70 datasources…"
+   *
+   *      — `object-permissioning/multi-datasource-objects.md`
+   *
+   *  Until this was read, the guard proved a quotation was in SOME mirrored page
+   *  and that a named page EXISTED, and never that the two were the same one.
+   *  Its own comment calls that "the failure CLAUDE.md calls the most
+   *  expensive" while closing only the other half. Measured before wiring: 40
+   *  quotations carry this form and all 40 were already right, so this costs
+   *  nothing today and forecloses it. */
+  const attributionAfter = (i) => {
+    let j = i
+    while (j < lines.length && lines[j].trim() === '') j += 1
+    const m = /^—\s*`?([\w./-]+\.md)`?\s*$/.exec(lines[j] ?? '')
+    if (m === null) return null
+    const slug = m[1].replace(/\.md$/, '')
+    return slug.startsWith('docs/') ? null : slug     // courses handled elsewhere
+  }
+
+  const flush = (i = lines.length) => {
     if (block) {
       // A trailing `— path` attributes the quotation to an image.
       const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.md)\s*$/s.exec(block.text)
       const body = normalise(attributed ? attributed[1] : block.text)
       if (body.length >= MIN_LEN) {
-        out.push({ at: block.at, text: body, image: attributed ? attributed[2] : null })
+        out.push({
+          at: block.at, text: body,
+          image: attributed ? attributed[2] : null,
+          page: attributed ? null : attributionAfter(i),
+        })
       }
     }
     block = null
@@ -150,12 +175,12 @@ function quotations(text) {
 
     const bq = /^\s*>\s?(.*)$/.exec(line)
     if (bq) {
-      if (bq[1].trim() === '') flush()
+      if (bq[1].trim() === '') flush(i + 1)
       else if (block) block.text += ' ' + bq[1]
       else block = { at: i + 1, text: bq[1] }
       return
     }
-    flush()
+    flush(i)
 
     // Inline "double-quoted spans". A prose sentence cannot carry a trailing
     // attribution, so an image path anywhere in the same paragraph attributes
@@ -284,6 +309,21 @@ for (const name of readings) {
     const unfound = parts.filter((p) => !mirror.some((m) => m.lower.includes(p.toLowerCase())))
     for (const u of unfound) {
       failures.push({ name, at: q.at, why: `not in any mirrored page: "${u.slice(0, 90)}"` })
+    }
+    // And if the reading NAMES the page, the sentence has to be on THAT one.
+    // A real quotation filed under the wrong page sends the next reader to a
+    // page that does not say it, which is the whole thing citation is for.
+    if (q.page !== null && q.page !== undefined && unfound.length === 0) {
+      const cited = mirror.find((m) => slugOf(m.file) === q.page)
+      if (cited === undefined) {
+        failures.push({ name, at: q.at, why: `attributed to a page that is not mirrored: ${q.page}` })
+      } else {
+        for (const p of parts) {
+          if (!cited.lower.includes(p.toLowerCase())) {
+            failures.push({ name, at: q.at, why: `real, but not on ${q.page}: "${p.slice(0, 90)}"` })
+          }
+        }
+      }
     }
     // Which page did this quotation come from? EVERY page that carries the
     // sentence, not the first one the walker reaches. Foundry republishes
