@@ -86,6 +86,7 @@ export function useOmaTypes(): { types: ObjectTypeDef[]; isLoading: boolean } {
       ontology_id: ontology?.id ?? '', object_type_properties: [], computed_properties: [],
       view_config: null, enabled: true, version: 0, status: 'experimental',
       visibility: 'normal', icon: 'cube', icon_color: '#2D72D2', description: '',
+      plural_label: '', point_of_contact: null, contributors: [], track_edit_history: false,
       deprecation_reason: null, deprecation_deadline: null, replaced_by: null,
     } as Partial<typeof mine[number]>)
     return composed.map(rowToObjectType)

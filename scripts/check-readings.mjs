@@ -135,7 +135,7 @@ function quotations(text) {
   const flush = () => {
     if (block) {
       // A trailing `— path` attributes the quotation to an image.
-      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg|md))\s*$/s.exec(block.text)
+      const attributed = /^(.*?)[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.md)\s*$/s.exec(block.text)
       const body = normalise(attributed ? attributed[1] : block.text)
       if (body.length >= MIN_LEN) {
         out.push({ at: block.at, text: body, image: attributed ? attributed[2] : null })
@@ -409,7 +409,7 @@ const sqlQuotations = (sql) => {
       // only readings had the `— path.png` form, while the header comment of
       // this file says screenshots carry the most weight of anything here. Same
       // rule as a reading — the file must exist on disk.
-      const shot = /[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg))\s*$/.exec(text)
+      const shot = /[—-]{1,2}\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg)|docs\/foundry-deep-dives\/[\w./-]+\.md)\s*$/.exec(text)
       const spans = text.split('"').filter((_, i) => i % 2 === 1)
       for (const span of spans) {
         const t = normalise(span)
@@ -467,6 +467,25 @@ for (const file of added) {
   }
 
   for (const q of sqlQuotations(sql)) {
+    if (q.image !== null && q.image.endsWith('.md')) {
+      // Same contract as a reading's: only the courses may be cited as a file,
+      // and the text has to be IN it.
+      migChecked += 1
+      const at = { name: file.replace(/^supabase\/migrations\//, ''), at: q.at }
+      if (!q.image.startsWith('docs/foundry-deep-dives/')) {
+        failures.push({ ...at, why: `only docs/foundry-deep-dives/ may be cited as a file: ${q.image}` })
+      } else if (!fs.existsSync(q.image)) {
+        failures.push({ ...at, why: `course file not on disk: ${q.image}` })
+      } else {
+        const course = normalise(fs.readFileSync(q.image, 'utf8')).toLowerCase()
+        for (const f of fragments(q.text)) {
+          if (!course.includes(f.toLowerCase())) {
+            failures.push({ ...at, why: `not in ${q.image}: "${f.slice(0, 90)}"` })
+          }
+        }
+      }
+      continue
+    }
     if (q.image) {
       migChecked += 1
       const onDisk = path.join(MIRROR, q.image)

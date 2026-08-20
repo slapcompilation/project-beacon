@@ -13,7 +13,7 @@ import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
   validateComputedProperty, validateViewConfig, attachProblem,
   acceptsInput, primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
-  STATUS_META, OBJECT_TYPE_STATUSES, ONTOLOGY_STATUSES,
+  STATUS_META, OBJECT_TYPE_STATUSES, ONTOLOGY_STATUSES, pluralise,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef, type SharedPropertyDef,
   type ObjectTypeStatus, type OntologyStatus,
@@ -33,6 +33,7 @@ import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/obj
 import { DependentsTab } from '@/features/objectTypes/DependentsTab'
 import { UsageTab } from '@/features/objectTypes/UsageTab'
 import { CapabilitiesTab } from '@/features/objectTypes/CapabilitiesTab'
+import { MetadataCard } from '@/features/objectTypes/MetadataCard'
 import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
@@ -305,6 +306,11 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const create = useCreateObjectType()
   const sharedMap = useSharedPropertyMap()
   const [label, setLabel] = useState('')
+  // "plural auto-updates" as the name is typed, and Pipeline Builder says the
+  // same of its own dialog — auto-populated FOR CONVENIENCE, so an operator
+  // edit sticks and stops the derivation. 598 carries the value; this derives it.
+  const [plural, setPlural] = useState('')
+  const [pluralEdited, setPluralEdited] = useState(false)
   const [icon, setIcon] = useState<IconName>('cube')
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<PropertyDraft[]>([newProperty()])
@@ -324,7 +330,8 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const submit = () => {
     if (!canSave) return
     create.mutate(
-      { apiName, label: label.trim(), icon, description: description.trim(), properties, ontologyId, projectId },
+      { apiName, label: label.trim(), pluralLabel: plural.trim(),
+        icon, description: description.trim(), properties, ontologyId, projectId },
       {
         onSuccess: (id) => {
           // Step 1 of the wizard, applied after the type exists because the
@@ -332,7 +339,8 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
           // so this is not optional decoration. It reports its own failure, and
           // the form resets either way — the type is created regardless.
           void applyBacking(id, backing)
-          setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube')
+          setLabel(''); setPlural(''); setPluralEdited(false)
+          setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube')
           setBacking({ kind: 'generate', name: '', folderId: null })
         },
       },
@@ -347,7 +355,15 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <InputGroup placeholder="Label (e.g. Maintenance Request)" value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[200px]" />
+        <InputGroup placeholder="Label (e.g. Maintenance Request)" value={label}
+          onChange={(e) => {
+            const v = e.currentTarget.value
+            setLabel(v)
+            if (!pluralEdited) setPlural(pluralise(v))
+          }} className="flex-1 min-w-[200px]" />
+        <InputGroup placeholder="Plural name" value={plural} title="Auto-filled from the label; edit to override"
+          onChange={(e) => { setPlural(e.currentTarget.value); setPluralEdited(true) }}
+          className="flex-1 min-w-[160px]" />
         <HTMLSelect value={icon} onChange={(e) => { setIcon(e.currentTarget.value as IconName) }}>
           {ICONS.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
         </HTMLSelect>
@@ -422,6 +438,7 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
  *  start from it. Both are the Ontology Manager's job — they used to hang off a
  *  records panel, which is why they went with it. */
 function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
+  const { ontology } = useOmaOntology()
   const { data: linkTypeRows } = useLinkTypes()
   const linkTypes = useMemo(
     () => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id),
@@ -437,13 +454,17 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{type.label}</h2>
         <Tag minimal className="tabular-nums">v{type.version}</Tag>
-        <StatusControl type={type} />
         <Button variant="minimal" size="small" icon="edit" active={editing} className="ml-auto"
           onClick={() => { setEditing(!editing) }}>Edit properties</Button>
       </div>
       <Tabs id={`type-${type.id}`} vertical animate={false} renderActiveTabPanelOnly>
         <Tab id="overview" title="Overview" icon="desktop" panel={
           <div className="space-y-3">
+            {/* Sections ① and ④ of Foundry's Overview. ②, ③ and ⑥ are unbuilt
+                engines, and ⑤ and ⑦ stay as tabs — a scoped divergence, recorded
+                in readings/object-type-overview.md Decision 7. */}
+            <MetadataCard type={type} ontologyName={ontology?.label ?? 'Ontology'}
+              status={<StatusControl type={type} />} />
             {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
             <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
           </div>

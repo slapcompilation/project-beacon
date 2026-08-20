@@ -112,6 +112,10 @@ export interface ObjectTypeRow {
   label: string
   icon: string
   icon_color: string
+  plural_label: string
+  point_of_contact: string | null
+  contributors: string[]
+  track_edit_history: boolean
   description: string
   rid: string | null
   /** Other names this type answers to — what the header search means by
@@ -137,7 +141,10 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
     id: r.id, ontologyId: r.ontology_id,
     apiName: r.api_name, label: r.label, icon: r.icon,
-    iconColor: r.icon_color, description: r.description,
+    iconColor: r.icon_color, pluralLabel: r.plural_label,
+    pointOfContact: r.point_of_contact, contributors: r.contributors,
+    trackEditHistory: r.track_edit_history, aliases: r.aliases ?? [], rid: r.rid,
+    description: r.description,
     properties: [...r.object_type_properties]
       .sort((a, b) => a.position - b.position).map(rowToProperty),
     computedProperties: r.computed_properties ?? [],
@@ -170,6 +177,8 @@ export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
  *  forbids, and stay there if the second write failed. */
 export async function saveObjectType(
   i: { id?: string; apiName?: string; label: string; icon: string; description: string
+       /** Derived from the label by the surface, overridable — 598. */
+       pluralLabel?: string
        properties: PropertyDef[]
        /** Which ontology this type is being created in. Required on create when
         *  the organization has more than one — `default_ontology()` refuses to
@@ -178,7 +187,9 @@ export async function saveObjectType(
        projectId?: string | null },
 ): Promise<string> {
   return client(saveObjectTypeAction).applyAction({
-    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description, ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null },
+    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon,
+      plural_label: i.pluralLabel ?? null, description: i.description,
+      ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null },
     p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
     p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })

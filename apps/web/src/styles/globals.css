@@ -898,6 +898,24 @@
    * a 16px section title, 20px down to its cards, 32px on to the next section.
    * The 28px side padding was already right. */
   .oma-page    { padding:28px 28px 48px; }
+  /* Section ① of the object type Overview: two columns divided by a rule,
+   * metadata left and the status panel right. Foundry's card runs the width of
+   * the content; the right column is roughly a third of it. */
+  .oma-meta {
+    display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr);
+    border:1px solid hsl(var(--border)); border-radius:var(--radius);
+    background:hsl(var(--card));
+  }
+  .oma-meta-side { border-left:1px solid hsl(var(--border)); }
+  .oma-meta-fields {
+    display:grid; grid-template-columns:minmax(0,auto) minmax(0,1fr);
+    gap:10px 20px; margin:0; padding:15px; font-size:13px; align-items:center;
+  }
+  .oma-meta-side .oma-rule { margin:0; }
+  @media (max-width:900px) {
+    .oma-meta { grid-template-columns:minmax(0,1fr); }
+    .oma-meta-side { border-left:0; border-top:1px solid hsl(var(--border)); }
+  }
   .oma-section + .oma-section { margin-top:32px; }
   .oma-section-head  { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
   .oma-section-title { font-size:16px; font-weight:600; }
