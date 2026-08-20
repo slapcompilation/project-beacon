@@ -223,6 +223,18 @@ for (const name of readings) {
   if (!strict) { legacy += 1; continue }
 
   for (const para of text.split(/\n\s*\n/)) {
+    // A counted claim — "Images measured (11)", "parsed 7 images" — has its
+    // number checked against the paths beside it. This is the hole that let a
+    // reading say eleven over a list of ten, in the one paragraph whose whole
+    // job is saying what was looked at.
+    const counted = /(?:images?|screenshots?)[^.\n]{0,24}?\((\d+)\)|\b(\d+)\s+(?:images?|screenshots?)\b/i.exec(para)
+    if (counted) {
+      const said = Number(counted[1] ?? counted[2])
+      const listed = new Set([...para.matchAll(/[\w./-]+\.(?:png|jpe?g|gif|webp)/gi)].map((m) => m[0]))
+      if (listed.size > 0 && listed.size !== said) {
+        overstated.push({ name, says: `"${counted[0].trim()}" but ${listed.size} path(s) are listed beside it` })
+      }
+    }
     if (!CLAIMS_EVERY_IMAGE.test(para)) continue
     for (const m of para.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
       const imgs = pageImages(slugOf(m[1]))
@@ -487,6 +499,7 @@ if (overstated.length > 0) {
 ${overstated.length} image-coverage claim(s) that are not true:
 `)
   for (const o of overstated) {
+    if (o.says !== undefined) { console.error(`  ${o.name}  —  ${o.says}`); continue }
     console.error(`  ${o.name}  —  ${o.page} has ${o.imgs} image(s); ${o.unnamed.length} never named:`)
     for (const u of o.unnamed.slice(0, 6)) console.error(`      ${u}`)
     if (o.unnamed.length > 6) console.error(`      …and ${o.unnamed.length - 6} more`)

@@ -65,6 +65,16 @@ So, before building anything from a page:
    editing a header, never delete the list of what is unparsed; that turns a
    recorded debt into a silent one, which is how the second false claim happened.
 
+8. **A screenshot does not say which product it is of.** The mirror carries more
+   than one generation of the same UI, and they disagree on everything. The
+   Ontology Manager's old captures (`cleanup-*.png`, an `Overview` row, a card
+   column) measure 275px on a 44px row pitch; the one Foundry ships
+   (`oma-discover-view.png`, a `Resources` block, `Value types`) measures 252px
+   on 33px. Calibrating to the first made our sidebar looser when the real one is
+   tighter. **Check the era before measuring, and say in the reading which
+   capture a number came from.** Scale is not a guess either: a 1px CSS rule is a
+   hairline, so a divider's thickness in device pixels gives the capture's ratio.
+
 **And say who skipped it.** Not "the image nobody had read" — every reading here
 has the same author as the code, and the passive voice turns an omission into a
 property of the corpus. Write "the image I skipped", in readings and migration
