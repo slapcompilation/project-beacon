@@ -38,6 +38,7 @@ import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBran
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useViolations, useWarnings } from '@/features/health/api'
+import { useCandidates, useCleanupConfig } from '@/features/cleanup/api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProjects } from '@/features/projects/api'
 import { OntologyPicker } from '@/features/ontologies/OntologyPicker'
@@ -108,7 +109,7 @@ export default function OmaLayout() {
                 the Ontology Manager nav screenshot draws it. */}
             <div className="oma-rule" />
             <HealthIssuesRow />
-            <NavRow icon="clean" label="Cleanup" path="/ontology/cleanup" end />
+            <CleanupRow />
             <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
           </nav>
         </aside>
@@ -143,6 +144,17 @@ function HealthIssuesRow() {
   const { data: warnings = [] } = useWarnings()
   return <NavRow icon="pulse" label="Health issues" path="/ontology/health"
     count={errors.length + warnings.length} end />
+}
+
+/** The nav carries `Cleanup 5,632` beside `Object types 6,305` in the
+ *  configuration screenshot — a stored count of what the last run found, which
+ *  is why it can be shown without recomputing anything. Absent until a run. */
+function CleanupRow() {
+  const ontologyId = useAppStore((s) => s.omaOntologyId)
+  const config = useCleanupConfig(ontologyId)
+  const { data: candidates } = useCandidates(config.data?.id ?? null)
+  return <NavRow icon="clean" label="Cleanup" path="/ontology/cleanup" end
+    count={candidates?.length} />
 }
 
 /** "When there are new changes from main, a blue indicator appears on the
