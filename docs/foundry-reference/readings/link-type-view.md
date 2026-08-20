@@ -101,6 +101,13 @@ and
 > Per-direction Visibility. Status Experimental
 > — docs/foundry-deep-dives/01-ontology.md
 
+**Weakened by `readings/api-link-type.md`, and worth knowing before citing it.**
+That sentence is in the hand-written SUMMARY. The lesson's own extracted text
+says nothing about visibility, and #728 established that no extraction reaches
+text inside a PDF's screenshots — so the chain ends at someone's transcription of
+a picture. The api does not carry per-side visibility either. The columns stand;
+the evidence for them is transcription-grade, not a quotation.
+
 That is the whole cluster:
 
 | column | what it holds |
