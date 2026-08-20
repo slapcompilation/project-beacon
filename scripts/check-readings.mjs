@@ -493,6 +493,23 @@ for (const file of added) {
   if (!fs.existsSync(file)) continue
   const sql = fs.readFileSync(file, 'utf8')
 
+  // A NEW value set names the page it came from. CLAUDE.md says every value in
+  // every CHECK traces to a page; 599 renamed a base type against three pages
+  // that describe it without opening the one that enumerates it, and nothing
+  // refused it. 601 puts the declaration in the constraint's comment — the
+  // file that created a CHECK is immutable, so it cannot be added afterwards —
+  // and the platform suite checks every value appears on the page named.
+  //
+  // This is the ratchet: the 74 already in the schema are counted, not
+  // exempted, and the count can only fall because a new one cannot skip.
+  if (/=\s*ANY\s*\(ARRAY\[/.test(sql) && !/Values from [a-z0-9/-]+/.test(sql)) {
+    failures.push({
+      name: file.replace(/^supabase\/migrations\//, ''),
+      at: 1,
+      why: 'adds a CHECK value set but no comment naming its page — see 601',
+    })
+  }
+
   // A migration's header attributes its quotes the same way a reading does, and
   // gets the same question asked of it: a name that looks like a page must BE
   // one. 531 attributed a real sentence to `builds-and-schedules/overview` —
