@@ -786,10 +786,22 @@
    * the pixels do not. Foundry's cube is three tones of blue (#1e52a7 /
    * #4385ee / #99c2ff) — artwork, not an icon glyph, so ours draws Blueprint's
    * `cube` in the darkest of the three. */
-  .oma-tile  {
+  .oma-app-tile {
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    width:50px; height:100%; background:var(--oma-tile-bg); color:var(--oma-tile-fg);
+    width:50px; height:100%; background:var(--oma-app-tile-bg); color:var(--oma-app-tile-fg);
   }
+  /* An object type's icon tile is a different object entirely: a SATURATED
+   * rounded square in the type's own icon_color with a WHITE glyph. Foundry
+   * gives object types and object sets this treatment and Files and Projects
+   * resources a tinted one (readings/workshop-resource-list.md §3). 30x30 on a
+   * Discover card, measured; its corner reads 2-3px so it takes the file's
+   * standing 4px. */
+  .oma-tile {
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:30px; height:30px; border-radius:var(--radius);
+    background:var(--tile, hsl(var(--primary))); color:#fff;
+  }
+  .oma-tile.is-sm { width:20px; height:20px; border-radius:3px; }
   .oma-title { font-size:16px; font-weight:600; }
 
   /* Centre: grey-filled, magnifier, inline ⌘K hint (§6.2). 352x32, light-gray5. */
@@ -814,11 +826,11 @@
    * wrong in dark. */
   :root {
     --oma-active: #eaf1fd; --oma-active-fg: #215db0;
-    --oma-tile-bg: #eef3ff; --oma-tile-fg: #1e52a7;
+    --oma-app-tile-bg: #eef3ff; --oma-app-tile-fg: #1e52a7;
   }
   .dark {
     --oma-active: hsl(var(--primary) / .22); --oma-active-fg: hsl(var(--primary));
-    --oma-tile-bg: hsl(var(--primary) / .18); --oma-tile-fg: hsl(var(--primary));
+    --oma-app-tile-bg: hsl(var(--primary) / .18); --oma-app-tile-fg: hsl(var(--primary));
   }
   /* Sidebar geometry is measured, not chosen — off oma-discover-view.png, a 2x
    * capture, so every device pixel below is halved. The cleanup and

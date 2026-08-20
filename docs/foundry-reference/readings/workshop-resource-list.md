@@ -168,6 +168,38 @@ data table. The two-era question is untouched.
 nearest `$blue3`, in a capture that desaturates. Link text is blue but not
 sampled cleanly. Not enough to move `--primary`.
 
+## 7. What Decision 2 produced, including a regression it exposed
+
+**The tile now exists**, 30x30 on a Discover card and 20x20 in the object types
+list, filled with the type's `icon_color` and carrying a white glyph. Two
+independent sources back the list case as well as the card: this page's
+`-object-types.png`, and the old Ontology Manager's own object types table
+(`oma-user-interface-navigation-homepage-sidebar.png`), whose NAME column draws a
+coloured tile per type. Both eras agree, so it is not a generational choice.
+
+The corner measures **2-3px** on the Discover card, not 4. It takes the file's
+standing `--radius` anyway — the difference is invisible at 30px and inventing a
+second radius token to express it would be worse than the error it removes.
+
+**The regression.** `.oma-tile` had two consumers and #713 changed it for one of
+them. Since that merge the Discover card's tile has been rendering at 50px wide,
+full height, pale blue, with a white glyph on a pale ground — invisible. I did
+not grep for other users of a class I redefined. The header's icon is now
+`.oma-app-tile`, which is what it always was: **the application's** icon, not a
+type's, and the two were never the same object.
+
+**The comment that was false.** `DiscoverPage.tsx` carried "The ontology stores
+an icon per type but no colour, so the tile takes the application's tint rather
+than inventing a per-type hue." Migration 586 had added the colour eleven
+migrations earlier. This is the exact failure CLAUDE.md's "verify we do not have
+X" rule names, and it is the second time a stale *we-lack-this* sentence has
+invited the wrong build.
+
+**Not built: the ⌘K search.** It lists object types and draws `cube` for every
+one. Foundry very likely draws the type's own tile there, but
+`oma-user-interface-navigation-search.png` is a crop of the header only and no
+capture shows the results. Left alone rather than guessed; Question 4.
+
 ## Decisions
 
 1. **Do not change `icon_color`'s CHECK.** The page permits a custom colour, so a
@@ -193,6 +225,8 @@ sampled cleanly. Not enough to move `--primary`.
 2. **What is the predefined colour set exactly?** "Orange 5" implies ramp x step,
    and Blueprint publishes five steps per ramp, but no page lists the ramps
    Foundry offers.
+4. **Does the ⌘K search draw a type's own tile?** No capture shows the results
+   list. Ours draws the kind's icon for every type.
 3. **Does the Ontology Manager use the same uppercase field labels as Workshop?**
    §5 is measured on Workshop panels. The Ontology Manager's own property editor
    (`oma-user-interface-property-editor-v2.png`) shows `Name`, `Description`,

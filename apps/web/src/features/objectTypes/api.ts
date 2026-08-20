@@ -111,6 +111,7 @@ export interface ObjectTypeRow {
   api_name: string
   label: string
   icon: string
+  icon_color: string
   description: string
   rid: string | null
   /** Other names this type answers to — what the header search means by
@@ -135,7 +136,8 @@ export interface ObjectTypeRow {
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
     id: r.id, ontologyId: r.ontology_id,
-    apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
+    apiName: r.api_name, label: r.label, icon: r.icon,
+    iconColor: r.icon_color, description: r.description,
     properties: [...r.object_type_properties]
       .sort((a, b) => a.position - b.position).map(rowToProperty),
     computedProperties: r.computed_properties ?? [],

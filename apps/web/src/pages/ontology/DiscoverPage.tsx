@@ -17,7 +17,7 @@ import { useAppStore } from '@/stores/app.store'
 import { indexReady, useIndexStatuses } from '@/features/objectTypes/indexing'
 import { NoOntologyCallout, OntologySummary } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
-import { typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
+import { tileStyle, typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
 
 export default function DiscoverPage() {
   const { ontology, isLoading } = useOmaOntology()
@@ -60,9 +60,11 @@ function Cards({ types }: { types: ObjectTypeDef[] }) {
         return (
           <Link key={t.id} to={typePath(t.id)} className="oma-card">
             <span className="oma-card-head">
-              {/* The ontology stores an icon per type but no colour, so the tile
-                  takes the application's tint rather than inventing a per-type hue. */}
-              <span className="oma-tile"><Icon icon={t.icon as IconName} size={16} color="#fff" /></span>
+              {/* 586 gave the type a colour and until now nothing read it. The
+                  comment here used to say the ontology had none. */}
+              <span className="oma-tile" style={tileStyle(t)}>
+                <Icon icon={t.icon as IconName} size={16} />
+              </span>
               <span className="min-w-0">
                 <span className="oma-card-name">{t.label}</span>
                 {indexReady(ix)

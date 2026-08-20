@@ -36,7 +36,7 @@ import { CapabilitiesTab } from '@/features/objectTypes/CapabilitiesTab'
 import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
-import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
+import { tileStyle, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
 import { indexPhase, useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
 /** The three sources, in the editor's own words. */
@@ -261,7 +261,9 @@ export default function ObjectTypesPage() {
                   className={selectedId === t.id ? '!border-violet-400' : ''}
                   onClick={() => { openType(t.id) }}>
                   <div className="flex items-center gap-2">
-                    <Icon icon={t.icon as IconName} size={14} className="text-violet-500" />
+                    <span className="oma-tile is-sm" style={tileStyle(t)}>
+                      <Icon icon={t.icon as IconName} size={12} />
+                    </span>
                     <span className="text-sm font-semibold">{t.label}</span>
                   </div>
                   <p className="text-xs text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
