@@ -55,6 +55,28 @@ So, before building anything from a page:
    it is still cheap.
 6. **Separate quote from inference.** Anything not lifted from the page is marked
    as inference. `object_type_impact` came back on a citation that did not exist.
+7. **Never claim coverage you have not counted.** A header saying "all five of
+   its images parsed" is a falsifiable assertion, and mine have been false twice:
+   `actions-on-interfaces` claimed five with four parsed, `ontology-cleanup`
+   claimed seven with four. `pnpm check:readings` now fails on it — naming a file
+   anywhere counts, so "these three add nothing beyond the prose: a.png, b.png"
+   passes. **The bar is that the reading says what it looked at.** And when
+   editing a header, never delete the list of what is unparsed; that turns a
+   recorded debt into a silent one, which is how the second false claim happened.
+
+### Who skipped it was me
+
+There is no "the image nobody had read". Every file in `readings/` is written by
+the same author as the code, and the passive voice turns an omission into a
+property of the corpus. **The corpus does not skim.** Write "the image I
+skipped", in readings, migration headers and commit messages alike — those are
+read by the next session as fact, and a diffused omission reads as "the
+documentation was incomplete" rather than "open the images next time".
+
+The rule earns its place on results, not manners: the images I had skipped and
+then claimed contained a confirmed inference (the Health issues nav row), three
+unbuilt Cleanup features, and a falsified guard (597). **Re-reading what I
+claimed to have read has the highest hit rate of anything in this repository.**
 
 ### The agents, and what they may not do
 
@@ -85,7 +107,10 @@ still cheap.
 
 `pnpm check:readings` makes the citation half mechanical: every quotation is
 grepped back against the mirror, and a quote from a screenshot must name the
-screenshot. It found a real misquote the first time it ran.
+screenshot. It found a real misquote the first time it ran. It also checks the
+**coverage claim** — a header asserting it parsed every image of a page is
+compared against the images that page references — because mine were false twice.
+Read the counts it prints, not just its exit code.
 
 ### The two artifacts that make this work
 
@@ -220,7 +245,7 @@ pnpm install
 pnpm dev                         # all apps
 pnpm --filter @beacon/web dev
 pnpm turbo lint type-check test  # what CI runs
-pnpm check:readings              # every citation traces to a mirrored page
+pnpm check:readings              # citations trace, and coverage claims are true
 pnpm check:doc-drift             # has a page we built from changed upstream?
 pnpm check:surfaces              # every web file is reachable from main.tsx
 pnpm check:edge                  # supabase/functions parse, and deploy whole
@@ -282,6 +307,75 @@ and we take that shape when we reach it. **This had a cost that landed**:
 `auth_org_id()` kept reading a dropped table for a day, and every policy calls
 it. Nothing static catches that — the replacement is the platform suite's
 `authenticated` pass, which reads every RLS-guarded table in the catalog.
+
+## Working the migrations, and the mistakes that produced each rule
+
+Every line here cost a rework. None of it is general advice; each names the
+failure it prevents.
+
+**Gate BEFORE `pnpm db`, and never through a pipe.** A file cannot be edited once
+applied — `db.mjs` byte-compares it against
+`supabase_migrations.schema_migrations.statements` — so a citation typo caught
+afterwards becomes another migration. Twice I wrote `check:readings | tail &&
+pnpm db` and once `check ; pnpm db`: **a pipe's exit status is `tail`'s**, and a
+semicolon gates nothing. The form that works:
+
+```bash
+if pnpm check:readings > /dev/null 2>&1; then pnpm db supabase/migrations/NNN_x.sql; fi
+```
+
+**Re-applying an "idempotent" migration can revert a later one.** 587 was
+`CREATE OR REPLACE` only, so re-applying it looked free; it restored its own
+version of a function 588 had replaced, breaking six suites. A migration is
+idempotent *with respect to itself*, never with respect to the ordering. Before
+re-applying N, check whether anything after N touches the same object — and
+re-apply those too, in order.
+
+**Patch the live definition; never retype it from memory.** Changing a function
+means `pg_get_functiondef` → edit the two lines that change → apply. Retyping
+`apply_object_type` from memory invented two helper functions that do not exist,
+and I only noticed because the name looked wrong. The header should say what
+changed and that nothing else did.
+
+**An assertion that never CALLS the thing proves it exists, not that it works.**
+592's `DO $$` block checked a vocabulary count and a backfill; the function it
+added read a column that does not exist and would have raised on its first call.
+594 fixed it and its assertion calls the function. Ask: if this body were
+`RAISE`, would my assertions still pass? If yes, they check the catalogue.
+
+**A guard that passes is not evidence — read the count it prints.** `0
+quotation(s) checked` and `17 quotation(s) checked` both exit 0. The migration
+half of `check:readings` had never run in CI at all (`fetch-depth: 1`, so no
+`origin/main`), and it reported success every time.
+
+**Do not be stricter than Foundry, and scope any divergence you do take.** When a
+page says *warned* or *recommended*, we do not refuse. Where we deliberately
+diverge, record it in the reading AND bound it: `guard_function_version` refuses
+a breaking change without a major bump — reasoned, recorded — and also refused
+during initial development, which the page exempts by name, making the phase
+impossible to be in. A divergence nobody scoped grows.
+
+**Before building, ask what already reads it.** The dominant defect here is not
+a missing engine, it is an engine nothing reaches: derived properties, interface
+action rules, `auto_upgrade`, media sources, the Health issues list, the READS
+column, `object_types.icon_color`. Thirteen and counting. `grep` the web and the
+platform for the function or column first; the answer is usually that it exists
+and nothing calls it.
+
+**Verify "we do not have X" before acting on it — including in this file.** This
+file claimed the ontology could not hold objects long after `index_object_type`
+was building real per-type tables, and `OmaLayout.tsx` claimed Cleanup had
+nothing behind it the day after Cleanup shipped. A stale "we lack X" does not
+merely mislead, it invites rebuilding X. Four queries against
+`information_schema`, `pg_proc` and the non-standard schemas settles it.
+
+**`api/` settles shape questions the prose cannot.** It publishes unions with
+their members and the wire encoding of each value, and it has falsified our
+schema four times: the vector property, the media source, the action parameter
+kinds, the icon's colour. Before inventing a shape — especially a discriminator
+or a set of kinds — grep `api/` for the union. And prefer it over an icon: the
+media source was read as (set, *branch*) off a branch-like glyph in a screenshot,
+where the API says the second half is a *view*.
 
 ## Substrate
 
