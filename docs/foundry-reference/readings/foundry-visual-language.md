@@ -264,6 +264,39 @@ full height of the header.
 font glyph, so ours draws Blueprint's `cube` in the darkest of the three
 (`#1e52a7`) on the same pale block. That is as close as a monochrome glyph gets.
 
+## 9. The Discover content, counted
+
+Same capture again. The 28px side padding was already right; the rhythm inside it
+was not, and the cards were the wrong kind of object.
+
+| property | Foundry | ours before |
+|---|---|---|
+| page padding | 28px sides, **28px top** | 28px sides, 24px top |
+| section title | **16px** semibold, dark-gray1 | 17px |
+| title → its cards | **20px** | 12px |
+| section → section | **32px** | 28px |
+| card | **298 x 181**, 12px gutter | auto-fill from 280px, 14px gutter |
+| card padding | **15px all round** | 14px / 16px |
+| card radius | **~2px of corner**, so Blueprint's 4px at most | 6px |
+| card shadow | **none** | `shadow-sm`, `shadow-md` on hover |
+| card icon tile | 30 x 30 | — |
+| card title | 14–15px semibold | 14px |
+| card subtitle | 12px | 12px |
+| card divider | 1px, full inner width | full inner width |
+| section count tag | **19px tall, light-gray3**, dark digits | — |
+
+**The cards are flat.** The pixel below a card's bottom border is `#f5f6f8`, the
+page, with no gradient at any distance — I sampled six rows down. Ours carried
+`shadow-sm` and lifted to `shadow-md` on hover. Together with a 6px radius
+against Blueprint's 4px, that is most of why our cards read softer than
+Foundry's: theirs is a bordered rectangle, ours was a floating panel.
+
+**Observed, not acted on:** `See all` measures `#1e52a7` here — blue2, the same
+value as the selected nav label, not the blue3 that §5.2 of `home-and-navigation`
+records for links. Two blue2 measurements agree on this capture, but this capture
+is the desaturated one (see Question 4) and #711 settled `--primary` on blue3
+from eleven images. Left alone; recorded as Question 5.
+
 ## Questions
 
 1. **Does Blueprint v6 change the palette?** Nothing measured disagrees with
@@ -279,6 +312,9 @@ font glyph, so ours draws Blueprint's `cube` in the darkest of the three
    no-descender label, which puts the face anywhere from 12px to 15px depending
    on how much of the edge is antialiasing. The type-scale change still anchors
    on Blueprint's published scale, not on this.
+5. **Are links blue2 or blue3?** `See all` and the selected nav label both
+   measure `#1e52a7` on `oma-discover-view.png`; §5.2 of `home-and-navigation`
+   records blue3 for links from older captures. Only selection was changed.
 4. **Is `oma-discover-view.png` colour-accurate?** Its greys sit 2–4 units off
    the cool Blueprint tokens the other captures hit exactly — its divider reads
    `#e6e6e8` against `#eeeff2` elsewhere — so the image looks slightly

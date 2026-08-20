@@ -882,20 +882,27 @@
   }
 
   .oma-content { flex:1 1 0%; min-width:0; overflow-y:auto; }
-  .oma-page    { padding:24px 28px 48px; }
-  .oma-section + .oma-section { margin-top:28px; }
-  .oma-section-head  { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
-  .oma-section-title { font-size:17px; font-weight:600; }
+  /* Content rhythm, measured off oma-discover-view.png: 28px in from the pane,
+   * a 16px section title, 20px down to its cards, 32px on to the next section.
+   * The 28px side padding was already right. */
+  .oma-page    { padding:28px 28px 48px; }
+  .oma-section + .oma-section { margin-top:32px; }
+  .oma-section-head  { display:flex; align-items:center; gap:8px; margin-bottom:20px; }
+  .oma-section-title { font-size:16px; font-weight:600; }
   .oma-see-all { display:inline-flex; align-items:center; gap:4px; font-size:13px; }
 
   /* An object type card (§6.4): tile, name, instance count, a rule, description. */
-  .oma-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+  /* A card is 298x181 with a 12px gutter, 15px of padding all round, and NO
+   * shadow — the pixel below its bottom border is the page, not a gradient. Ours
+   * carried shadow-sm and a 6px radius against Blueprint's 4px, which is most of
+   * why our cards read softer than Foundry's. */
+  .oma-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
   .oma-card  {
-    display:block; padding:14px 16px; border:1px solid hsl(var(--border)); border-radius:6px;
-    background:hsl(var(--card)); box-shadow:var(--shadow-sm); text-decoration:none;
-    color:hsl(var(--foreground)); transition:border-color .12s, box-shadow .12s;
+    display:block; padding:15px; border:1px solid hsl(var(--border));
+    border-radius:var(--radius); background:hsl(var(--card)); text-decoration:none;
+    color:hsl(var(--foreground)); transition:border-color .12s;
   }
-  .oma-card:hover { border-color:hsl(var(--primary) / .5); box-shadow:var(--shadow-md); }
+  .oma-card:hover { border-color:hsl(var(--primary) / .5); }
   .oma-card-head { display:flex; align-items:center; gap:10px; }
   .oma-card-name { display:block; font-size:14px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .oma-card-sub  { display:block; font-size:12px; color:hsl(var(--muted-foreground)); }
