@@ -8,9 +8,9 @@
 // The dark rail to the left is the platform's and stays; everything here is the
 // application's, and light (§5.1). Two chromes, nested — that is the point.
 //
-// The sidebar screenshot (§6.3) inventories fourteen entries. Seven lead
-// somewhere — Cleanup and Health issues arrived last, each once something
-// rendered the query that had been backing it all along. OMITTED BY NAME, with
+// The sidebar screenshot (§6.3) inventories fourteen entries. Eight lead
+// somewhere — Cleanup, Health issues and Functions arrived last, each once
+// something rendered the engine that had been backing it all along. OMITTED BY NAME, with
 // what would have to exist first:
 //   Unsaved changes  — the save session lives in the top bar instead, where the
 //                      count and its buttons already are (§10.8 puts it here too).
@@ -19,7 +19,6 @@
 //                      it. It is also the one entry with no count in the screenshot.
 //   Groups           — `type_groups` and `object_type_group_members` exist; no surface.
 //   Value types      — nothing behind it.
-//   Functions        — nothing behind it.
 //   Ontology configuration — nothing behind it.
 // The header's `New ▾` goes with them: creation lives in the object types page.
 
