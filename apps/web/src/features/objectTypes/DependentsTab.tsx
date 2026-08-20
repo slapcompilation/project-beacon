@@ -72,7 +72,7 @@ export function DependentsTab({ type }: { type: ObjectTypeDef }) {
                   icon="clean"
                   title="Nothing depends on this"
                   description={`No ${rows.find((r) => r.kind === active)?.label.toLowerCase() ?? 'resource'} reads this object type.`}
-                  className="!py-6 [&_.bp5-non-ideal-state-visual]:!text-2xl"
+                  className="!py-6 [&_.bp6-non-ideal-state-visual]:!text-2xl"
                 />
               : <ul className="divide-y divide-neutral-200">
                   {instances.map((d) => (

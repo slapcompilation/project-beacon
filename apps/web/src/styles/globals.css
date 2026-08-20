@@ -796,8 +796,20 @@
   .oma-actions { display:flex; align-items:center; gap:8px; margin-left:auto; }
 
   .oma-body { display:flex; flex:1 1 0%; min-height:0; }
+
+  /* Selection, measured off oma-discover-view.png: a #eaf1fd fill (blue4 at an
+   * eighth over white) under a blue2 label. Tokens because both literals are
+   * wrong in dark. */
+  :root { --oma-active: #eaf1fd; --oma-active-fg: #215db0; }
+  .dark { --oma-active: hsl(var(--primary) / .22); --oma-active-fg: hsl(var(--primary)); }
+  /* Sidebar geometry is measured, not chosen — off oma-discover-view.png, a 2x
+   * capture, so every device pixel below is halved. The cleanup and
+   * "homepage-sidebar" captures are the OLD Ontology Manager (a column of
+   * cards, an Overview row, a blue-bordered selection) and measure 275px on a
+   * 44px pitch; reading §5.2 already separates the two eras. We follow the
+   * current one: 252px, rows on a 33px pitch. */
   .oma-side {
-    display:flex; flex-direction:column; flex-shrink:0; width:240px; overflow-y:auto;
+    display:flex; flex-direction:column; flex-shrink:0; width:252px; overflow-y:auto;
     border-right:1px solid hsl(var(--border)); background:hsl(var(--card));
   }
   .oma-switcher {
@@ -810,27 +822,46 @@
   .oma-switcher-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:600; }
   .oma-switcher-space { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:hsl(var(--muted-foreground)); }
 
-  .oma-nav { padding:8px; }
-  .oma-group-title { padding:10px 8px 4px; font-size:12px; font-weight:600; }
-  .oma-rule { height:1px; margin:8px 0; background:hsl(var(--border)); }
+  /* 10px to the row box, 8px inside it, so an icon lands 18px from the pane
+   * edge. Rows sit 3px apart: a 30px box on a 33px pitch. */
+  .oma-nav { display:flex; flex-direction:column; gap:3px; padding:8px 10px; }
+  /* Everything under the Resources heading is one indented block — its icons
+   * measure 23px from the pane edge against the top group's 18px, and its
+   * counts are inset the same 23px on the right. Health issues and Cleanup are
+   * inside it, not below it. */
+  .oma-group { display:flex; flex-direction:column; gap:3px; padding:0 5px; }
+  .oma-group-title { padding:8px 8px 4px; font-size:14px; font-weight:600; }
+  /* A rule between groups bleeds the full pane width; a rule inside the
+   * Resources block stops 21px short at each end, aligned with its icons. */
+  .oma-rule { height:1px; margin:8px -10px; background:hsl(var(--surface-2)); }
+  .oma-group .oma-rule { margin:8px 6px; }
   .oma-project-picker { display:flex; flex-direction:column; gap:2px; padding:6px 10px 2px; }
   .oma-project-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:hsl(var(--muted-foreground)); }
   .oma-project-picker select { font-size:12px; padding:3px 6px; border:1px solid hsl(var(--border)); border-radius:4px; background:hsl(var(--background)); color:inherit; }
   /* "displayed as a blue bar at the bottom of supported applications" */
   .oma-dot { width:8px; height:8px; border-radius:50%; background:#2d72d2; margin-left:auto; }
   .oma-taskbar { position:fixed; bottom:0; left:0; right:0; z-index:30; display:flex; align-items:center; gap:8px; padding:4px 12px; background:#184a90; color:#fff; }
-  .oma-taskbar .bp5-button, .oma-taskbar .bp5-button .bp5-icon { color:#fff !important; }
-  .oma-taskbar .bp5-tag { background:rgba(255,255,255,.15); color:#fff; }
+  /* bp6: these were written against v5's prefix and matched nothing. */
+  .oma-taskbar .bp6-button, .oma-taskbar .bp6-button .bp6-icon { color:#fff !important; }
+  .oma-taskbar .bp6-tag { background:rgba(255,255,255,.15); color:#fff; }
   .oma-row {
-    display:flex; align-items:center; gap:10px; width:100%; padding:6px 8px;
-    border-radius:4px; font-size:13px; color:hsl(var(--foreground)); text-decoration:none;
+    display:flex; align-items:center; gap:8px; width:100%; min-height:30px; padding:0 8px;
+    border-radius:4px; font-size:14px; color:hsl(var(--foreground)); text-decoration:none;
   }
+  /* A nav icon is gray1, a step lighter than its label — measured #546071
+   * against the label's #1f2328. Ours inherited the label colour. */
+  .oma-row .bp6-icon { color:hsl(var(--muted-foreground)); }
   .oma-row:hover { background:hsl(var(--muted)); color:hsl(var(--foreground)); }
-  /* Selected row: pale blue fill, blue label (§5.2, the new OMA's style). */
-  .oma-row.is-active { background:hsl(var(--primary) / .14); color:hsl(var(--primary)); }
-  .oma-row.is-active .bp6-icon { color:hsl(var(--primary)); }
+  .oma-row.is-active { background:var(--oma-active); color:var(--oma-active-fg); }
+  .oma-row.is-active .bp6-icon { color:var(--oma-active-fg); }
   .oma-row-label { flex:1 1 0%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .oma-count     { font-size:11px; color:hsl(var(--muted-foreground)); }
+  /* A filled pill, not loose text: 16px tall, light-gray4, and its digits are
+   * as dark as the label rather than muted. */
+  .oma-count {
+    flex-shrink:0; padding:0 6px; border-radius:8px;
+    background:hsl(var(--surface-2)); color:hsl(var(--foreground));
+    font-size:11px; line-height:16px; text-align:center; font-variant-numeric:tabular-nums;
+  }
 
   .oma-content { flex:1 1 0%; min-width:0; overflow-y:auto; }
   .oma-page    { padding:24px 28px 48px; }

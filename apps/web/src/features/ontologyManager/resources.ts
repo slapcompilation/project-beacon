@@ -35,14 +35,18 @@ export interface OmaResource {
 }
 
 /** The `Resources` group, in the screenshot's order minus the entries nothing
- *  backs (those are named in OmaLayout's header comment). */
-export const RESOURCE_NAV: { kind: OmaKind; label: string; icon: IconName; path: string }[] = [
+ *  backs (those are named in OmaLayout's header comment). `rule` marks where
+ *  oma-discover-view.png draws a divider — its second group is
+ *  `Value types, Functions`, and we have the second of the two. */
+export const RESOURCE_NAV: {
+  kind: OmaKind; label: string; icon: IconName; path: string; rule?: true
+}[] = [
   { kind: 'Object type', label: 'Object types', icon: 'cube', path: '/ontology/object-types' },
   { kind: 'Shared property', label: 'Shared Properties', icon: 'globe', path: '/ontology/shared-properties' },
   { kind: 'Link type', label: 'Link types', icon: 'arrows-horizontal', path: '/ontology/link-types' },
   { kind: 'Action type', label: 'Action types', icon: 'take-action', path: '/ontology/action-types' },
-  { kind: 'Interface', label: 'Interfaces', icon: 'layers', path: '/ontology/interfaces' },
-  { kind: 'Function', label: 'Functions', icon: 'function', path: '/ontology/functions' },
+  { kind: 'Interface', label: 'Interfaces', icon: 'inheritance', path: '/ontology/interfaces' },
+  { kind: 'Function', label: 'Functions', icon: 'function', path: '/ontology/functions', rule: true },
 ]
 
 const ICON_OF: Record<OmaKind, IconName> =

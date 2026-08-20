@@ -20,13 +20,19 @@ pixels in that image.
 founding failure, and this is the first reading to cover its Colors, Icons and
 Custom fonts sections rather than one sentence of it.
 
-**Images measured (11):** `ontology-manager/images/cleanup-navigation-from-homepage.png`,
+**Images measured (12):** `ontology-manager/images/cleanup-navigation-from-homepage.png`,
+`cleanup-configuration-navigation.png`, `cleanup-start-cleanup-button.png`,
 `oma-navigation-annotated.png`, `oma-user-interface-navigation-homepage-sidebar.png`,
 `oma-discover-view.png`, `save-review-edits-error.png`,
 `object-link-types/images/create-object-type-metadata-step.png`,
 `functions/images/tsv2-functions-helper-run.png`,
 `compass/images/compass-files-landing-page.png`,
 `foundry-branching/images/homepage.png`, `getting-started/images/homepage.png`.
+
+The header said **11** over a list of **10** from the day it was written, and
+`check:readings` passed it: the guard compared a claim against a *page's*
+screenshots and never compared a number against the paths beside it. It does
+now, and this line is what it caught first.
 
 ---
 
@@ -127,7 +133,7 @@ Alliance is commercial, so this changes nothing we can ship. Recorded because th
 text looks the way it does now has a candidate answer that is not our font being
 wrong.
 
-## 5. Icons: the page shows Blueprint v6, we are on v5
+## 5. Icons: the page shows Blueprint v6, and so are we
 
 > ```html
 > <span class="bp6-icon-standard bp6-icon-clean"></span>
@@ -137,9 +143,15 @@ wrong.
 
 The prose defuses it immediately — "The method for referencing Blueprint icons
 varies by version… follow the Icon CSS API instructions for your specific
-version" — so v5 is not wrong. Recorded because it dates the corpus: Foundry's
-current UI is Blueprint **v6**, and any pixel comparison against a v6 screenshot
-carries whatever v6 changed.
+version".
+
+**This reading first said "we are on v5", and that was false.**
+`apps/web/package.json` pins `@blueprintjs/core: ^6.12.1` and
+`@blueprintjs/icons: ^6.9.1`. The claim cost something: seven `bp5-` selectors
+were live in `apps/web/src` and matched nothing — the branch taskbar's white
+button and tag styling, and a non-ideal-state size override. Fixed with this
+reading. The lesson is the cheap one: **our own version is in a file, not in my
+memory**, and a wrong reading of it hid dead CSS behind a plausible sentence.
 
 ## 6. What §5.1 estimated, now measured
 
@@ -165,14 +177,83 @@ is light, and no Ontology Manager capture contains a dark region at all.
    palette swap would make a visual regression impossible to attribute.
 4. **The font stays IBM Plex Sans.** Alliance is commercial and unshippable, and
    the measured evidence for it is an example variable name.
-5. **Blueprint stays on v5.** The page explicitly scopes icon syntax per version.
+5. **Blueprint is v6 and the corpus is v6**, so `bp6-` is the prefix everywhere;
+   every `bp5-` selector in `apps/web/src` was dead and is gone.
+6. **The sidebar takes the numbers in §7**, and the old-Ontology-Manager captures
+   are not measured against again for anything but history.
+
+## 7. The Ontology Manager sidebar, counted
+
+**The trap, first.** I measured this twice and the first set was off a different
+product. `ontology-manager/images/cleanup-*.png` and
+`oma-user-interface-navigation-homepage-sidebar.png` are the **old** Ontology
+Manager: a column of white cards on the page, an `Overview` row, `Search results`,
+`Advanced`, `Properties` nested under `Object types` with an elbow connector, and
+a selected row drawn as a white fill inside a **blue border**.
+`home-and-navigation.md` line 67 already labels one of them "older OMA" and its
+§5.2 already lists the two selection styles as separate rows. I read neither
+before measuring, and calibrated the live sidebar to a product Foundry replaced.
+
+The current one is `oma-discover-view.png` — a 2x capture, so every device pixel
+below is halved. Where the two eras disagree the old one is quoted for contrast,
+because the difference is large enough to matter: the old sidebar is 275px on a
+44px row pitch, the current one 252px on 33px.
+
+| property | current OMA | old OMA | ours before |
+|---|---|---|---|
+| pane | 252px, bordered right | 275px card, 22px gutters | 240px |
+| row pitch | **33px** | 44px | ~32px |
+| row box | **30px**, 3px apart | 38px, 6px apart | 32px, touching |
+| icon | **16px** | 16px | 14px |
+| icon from pane edge | **18px**, or 23px under `Resources` | 18px | 16px |
+| icon → label | **8px** | 12px | 10px |
+| icon colour | **gray1 `#546071`** | gray1 | inherited the label's |
+| label | **14px**, dark-gray1 `#1f2328` | 14px | 13px |
+| count | **16px pill**, light-gray4, dark digits | 22px pill | loose 11px text |
+| group heading | **14px semibold**, indented to 23px | (none) | 12px |
+| selected fill | **`#eaf1fd`** — blue4 at ⅛ over white | `#fafbff` + a `#7ca4ed` border | primary at 14% |
+| selected label | **blue2 `#215db0`** | blue3 | blue3 |
+| rule between groups | 1px light-gray4, full width | full width | inset |
+| rule inside `Resources` | 1px, **stops 21px short each end** | (none) | — |
+
+**The one structural finding.** `Resources` is not a heading over a list, it is an
+**indented block**, and it runs further than it looks: every icon from
+`Object types` down through `Cleanup` sits 5px further in than `Discover`'s, the
+counts are inset by the same 5px on the right, and the rules *inside* it stop
+short at both ends while the rule *above* it bleeds the full pane. `Health issues`
+and `Cleanup` are inside that block, not a group below it — we had them below it.
+
+**Icons, named from an 8x crop of the icon column** (`scratchpad`, not committed).
+Fifteen rows, left to right: a two-tone compass needle, `people`, `history`,
+`cube`, `properties`, `globe`, `arrows-horizontal`, `take-action`, `grid`,
+`inheritance`, two interlocked rings, `function`, `pulse`, `clean`, `cog`.
+
+Ours matched every one it has except **`Interfaces`, which used `layers` where
+Foundry draws `inheritance`** — a box with an arrow leaving it, which is the
+right picture for the concept and not the one we had.
+
+**Inference, flagged:** the `Discover` glyph is a bare two-tone needle 9px wide.
+Blueprint's `compass` — what we use — draws a circle around its needle, and no
+circle is present at any zoom. I could not name the icon Foundry uses from the
+image, so ours is left alone and this stays a question.
 
 ## Questions
 
-1. **Does Blueprint v6 change the palette?** The corpus shows v6 class names; our
-   measurements come from screenshots that may predate or postdate that. Nothing
-   measured disagrees with v5's `_colors.scss`, so this is not urgent.
-2. **What is Foundry's actual body size in CSS pixels?** The screenshots are at
-   unknown device pixel ratios, so 13–14px is read off proportions rather than
-   measured. The type-scale change should anchor on Blueprint's published scale,
-   not on my estimate from an image.
+1. **Does Blueprint v6 change the palette?** Nothing measured disagrees with
+   v5's `_colors.scss` and we are on v6, so this is not urgent.
+2. **What icon is `Discover`?** A bare two-tone needle, 9px wide, no circle
+   around it — so not `compass`, which is what we draw. Unresolved from the
+   image; ours is left alone until it is.
+3. **What is Foundry's actual body size in CSS pixels?** §3 said the device
+   pixel ratio was unknown; it is not. **A 1px CSS rule is a hairline, so a
+   divider's thickness in device pixels gives the ratio directly** — 2px on
+   `oma-discover-view.png`, 1px on the cleanup captures. What the ratio does not
+   settle is the font size: glyph ink measures 11.5px tall for a
+   no-descender label, which puts the face anywhere from 12px to 15px depending
+   on how much of the edge is antialiasing. The type-scale change still anchors
+   on Blueprint's published scale, not on this.
+4. **Is `oma-discover-view.png` colour-accurate?** Its greys sit 2–4 units off
+   the cool Blueprint tokens the other captures hit exactly — its divider reads
+   `#e6e6e8` against `#eeeff2` elsewhere — so the image looks slightly
+   desaturated. Hues survive it (the blue fill measures cleanly), so it was used
+   for geometry and structure, and the other captures for grey hue.

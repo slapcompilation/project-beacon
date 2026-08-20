@@ -22,7 +22,7 @@
 //   Ontology configuration — nothing behind it.
 // The header's `New ▾` goes with them: creation lives in the object types page.
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import {
   Button, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Intent, Menu,
   MenuDivider, MenuItem, NonIdealState, Popover, Tag,
@@ -98,18 +98,24 @@ export default function OmaLayout() {
             <NavRow icon="people" label="Proposals" path="/ontology/proposals" />
             <MainBranchUpdatesRow />
             <div className="oma-rule" />
-            <p className="oma-group-title">Resources</p>
-            {RESOURCE_NAV.map((r) => (
-              <NavRow key={r.path} icon={r.icon} label={r.label} path={r.path}
-                count={countOf(resources, r.kind)} />
-            ))}
-            {/* Health issues and Cleanup are one group below the resource list,
-                in that order, with Flag settings indented under Cleanup — as
-                the Ontology Manager nav screenshot draws it. */}
-            <div className="oma-rule" />
-            <HealthIssuesRow />
-            <CleanupRow />
-            <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
+            {/* One indented block from the heading down to Cleanup: in
+                oma-discover-view.png every icon below `Resources` sits 5px
+                further in than Discover's, Health issues included, and the
+                rules between its sub-groups stop short of the pane edge. */}
+            <div className="oma-group">
+              <p className="oma-group-title">Resources</p>
+              {RESOURCE_NAV.map((r) => (
+                <Fragment key={r.path}>
+                  {r.rule === true && <div className="oma-rule" />}
+                  <NavRow icon={r.icon} label={r.label} path={r.path}
+                    count={countOf(resources, r.kind)} />
+                </Fragment>
+              ))}
+              <div className="oma-rule" />
+              <HealthIssuesRow />
+              <CleanupRow />
+              <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
+            </div>
           </nav>
         </aside>
 
@@ -129,7 +135,7 @@ function NavRow({ icon, label, path, count, end = false }: {
 }) {
   return (
     <NavLink to={path} end={end} className={({ isActive }) => cn('oma-row', isActive && 'is-active')}>
-      <Icon icon={icon} size={14} />
+      <Icon icon={icon} size={16} />
       <span className="oma-row-label">{label}</span>
       {count !== undefined && <span className="oma-count">{count}</span>}
     </NavLink>
@@ -165,7 +171,7 @@ function MainBranchUpdatesRow() {
   return (
     <NavLink to="/ontology/main-branch-updates"
       className={({ isActive }) => cn('oma-row', isActive && 'is-active')}>
-      <Icon icon="git-merge" size={14} />
+      <Icon icon="git-merge" size={16} />
       <span className="oma-row-label">Main branch updates</span>
       {conflicts.length > 0 && <span className="oma-dot" />}
     </NavLink>
