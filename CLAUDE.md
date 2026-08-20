@@ -64,19 +64,13 @@ So, before building anything from a page:
    editing a header, never delete the list of what is unparsed; that turns a
    recorded debt into a silent one, which is how the second false claim happened.
 
-### Who skipped it was me
-
-There is no "the image nobody had read". Every file in `readings/` is written by
-the same author as the code, and the passive voice turns an omission into a
-property of the corpus. **The corpus does not skim.** Write "the image I
-skipped", in readings, migration headers and commit messages alike — those are
-read by the next session as fact, and a diffused omission reads as "the
-documentation was incomplete" rather than "open the images next time".
-
-The rule earns its place on results, not manners: the images I had skipped and
-then claimed contained a confirmed inference (the Health issues nav row), three
-unbuilt Cleanup features, and a falsified guard (597). **Re-reading what I
-claimed to have read has the highest hit rate of anything in this repository.**
+**And say who skipped it.** Not "the image nobody had read" — every reading here
+has the same author as the code, and the passive voice turns an omission into a
+property of the corpus. Write "the image I skipped", in readings and migration
+headers alike, because those are read next session as fact. The rule is here on
+results, not manners: **re-reading what I claimed to have read has the highest
+hit rate of anything in this repository** — a confirmed inference, three unbuilt
+Cleanup features and a falsified guard (597), all from images already claimed.
 
 ### The agents, and what they may not do
 
@@ -93,23 +87,17 @@ are ordered and stateful; parallel builders would collide on the ledger and the
 ordering *is* the design.
 
 **Scheduling: observe on a timer, never build on one.** `doc-drift.yml` runs
-weekly; the audits run in CI. Nothing that writes a migration runs unattended,
-and the reason is specific rather than caution — **applied migrations are
-immutable and run once**, so an unreviewed one can only be corrected forward,
-never edited. The recitation gate says the same thing from the other side: if a
-human reads the Decisions block before building, the build step cannot be
-autonomous by construction.
+weekly and the audits run in CI, but nothing that writes a migration runs
+unattended — **applied migrations are immutable and run once**, so an unreviewed
+one can only be corrected forward.
 
 **A reading is never built from until a human has read its Decisions block.**
-That block is where an invented mechanism has to declare itself, and reciting
-before building is what has caught the expensive mistakes here while they were
-still cheap.
+That block is where an invented mechanism has to declare itself, and it makes the
+build step non-autonomous by construction.
 
 `pnpm check:readings` makes the citation half mechanical: every quotation is
-grepped back against the mirror, and a quote from a screenshot must name the
-screenshot. It found a real misquote the first time it ran. It also checks the
-**coverage claim** — a header asserting it parsed every image of a page is
-compared against the images that page references — because mine were false twice.
+grepped back against the mirror, a screenshot quote must name the screenshot, and
+a header's **coverage claim** is compared against the images the page references.
 Read the counts it prints, not just its exit code.
 
 ### The two artifacts that make this work
@@ -120,31 +108,24 @@ exist, and what is it called", which is the question that keeps going wrong.
 `staging` appears in no URL but `manage-models/release-model` defines it. Grep
 titles here before concluding Foundry lacks something.
 
-**It is generated, and that is not a detail.** It was maintained by hand and
-drifted to 1,184 pages across 36 sections while the mirror held 2,284 across
-82 — so the one artifact whose job is answering "does a page about X exist"
-was answering *no* for half the corpus, which reads as "Foundry lacks this".
-`node scripts/build-map.mjs` rebuilds it, and the mirror script runs that
-after every fetch. Never hand-edit it.
+**Never hand-edit it** — `node scripts/build-map.mjs` rebuilds it and the mirror
+script runs that after every fetch. Hand-maintained, it drifted to half the
+corpus, so the artifact whose job is "does a page about X exist" was answering
+*no* for pages we had.
 
 **`docs/foundry-reference/readings/`** — our reading of the pages we have
 actually read, with a queue in build order. Grep it before designing anything;
 an answer already written down beats re-deriving one, and the "connects to" lines
 are how a concept met in one part of the platform gets recognised in another.
 
-The corpus is 4,068 mirrored pages against 4,818 known URLs — **16% of the
-documentation is not on disk**. `api/` used to be the biggest hole and is now
-mirrored whole (1,243 pages fetched 2026-08-19, 6 unavailable), so the rule that
-matters most about it changes: it is no longer "not on disk", it is **on disk and
-under-read**.
-The readings are far fewer still. That is the normal state — the map keeps the
-unread ones findable, and the queue says which to read next and when.
+4,068 mirrored pages against 4,818 known URLs — **16% is not on disk**, and
+`api/` is the opposite problem: mirrored whole, and **under-read**. Readings are
+fewer still; that is the normal state.
 
 **Refresh the index before trusting any answer about what exists.**
 `node scripts/mirror-foundry-docs.mjs --urls` re-derives `all-foundry-urls.txt`
-from the sitemap and *unions* it with what is there. The list was frozen for
-two weeks, and the refresh turned up 39 unknown pages — one of which,
-`functions/python-user-facing-error`, falsified code that had already shipped.
+from the sitemap and *unions* it. Frozen for two weeks, the refresh turned up 39
+unknown pages — one of which falsified code that had already shipped.
 
 ### Two vocabularies for one idea, which is the live trap
 
@@ -205,38 +186,23 @@ docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
-The core began as eleven tables; the platform now holds ~65 (datasets and
-transactions, markings, value types, interfaces, actions, branches and
-proposals, the working state). The rule is unchanged — every value in every
-CHECK traces to a page — and the original core is still the map's spine:
+The core began as eleven tables and the platform now holds ~65. **Ask the
+database what exists rather than a table in this file** — that list went stale
+here once already, and `information_schema` cannot. The rule is unchanged: every
+value in every CHECK traces to a page.
 
-| table | what it holds |
-|---|---|
-| `object_types` | api name (PascalCase), label, status, visibility |
-| `object_type_properties` | one row per property: api name, base type, source, backing column, the two key designations |
-| `object_type_datasources` | which dataset and branch backs a type |
-| `link_types` | the two sides, cardinality, backing |
-| `ontology_interfaces`, `object_type_interfaces` | interfaces and their implementations |
-| `shared_properties` | one definition used by several types |
-| `time_series_properties` | a time series property's declaration |
-| `object_sets` | a saved set with its filters |
-| `projects`, `project_resources`, `project_role_grants` | Compass: owner/editor/viewer/discoverer |
-| `organizations`, `users` | the tenant, and who is in it |
+**The ontology holds objects.** This paragraph used to say it could not, long
+after it stopped being true. `index_object_type` builds `objects.ot_<uuid>` — a
+real table, one typed column per property — from a RUNNING build job, replaying
+`object_edits` over each datasource's current view, dropping the deleted and
+failing on a value type violation. Objects existing only in the edit log join the
+merge.
 
-**The ontology holds objects.** This paragraph used to say it could not, and was
-left saying so long after it stopped being true — check it against the database
-before repeating it. `index_object_type` builds `objects.ot_<uuid>`: a real
-table, one real typed column per property, primary key on the key property. It
-runs only from a RUNNING build job, gathers each datasource's current view,
-replays `object_edits` over it, drops the deleted, and fails the build on a value
-type violation. Objects that exist only in the edit log join the merge, so a type
-can hold rows its datasource never had.
-
-What a *new* type could not do until 590 is start life valid: creation left it
-with no datasource, so its own linter reported "A backing datasource is required"
-and the save was refused. `generate_backing_dataset` is the wizard's documented
-other branch — an empty dataset in a chosen location, because "permissions of the
-objects of a type are determined by the location of their backing datasources".
+A *new* type could not start life valid until 590: creation left it with no
+datasource, so its own linter refused the save. `generate_backing_dataset` is the
+wizard's documented other branch — an empty dataset in a chosen location, because
+"permissions of the objects of a type are determined by the location of their
+backing datasources".
 
 ## Commands
 
@@ -257,143 +223,110 @@ pnpm gen:client                  # regenerate the typed client from the platform
 
 ### The guards, and what is gone
 
-`check:surfaces` remains. It asks about **real reachability** and answers by
-walking the import graph from `main.tsx`. `check:edge` asks the same question of
-`supabase/functions`, where the answer is harsher: the deploy uploads only what
-`index.ts` statically imports, so an unimported file ships as an empty module
-and fails when it is called rather than when it is deployed.
+`check:surfaces` asks about **real reachability**, walking the import graph from
+`main.tsx`. `check:edge` asks it of `supabase/functions`, where the answer is
+harsher: the deploy uploads only what `index.ts` statically imports, so an
+unimported file ships as an empty module and fails when called, not when
+deployed.
 
 **`check:rpcs` is deleted, and how matters.** It regexed `.rpc('name')` out of
-source and looked the name up in `pg_proc` — a reference check done by string
-matching, because the boundary was untyped. The fix was to remove the boundary:
-`pnpm gen:client` generates a typed value per platform entity, so
-`client(datasetView).executeFunction({…})` fails to *compile* when the name is
-wrong, with a "Did you mean" suggestion. **A guard whose job the compiler can do
-should be deleted, not maintained.** `check:surfaces` is the same category and
-goes the same way once object surfaces are generated.
+source and looked the name up in `pg_proc` — string matching, because the
+boundary was untyped. The fix was to remove the boundary: `pnpm gen:client` makes
+a typed value per platform entity, so a wrong name fails to *compile*. **A guard
+whose job the compiler can do should be deleted, not maintained.**
+`check:surfaces` goes the same way once object surfaces are generated.
 
-**The platform suite** (`packages/platform`, was `check:datasets` then
-`check:platform`) is the third, and it is a different kind: it **runs the
-algorithm and compares against the answer the documentation prints**. `data-integration/datasets#example-of-transaction-types` states the
-view after each of five transactions; markings, scoped sessions and the
-datasource binding each state their outcome the same way. Nothing in it is
-structural — no grep for a function name, no list of tables. The guarded-table
-list is derived from `pg_class WHERE relrowsecurity`.
+**The platform suite** (`packages/platform`) is a different kind: it **runs the
+algorithm and compares against the answer the documentation prints** —
+`data-integration/datasets#example-of-transaction-types` states the view after
+each of five transactions, and markings, scoped sessions and the datasource
+binding each state their outcome the same way. Nothing in it is structural; the
+guarded-table list comes from `pg_class WHERE relrowsecurity`.
 
 **It runs at least one pass as `authenticated`.** Connecting as the DB owner
 bypasses RLS, which is how two infinite recursions sat in production while every
-guard stayed green. A policy may not read the table it guards.
+guard stayed green. **A policy may not read the table it guards.**
 
-It cannot move into the migrations that own those algorithms: **applied
-migrations are immutable and run once**, so an assertion placed in one would
-never run again where it had already been applied. Migration assertions prove a
-change at the moment it lands; this proves it still holds.
-
-**Ontology content is not its job.** "Does every object type have a primary key,
-does every property name a column its datasource actually has" is
-`ontology_violations()` — a query against the ontology, which is Foundry's own
-shape ("Ontology owners... write linters that check the entity definitions",
-`superrepo/core-concepts.md`). The suite asks it one question: **is the
-ontology we actually have well-formed?**
+**Ontology content is not its job** — that is `ontology_violations()`, which is
+Foundry's own shape ("Ontology owners... write linters that check the entity
+definitions", `superrepo/core-concepts.md`). The suite asks one question: is the
+ontology we actually have well-formed?
 
 **That linter is not only read by a reader: `save_working_state` refuses a save
-that INTRODUCES one** (426, comparing against the set that existed before). So an
+that INTRODUCES one** (426, comparing against the set that existed before). An
 arm written too wide does not add noise, it blocks the save — 586's third arm
 fired on six suites. `ontology_warnings()` is the second list, for findings that
-are real and must not block: "errors need to be handled in order to save,
-warnings will not prevent you from saving". Choose which list before writing the
-arm.
+must not block: "errors need to be handled in order to save, warnings will not
+prevent you from saving". Choose the list before writing the arm.
 
-`check:shape` and `check:vocabulary` are deleted, with `shape_registry`. They
-depended on an allowlist that let a static scan tell "deliberately ahead of its
-runtime" from "dead". **Foundry needs no such table**: the platform indexes
-ontology resources, so "what uses this" is a query against the resource graph.
-Here the ontology is its own registry — `object_types` is the list of what
-exists. Wanting an allowlist is the signal to index instead.
+**`check:shape` and `check:vocabulary` are deleted**, with `shape_registry`. They
+needed an allowlist to tell "deliberately ahead of its runtime" from "dead".
+Foundry needs no such table because the platform indexes ontology resources;
+here `object_types` is the list of what exists. **Wanting an allowlist is the
+signal to index instead.** The RLS contract suite went too, and that one cost:
+`auth_org_id()` read a dropped table for a day, and every policy calls it.
+Nothing static catches that — the `authenticated` pass does.
 
-The RLS contract suite is also gone; Foundry handles data contracts another way
-and we take that shape when we reach it. **This had a cost that landed**:
-`auth_org_id()` kept reading a dropped table for a day, and every policy calls
-it. Nothing static catches that — the replacement is the platform suite's
-`authenticated` pass, which reads every RLS-guarded table in the catalog.
+## Working the migrations
 
-## Working the migrations, and the mistakes that produced each rule
+Each line names the failure it prevents; none of it is general advice.
 
-Every line here cost a rework. None of it is general advice; each names the
-failure it prevents.
-
-**Gate BEFORE `pnpm db`, and never through a pipe.** A file cannot be edited once
-applied — `db.mjs` byte-compares it against
-`supabase_migrations.schema_migrations.statements` — so a citation typo caught
-afterwards becomes another migration. Twice I wrote `check:readings | tail &&
-pnpm db` and once `check ; pnpm db`: **a pipe's exit status is `tail`'s**, and a
-semicolon gates nothing. The form that works:
+**Gate BEFORE `pnpm db`, and never through a pipe.** An applied file cannot be
+edited — `db.mjs` byte-compares it against the ledger — so a citation typo caught
+afterwards becomes another migration. **A pipe's exit status is `tail`'s**, and a
+semicolon gates nothing; both let a red gate through. The form that works:
 
 ```bash
 if pnpm check:readings > /dev/null 2>&1; then pnpm db supabase/migrations/NNN_x.sql; fi
 ```
 
 **Re-applying an "idempotent" migration can revert a later one.** 587 was
-`CREATE OR REPLACE` only, so re-applying it looked free; it restored its own
-version of a function 588 had replaced, breaking six suites. A migration is
-idempotent *with respect to itself*, never with respect to the ordering. Before
-re-applying N, check whether anything after N touches the same object — and
-re-apply those too, in order.
+`CREATE OR REPLACE` only, so re-applying looked free; it restored its own version
+of a function 588 had replaced and broke six suites. Idempotent *with respect to
+itself* is not idempotent with respect to the ordering — check what came after.
 
-**Patch the live definition; never retype it from memory.** Changing a function
-means `pg_get_functiondef` → edit the two lines that change → apply. Retyping
-`apply_object_type` from memory invented two helper functions that do not exist,
-and I only noticed because the name looked wrong. The header should say what
-changed and that nothing else did.
+**Patch the live definition, never retype it.** `pg_get_functiondef` → edit the
+lines that change → apply, and say in the header that nothing else moved.
+Retyping `apply_object_type` from memory invented two helpers that do not exist.
 
 **An assertion that never CALLS the thing proves it exists, not that it works.**
-592's `DO $$` block checked a vocabulary count and a backfill; the function it
-added read a column that does not exist and would have raised on its first call.
-594 fixed it and its assertion calls the function. Ask: if this body were
-`RAISE`, would my assertions still pass? If yes, they check the catalogue.
+592's `DO $$` checked a vocabulary count while the function it added read a column
+that does not exist. Ask: if this body were `RAISE`, would my assertions still
+pass? If yes they check the catalogue.
 
-**A guard that passes is not evidence — read the count it prints.** `0
-quotation(s) checked` and `17 quotation(s) checked` both exit 0. The migration
-half of `check:readings` had never run in CI at all (`fetch-depth: 1`, so no
-`origin/main`), and it reported success every time.
+**A guard that passes is not evidence — read the count it prints.** `0` and `17
+quotation(s) checked` both exit 0. The migration half of `check:readings` never
+ran in CI at all (`fetch-depth: 1`, so no `origin/main`) and reported success
+every time.
 
-**Do not be stricter than Foundry, and scope any divergence you do take.** When a
-page says *warned* or *recommended*, we do not refuse. Where we deliberately
-diverge, record it in the reading AND bound it: `guard_function_version` refuses
-a breaking change without a major bump — reasoned, recorded — and also refused
-during initial development, which the page exempts by name, making the phase
-impossible to be in. A divergence nobody scoped grows.
+**Do not be stricter than Foundry, and scope any divergence you take.** Where a
+page says *warned* or *recommended*, we do not refuse. A recorded divergence
+still needs bounding: `guard_function_version`'s refusal was reasoned, and also
+fired during initial development, which the page exempts by name. A divergence
+nobody scoped grows.
 
-**Before building, ask what already reads it.** The dominant defect here is not
-a missing engine, it is an engine nothing reaches: derived properties, interface
-action rules, `auto_upgrade`, media sources, the Health issues list, the READS
-column, `object_types.icon_color`. Thirteen and counting. `grep` the web and the
-platform for the function or column first; the answer is usually that it exists
-and nothing calls it.
+**Before building, ask what already reads it.** The dominant defect here is not a
+missing engine but an engine nothing reaches — derived properties, interface
+action rules, `auto_upgrade`, media sources, Health issues, the READS column,
+`icon_color`. Thirteen and counting. `grep` the web and the platform first.
 
-**Verify "we do not have X" before acting on it — including in this file.** This
-file claimed the ontology could not hold objects long after `index_object_type`
-was building real per-type tables, and `OmaLayout.tsx` claimed Cleanup had
-nothing behind it the day after Cleanup shipped. A stale "we lack X" does not
-merely mislead, it invites rebuilding X. Four queries against
-`information_schema`, `pg_proc` and the non-standard schemas settles it.
+**Verify "we do not have X" before acting on it, including in this file.** It
+claimed the ontology could not hold objects while `index_object_type` was
+building per-type tables. A stale "we lack X" invites rebuilding X; four queries
+against `information_schema`, `pg_proc` and the non-standard schemas settle it.
 
-**`api/` settles shape questions the prose cannot.** It publishes unions with
-their members and the wire encoding of each value, and it has falsified our
-schema four times: the vector property, the media source, the action parameter
-kinds, the icon's colour. Before inventing a shape — especially a discriminator
-or a set of kinds — grep `api/` for the union. And prefer it over an icon: the
-media source was read as (set, *branch*) off a branch-like glyph in a screenshot,
-where the API says the second half is a *view*.
+**`api/` settles shape questions the prose cannot** — unions with their members,
+and the wire encoding of each value. It has falsified our schema four times.
+Grep it before inventing a discriminator or a set of kinds. And prefer it to an
+icon: the media source was read as (set, *branch*) off a branch-like glyph where
+the API says *view*.
 
 ## Substrate
 
-TypeScript everywhere, Postgres underneath. **Not Java**, and the reason is
-specific rather than inertia: Foundry's core is Spark and the JVM data stack,
-which are non-goals here. The one thing that transfers — cross-boundary type
-safety — a shared TypeScript package gives us without generated SDKs.
-
-Two things we do take from their stack:
+TypeScript everywhere, Postgres underneath. **Not Java**: Foundry's core is Spark
+and the JVM data stack, both non-goals here, and the one thing that transfers —
+cross-boundary type safety — a shared TypeScript package gives us. Two things we
+do take from their stack:
 
 - **Namespaced, typed errors.** `Phonograph2:SchemaMismatch` is a namespace, a
   name and a payload. A caller must be able to branch without parsing prose.
