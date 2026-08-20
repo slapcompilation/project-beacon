@@ -11,22 +11,32 @@
 // both against the page rather than against each other — two implementations
 // agreeing on the same mistake is not a passing test.
 //
-// THE LIMIT OF THAT, learned in 599 and 600. `PUBLISHED` below is a HAND-COPIED
-// restatement of the page, so it catches drift between the database and
-// TypeScript and cannot catch a token that is wrong in all three at once.
+// WHAT CHANGED, and why it matters more than it looks. `PUBLISHED` used to be a
+// HAND-COPIED transcription of that table sitting in this file. It could catch
+// the database and TypeScript drifting apart, and could not catch a token wrong
+// in all three at once — the restatement carried whatever error the CHECK did.
 //
-// 599 renamed `cipher` to `cipher_text` on the strength of base-types,
-// property-reducers and the api, and 600 put it back: the page THIS FILE NAMES,
-// properties-overview#supported-property-types, enumerates twenty-two names in
-// its first column and calls it `Cipher`. Our set is a 1:1 snake_case of that
-// column. Foundry is internally inconsistent about the name; the tie-break is
-// that the set is ONE table's, so borrowing one element's spelling from another
-// page leaves it a mixture.
+// 599 proved it. I renamed `cipher` to `cipher_text` on the strength of
+// base-types, property-reducers and the api; 600 reverted it, because the page
+// THIS FILE NAMES enumerates twenty-two names in its first column and calls it
+// `Cipher`. Our set is a 1:1 snake_case of that column. The hand-copy did not
+// cause the mistake and could not have prevented it: I moved all three together
+// and it passed.
 //
-// The hand-copy did not cause that mistake — it also could not have prevented
-// it, which is the standing limitation. A check that DERIVED this map from the
-// page would have refused 599 outright.
+// So the map is now PARSED FROM THE PAGE at test time. A rename that the table
+// does not support fails here, and a table that changes upstream fails here too,
+// which is what `check:doc-drift` can only notify about.
+//
+// Verified once against the transcription it replaces: 22 types, identical
+// title-key and primary-key verdicts, no differences.
+//
+// AND THE RULE THE PARSER CANNOT ENFORCE. Foundry is internally inconsistent
+// about the cipher type's name, and no guard decides which page wins. An
+// ENUMERATION beats a DESCRIPTION: our set is that table, so borrowing one
+// element's spelling from a page that merely describes it leaves the set a
+// mixture of two sources.
 
+import fs from 'node:fs'
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import {
@@ -34,37 +44,43 @@ import {
 } from '@beacon/ontology'
 import { noDb, connect, rollback } from './harness'
 
-/** Transcribed from the page's table. The third column is the primary-key
- *  verdict, the second the title-key one. */
-const PUBLISHED: Record<string, { title: boolean; primary: 'yes' | 'discouraged' | 'no' }> = {
-  // "Commonly used: String, Integer, Short — Yes / Yes"
-  string: { title: true, primary: 'yes' },
-  integer: { title: true, primary: 'yes' },
-  short: { title: true, primary: 'yes' },
-  // "Time-based: Date, Timestamp — Yes / Discouraged"
-  date: { title: true, primary: 'discouraged' },
-  timestamp: { title: true, primary: 'discouraged' },
-  // "Number-like: Boolean, Byte, Long — Yes / Discouraged"
-  boolean: { title: true, primary: 'discouraged' },
-  byte: { title: true, primary: 'discouraged' },
-  long: { title: true, primary: 'discouraged' },
-  // "Float-like: Float, Double, Decimal — Yes / No"
-  float: { title: true, primary: 'no' },
-  double: { title: true, primary: 'no' },
-  decimal: { title: true, primary: 'no' },
-  vector: { title: false, primary: 'no' },
-  array: { title: true, primary: 'no' },
-  struct: { title: false, primary: 'no' },
-  // "Media Reference, Time Series, Geotemporal Series, Attachment — No / No"
-  media_reference: { title: false, primary: 'no' },
-  time_series: { title: false, primary: 'no' },
-  geotemporal_series: { title: false, primary: 'no' },
-  attachment: { title: false, primary: 'no' },
-  geopoint: { title: true, primary: 'no' },
-  geoshape: { title: false, primary: 'no' },
-  marking: { title: false, primary: 'no' },
-  cipher: { title: true, primary: 'no' },
+const PAGE = new URL(
+  '../../../docs/foundry-reference/mirror/object-link-types/properties-overview.md',
+  import.meta.url)
+
+type Published = Record<string, { title: boolean; primary: 'yes' | 'discouraged' | 'no' }>
+
+/** The page's own table, read rather than restated. Throws rather than
+ *  returning a thin map: a parser that silently finds three types would make
+ *  every assertion below vacuous. */
+function published(): Published {
+  const lines = fs.readFileSync(PAGE, 'utf8').split(/\r?\n/)
+  const from = lines.findIndex((l) => l.startsWith('## Supported property types'))
+  if (from < 0) throw new Error('properties-overview no longer has the section this file reads')
+
+  const out: Published = {}
+  let started = false
+  for (const line of lines.slice(from)) {
+    if (!line.startsWith('|')) { if (started) break; else continue }
+    started = true
+    const cells = line.split('|').slice(1, -1)
+    if (cells.length < 3) continue
+    const names = [...cells[0].matchAll(/`([A-Z][A-Za-z ]*?)`/g)].map((m) => m[1])
+    if (names.length === 0) continue                     // header and separator
+    const primary = cells[2].trim().toLowerCase()
+    if (primary !== 'yes' && primary !== 'discouraged' && primary !== 'no') {
+      throw new Error(`unreadable primary-key verdict on the page: "${cells[2].trim()}"`)
+    }
+    const title = /^yes$/i.test(cells[1].trim())
+    for (const n of names) out[n.trim().toLowerCase().replace(/\s+/g, '_')] = { title, primary }
+  }
+  if (Object.keys(out).length < 20) {
+    throw new Error(`only ${Object.keys(out).length} type(s) parsed; the table's shape has changed`)
+  }
+  return out
 }
+
+const PUBLISHED = published()
 
 describe.skipIf(noDb)('the property vocabulary', () => {
   let db: pg.Client
