@@ -18,6 +18,8 @@ import type { ObjectTypeDef, PropertyDef, PropertyType } from '../objectTypes/in
 
 /** A property the interface requires of every implementer. */
 export interface InterfacePropertyDef {
+  /** The row an action rule points at. Absent on a draft that has not saved. */
+  id?: string
   key: string
   label: string
   type: PropertyType

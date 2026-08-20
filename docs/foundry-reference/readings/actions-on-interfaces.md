@@ -362,3 +362,94 @@ The three interface object kinds *are* in the API — `createInterfaceObject`,
 `modifyInterfaceObject`, `deleteInterfaceObject` — each naming an interface type
 "in UpperCamelCase format", which matches this reading's §3.2 note that the
 wizard offers exactly three interface options.
+
+---
+
+## Question 2 answered, and Decision 4 unblocked (2026-08-20)
+
+**Question 2 asked whether the interface reference parameter is its own kind or a
+constraint on the object reference kind.** The api answers it flatly. An action
+parameter's `dataType` is a union, and it carries **three** distinct members
+where our schema had two:
+
+    object          objectApiName · required, objectTypeApiName · required
+    interfaceObject interfaceTypeApiName
+    objectType      (no fields at all)
+
+— `api/ontologies-v2-resources-action-types-get-action-type.md`
+
+So they are three kinds, not two plus a constraint. And the third one is the
+generated **"Object type" parameter** the create rule needs, which this reading
+had not connected to anything: it carries **no payload**, because the set it
+picks from is implied by the rule's interface rather than stored on the
+parameter. That is worth stating because it is the difference between a column
+we do not need and one we might have invented.
+
+**And the wire format is published, which is the part nothing else settles.**
+The apply-action endpoint's `DataValue` table gives the JSON encoding of each:
+
+> "Ontology Object Reference | JSON encoding of the object's primary key"
+
+> "Ontology Interface Object Reference | JSON encoding of the object's API name and primary key"
+
+> "Ontology Object Type Reference | string of the object type's api name"
+
+— `api/ontologies-v2-resources-actions-apply-action.md`, whose printed examples
+are `"EMP1234"`, `{"objectTypeApiName":"Employee", "primaryKeyValue":"EMP1234"}`
+and `"Employee"` respectively.
+
+An interface reference therefore carries **both** halves — which type, and which
+object — and that is exactly why it can point at any implementing type while an
+object reference cannot. Decision 4 recorded the parameter as unbuilt and named it the concrete
+reason those two rules are not executable. Both halves of that are now
+answerable from published shapes rather than inference.
+
+## The image nobody had read
+
+This reading's header lists four images parsed and
+`action_on_interface_create_action.png` is not among them — the one showing the
+generated parameter as the user meets it:
+
+> Ticket type … Select an option … Search… … Feature request … Bug
+> — action-types/images/action_on_interface_create_action.png
+
+Three things the prose does not say:
+
+1. **The generated parameter's label is the interface's name plus "type"** —
+   `Ticket type`, not the literal "Object type". The prose names the *kind*; the
+   image shows the *label* is derived from the interface.
+2. **It is a searchable dropdown**, not a plain select — there is a Search box
+   inside the open menu, which is how it behaves when an interface has many
+   implementers.
+3. **Each option carries its object type's own icon and colour** — a blue
+   lightbulb for `Feature request`, a red bug for `Bug`. This is the surface that
+   consumes `object_types.icon_color`, the column the api showed was missing and
+   586 added. Two independent pages needing the same field is the strongest
+   argument that it was a real gap rather than a tidy-up.
+
+## Decisions (2026-08-20)
+
+9. **The parameter model takes the api's four members, as a discriminator.**
+   `action_type_parameters` currently encodes two kinds as an XOR of two nullable
+   columns; `objectType` has no payload at all and cannot be encoded that way. So
+   a `data_kind` column carries the union tag and the payload columns hang off
+   it, which is the shape the api publishes.
+10. **`interface_id` is nullable even on an `interfaceObject` parameter**, because
+   the api marks `interfaceTypeApiName` optional. A generated one always names
+   its interface; requiring it in general would be stricter than Foundry, which
+   Decision 3 already refused to be once.
+11. **The three interface object rules become executable.** The blockers were the
+   parameter kinds and the value encoding, and both are now published. The
+   per-type property resolution needs nothing new: 571's
+   `action_editable_properties` already resolves an interface property onto each
+   implementer's own through `interface_implementation_mappings`, gated on
+   `interface_actions_enabled`.
+12. **The two interface LINK rules stay unexecutable**, unchanged: they still need
+   a link instance store and an `interface_link_constraint_id` no column points
+   at. Decision 5 stands.
+13. **The primary-key failures stay submission-time**, per Decision 3. "Any object
+   type without a primary key assigned in the rule will fail during submission",
+   and primary keys "cannot be modified by any action type" — so `apply_action`
+   raises when it resolves a type that cannot satisfy the rule, and nothing
+   refuses the rule at configuration time.
+

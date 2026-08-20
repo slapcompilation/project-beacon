@@ -49,6 +49,7 @@ export interface InterfaceRow {
   description: string
   /** Rows since migration 450 — the jsonb array is gone. */
   interface_properties: {
+    id: string
     property_id: string; display_name: string; base_type: InterfacePropertyDef['type']
     required: boolean; pk_constraint: 'must' | 'cannot' | 'none'; position: number
   }[]
@@ -70,7 +71,8 @@ export function rowToInterface(r: InterfaceRow): InterfaceDef {
     id: r.id, apiName: r.api_name,
     label: r.label, description: r.description,
     properties: r.interface_properties.map((p) => ({
-      key: p.property_id, label: p.display_name, type: p.base_type,
+      // `id` is the row a rule points at; `key` is the api-facing property id.
+      id: p.id, key: p.property_id, label: p.display_name, type: p.base_type,
     })),
   }
 }
@@ -78,7 +80,7 @@ export function rowToInterface(r: InterfaceRow): InterfaceDef {
 export async function fetchInterfaces(): Promise<InterfaceRow[]> {
   const { data, error } = await supabase.from('ontology_interfaces')
     .select(`*,
-      interface_properties(property_id, display_name, base_type, required, pk_constraint, position),
+      interface_properties(id, property_id, display_name, base_type, required, pk_constraint, position),
       interface_link_constraints(api_name, display_name, required, cardinality, target_kind, target_interface_id, target_object_type_id),
       interface_action_constraints(api_name, display_name, description, required, interface_action_parameter_constraints(api_name, display_name, base_type, is_list, required, position)),
       extensions:interface_extensions!interface_extensions_interface_id_fkey(parent_interface_id)`)
