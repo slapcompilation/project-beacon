@@ -11,12 +11,21 @@
 // both against the page rather than against each other — two implementations
 // agreeing on the same mistake is not a passing test.
 //
-// THE LIMIT OF THAT, learned in 599. `PUBLISHED` below is a HAND-COPIED
+// THE LIMIT OF THAT, learned in 599 and 600. `PUBLISHED` below is a HAND-COPIED
 // restatement of the page, so it catches drift between the database and
-// TypeScript and cannot catch a token that was wrong in all three from the
-// start. `cipher` sat here for as long as it sat in the CHECK, because the page
-// says "Cipher text" and the copy dropped a word. Three things agreeing is not
-// three witnesses when one of them was copied from the other two.
+// TypeScript and cannot catch a token that is wrong in all three at once.
+//
+// 599 renamed `cipher` to `cipher_text` on the strength of base-types,
+// property-reducers and the api, and 600 put it back: the page THIS FILE NAMES,
+// properties-overview#supported-property-types, enumerates twenty-two names in
+// its first column and calls it `Cipher`. Our set is a 1:1 snake_case of that
+// column. Foundry is internally inconsistent about the name; the tie-break is
+// that the set is ONE table's, so borrowing one element's spelling from another
+// page leaves it a mixture.
+//
+// The hand-copy did not cause that mistake — it also could not have prevented
+// it, which is the standing limitation. A check that DERIVED this map from the
+// page would have refused 599 outright.
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -54,7 +63,7 @@ const PUBLISHED: Record<string, { title: boolean; primary: 'yes' | 'discouraged'
   geopoint: { title: true, primary: 'no' },
   geoshape: { title: false, primary: 'no' },
   marking: { title: false, primary: 'no' },
-  cipher_text: { title: true, primary: 'no' },
+  cipher: { title: true, primary: 'no' },
 }
 
 describe.skipIf(noDb)('the property vocabulary', () => {

@@ -9,11 +9,17 @@ verify: strict
 written from any of them. This is the first, and it is deliberately *one
 resource*: the wholesale version does not work (see §6).
 
-**Page read:** `api/ontologies-v2-resources-object-types-get-object-type` — the
+**Pages read:** `api/ontologies-v2-resources-object-types-get-object-type` — the
 `ObjectTypeV2` response in full, including the nested `PropertyV2`, the
-`dataType` union and the `ObjectTypeDatasource` union. Cross-checked against
-`object-link-types/base-types`, `object-link-types/create-object-type` and
-`object-link-types/property-reducers`.
+`dataType` union and the `ObjectTypeDatasource` union — plus
+`object-link-types/create-object-type` for the API-name rule and
+`object-link-types/properties-overview`, whose table is the twenty-two base
+types our own set is a snake_case of. §7 is there because I reached §7 without
+having opened the last of those.
+
+**Consulted, and quoted only in the superseded version of §7:**
+`object-link-types/base-types` and `object-link-types/property-reducers`. Both
+name the cipher type with a second word; neither is the enumeration.
 
 **No images.** `api/` pages carry none.
 
@@ -142,31 +148,41 @@ value set as `join_table, many_to_many`.
 That probe is deleted. Reading one resource field by field found a real defect
 (§7) in twenty minutes.
 
-## 7. What this reading has already fixed
+## 7. What this reading got WRONG, and the correction
 
-`cipher` → `cipher_text` (599, #725). The page 408 cites names it with the
-second word:
+`cipher` → `cipher_text` (599, #725) **was a mistake, reverted by 600.**
 
-> **Cipher text:** A type for storing a string value encoded with [Cipher](/docs/foundry/cipher/overview/).
+The reasoning was that three sources name it with a second word — `base-types.md`
+calls it "Cipher text", `property-reducers.md` lists `Cipher Text`, the api spells
+the arm `cipherText` — so prose and api agreed and we were the odd one out.
 
-— `object-link-types/base-types.md`
+**I did not check the page our set is derived from.** 408's comment says the base
+types come from properties-overview's table, and `vocabulary.test.ts` names the
+same anchor. Its first column enumerates exactly twenty-two names:
 
-and a second page lists it among the subtypes it refuses:
+> `Media Reference`, `Time Series`, `Geotemporal Series`, `Attachment`
+>
+> … `Geopoint` … `Geoshape` … `Marking` … `Cipher`
 
-> Property reducers are *not* available for arrays containing the following subtypes: … `Cipher Text` … `Geotemporal Series Reference`
+— `object-link-types/properties-overview.md`
 
-— `object-link-types/property-reducers.md`
+Snake-cased that **is** our token set, 22 for 22, and it says `Cipher`.
 
-The api spells the same arm `cipherText`. Prose and api agreed and we were the
-odd one out, so it was not the two-vocabularies case.
+**Foundry is internally inconsistent here**, which is the part worth keeping. The
+enumeration says `Cipher`; the page describing the complex types says "Cipher
+text"; the api says `cipherText`. The tie-break is not which spelling appears
+most often — it is that our vocabulary is a 1:1 snake_case of ONE table, so
+taking a single element's name from elsewhere leaves the set a mixture of two
+sources and no longer the thing 408 said it was.
 
-**`geotemporal_series` is a weaker case than I first wrote, and the quote
-above is why.** `base-types.md` — the page 408 cites, and the one that
-*defines* the twenty-two — calls it "Geotemporal series", which is what we
-store. But the reducers page says `Geotemporal Series Reference` and the api
-says `geotimeSeriesReference`, so two of three carry the word we drop. It
-stays on the strength of the defining page, not on a clean three-way split,
-and that is worth knowing before someone cites this reading for it.
+The same reasoning settles `geotemporal_series`, which §3 earlier defended on the
+weaker ground that `base-types.md` happened to agree while `property-reducers.md`
+and the api said `Reference`. The table says `Geotemporal Series`. Ours is right
+because it is the table's, not because two sources out of three concur.
+
+**What this cost, and what it bought.** Two migrations and a merged PR to end
+where we started, against one durable finding: a vocabulary derived from a page
+has to be checked against *that* page, and nothing mechanical was doing it.
 
 ## Decisions
 

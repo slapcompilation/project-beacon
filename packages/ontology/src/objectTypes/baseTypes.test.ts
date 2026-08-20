@@ -11,7 +11,7 @@ describe('the base types', () => {
     // Membership, not order — the picker groups by family, `property_base_types()`
     // does not. A type the picker offers but the CHECK rejects cannot be saved.
     expect(PROPERTY_TYPES.map((t) => t.value).sort()).toEqual([
-      'array', 'attachment', 'boolean', 'byte', 'cipher_text', 'date', 'decimal',
+      'array', 'attachment', 'boolean', 'byte', 'cipher', 'date', 'decimal',
       'double', 'float', 'geopoint', 'geoshape', 'geotemporal_series', 'integer',
       'long', 'marking', 'media_reference', 'short', 'string', 'struct',
       'time_series', 'timestamp', 'vector',

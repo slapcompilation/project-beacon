@@ -19,7 +19,7 @@ export type PropertyType =
   | 'string' | 'integer' | 'short' | 'date' | 'timestamp' | 'boolean' | 'byte' | 'long'
   | 'float' | 'double' | 'decimal' | 'vector' | 'array' | 'struct' | 'media_reference'
   | 'time_series' | 'geotemporal_series' | 'attachment' | 'geopoint' | 'geoshape'
-  | 'marking' | 'cipher_text'
+  | 'marking' | 'cipher'
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string }[] = [
   { value: 'string',    label: 'String',    help: 'Text. The safest primary key.' },
@@ -42,7 +42,7 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string 
   { value: 'time_series', label: 'Time series', help: 'A series of points over time.' },
   { value: 'geotemporal_series', label: 'Geotemporal series', help: 'A track through space and time.' },
   { value: 'vector',    label: 'Vector',    help: 'An embedding, for semantic search. Written by a pipeline, never typed.' },
-  { value: 'cipher_text', label: 'Cipher text', help: 'A type for storing a string value encoded with Cipher.' },
+  { value: 'cipher',    label: 'Cipher',    help: 'A type for storing a string value encoded with Cipher.' },
   { value: 'marking',   label: 'Marking',   help: 'A mandatory control property. Secures every other property in the same datasource.' },
 ]
 
@@ -579,7 +579,7 @@ export function validateRecord(properties: PropertyDef[], draft: RecordDraft): V
  *  Named once because six types are numeric where the old vocabulary had one. */
 export const NUMERIC: ReadonlyArray<PropertyType> =
   ['integer', 'short', 'long', 'byte', 'float', 'double', 'decimal']
-export const TEXTUAL: ReadonlyArray<PropertyType> = ['string', 'cipher_text']
+export const TEXTUAL: ReadonlyArray<PropertyType> = ['string', 'cipher']
 
 /** Coerce a raw form value (usually a string) into the property's type, or null
  *  when it can't be represented. Used before validateRecord + persistence. */
