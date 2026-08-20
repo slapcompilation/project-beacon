@@ -20,7 +20,7 @@ Four things follow, and each was learned by getting it wrong:
    for the concept. Quote the sentence you are relying on. A citation invented
    after the fact is how `object_type_impact` came back — the phrase "impact
    analysis" appears in exactly one mirrored page and it is about pipelines.
-2. **A link is not a reading.** `all-foundry-urls.txt` holds 4,764 slugs; the
+2. **A link is not a reading.** `all-foundry-urls.txt` holds 4,818 slugs; the
    mirror holds the pages. Having the URL proves nothing.
 3. **If the documentation does not cover it, ASK.** The operator has the
    learn.palantir.com courses and the end-to-end walkthroughs. A plausible shape
@@ -54,7 +54,7 @@ So, before building anything from a page:
    deliverable, not a formality — this is where a wrong reading gets caught while
    it is still cheap.
 6. **Separate quote from inference.** Anything not lifted from the page is marked
-   as inference. `object_type_impact` came back on a citation that did not exist.
+   as inference — that is what rule 1 above is guarding against, one step later.
 7. **Never claim coverage you have not counted.** A header saying "all five of
    its images parsed" is a falsifiable assertion, and mine have been false twice:
    `actions-on-interfaces` claimed five with four parsed, `ontology-cleanup`
@@ -188,7 +188,7 @@ join dataset (`create-link-type.md`). If a design needs a generic table with a
 ## What is here
 
 ```
-apps/web/                118 files. Ontology Manager (/ontology), projects,
+apps/web/                120 files. Ontology Manager (/ontology), projects,
                          account, auth, the shell. Vite + React + Blueprint.
 packages/ontology/       the ontology model: object types, properties and base
                          types, link cardinality, interfaces, shared properties,
@@ -198,7 +198,7 @@ packages/platform/       the engine tested against the documentation's own
                          printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     590 migrations. 355 is where the ontology was emptied;
+supabase/migrations/     597 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
 docs/foundry-reference/  4,068 mirrored pages of 4,818 known URLs. THE SOURCE.
 docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
@@ -251,6 +251,7 @@ pnpm check:surfaces              # every web file is reachable from main.tsx
 pnpm check:edge                  # supabase/functions parse, and deploy whole
 pnpm --filter @beacon/platform test   # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
+pnpm db:status                   # pending / orphaned / MODIFIED-since-applied
 pnpm gen:client                  # regenerate the typed client from the platform
 ```
 
@@ -294,6 +295,14 @@ does every property name a column its datasource actually has" is
 shape ("Ontology owners... write linters that check the entity definitions",
 `superrepo/core-concepts.md`). The suite asks it one question: **is the
 ontology we actually have well-formed?**
+
+**That linter is not only read by a reader: `save_working_state` refuses a save
+that INTRODUCES one** (426, comparing against the set that existed before). So an
+arm written too wide does not add noise, it blocks the save — 586's third arm
+fired on six suites. `ontology_warnings()` is the second list, for findings that
+are real and must not block: "errors need to be handled in order to save,
+warnings will not prevent you from saving". Choose which list before writing the
+arm.
 
 `check:shape` and `check:vocabulary` are deleted, with `shape_registry`. They
 depended on an allowlist that let a static scan tell "deliberately ahead of its
@@ -419,3 +428,21 @@ Two things we do take from their stack:
    datasource. If the answer is "a generic table", stop.
 4. **What reaches it?** If nothing does, it is not built yet — and an allowlist
    is not the answer.
+5. **Where does the rule go?** Down the ladder, stopping at the first rung that
+   can hold it:
+
+   **CHECK constraint** → a fact about one row, always true. *(A subquery is not
+   allowed in one; the way round is an `IMMUTABLE` function returning the legal
+   set, which is what `property_base_types()` is for.)*
+   **Unique or partial index** → a fact about a set of rows.
+   **Trigger** → a fact needing other tables, or a namespaced error. Remember a
+   BEFORE trigger runs *ahead* of the CHECKs, so a test can pass against the
+   wrong guard.
+   **`ontology_violations()`** → a fact that can go stale without anyone editing
+   the ontology, like a column the dataset dropped. Blocks a save that introduces
+   it.
+   **`ontology_warnings()`** → advisory, where the page says *warned* or
+   *recommended* rather than refused.
+
+   Assertions in the migration prove the change at the moment it lands; the
+   platform suite proves it still holds. Both, not either.
