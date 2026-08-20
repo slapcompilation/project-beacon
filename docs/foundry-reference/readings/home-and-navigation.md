@@ -598,8 +598,17 @@ The image supplies every control:
 > Ontology Management … Search by name, RID, aliases... … ⌘ K … Main … New
 > — ontology-manager/images/oma-discover-view.png
 
-Left: a blue-violet rounded-square app icon holding a white 3-D cube, then the
-application title. Centre: the search field, grey-filled, with a magnifier and an
+Left: the application icon, then the application title.
+
+**Corrected 2026-08-20, by measuring the same image.** This line read "a
+blue-violet rounded-square app icon holding a white 3-D cube" and every part of
+that is wrong. The icon is a **flush pale-blue block the full height of the
+header** — `#eef3ff` here, `#f1f5fe` on the older capture — about 50px wide, with
+**square corners and no inset**, and its cube is drawn in three tones of blue
+(`#1e52a7`, `#4385ee`, `#99c2ff`), not white. We had built the sentence: a 28px
+violet rounded tile holding a white cube. Written down as the cheapest lesson
+here — **a colour read by eye at 28px is a guess, and this one survived into the
+product because nothing ever counted it.** Centre: the search field, grey-filled, with a magnifier and an
 inline `⌘ K` hint. Right: a branch icon, the current branch name and a caret; then
 an outlined `New` with a caret. Confirmed by prose:
 
