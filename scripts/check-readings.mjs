@@ -39,6 +39,18 @@
 // it are counted and reported, never failed: 23 were written before this
 // existed, and a guard that fails on its own backlog gets switched off.
 //
+// AND A HEADER'S COVERAGE CLAIM IS CHECKED, because I have written a false one
+// twice: `actions-on-interfaces` said "all five of its images parsed" with four
+// parsed, and `ontology-cleanup` said "all seven" with four — and two of the
+// three it skipped carried that page's own definition of the feature I then
+// built from the reading. Both were found by audit, not by review, and only
+// after I described a skipped image as one "nobody" had read. There is no
+// nobody; every reading here is written by the same author as the code.
+//
+// Naming the file anywhere in the reading counts as parsed, so "these three add
+// nothing beyond the prose: a.png, b.png, c.png" passes. The bar is that the
+// reading says what it looked at — not that every image earns a quotation.
+//
 // WHAT COUNTS AS A QUOTATION
 //   > blockquote lines
 //   "double-quoted spans" of at least MIN_LEN characters
@@ -182,13 +194,43 @@ const declared = []
 const unused = []
 /** Named as a page, and is neither a mirrored page nor a file in this repo. */
 const misattributed = []
+/** A reading claiming it parsed every image of a page, that did not. */
+const overstated = []
 /** `mirror/foundry/x/y.md` and a header's `x/y` are the same page. */
 const slugOf = (f) => f.split('\\').join('/').replace(/^.*mirror\//, '').replace(/\.md$/, '')
+
+/** Every image a mirrored page references, by file name. */
+function pageImages(slug) {
+  const file = path.join(MIRROR, `${slug}.md`)
+  if (!fs.existsSync(file)) return null
+  const body = fs.readFileSync(file, 'utf8')
+  return [...new Set([...body.matchAll(/(?:src="|\]\()\.\/images\/([\w.-]+\.(?:png|jpg|jpeg|gif|svg))/g)]
+    .map((m) => m[1]))]
+}
+
+/** A header may CLAIM it parsed every image of a page. That is falsifiable, and
+ *  I have twice written it without having done it — `actions-on-interfaces`
+ *  claimed five and had four, `ontology-cleanup` claimed seven and had four, and
+ *  two of the three it skipped carried the page's own definition of the feature
+ *  built from it. Naming the file anywhere in the reading counts as parsed, so
+ *  "these three add nothing beyond the prose: a.png, b.png" passes — the bar is
+ *  that the reading says what it looked at, not that every image earns a quote. */
+const CLAIMS_EVERY_IMAGE = /(?:all\s+(?:\w+\s+)?(?:of\s+(?:its|their)\s+)?images|every\s+image|both\s+its\s+images)/i
 
 for (const name of readings) {
   const text = fs.readFileSync(path.join(READINGS, name), 'utf8')
   const strict = isStrict(text)
   if (!strict) { legacy += 1; continue }
+
+  for (const para of text.split(/\n\s*\n/)) {
+    if (!CLAIMS_EVERY_IMAGE.test(para)) continue
+    for (const m of para.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
+      const imgs = pageImages(slugOf(m[1]))
+      if (imgs === null || imgs.length === 0) continue
+      const unnamed = imgs.filter((i) => !text.includes(i))
+      if (unnamed.length > 0) overstated.push({ name, page: m[1], imgs: imgs.length, unnamed })
+    }
+  }
 
   for (const q of quotations(text)) {
     if (q.image) {
@@ -440,6 +482,21 @@ if (legacy > 0) {
   console.log(`${legacy} reading(s) predate this guard and are not checked — add \`verify: strict\` to opt one in`)
 }
 
+if (overstated.length > 0) {
+  console.error(`
+${overstated.length} image-coverage claim(s) that are not true:
+`)
+  for (const o of overstated) {
+    console.error(`  ${o.name}  —  ${o.page} has ${o.imgs} image(s); ${o.unnamed.length} never named:`)
+    for (const u of o.unnamed.slice(0, 6)) console.error(`      ${u}`)
+    if (o.unnamed.length > 6) console.error(`      …and ${o.unnamed.length - 6} more`)
+  }
+  console.error(`
+A reading that overstates its own coverage is worse than one that admits a gap,
+because the header is what the next reader trusts. Parse them, or name them and
+say what they add.`)
+}
+
 if (unused.length > 0) {
   console.warn(`
 ${unused.length} page(s) named in a reading's header that no quotation rests on:
@@ -467,5 +524,10 @@ if (failures.length > 0) {
   console.error('Fix the quote, mirror the page, or attribute it to the screenshot it came from.')
   process.exit(1)
 }
+
+// A false coverage claim FAILS rather than warns. It is the same kind of untruth
+// as an untraceable citation — a header asserting work that was not done — and a
+// warning is a thing that gets scrolled past.
+if (overstated.length > 0) process.exit(1)
 
 console.log('every checked citation traces to a mirrored page or a screenshot on disk')

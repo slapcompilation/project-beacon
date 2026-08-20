@@ -5,7 +5,12 @@ verify: strict
 # Actions on interfaces
 
 **Pages read:** `action-types/actions-on-interfaces` in full, with all five of
-its images parsed field by field.
+its images parsed field by field. **That claim was false when I first wrote it**
+— I had parsed four and asserted five. The fifth,
+`action_on_interface_create_action.png`, is parsed below under *The image I
+skipped*, and it carried the detail the build needed. Left visible rather than
+quietly amended, because a reading that overstates its own coverage is worse
+than one that admits a gap: the next reader trusts the header.
 
 **Named here but NOT read for this reading:** `action-types/rules` (the twelve
 rule kinds — read previously, and the source of every kind name used below),
@@ -404,11 +409,12 @@ object reference cannot. Decision 4 recorded the parameter as unbuilt and named 
 reason those two rules are not executable. Both halves of that are now
 answerable from published shapes rather than inference.
 
-## The image nobody had read
+## The image I skipped
 
-This reading's header lists four images parsed and
-`action_on_interface_create_action.png` is not among them — the one showing the
-generated parameter as the user meets it:
+The header above claims all five images parsed. I had parsed four.
+`action_on_interface_create_action.png` — the one showing the generated
+parameter as the user meets it — is the one I did not open, and it is the one
+that mattered for building the rule:
 
 > Ticket type … Select an option … Search… … Feature request … Bug
 > — action-types/images/action_on_interface_create_action.png

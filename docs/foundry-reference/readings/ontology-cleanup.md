@@ -376,3 +376,82 @@ is the READS column.
    `is_stale` notion, because Foundry prompts rather than recomputing silently.
 6. **Only enabled flags are evaluated**, and the filter facets derive from the
    same set rather than from the registry.
+
+---
+
+## The three images I claimed and had not opened (2026-08-20)
+
+This reading's header says `ontology-manager/cleanup` was read "in full, with all
+seven of its images" parsed. I had parsed four. The three below are the ones I
+asserted and skipped, found by auditing my own coverage claims after being
+pulled up for describing a skipped image as one nobody had read. There is no
+nobody; every reading here is mine.
+
+They are not navigational filler, which is presumably the assumption that let me
+skip them. Two of them carry the page's own definition of what Cleanup is, and
+all three carry a sidebar inventory that differs from the one
+`home-and-navigation.md` recorded.
+
+### `cleanup-start-cleanup-button.png` — the empty state, and the definition
+
+> Ontology Cleanup … Cleanup helps you identify and manage ontological resources that may no longer be useful. … Cleanup indicates which of the ontological resources are likely safe to deprecate or delete based on a number of checks. Once flagged you can decide the most appropriate way to handle resources individually or in bulk. … Start cleanup
+> — ontology-manager/images/cleanup-start-cleanup-button.png
+
+Two things follow. The page's title is **Ontology Cleanup**, not "Cleanup". And
+"individually or in bulk" is the sentence behind the toolbar: the verbs act on a
+checkbox selection, which is why the table has a select-all in its header.
+
+### `cleanup-configuration-navigation.png` — the table I built differently
+
+The candidate table's columns here are **NAME · PRIORITY · FLAGS · SNOOZED**,
+with a **gear** at the right of the header row, and a toolbar reading
+**Snooze · Deprecate · 🗑** beside a `1 Filter ✕` chip.
+
+`cleanup-filter-example.png`, which I did parse, shows **NAME · GROUPS ·
+PRIORITY · FLAGS · READS · ACTION**. Two captures, two different column sets,
+and a gear in the header of one: **the columns are configurable**. Neither
+capture is the shape; the gear is.
+
+What ours is missing, recorded rather than fixed in this pass:
+- a **SNOOZED** column — we store the snooze and never show it;
+- **Deprecate** and delete as toolbar verbs. This reading decided they route to
+  the object type because "deprecation and deletion are staged the same way as
+  normal Ontology modifications". That decision stands — but the verb still
+  belongs in the toolbar, staging rather than acting, and ours has only a
+  sentence telling the user to go elsewhere.
+
+### The sidebar, in all three, and it is not the one already recorded
+
+> Overview … Semantic search … Object types 306 … Link types 117 … Action types 266 … Shared properties 14 … Interfaces 9 … Functions 4,531 … Health issues 79 … Cleanup … History … Advanced
+> — ontology-manager/images/cleanup-start-cleanup-button.png
+
+Against `home-and-navigation.md` §6.3's inventory this one **adds** `Semantic
+search`, `History` and `Advanced`, and **omits** `Proposals`, `Properties`,
+`Groups`, `Value types` and `Ontology configuration`. Two real captures of the
+same sidebar disagreeing means the entry list is not fixed — it varies by
+enrollment or by what the ontology has.
+
+Three details worth keeping:
+
+1. **`Health issues` sits directly above `Cleanup`, carries a heartbeat icon and
+   a count (78, then 79).** I built exactly that in #696 — icon `pulse`, a count,
+   above Cleanup — by inference from a different screenshot's grouping. Here is
+   the direct evidence, in an image I had already claimed to have read.
+2. **`Cleanup` carries a count too** when there are candidates (`Cleanup 3` in
+   `cleanup-configuration-navigation.png`, bare on the overview where there are
+   none). Ours has no count on that row.
+3. **A `Select branch / Main / Default` control sits at the top of the sidebar**,
+   not in the top bar. Recorded, not adopted: our branch control is in the top
+   bar and `home-and-navigation.md` §6 has it there from its own screenshot.
+
+### `cleanup-navigation-from-homepage.png` — the Overview page
+
+> Welcome to the Ontology … Build and manage your organization's digital twin
+> — ontology-manager/images/cleanup-navigation-from-homepage.png
+
+Four stat cards (Object types, Link types, Action types, Functions), each with a
+**+ New …** footer, over a **Recently viewed object types** panel with its own
+gear, whose rows carry the type's icon, its name, and its **group tags**. Cleanup
+is reached from the sidebar, not from this page — which is all the file name
+promised, and about a tenth of what the image contains.
+
