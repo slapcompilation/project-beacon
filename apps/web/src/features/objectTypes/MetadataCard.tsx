@@ -37,7 +37,26 @@ function Person({ id, label }: { id: string; label: string | undefined }) {
   return <Tag minimal round title={name}>{initials || name}</Tag>
 }
 
-function Row({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
+/** The two-column shell: metadata left, a status panel right, ID and RID below
+ *  a rule. Shared with the link type view, which draws the same card
+ *  (readings/link-type-view.md Decision 2). */
+export function MetaShell(
+  { left, right, identity }:
+  { left: React.ReactNode; right: React.ReactNode; identity: React.ReactNode },
+) {
+  return (
+    <div className="oma-meta">
+      <dl className="oma-meta-fields">{left}</dl>
+      <div className="oma-meta-side">
+        <dl className="oma-meta-fields">{right}</dl>
+        <div className="oma-rule" />
+        <dl className="oma-meta-fields">{identity}</dl>
+      </div>
+    </div>
+  )
+}
+
+export function Row({ label, help, children }: { label: string; help?: string; children: React.ReactNode }) {
   return (
     <>
       <dt className="text-muted-foreground flex items-center gap-1">
@@ -63,8 +82,8 @@ export function MetadataCard(
   const contributors = type.contributors ?? []
 
   return (
-    <div className="oma-meta">
-      <dl className="oma-meta-fields">
+    <MetaShell
+      left={<>
         <Row label="Plural name">{type.pluralLabel || <span className="text-muted-foreground">—</span>}</Row>
         <Row label="Description">{type.description || <span className="text-muted-foreground">—</span>}</Row>
         <Row label="Aliases" help="Alternative names (synonyms) for the object type, usable as search terms.">
@@ -86,10 +105,8 @@ export function MetadataCard(
         </Row>
         <Row label="Ontology">{ontologyName}</Row>
         <Row label="API name"><span className="font-mono truncate">{type.apiName}</span></Row>
-      </dl>
-
-      <div className="oma-meta-side">
-        <dl className="oma-meta-fields">
+      </>}
+      right={<>
           <Row label="Status">{status}</Row>
           <Row label="Visibility">
             <HTMLSelect minimal value={type.visibility ?? 'normal'}
@@ -116,19 +133,14 @@ export function MetadataCard(
           <Row label="Edits">
             <Tag minimal>{type.trackEditHistory === true ? 'Enabled' : 'Disabled'}</Tag>
           </Row>
-        </dl>
-        <div className="oma-rule" />
-        <dl className="oma-meta-fields">
-          {/* Foundry's ID is a slug distinct from the API name. Ours is the
-              uuid — the identifier we actually have, rather than the API name
-              printed twice. */}
-          <Row label="ID"><span className="font-mono truncate">{type.id}</span></Row>
-          {/* "RID 'Set on save'" — the course, on a type not yet saved. */}
-          <Row label="RID">
-            <span className="font-mono truncate">{type.rid ?? 'Set on save'}</span>
-          </Row>
-        </dl>
-      </div>
-    </div>
+      </>}
+      identity={<>
+        {/* Foundry's ID is a slug distinct from the API name. Ours is the uuid —
+            the identifier we actually have, rather than the API name twice. */}
+        <Row label="ID"><span className="font-mono truncate">{type.id}</span></Row>
+        {/* "RID 'Set on save'" — the course, on a type not yet saved. */}
+        <Row label="RID"><span className="font-mono truncate">{type.rid ?? 'Set on save'}</span></Row>
+      </>}
+    />
   )
 }

@@ -912,6 +912,32 @@
     gap:10px 20px; margin:0; padding:15px; font-size:13px; align-items:center;
   }
   .oma-meta-side .oma-rule { margin:0; }
+  /* The link type view's Configuration section: a bordered card, and the three
+   * join-method cards inside it. Foundry draws the selected one with a blue
+   * border and a pale fill; a backing the cardinality cannot express is dimmed
+   * rather than hidden, because the grammar is the point. */
+  .oma-config {
+    padding:15px; border:1px solid hsl(var(--border)); border-radius:var(--radius);
+    background:hsl(var(--card));
+  }
+  .oma-joins { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+  .oma-join {
+    display:flex; align-items:center; gap:10px; padding:14px;
+    border:1px solid hsl(var(--border)); border-radius:var(--radius);
+    font-size:13px; color:hsl(var(--muted-foreground));
+  }
+  .oma-join.is-active {
+    border-color:hsl(var(--primary)); background:var(--oma-active);
+    color:var(--oma-active-fg); font-weight:600;
+  }
+  .oma-join.is-out { opacity:.45; }
+  .oma-dirs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px; }
+  .oma-link-dir {
+    padding:12px; border:1px solid hsl(var(--border)); border-radius:var(--radius);
+  }
+  @media (max-width:900px) {
+    .oma-joins, .oma-dirs { grid-template-columns:minmax(0,1fr); }
+  }
   @media (max-width:900px) {
     .oma-meta { grid-template-columns:minmax(0,1fr); }
     .oma-meta-side { border-left:0; border-top:1px solid hsl(var(--border)); }
@@ -1127,6 +1153,7 @@
 .mt-1 { margin-top:0.25rem; }
 .mt-2 { margin-top:0.5rem; }
 .mt-4 { margin-top:1rem; }
+.mt-5 { margin-top:1.25rem; }
 .mx-3 { margin-left:0.75rem;margin-right:0.75rem; }
 .my-3 { margin-top:0.75rem;margin-bottom:0.75rem; }
 .opacity-60 { opacity:0.6; }

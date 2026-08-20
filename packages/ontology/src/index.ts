@@ -116,7 +116,11 @@ export type {
 
 // Link cardinality, and which backing can express it — Foundry's grammar, not
 // ours. See create-link-type.md.
-export type { LinkCardinality } from './ontology/linkCardinality'
+export type { LinkCardinality, LinkBackingKind } from './ontology/linkCardinality'
+export {
+  LINK_CARDINALITIES, LINK_BACKINGS, CARDINALITY_LABEL, BACKING_LABEL, BACKING_ICON,
+  CARDINALITY_BACKINGS, canBack, preferredBacking,
+} from './ontology/linkCardinality'
 
 // Projects — Foundry's primary security boundary — and the roles granted on
 // them. Discretionary, inside the mandatory org/hotel boundary.
