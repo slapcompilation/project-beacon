@@ -332,12 +332,40 @@ export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<
 }
 
 export async function addObjectTypeDatasource(
-  i: { objectTypeId: string; datasetId?: string; branchId?: string; restrictedViewId?: string },
+  i: { objectTypeId: string; datasetId?: string; branchId?: string; restrictedViewId?: string
+       mediaSetRid?: string; mediaSetViewRid?: string },
 ): Promise<void> {
-  const { error } = await supabase.from('object_type_datasources')
-    .insert(i.restrictedViewId
+  // Three backing kinds, and `one_backing` refuses any mixture of them. A media
+  // set view is "an independent collection of Media Items" and carries both
+  // RIDs — the set it belongs to and the view itself.
+  const row = i.mediaSetRid
+    ? { object_type_id: i.objectTypeId, media_set_rid: i.mediaSetRid, media_set_view_rid: i.mediaSetViewRid }
+    : i.restrictedViewId
       ? { object_type_id: i.objectTypeId, restricted_view_id: i.restrictedViewId }
-      : { object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId })
+      : { object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId }
+  const { error } = await supabase.from('object_type_datasources').insert(row)
+  if (error) throw new Error(error.message)
+}
+
+/** Which media datasource backs a media reference property. The binding is its
+ *  own table because a property may be bound to one and a datasource may back
+ *  several — `media_property_problems()` reports a media property with none. */
+export async function fetchMediaBindings(objectTypeId: string): Promise<Record<string, string>> {
+  const { data, error } = await supabase.from('object_type_media_sources')
+    .select('datasource_id, property_id, object_type_properties!inner(object_type_id)')
+    .eq('object_type_properties.object_type_id', objectTypeId)
+  if (error) throw new Error(error.message)
+  return Object.fromEntries(
+    (data as unknown as { datasource_id: string; property_id: string }[])
+      .map((r) => [r.property_id, r.datasource_id]))
+}
+
+export async function setMediaBinding(propertyId: string, datasourceId: string | null): Promise<void> {
+  const del = await supabase.from('object_type_media_sources').delete().eq('property_id', propertyId)
+  if (del.error) throw new Error(del.error.message)
+  if (datasourceId === null) return
+  const { error } = await supabase.from('object_type_media_sources')
+    .insert({ property_id: propertyId, datasource_id: datasourceId })
   if (error) throw new Error(error.message)
 }
 

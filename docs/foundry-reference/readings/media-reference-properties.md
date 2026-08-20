@@ -318,17 +318,32 @@ still ends up sourced one of three ways.
    to accommodate it.
 2. **No new backing mechanism.** The property reads a media reference *column* on
    the dataset that already backs the object type — the model we have.
-3. **A second binding is required**: object type → media source, and the image
-   shows that source is a **(media set, branch)** pair, mirroring
-   `object_type_datasources`. It **takes its own table** rather than reusing
-   that one: a media set is a distinct resource kind from a dataset, confirmed
-   above, and `object_type_datasources` names a dataset.
+3. **A second binding is required**: object type → media source. ~~The image
+   shows that source is a **(media set, branch)** pair~~ — **corrected
+   2026-08-19 by `api/v2`, which publishes the datasource as a `mediaSetView`
+   carrying `mediaSetRid` and `mediaSetViewRid`, "the Resource Identifier (RID)
+   of a single View of a Media Set. A Media Set View is an independent
+   collection of Media Items".** The screenshot's second element, rendered
+   `images · master` with a branch-like icon, is the *view*, not a branch. The
+   pair shape was right and one of its halves was wrong, which is the failure
+   mode of reading structure off an icon.
+
+   It also does **not** take its own table for the pair, as this decision
+   assumed. 585 made the media set view a third arm of `object_type_datasources`
+   — the API models it as a datasource kind beside `dataset` and
+   `restrictedView` — and `object_type_media_sources` holds only the binding
+   (datasource, property).
 3b. **The reference value is a three-variant union** — `mediaSetViewItem`,
    `mediaSetItem`, `datasetFile` — and any CHECK must admit all three. Only the
    first appears on the base type page.
 4. **Media reference may not be arrayed**, per `media-in-ontology`, despite
    `base-types` listing only two exclusions.
-5. **Nothing is built from this reading yet.** The API specs carry the enums, and
+5. ~~**Nothing is built from this reading yet.**~~ Built across 582, 585 and the
+   surface that finally reached it (2026-08-20). The flagged inference — that
+   the three source types form a closed set, read off a radio group rather than
+   a sentence — **held**: they are exactly `column`, `user_input` and
+   `linked_objects`, and the API's property mapping union (`column`, `struct`,
+   `editOnly`) agrees on the first and third from the other side. The API specs carry the enums, and
    this reading has not read them. *(Inference, flagged: that the three source
    types in the screenshot form a closed set is read off a radio group — three
    options with no scroll — not off a sentence. Treat as strong but unconfirmed

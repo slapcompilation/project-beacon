@@ -24,7 +24,7 @@ import {
   fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
-  setDatasourcePrimaryKeyColumn,
+  setDatasourcePrimaryKeyColumn, fetchMediaBindings, setMediaBinding,
   type UpdateObjectTypeInput, type CreateLinkTypeInput, type LinkTypeRow,
 } from './api'
 
@@ -154,7 +154,8 @@ export function useObjectTypeDatasources(objectTypeId: string | null) {
 export function useAddObjectTypeDatasource(objectTypeId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (i: { datasetId?: string; branchId?: string; restrictedViewId?: string }) =>
+    mutationFn: (i: { datasetId?: string; branchId?: string; restrictedViewId?: string
+                      mediaSetRid?: string; mediaSetViewRid?: string }) =>
       addObjectTypeDatasource({ objectTypeId, ...i }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
@@ -190,6 +191,28 @@ export function useApplyBacking() {
         e instanceof Error ? e.message : String(e)}`)
     }
   }
+}
+
+/** Property id → the media datasource backing it. */
+export function useMediaBindings(objectTypeId: string | null) {
+  return useQuery({
+    queryKey: ['media-bindings', objectTypeId ?? ''],
+    enabled: objectTypeId !== null,
+    queryFn: () => fetchMediaBindings(objectTypeId as string),
+  })
+}
+
+export function useSetMediaBinding(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { propertyId: string; datasourceId: string | null }) =>
+      setMediaBinding(i.propertyId, i.datasourceId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['media-bindings', objectTypeId] })
+      void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
 }
 
 export function useSetDatasourcePrimaryKeyColumn(objectTypeId: string) {
