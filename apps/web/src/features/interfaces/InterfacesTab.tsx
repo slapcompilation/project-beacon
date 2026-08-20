@@ -64,10 +64,10 @@ function InterfaceActions({ type, iface, all }: {
       <div className="flex items-center gap-2">
         <Icon icon="layers" size={12} className="text-violet-500" />
         <span className="text-xs font-semibold">{iface.label}</span>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-2">Actions</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Actions</span>
       </div>
       {constraints.length === 0 && (
-        <p className="text-[11px] text-muted-foreground pl-5">This interface declares no action type constraints.</p>
+        <p className="text-xs text-muted-foreground pl-5">This interface declares no action type constraints.</p>
       )}
       {constraints.map((c) => (
         <ConstraintRow key={c.id} type={type} iface={iface} constraint={c}
@@ -113,8 +113,8 @@ function ConstraintRow({ type, iface, constraint, actions, satisfaction }: {
       <Icon icon="take-action" size={11} className="text-violet-500" />
       <span>{constraint.display_name}</span>
       {constraint.required
-        ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]">Required</Tag>
-        : <Tag minimal className="!text-[10px]">Optional</Tag>}
+        ? <Tag minimal intent={Intent.WARNING}>Required</Tag>
+        : <Tag minimal>Optional</Tag>}
       <HTMLSelect value={satisfaction?.action_type_id ?? ''} onChange={(e) => { choose(e.currentTarget.value) }}>
         <option value="">{constraint.required ? 'Select an action type…' : 'Skipped'}</option>
         {actions.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
@@ -168,7 +168,7 @@ function ConfigureParametersDialog({ isOpen, onClose, type, iface, constraint, a
             return (
               <div key={pc.id} className="flex items-center gap-2 text-xs">
                 <span className="w-32 font-medium">{pc.display_name}</span>
-                <Tag minimal className="!text-[10px]">{pc.base_type}{pc.is_list ? ' list' : ''}</Tag>
+                <Tag minimal>{pc.base_type}{pc.is_list ? ' list' : ''}</Tag>
                 {pc.required && <span className="text-red-500">*</span>}
                 <HTMLSelect value={picks[pc.id] ?? ''} onChange={(e) => {
                   const v = e.currentTarget.value

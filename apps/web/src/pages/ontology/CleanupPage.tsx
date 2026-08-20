@@ -158,7 +158,7 @@ export default function CleanupPage() {
               <details className="rounded border px-3 py-2">
                 <summary className="cursor-pointer text-xs">
                   Snoozed <Tag minimal round className="tabular-nums">{snoozed.length}</Tag>
-                  <span className="ml-2 text-[11px] text-neutral-500">
+                  <span className="ml-2 text-xs text-neutral-500">
                     hidden from your queue until the date shown — yours only
                   </span>
                 </summary>
@@ -210,7 +210,7 @@ export default function CleanupPage() {
                         </td>
                         <td className="space-x-1">
                           {c.flags.map((f) => (
-                            <Tag key={f} minimal className="!text-[10px]">{FLAG_LABEL[f] ?? f}</Tag>
+                            <Tag key={f} minimal>{FLAG_LABEL[f] ?? f}</Tag>
                           ))}
                         </td>
                         {/* "READS", showing 1, 1 and 43 for the page's three
@@ -239,13 +239,13 @@ export default function CleanupPage() {
         title={`Deprecate ${picked.size} object type${picked.size === 1 ? '' : 's'}`}>
         <DialogBody>
           <div className="space-y-2">
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Staged like any other ontology change — the save session commits it.
             </p>
-            <label className="text-[11px] font-semibold">Why it is being deprecated</label>
+            <label className="text-xs font-semibold">Why it is being deprecated</label>
             <InputGroup value={reason} onValueChange={setReason}
               placeholder="No longer used by any application" />
-            <label className="text-[11px] font-semibold">When it is expected to be deleted</label>
+            <label className="text-xs font-semibold">When it is expected to be deleted</label>
             <InputGroup type="date" value={deadline} onValueChange={setDeadline} />
           </div>
         </DialogBody>

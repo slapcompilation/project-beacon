@@ -40,7 +40,7 @@ export default function LinkTypesPage() {
                 <li key={lt.id} className="flex items-center gap-2 px-3 py-2 text-xs">
                   <Icon icon="arrows-horizontal" size={12} className="text-violet-500 shrink-0" />
                   <span className="font-medium">{lt.label}</span>
-                  <Tag minimal className="!text-[9px] font-mono">{lt.apiName}</Tag>
+                  <Tag minimal className="font-mono">{lt.apiName}</Tag>
                   <span className="ml-auto flex items-center gap-1.5 text-muted-foreground">
                     <Link to={typePath(lt.sourceTypeId)}>{nameOf(lt.sourceTypeId)}</Link>
                     <Icon icon="arrow-right" size={11} />

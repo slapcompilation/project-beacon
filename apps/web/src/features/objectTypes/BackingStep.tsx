@@ -50,7 +50,7 @@ export function BackingStep({ projectId, label, value, onChange }: {
       <Icon icon={icon} size={16} className="mt-0.5 text-neutral-500" />
       <div className="flex-1">
         <p className={`text-xs font-semibold ${value.kind === kind ? 'text-blue-600' : ''}`}>{title}</p>
-        <p className="text-[11px] text-muted-foreground">{sub}</p>
+        <p className="text-xs text-muted-foreground">{sub}</p>
       </div>
       {value.kind === kind && <Icon icon="tick" size={14} className="text-blue-600" />}
     </Card>
@@ -58,7 +58,7 @@ export function BackingStep({ projectId, label, value, onChange }: {
 
   return (
     <div className="space-y-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Datasource
       </span>
       <div className="flex flex-wrap gap-2">
@@ -84,7 +84,7 @@ export function BackingStep({ projectId, label, value, onChange }: {
       )}
 
       {value.kind === 'generate' && (
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Icon icon="th-derived" size={12} />
           <span className="font-medium text-neutral-700">{value.name}</span>
           <span>in {folders.find((f) => f.id === value.folderId)?.name ?? 'the project root'}</span>
@@ -95,10 +95,10 @@ export function BackingStep({ projectId, label, value, onChange }: {
       <Dialog isOpen={naming} onClose={() => { setNaming(false) }} title="Create a new backing dataset">
         <DialogBody>
           <div className="space-y-2">
-            <label className="text-[11px] font-semibold">File name</label>
+            <label className="text-xs font-semibold">File name</label>
             <InputGroup leftIcon="th" value={value.kind === 'generate' ? value.name : ''}
               onValueChange={(v) => { onChange({ kind: 'generate', name: v, folderId: value.kind === 'generate' ? value.folderId : null }) }} />
-            <label className="text-[11px] font-semibold">Location</label>
+            <label className="text-xs font-semibold">Location</label>
             {/* "As permissions of the objects of a type are determined by the
                 location of their backing datasources" — so this is not filing,
                 it is the permission decision. */}

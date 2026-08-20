@@ -63,7 +63,7 @@ export function UsageTab({ type }: { type: ObjectTypeDef }) {
 
       <div className="flex items-center gap-2">
         <h3 className="text-sm font-semibold">Aggregate usage</h3>
-        <Tag minimal className="!text-[10px]">last 30 days</Tag>
+        <Tag minimal>last 30 days</Tag>
       </div>
 
       {summary.isLoading
@@ -76,7 +76,7 @@ export function UsageTab({ type }: { type: ObjectTypeDef }) {
               ['Active users', s?.active_users ?? 0],
             ] as const).map(([label, value]) => (
               <div key={label} className="rounded border border-neutral-200 px-2 py-1.5">
-                <div className="text-[10px] uppercase tracking-wide text-neutral-500">{label}</div>
+                <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
                 <div className="text-base font-semibold tabular-nums">{value}</div>
               </div>
             ))}

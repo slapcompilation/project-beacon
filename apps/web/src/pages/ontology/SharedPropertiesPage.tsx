@@ -43,17 +43,17 @@ export default function SharedPropertiesPage() {
       <div className="max-w-4xl space-y-2">
         <Card compact className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1 flex-1 min-w-40">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Name</span>
             <InputGroup size="small" value={label} placeholder="Cost"
               onChange={(e) => { setLabel(e.currentTarget.value) }} />
           </label>
           <label className="flex flex-col gap-1 flex-1 min-w-56">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Description</span>
             <InputGroup size="small" value={description} placeholder="What it cost us, in the property currency"
               onChange={(e) => { setDescription(e.currentTarget.value) }} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Base type</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Base type</span>
             <HTMLSelect value={baseType} onChange={(e) => { setBaseType(e.currentTarget.value as PropertyType) }}>
               {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </HTMLSelect>
@@ -78,10 +78,10 @@ export default function SharedPropertiesPage() {
                   <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
                     <Icon icon="globe" size={11} className="text-violet-500 shrink-0" />
                     <span className="font-medium">{d.label}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">{d.apiName}</span>
-                    <Tag minimal className="!text-[9px]">{d.baseType}</Tag>
+                    <span className="font-mono text-xs text-muted-foreground">{d.apiName}</span>
+                    <Tag minimal>{d.baseType}</Tag>
                     <span className="flex-1 truncate text-muted-foreground">{d.description}</span>
-                    <Tag minimal intent={consumers.length > 0 ? Intent.PRIMARY : Intent.NONE} className="!text-[9px]"
+                    <Tag minimal intent={consumers.length > 0 ? Intent.PRIMARY : Intent.NONE}
                       title={consumers.map((t) => t.label).join(', ') || 'Not used by any object type yet'}>
                       {consumers.length} type{consumers.length === 1 ? '' : 's'}
                     </Tag>

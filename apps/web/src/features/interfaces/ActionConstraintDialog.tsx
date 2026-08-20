@@ -75,7 +75,7 @@ export function ActionConstraintDialog({ row, existing, onClose }: {
       <DialogBody>
         <div className="space-y-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Parameter configuration</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Parameter configuration</span>
             {params.map((x, i) => (
               <div key={i} className="flex flex-wrap items-center gap-1.5 mt-1">
                 <HTMLSelect value={x.base_type} onChange={(e) => { setParam(i, { base_type: e.currentTarget.value }) }}>
@@ -118,7 +118,7 @@ export function ActionConstraintDialog({ row, existing, onClose }: {
           </div>
 
           <div className="space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Metadata</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Metadata</span>
             <InputGroup placeholder="The name for this action type constraint" value={displayName}
               onChange={(e) => { setDisplayName(e.currentTarget.value) }} />
             <TextArea fill placeholder="Provide a user-readable description explaining the functionality of the action type"
@@ -129,7 +129,7 @@ export function ActionConstraintDialog({ row, existing, onClose }: {
           </div>
 
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Requiredness</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Requiredness</span>
             <Switch className="!mt-1" checked={required}
               label="Required — whether implementing object types must define an action type that satisfies this constraint"
               onChange={(e) => { setRequired(e.currentTarget.checked) }} />

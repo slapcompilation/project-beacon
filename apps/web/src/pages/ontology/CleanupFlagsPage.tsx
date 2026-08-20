@@ -66,7 +66,7 @@ export default function CleanupFlagsPage() {
           onChange={(e) => { setMode(e.currentTarget.value as 'default' | 'custom') }}>
           <Radio value="default" labelElement={
             <span className="text-xs">
-              <strong>Optimized for usage</strong> <Tag minimal className="!text-[10px]">Default</Tag>
+              <strong>Optimized for usage</strong> <Tag minimal>Default</Tag>
               <span className="block text-neutral-500">Recommended flags for usage optimization</span>
             </span>
           } />
@@ -95,9 +95,9 @@ export default function CleanupFlagsPage() {
                   <span className="flex-1 text-xs">{FLAG_LABEL[f.flag] ?? f.flag}</span>
                   {!f.computable &&
                     <Tooltip content={<span className="max-w-xs text-xs">{f.note}</span>}>
-                      <Tag minimal intent="warning" className="!text-[10px]">not computed here</Tag>
+                      <Tag minimal intent="warning">not computed here</Tag>
                     </Tooltip>}
-                  <span className="text-[10px] uppercase tracking-wide text-neutral-500">Priority</span>
+                  <span className="text-xs uppercase tracking-wide text-neutral-500">Priority</span>
                   <HTMLSelect disabled={locked} value={d?.priority ?? f.priority}
                     options={['high', 'medium', 'low']}
                     onChange={(e) => {

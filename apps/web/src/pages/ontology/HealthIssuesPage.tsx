@@ -55,11 +55,11 @@ function IssueList({ rows, intent }: { rows: Violation[]; intent: 'danger' | 'wa
             <Icon icon="cube" size={13} className="text-violet-500" />
             <span className="text-xs font-semibold">{type}</span>
             <span className="flex-1" />
-            <Tag minimal intent={intent} className="tabular-nums !text-[10px]">{count(scopes)}</Tag>
+            <Tag minimal intent={intent} className="tabular-nums">{count(scopes)}</Tag>
           </div>
           {[...scopes.entries()].map(([scope, items]) => (
             <div key={scope}>
-              <p className="bg-neutral-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-500">
+              <p className="bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
                 {scope}
               </p>
               <HTMLTable compact className="w-full !text-xs">
@@ -70,7 +70,7 @@ function IssueList({ rows, intent }: { rows: Violation[]; intent: 'danger' | 'wa
                         <Icon size={12} intent={intent}
                           icon={intent === 'danger' ? 'error' : 'warning-sign'} />
                       </td>
-                      <td className="w-56 align-top font-mono text-[11px] text-neutral-500">
+                      <td className="w-56 align-top font-mono text-xs text-neutral-500">
                         {r.subject}
                       </td>
                       <td>{r.problem}</td>

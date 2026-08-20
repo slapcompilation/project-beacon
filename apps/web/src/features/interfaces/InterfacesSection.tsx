@@ -49,8 +49,8 @@ export default function InterfacesSection({ types, ontologyId, onOpen }: {
   return (
     <Card className="space-y-3">
       <div>
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Interfaces</span>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Interfaces</span>
+        <p className="text-xs text-muted-foreground mt-0.5">
           A shape several types share. A tool or agent written against an interface works on every type that
           implements it — including ones you author later.
         </p>
@@ -63,8 +63,8 @@ export default function InterfacesSection({ types, ontologyId, onOpen }: {
             <div className="flex items-center gap-2">
               <Icon icon="layers" size={12} className="text-violet-500" />
               <span className="text-xs font-semibold">{iface.label}</span>
-              <span className="font-mono text-[10px] text-muted-foreground">{iface.apiName}</span>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="font-mono text-xs text-muted-foreground">{iface.apiName}</span>
+              <span className="text-xs text-muted-foreground">
                 {iface.properties.map((p) => `${p.key}:${p.type}`).join(' · ')}
               </span>
               {/* An active interface cannot be deleted; say so rather than
@@ -83,15 +83,15 @@ export default function InterfacesSection({ types, ontologyId, onOpen }: {
                       if (on) unimplement.mutate({ objectTypeId: t.id, interfaceId: row.id })
                       else setWizard({ type: t, row })
                     }}
-                    labelElement={<span className="text-[11px]">{t.label}</span>} />
+                    labelElement={<span className="text-xs">{t.label}</span>} />
                 )
               })}
             </div>
-            <Button variant="minimal" size="small" icon="panel-stats" className="!text-[11px]"
+            <Button variant="minimal" size="small" icon="panel-stats"
               onClick={() => { onOpen?.(row.id) }}>
               Contract
               {(row.interface_link_constraints.length + row.interface_action_constraints.length + row.extensions.length) > 0 &&
-                <Tag minimal className="!text-[10px] ml-1">
+                <Tag minimal className="ml-1">
                   {row.interface_link_constraints.length + row.interface_action_constraints.length + row.extensions.length}
                 </Tag>}
             </Button>
@@ -197,7 +197,7 @@ function MappingWizard({ type, row, all, onClose }: {
             return (
               <div key={p.property_id} className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="font-medium w-32">{p.display_name}{p.required && <span className="text-red-500"> *</span>}</span>
-                <Tag minimal className="!text-[10px]">{p.base_type}</Tag>
+                <Tag minimal>{p.base_type}</Tag>
                 <HTMLSelect value={d.resolution} onChange={(e) => {
                   set(i, { resolution: e.currentTarget.value as MappingDraft['resolution'],
                            object_property_id: null, backing_column: null })
@@ -254,11 +254,11 @@ function NewInterfaceForm({ ontologyId, create, label, setLabel, props, setProps
         <div className="flex items-center gap-2">
           <InputGroup size="small" placeholder="Interface name (e.g. Roomed)" value={label}
             onChange={(e) => { setLabel(e.currentTarget.value) }} style={{ width: 200 }} />
-          {label.trim() !== '' && <Tag minimal className="!text-[10px] font-mono">{toPascal(label)}</Tag>}
+          {label.trim() !== '' && <Tag minimal className="font-mono">{toPascal(label)}</Tag>}
         </div>
         {props.map((p, i) => (
           <div key={i} className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground w-14">requires</span>
+            <span className="text-xs text-muted-foreground w-14">requires</span>
             <InputGroup size="small" placeholder="Property (e.g. Room)" value={p.label}
               onChange={(e) => { setProps(props.map((x, j) => (j === i ? { ...x, label: e.currentTarget.value } : x))) }} />
             <HTMLSelect value={p.type} onChange={(e) => {
@@ -282,7 +282,7 @@ function NewInterfaceForm({ ontologyId, create, label, setLabel, props, setProps
             Create interface
           </Button>
           {label.trim() !== '' && errors.length > 0 && (
-            <span className="text-[11px] text-amber-600">{errors[0]}</span>
+            <span className="text-xs text-amber-600">{errors[0]}</span>
           )}
         </div>
       </div>

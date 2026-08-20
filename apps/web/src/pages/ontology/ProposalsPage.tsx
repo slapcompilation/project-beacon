@@ -66,11 +66,11 @@ export default function ProposalsPage() {
             <div className="flex items-center gap-2">
               <Icon icon="git-pull" size={13} className="text-violet-500" />
               <span className="text-sm font-medium">{p.name}</span>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 wants to merge into Main from {p.ontology_branches?.title ?? p.branch_id.slice(0, 8)}
               </span>
-              <Tag minimal intent={STATUS_INTENT[p.status]} className="!text-[10px] ml-auto">{p.status}</Tag>
-              <Tag minimal className="!text-[10px]">{p.proposal_tasks.length} task{p.proposal_tasks.length === 1 ? '' : 's'}</Tag>
+              <Tag minimal intent={STATUS_INTENT[p.status]} className="ml-auto">{p.status}</Tag>
+              <Tag minimal>{p.proposal_tasks.length} task{p.proposal_tasks.length === 1 ? '' : 's'}</Tag>
             </div>
             {selected?.id === p.id && <ProposalDetail proposal={p} />}
           </Card>
@@ -89,11 +89,11 @@ function ProposalDetail({ proposal }: { proposal: ProposalRow }) {
     <div className="mt-2 pt-2 border-t space-y-2" onClick={(e) => { e.stopPropagation() }}>
       {proposal.description && <p className="text-xs text-muted-foreground">{proposal.description}</p>}
 
-      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Review changes</span>
+      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Review changes</span>
       {proposal.proposal_tasks.map((t) => <TaskRowView key={t.id} task={t} open={proposal.status === 'open'} />)}
 
       {proposal.status === 'open' && blockers.length > 0 && (
-        <Callout intent={Intent.WARNING} icon="issue" className="!text-[11px]">
+        <Callout intent={Intent.WARNING} icon="issue">
           {(blockers as { reason: string }[]).map((b, i) => <div key={i}>{b.reason}</div>)}
         </Callout>
       )}
@@ -121,11 +121,11 @@ function TaskRowView({ task, open }: { task: TaskRow; open: boolean }) {
 
   return (
     <div className="flex items-center gap-2 text-xs">
-      <Tag minimal className="!text-[10px]">{KIND_LABEL[task.resource_kind] ?? task.resource_kind}</Tag>
-      <code className="text-[10px] text-muted-foreground">{task.resource_id.slice(0, 8)}</code>
-      <Tag minimal intent={intent} className="!text-[10px]">{label}</Tag>
+      <Tag minimal>{KIND_LABEL[task.resource_kind] ?? task.resource_kind}</Tag>
+      <code className="text-xs text-muted-foreground">{task.resource_id.slice(0, 8)}</code>
+      <Tag minimal intent={intent}>{label}</Tag>
       {task.proposal_reviews.length > 0 && (
-        <Tag minimal icon="person" className="!text-[10px]">{task.proposal_reviews.length}</Tag>
+        <Tag minimal icon="person">{task.proposal_reviews.length}</Tag>
       )}
       {open && (
         <span className="ml-auto flex gap-1">

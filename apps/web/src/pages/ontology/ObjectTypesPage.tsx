@@ -102,11 +102,11 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
 
   return (
     <div className="space-y-1.5">
-      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary key</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Primary key</span>
           <HTMLSelect value={pk ? draftId(pk) : ''} onChange={(e) => { designate('isPrimaryKey', e.currentTarget.value) }}>
             <option value="">Select...</option>
             {named.filter((p) => primaryKeyEligibility(p.type) !== 'no')
@@ -114,7 +114,7 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
           </HTMLSelect>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Title</span>
           <HTMLSelect value={tk ? draftId(tk) : ''} onChange={(e) => { designate('isTitleKey', e.currentTarget.value) }}>
             <option value="">Select...</option>
             {named.filter((p) => canBeTitleKey(p.type === 'array' ? (p.arrayElementType ?? p.type) : p.type))
@@ -122,7 +122,7 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
           </HTMLSelect>
         </label>
       </div>
-      {advice && <p className="text-[11px] text-amber-600 max-w-2xl">{advice}</p>}
+      {advice && <p className="text-xs text-amber-600 max-w-2xl">{advice}</p>}
 
       {drafts.map((p, i) => {
         const def = p.sharedPropertyId ? sharedMap.get(p.sharedPropertyId) : undefined
@@ -264,21 +264,21 @@ export default function ObjectTypesPage() {
                     <Icon icon={t.icon as IconName} size={14} className="text-violet-500" />
                     <span className="text-sm font-semibold">{t.label}</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
+                  <p className="text-xs text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <p className="text-[11px] text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
+                    <p className="text-xs text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
                     {(() => {
                       const ix = indexes?.get(t.id)
                       switch (indexPhase(ix)) {
                         case 'ready':
-                          return <Tag minimal intent={Intent.SUCCESS} className="!text-[10px]">{ix?.objectCount ?? 0} objects</Tag>
+                          return <Tag minimal intent={Intent.SUCCESS}>{ix?.objectCount ?? 0} objects</Tag>
                         case 'failed':
-                          return <Tag minimal intent={Intent.DANGER} className="!text-[10px]" title={ix?.error ?? undefined}>index failed</Tag>
+                          return <Tag minimal intent={Intent.DANGER} title={ix?.error ?? undefined}>index failed</Tag>
                         // The pipeline is mid-run; the states are the job's own.
                         case 'running':
-                          return <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]" title={ix?.state ?? undefined}>indexing</Tag>
+                          return <Tag minimal intent={Intent.PRIMARY} title={ix?.state ?? undefined}>indexing</Tag>
                         default:
-                          return <Tag minimal className="!text-[10px]" title="Only once the indexing pipeline completes will objects be visible">not indexed</Tag>
+                          return <Tag minimal title="Only once the indexing pipeline completes will objects be visible">not indexed</Tag>
                       }
                     })()}
                     <Button variant="minimal" size="small" icon="refresh" title="Full reindex"
@@ -361,7 +361,7 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
       {label.trim() !== '' && !canSave && (
-        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+        <ul className="text-xs text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
       )}
       <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave || !ontologyId}
         title={ontologyId ? undefined : 'Create an ontology first — every object type belongs to one'}
@@ -376,7 +376,7 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
 
   return (
     <div className="space-y-1.5">
-      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Computed properties</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Computed properties</span>
       {rows.map((row, i) => {
         const fnDef = COMPUTED_FNS.find((f) => f.value === row.fn)
         const eligible = fnDef ? properties.filter((p) => acceptsInput(fnDef.inputType, p.type)) : []
@@ -434,7 +434,7 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
       <div className="flex items-center gap-2">
         <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{type.label}</h2>
-        <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
+        <Tag minimal className="tabular-nums">v{type.version}</Tag>
         <StatusControl type={type} />
         <Button variant="minimal" size="small" icon="edit" active={editing} className="ml-auto"
           onClick={() => { setEditing(!editing) }}>Edit properties</Button>
@@ -486,7 +486,7 @@ function StatusControl({ type }: { type: ObjectTypeDef }) {
 
   return (
     <>
-      <Tag minimal intent={meta.intent} className="!text-[10px]" title={meta.help}>{meta.label}</Tag>
+      <Tag minimal intent={meta.intent} title={meta.help}>{meta.label}</Tag>
       <HTMLSelect minimal value={current} onChange={(e) => {
         const s = e.currentTarget.value as ObjectTypeStatus
         if (s === current) return
@@ -575,7 +575,7 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
       <div className="flex items-center gap-2">
         <Icon icon="edit" size={14} className="text-violet-500" />
         <span className="text-sm font-semibold">Edit schema</span>
-        <span className="text-[11px] text-muted-foreground">saving creates v{type.version + 1}</span>
+        <span className="text-xs text-muted-foreground">saving creates v{type.version + 1}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <InputGroup value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[200px]" />
@@ -593,7 +593,7 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
       <ViewBuilder properties={properties} computedProperties={computedProperties} config={viewConfig} onChange={setViewConfig} />
 
       {!canSave && (
-        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors, ...viewErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+        <ul className="text-xs text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors, ...viewErrors].map((e) => <li key={e}>{e}</li>)}</ul>
       )}
       <div className="flex items-center gap-2">
         <Button intent={Intent.PRIMARY} icon="floppy-disk" disabled={!canSave} loading={update.isPending} onClick={save}>Save as v{type.version + 1}</Button>
@@ -631,14 +631,14 @@ function ViewBuilder({ properties, computedProperties, config, onChange }: {
 
   return (
     <div className="space-y-1.5">
-      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Object view</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Object view</span>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground">Metric strip:</span>
         {all.map((k) => (
           <Checkbox key={k.key} checked={config.prominent.includes(k.key)} label={k.label} className="mb-0"
             onChange={() => { toggleProminent(k.key) }} />
         ))}
-        {all.length === 0 && <span className="text-[11px] text-muted-foreground">add properties first</span>}
+        {all.length === 0 && <span className="text-xs text-muted-foreground">add properties first</span>}
       </div>
       {config.sections.map((s, i) => (
         <div key={i} className="flex flex-wrap items-center gap-2">
@@ -679,7 +679,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
 
   return (
     <Card className="space-y-2">
-      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Link types</span>
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Link types</span>
       {linkTypes.map((lt) => {
         return (
           <div key={lt.id} className="space-y-1.5">
