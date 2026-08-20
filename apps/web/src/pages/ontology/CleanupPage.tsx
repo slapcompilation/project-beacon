@@ -22,11 +22,13 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Button, Callout, Checkbox, HTMLTable, NonIdealState, Popover, Spinner, Tag,
+  Button, Callout, Checkbox, Dialog, DialogBody, DialogFooter, HTMLTable,
+  InputGroup, NonIdealState, Popover, Spinner, Tag,
 } from '@blueprintjs/core'
 import { useAppStore } from '@/stores/app.store'
 import {
   FLAG_LABEL, useCandidates, useCleanupConfig, useEffectiveFlags, useRunCleanup, useSnooze,
+  useSnoozed, useUnsnooze, useDeprecateCandidates, useDeleteCandidates,
 } from '@/features/cleanup/api'
 
 const PRIORITY_RANK: Record<string, number> = { high: 1, medium: 2, low: 3 }
@@ -42,6 +44,13 @@ export default function CleanupPage() {
   const candidates = useCandidates(configId)
   const run = useRunCleanup(configId)
   const snooze = useSnooze(configId)
+  const { data: snoozed = [] } = useSnoozed(ontologyId)
+  const unsnooze = useUnsnooze(ontologyId)
+  const deprecate = useDeprecateCandidates(configId)
+  const remove = useDeleteCandidates(configId)
+  const [deprecating, setDeprecating] = useState(false)
+  const [reason, setReason] = useState('')
+  const [deadline, setDeadline] = useState('')
 
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [flagFilter, setFlagFilter] = useState<string | null>(null)
@@ -74,7 +83,7 @@ export default function CleanupPage() {
   return (
     <section className="space-y-3 p-4">
       <header className="flex items-center gap-2">
-        <h1 className="text-base font-semibold">Cleanup</h1>
+        <h1 className="text-base font-semibold">Ontology Cleanup</h1>
         <Tag minimal round className="tabular-nums">{candidates.data?.length ?? 0}</Tag>
         <span className="flex-1" />
         <Link to="/ontology/cleanup/flags">
@@ -104,9 +113,20 @@ export default function CleanupPage() {
                   snooze.mutate({ objectTypeIds: [...picked], days: 30 })
                   setPicked(new Set())
                 }}>Snooze 30 days</Button>
-              <span className="text-xs text-neutral-500">
-                Deprecate and delete are staged like any other ontology change — open the type.
-              </span>
+              {/* The page's toolbar carries Snooze, Deprecate and a trash icon,
+                  acting on the checkbox selection — "you can decide the most
+                  appropriate way to handle resources individually or in bulk".
+                  Deprecation and deletion are "staged the same way as normal
+                  Ontology modifications", so these stage rather than write: the
+                  save session is still what commits them. */}
+              <Button size="small" icon="archive" disabled={picked.size === 0}
+                loading={deprecate.isPending}
+                onClick={() => { setDeprecating(true) }}>Deprecate</Button>
+              <Button size="small" icon="trash" intent="danger" variant="minimal"
+                disabled={picked.size === 0} loading={remove.isPending}
+                onClick={() => {
+                  remove.mutate([...picked], { onSuccess: () => { setPicked(new Set()) } })
+                }} />
               <span className="flex-1" />
               <Popover placement="bottom-end" content={
                 <div className="w-64 space-y-2 p-3 text-xs">
@@ -134,6 +154,32 @@ export default function CleanupPage() {
               </Popover>
             </div>
 
+            {snoozed.length > 0 && (
+              <details className="rounded border px-3 py-2">
+                <summary className="cursor-pointer text-xs">
+                  Snoozed <Tag minimal round className="tabular-nums">{snoozed.length}</Tag>
+                  <span className="ml-2 text-[11px] text-neutral-500">
+                    hidden from your queue until the date shown — yours only
+                  </span>
+                </summary>
+                <HTMLTable compact className="mt-2 w-full !text-xs">
+                  <thead><tr><th>Name</th><th>Snoozed until</th><th /></tr></thead>
+                  <tbody>
+                    {snoozed.map((sz) => (
+                      <tr key={sz.object_type_id}>
+                        <td>{sz.label}</td>
+                        <td className="tabular-nums">{new Date(sz.until).toLocaleDateString()}</td>
+                        <td className="text-right">
+                          <Button variant="minimal" size="small" icon="undo" title="Un-snooze"
+                            onClick={() => { unsnooze.mutate(sz.object_type_id) }} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </HTMLTable>
+              </details>
+            )}
+
             {rows.length === 0
               ? <NonIdealState icon="tick-circle" title="Nothing flagged"
                   description="No object type in this ontology trips an enabled cleanup flag." />
@@ -141,7 +187,8 @@ export default function CleanupPage() {
                   <thead>
                     <tr>
                       <th className="w-8" />
-                      <th>Name</th><th>Priority</th><th>Flags</th><th />
+                      <th>Name</th><th>Priority</th><th>Flags</th>
+                      <th className="text-right">Reads</th><th />
                     </tr>
                   </thead>
                   <tbody>
@@ -166,6 +213,14 @@ export default function CleanupPage() {
                             <Tag key={f} minimal className="!text-[10px]">{FLAG_LABEL[f] ?? f}</Tag>
                           ))}
                         </td>
+                        {/* "READS", showing 1, 1 and 43 for the page's three
+                            example types — and 43 is the one it deprecates
+                            rather than deletes. Null is not zero: it means
+                            metrics were not on for the whole window. */}
+                        <td className="text-right tabular-nums"
+                          title={c.reads === null ? 'Metrics were not on for the whole window' : undefined}>
+                          {c.reads === null ? '—' : c.reads}
+                        </td>
                         <td className="text-right">
                           <Link to={`/ontology/object-types?type=${c.object_type_id}`}>
                             <Button variant="minimal" size="small" icon="arrow-right" />
@@ -176,6 +231,36 @@ export default function CleanupPage() {
                   </tbody>
                 </HTMLTable>}
           </>}
+
+      {/* A deprecation carries a reason and a deadline or the database refuses
+          it. Asked once for the whole selection, because the toolbar acts "in
+          bulk" and one reason is what a bulk deprecation means. */}
+      <Dialog isOpen={deprecating} onClose={() => { setDeprecating(false) }}
+        title={`Deprecate ${picked.size} object type${picked.size === 1 ? '' : 's'}`}>
+        <DialogBody>
+          <div className="space-y-2">
+            <p className="text-[11px] text-muted-foreground">
+              Staged like any other ontology change — the save session commits it.
+            </p>
+            <label className="text-[11px] font-semibold">Why it is being deprecated</label>
+            <InputGroup value={reason} onValueChange={setReason}
+              placeholder="No longer used by any application" />
+            <label className="text-[11px] font-semibold">When it is expected to be deleted</label>
+            <InputGroup type="date" value={deadline} onValueChange={setDeadline} />
+          </div>
+        </DialogBody>
+        <DialogFooter actions={
+          <Button intent="primary" loading={deprecate.isPending}
+            disabled={reason.trim() === '' || deadline === ''}
+            onClick={() => {
+              deprecate.mutate({ ids: [...picked], reason: reason.trim(), deadline }, {
+                onSuccess: () => {
+                  setDeprecating(false); setPicked(new Set()); setReason(''); setDeadline('')
+                },
+              })
+            }}>Stage deprecation</Button>
+        } />
+      </Dialog>
     </section>
   )
 }

@@ -14,6 +14,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import { cleanupFlags, cleanupEffectiveFlags, runCleanup } from '@beacon/platform'
+import { setObjectTypeStatus, deleteObjectType } from '@/features/objectTypes/api'
 
 /** A published flag: its priority, whether it ships on, what it parameterises,
  *  and — for the two that cannot be computed — why. */
@@ -115,11 +116,11 @@ export function useCandidates(configId: string | null) {
     queryFn: async (): Promise<Candidate[]> => {
       const { data, error } = await supabase
         .from('cleanup_candidates')
-        .select('object_type_id, flags, priority, object_types(api_name, label)')
+        .select('object_type_id, flags, priority, reads, object_types(api_name, label)')
         .eq('configuration_id', configId ?? '')
       if (error) throw error
       type Row = {
-        object_type_id: string; flags: string[]; priority: string
+        object_type_id: string; flags: string[]; priority: string; reads: number | null
         object_types: { api_name: string; label: string } | null
       }
       return (data as unknown as Row[]).map((r) => ({
@@ -128,7 +129,7 @@ export function useCandidates(configId: string | null) {
         label: r.object_types?.label ?? r.object_types?.api_name ?? '',
         flags: r.flags,
         priority: r.priority,
-        reads: null,
+        reads: r.reads,
       }))
     },
   })
@@ -174,6 +175,104 @@ export function useSnooze(configId: string | null) {
 
 /** Mode and per-flag overrides. Saving either "will reset previous Cleanup
  *  results" — the trigger does that; this only invalidates the cache. */
+/** "Snooze: Hide object types from your cleanup queue for a configurable amount
+ *  of time." Hidden, not deleted — so there has to be somewhere to see what is
+ *  hidden and when it comes back, or a snooze is indistinguishable from a type
+ *  that stopped being a candidate. */
+export interface Snoozed {
+  object_type_id: string
+  label: string
+  until: string
+}
+
+export function useSnoozed(ontologyId: string | null) {
+  return useQuery({
+    queryKey: ['cleanup-snoozed', ontologyId],
+    enabled: Boolean(ontologyId),
+    queryFn: async (): Promise<Snoozed[]> => {
+      const { data: me } = await supabase.auth.getUser()
+      const userId = me.user?.id
+      if (!userId) return []
+      const { data, error } = await supabase.from('cleanup_snoozes')
+        .select('object_type_id, until, object_types!inner(label, api_name, ontology_id)')
+        .eq('user_id', userId)
+        .eq('object_types.ontology_id', ontologyId ?? '')
+        .gt('until', new Date().toISOString())
+        .order('until')
+      if (error) throw error
+      return (data as unknown as {
+        object_type_id: string; until: string
+        object_types: { label: string; api_name: string } | null
+      }[]).map((r) => ({
+        object_type_id: r.object_type_id,
+        label: r.object_types?.label ?? r.object_types?.api_name ?? '',
+        until: r.until,
+      }))
+    },
+  })
+}
+
+/** Snoozing "will affect only the user that performs it", and so does undoing it. */
+export function useUnsnooze(ontologyId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (objectTypeId: string) => {
+      const { data: me } = await supabase.auth.getUser()
+      const userId = me.user?.id
+      if (!userId) throw new Error('not signed in')
+      const { error } = await supabase.from('cleanup_snoozes').delete()
+        .eq('user_id', userId).eq('object_type_id', objectTypeId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['cleanup-snoozed', ontologyId] })
+      toast.success('Un-snoozed — it returns to the queue on the next recalculation')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** "Deprecation and deletion are staged the same way as normal Ontology
+ *  modifications", so these go through the same calls the object type page uses
+ *  and land in the save session rather than writing straight through.
+ *
+ *  The database refuses a deprecation with no reason and no deadline, which is
+ *  why the toolbar asks for both rather than deprecating on one click. */
+export function useDeprecateCandidates(configId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { ids: string[]; reason: string; deadline: string }) => {
+      for (const id of i.ids) {
+        await setObjectTypeStatus({
+          id, status: 'deprecated', visibility: 'normal',
+          deprecation: { reason: i.reason, deadline: i.deadline, replacedBy: null },
+        })
+      }
+    },
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: ['cleanup-candidates', configId] })
+      void qc.invalidateQueries({ queryKey: ['object-types'] })
+      toast.success(`Staged ${v.ids.length} deprecation${v.ids.length === 1 ? '' : 's'}`)
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The trash icon beside them. The database refuses to delete anything active,
+ *  so this reports that refusal rather than hiding it. */
+export function useDeleteCandidates(configId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (ids: string[]) => { for (const id of ids) await deleteObjectType(id) },
+    onSuccess: (_d, ids) => {
+      void qc.invalidateQueries({ queryKey: ['cleanup-candidates', configId] })
+      void qc.invalidateQueries({ queryKey: ['object-types'] })
+      toast.success(`Deleted ${ids.length} object type${ids.length === 1 ? '' : 's'}`)
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
 export function useSaveFlagSettings(configId: string | null, ontologyId: string | null) {
   const qc = useQueryClient()
   return useMutation({
