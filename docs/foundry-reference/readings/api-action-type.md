@@ -4,7 +4,8 @@ verify: strict
 
 # ActionTypeV2, and a rule arm we have no counterpart for
 
-**Why this reading exists.** The third written from `api/`. 592 took the action
+**Why this reading exists.** The third reading of a resource shape from `api/` —
+`api-authentication.md` read that corpus before any of them. 592 took the action
 parameter's `data_kind` from that corpus, but nothing has read `ActionTypeV2`
 whole against `action_types` and `action_type_rules`.
 
