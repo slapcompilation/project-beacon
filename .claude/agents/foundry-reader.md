@@ -70,6 +70,27 @@ must pass. It greps every quotation back against the mirror.
 Never paraphrase inside quotation marks. If you are summarising, do not use
 quotation marks at all.
 
+## Your header is a claim, and it is checked
+
+If you write that a page was read "with all five of its images parsed", the
+checker counts. It compares the images the page actually references against the
+file names your reading mentions anywhere, and **fails** when they disagree.
+
+- Naming a file counts as parsing it. "These three add nothing beyond the prose:
+  a.png, b.png, c.png" passes, and is the honest thing to write when an image is
+  navigational.
+- So the safe header is the true one. Do not round up. "Four of its seven images
+  parsed; the other three are named below as unread" costs nothing and is never
+  wrong later.
+- **Never remove the list of what is unparsed when you edit a header.** That
+  converts a recorded debt into a silent one. It is how the second false claim
+  in this repository happened, and it was the same author as the first.
+
+And when you find an image nobody parsed, the somebody is you or a previous
+session working from the same instructions. Write "the image I skipped", not
+"the image nobody had read" — the passive voice turns your omission into a
+property of the corpus, and the corpus does not skim.
+
 ## Two blocks your reading must end with
 
 These are the whole point. A human reads them before anything is built.
