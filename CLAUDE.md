@@ -111,6 +111,15 @@ grepped back against the mirror, a screenshot quote must name the screenshot, an
 a header's **coverage claim** is compared against the images the page references.
 Read the counts it prints, not just its exit code.
 
+**And a quotation that names its page must be ON that page.** For a long time the
+guard proved a sentence was in *some* mirrored page and that a named page
+*existed*, never that the two were the same — the failure its own comment calls
+the most expensive, half-closed. A real sentence filed under the wrong page sends
+the next reader somewhere that does not say it, which is the whole thing citation
+is for. It also accepts a course under `docs/foundry-deep-dives/` and checks the
+text is in it, because rule 3 says to read those and until recently a reading
+could not cite one at all.
+
 ### The two artifacts that make this work
 
 **`docs/foundry-reference/MAP.md`** — every mirrored page by section and title,
