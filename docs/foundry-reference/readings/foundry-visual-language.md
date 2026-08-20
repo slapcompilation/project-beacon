@@ -344,6 +344,49 @@ as a fill with **no border** (§7; I scanned the fill's edges for one and there 
 none). Two captures each way, and the two rails appear in the same generation of
 the product, so this is a component difference and not an era difference.
 
+## 11. The type scale, done the only way it can be
+
+§3 counted 469 of 545 sizing utilities below Blueprint's 14px body and 313 at
+sizes Blueprint does not define. Decision 3 said this anchors on **Blueprint's
+published scale, not on my estimate from an image**, and Question 3 explains why:
+glyph ink cannot pin a font size closer than about a pixel, so measurement can
+tell me our 13px label should be 14 but not whether Foundry's tag is 11 or 12.
+
+Blueprint publishes `$pt-font-size: 14px`, `$pt-font-size-small: 12px`,
+`$pt-font-size-large: 16px`, and headings at 16/18/20/22/28/36. **There is no
+9px, no 10px, no 11px and no 13px.** That is the whole target.
+
+Splitting the 152 uses across the Ontology Manager surfaces showed they are two
+different mistakes, not one:
+
+| | count | what it was | fix |
+|---|---|---|---|
+| `!text-[9\|10\|11px]` | **61** | an override forcing a Blueprint `Tag` or `Button` below the size Blueprint designed it at | **delete the override** |
+| bare `text-[10\|11px]` | **91** | our own element at a size Blueprint does not define | `text-xs`, Blueprint's 12px |
+
+**The 61 are the more interesting half.** Each one is a `!` — the bang exists to
+beat Blueprint's own stylesheet, so every one of them is a place where we
+imported a component for its design and then overruled the design. The fix is
+not to resize them to 12px, it is to stop overriding: a Blueprint `Tag` is 12px
+because Blueprint decided that, and `slate/concepts-styles` is why we use
+Blueprint at all.
+
+**Scope, stated plainly.** This covers `pages/ontology`,
+`features/ontologyManager`, `features/objectTypes` and `features/interfaces` —
+the surfaces this reading compares against Foundry. **181 sub-12px uses remain
+elsewhere in `apps/web`** (108 in other pages, 72 in other features, 1 in
+components). They are not wrong-by-measurement, they are simply not part of what
+was compared, and sweeping them would put a 300-site layout change behind a
+comparison that never looked at those screens.
+
+**Not changed, and worth naming:** several of the raised labels are
+`font-bold uppercase tracking-widest`, which at 12px reads louder than at 10px.
+Foundry's current Ontology Manager uses no uppercase micro-label anywhere I have
+measured — its section title is 16px sentence case, its sidebar group heading
+14px semibold sentence case. Dropping the uppercase treatment is a design change
+rather than a size one, and I have no measurement for those specific labels, so
+they keep it.
+
 ## Questions
 
 1. **Does Blueprint v6 change the palette?** Nothing measured disagrees with

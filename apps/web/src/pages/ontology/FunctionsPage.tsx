@@ -96,8 +96,8 @@ function LatestTag({ functionId }: { functionId: string }) {
   const { data: versions = [] } = useFunctionVersions(functionId)
   const latest = versions.at(0)
   return latest
-    ? <Tag minimal className="!text-[10px] tabular-nums">{versionString(latest)}</Tag>
-    : <Tag minimal intent={Intent.WARNING} className="!text-[10px]">unpublished</Tag>
+    ? <Tag minimal className="tabular-nums">{versionString(latest)}</Tag>
+    : <Tag minimal intent={Intent.WARNING}>unpublished</Tag>
 }
 
 function NewFunction({ ontologyId, onCreated }: {
@@ -108,12 +108,12 @@ function NewFunction({ ontologyId, onCreated }: {
   const apiName = toCamel(label)
   return (
     <Card className="space-y-2 !p-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         New function
       </span>
       <InputGroup size="small" placeholder="Display name" value={label}
         onValueChange={setLabel} />
-      {label && <Tag minimal className="font-mono !text-[10px]">{apiName}</Tag>}
+      {label && <Tag minimal className="font-mono">{apiName}</Tag>}
       <Button size="small" icon="add" disabled={!apiName || !ontologyId} loading={create.isPending}
         onClick={() => {
           create.mutate({ apiName, displayName: label.trim(), description: '' },
@@ -168,7 +168,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
   return (
     <div className="space-y-2">
       <div className="rounded border">
-        <p className="border-b bg-neutral-50 px-2 py-1 text-[10px] font-bold uppercase tracking-widest">
+        <p className="border-b bg-neutral-50 px-2 py-1 text-xs font-bold uppercase tracking-widest">
           Inputs
         </p>
         <div className="space-y-2 p-2">
@@ -177,7 +177,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
             : params.map((p) => (
                 <label key={p.name} className="flex items-center gap-2 text-xs">
                   <span className="w-40 font-mono">{p.name}</span>
-                  <Tag minimal className="!text-[10px]">{p.type}</Tag>
+                  <Tag minimal>{p.type}</Tag>
                   <InputGroup size="small" className="flex-1"
                     placeholder={p.required ? 'required' : 'optional'}
                     value={inputs[p.name] ?? ''}
@@ -203,7 +203,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
 
       {run.data && (
         <div className="rounded border">
-          <p className="flex items-center gap-2 border-b bg-neutral-50 px-2 py-1 text-[10px] font-bold uppercase tracking-widest">
+          <p className="flex items-center gap-2 border-b bg-neutral-50 px-2 py-1 text-xs font-bold uppercase tracking-widest">
             Output
             <span className="flex-1" />
             <span className="font-normal normal-case tracking-normal text-neutral-500">
@@ -216,7 +216,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
               // Functions:UserFacingError — so they are shown as they arrive.
               ? <Callout intent={Intent.DANGER} className="!text-xs">
                   <span className="font-mono">{run.data.error}</span>
-                  {run.data.detail && <p className="mt-1 font-mono text-[11px]">{run.data.detail}</p>}
+                  {run.data.detail && <p className="mt-1 font-mono text-xs">{run.data.detail}</p>}
                 </Callout>
               : <pre className="overflow-x-auto text-xs">{JSON.stringify(run.data.value, null, 2)}</pre>}
           </div>
@@ -256,13 +256,13 @@ function PublishPanel({ functionId, latest }: {
 
       <div className="flex flex-wrap items-end gap-2">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Returns</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Returns</span>
           <HTMLSelect value={returns} onChange={(e) => { setReturns(e.currentTarget.value) }}>
             {PARAM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </HTMLSelect>
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Version</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Version</span>
           <HTMLSelect value={bump} onChange={(e) => { setBump(e.currentTarget.value) }}>
             {bumps.map((b) => (
               <option key={b.kind} value={b.kind}>{b.kind} — {b.v.join('.')}</option>
@@ -279,7 +279,7 @@ function PublishPanel({ functionId, latest }: {
       </div>
 
       <div className="space-y-1">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inputs</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Inputs</span>
         {params.map((p, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <InputGroup size="small" placeholder="name" value={p.name} className="font-mono"
@@ -302,17 +302,16 @@ function PublishPanel({ functionId, latest }: {
           object types the published version declared as imports" — so an
           undeclared type is unreadable, not merely unlisted. */}
       <div className="space-y-1">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Declared object types
         </span>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           The isolate may read these and nothing else.
         </p>
         <div className="flex flex-wrap gap-1">
           {types.map((t) => (
             <Tag key={t.id} interactive minimal={!imports.includes(t.id)}
               intent={imports.includes(t.id) ? Intent.PRIMARY : Intent.NONE}
-              className="!text-[10px]"
               onClick={() => {
                 setImports(imports.includes(t.id)
                   ? imports.filter((x) => x !== t.id) : [...imports, t.id])
@@ -334,18 +333,18 @@ function VersionList({ versions }: { versions: FunctionVersion[] }) {
         <div key={v.id} className="rounded border px-2 py-1.5 text-xs">
           <div className="flex items-center gap-2">
             <span className="font-mono font-semibold tabular-nums">{versionString(v)}</span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {new Date(v.published_at).toLocaleString()}
             </span>
             <span className="flex-1" />
-            <Tag minimal className="!text-[10px]">
+            <Tag minimal>
               {v.signature.parameters.length} in → {v.signature.returns}
             </Tag>
           </div>
           {/* Recorded by 597 whether or not it blocked: at 0.x the check runs and
               the release stands, so the finding has to be visible somewhere. */}
           {v.breaking_changes.length > 0 && (
-            <p className="mt-1 text-[11px] text-amber-700">
+            <p className="mt-1 text-xs text-amber-700">
               Breaking: {v.breaking_changes.join('; ')}
             </p>
           )}

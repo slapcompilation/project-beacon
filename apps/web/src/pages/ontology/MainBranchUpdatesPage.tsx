@@ -84,7 +84,7 @@ export default function MainBranchUpdatesPage() {
           description="There are no updates from the main branch or you do not have permissions to view them." />
       ) : (
         <div className="max-w-3xl space-y-3">
-          <Callout intent={Intent.PRIMARY} icon="info-sign" className="!text-[11px]">
+          <Callout intent={Intent.PRIMARY} icon="info-sign">
             The changes previously saved on the branch conflict with main. Resolve all conflicts
             before saving and finishing the rebase.
           </Callout>
@@ -107,10 +107,10 @@ export default function MainBranchUpdatesPage() {
                 </span>
               </div>
               {fields.map((c) => (
-                <div key={c.field} className="flex items-center gap-2 pl-5 text-[11px]">
+                <div key={c.field} className="flex items-center gap-2 pl-5 text-xs">
                   <span className="w-32 shrink-0 text-muted-foreground">{c.field}</span>
-                  <Tag minimal className="!text-[10px]">main: {show(c.main_value)}</Tag>
-                  <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">branch: {show(c.branch_value)}</Tag>
+                  <Tag minimal>main: {show(c.main_value)}</Tag>
+                  <Tag minimal intent={Intent.PRIMARY}>branch: {show(c.branch_value)}</Tag>
                 </div>
               ))}
             </div>

@@ -44,7 +44,7 @@ export default function DiscoverPage() {
         <SectionHead title="Object types" count={types.length}
           seeAll={<Link className="oma-see-all" to="/ontology/object-types">See all <Icon icon="arrow-right" size={12} /></Link>} />
         {types.length === 0
-          ? <p className="text-[11px] text-muted-foreground">None yet — author one from Object types.</p>
+          ? <p className="text-xs text-muted-foreground">None yet — author one from Object types.</p>
           : <Cards types={types} />}
       </section>
     </div>
@@ -67,7 +67,7 @@ function Cards({ types }: { types: ObjectTypeDef[] }) {
                 <span className="oma-card-name">{t.label}</span>
                 {indexReady(ix)
                   ? <span className="oma-card-sub">{ix.objectCount ?? 0} object{ix.objectCount === 1 ? '' : 's'}</span>
-                  : <Tag minimal intent="warning" className="!text-[9px]">Not indexed</Tag>}
+                  : <Tag minimal intent="warning">Not indexed</Tag>}
               </span>
             </span>
             <span className={cn('oma-card-desc', !t.description && 'is-empty')}>

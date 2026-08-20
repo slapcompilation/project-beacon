@@ -46,7 +46,7 @@ export function CapabilitiesTab({ type }: { type: ObjectTypeDef }) {
 
   return (
     <div className="space-y-3">
-      <Callout className="!text-[11px]">
+      <Callout>
         A capability is this object type nominating its own properties against a
         platform contract. Each slot accepts particular base types; the picker
         offers only properties that fit.
@@ -63,8 +63,8 @@ export function CapabilitiesTab({ type }: { type: ObjectTypeDef }) {
               onClick={() => { setOpen({ ...open, [cap]: !isOpen }) }}>
               <Icon icon={panel.icon} size={15} className="text-violet-500" />
               <span className="text-sm font-semibold">{panel.title}</span>
-              <span className="text-[11px] text-muted-foreground">{panel.blurb}</span>
-              {filled > 0 && <Tag minimal round className="!text-[10px]">{filled} set</Tag>}
+              <span className="text-xs text-muted-foreground">{panel.blurb}</span>
+              {filled > 0 && <Tag minimal round>{filled} set</Tag>}
               <Icon icon={isOpen ? 'chevron-up' : 'chevron-down'} size={13} className="ml-auto" />
             </button>
 
@@ -80,7 +80,7 @@ export function CapabilitiesTab({ type }: { type: ObjectTypeDef }) {
                     <div key={s.slot} className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium">{titleCase(s.slot)}</p>
-                        <p className="text-[11px] text-muted-foreground">{s.note}</p>
+                        <p className="text-xs text-muted-foreground">{s.note}</p>
                       </div>
                       <div className="shrink-0">
                         <HTMLSelect value={current} disabled={nominate.isPending}
@@ -96,7 +96,7 @@ export function CapabilitiesTab({ type }: { type: ObjectTypeDef }) {
                           ))}
                         </HTMLSelect>
                         {eligible.length === 0 && (
-                          <p className="mt-1 text-right text-[10px] text-muted-foreground">
+                          <p className="mt-1 text-right text-xs text-muted-foreground">
                             no {s.accepts.join(' / ')} property
                           </p>
                         )}

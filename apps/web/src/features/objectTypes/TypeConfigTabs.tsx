@@ -53,7 +53,7 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
   const Req = ({ title, lines }: { title: string; lines: React.ReactNode }) => (
     <div className="rounded border p-3 space-y-2 flex-1 min-w-[260px]">
       <h3 className="text-xs font-semibold text-center">{title}</h3>
-      <p className="text-[11px] text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center">
         A user must meet <b>all</b> of the following requirements to {title === 'View object type' ? 'view' : 'edit'} the definition of this resource.
       </p>
       {lines}
@@ -61,13 +61,13 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
   )
   const Clause = ({ label, items }: { label: string; items: string[] }) => (
     <div className="rounded border px-2 py-1.5">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
       {items.length === 0
-        ? <p className="text-[11px]">None</p>
-        : items.map((x) => <p key={x} className="text-[11px]">{x}</p>)}
+        ? <p className="text-xs">None</p>
+        : items.map((x) => <p key={x} className="text-xs">{x}</p>)}
     </div>
   )
-  const And = () => <p className="text-[10px] text-muted-foreground text-center">AND</p>
+  const And = () => <p className="text-xs text-muted-foreground text-center">AND</p>
 
   if (!data) return null
   return (
@@ -132,12 +132,12 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
               {s.mediaSetViewRid ?? (s.restrictedViewId ? s.restrictedViewName : s.datasetName)}
             </span>
             {s.mediaSetViewRid
-              ? <Tag minimal className="!text-[10px]"
+              ? <Tag minimal
                   title="A media set view backs media reference properties directly, and does not count toward the 70-datasource limit.">media set view</Tag>
               : s.restrictedViewId
-                ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
+                ? <Tag minimal intent={Intent.WARNING}
                     title="Each user sees only the objects the view's policy allows.">restricted view</Tag>
-                : <Tag minimal className="!text-[10px]">{s.branchName}</Tag>}
+                : <Tag minimal>{s.branchName}</Tag>}
             {s.restrictedViewId && (
               <Button variant="minimal" size="small" icon="edit" title="Edit policy / View JSON / Test policy"
                 onClick={() => { setEditingRv(s.restrictedViewId) }} />
@@ -150,7 +150,7 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
               the joined kinds; a media set view has nothing to join. Empty means
               the key property's own column, which is the usual case. */}
           {!s.mediaSetViewRid && (
-            <div className="flex items-center gap-2 pl-5 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-2 pl-5 text-xs text-muted-foreground">
               <span>Primary key column</span>
               <InputGroup size="small" value={keyDraft[s.id] ?? s.primaryKeyColumn ?? ''}
                 placeholder={type.properties.find((p) => p.isPrimaryKey)?.backingColumn ?? 'same as the key property'}
@@ -180,12 +180,12 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
       {addingMedia ? (
         <div className="flex flex-wrap items-end gap-2">
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Media set RID</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Media set RID</span>
             <InputGroup size="small" value={mediaSet} className="font-mono min-w-[280px]"
               placeholder="ri.mio.main.media-set.…" onValueChange={setMediaSet} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">View RID</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">View RID</span>
             <InputGroup size="small" value={mediaView} className="font-mono min-w-[280px]"
               placeholder="ri.mio.main.view.…" onValueChange={setMediaView} />
           </label>
@@ -230,7 +230,7 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
       <div className="border-t pt-3">
         <Switch checked={editsEnabled} label="Edits"
           onChange={(e) => { setEdits.mutate(e.currentTarget.checked) }} />
-        <p className="text-[11px] text-muted-foreground -mt-1">
+        <p className="text-xs text-muted-foreground -mt-1">
           Enable user edits for this object type. Toggling this on opens the Materializations tab.
         </p>
       </div>
@@ -264,16 +264,16 @@ export function MaterializationsTab({ type }: { type: ObjectTypeDef }) {
         </Callout>
       ) : (
         <>
-          <span className="text-[11px] text-muted-foreground">Object datasets</span>
+          <span className="text-xs text-muted-foreground">Object datasets</span>
           {rows.map((m) => (
             <div key={m.id} className="flex flex-wrap items-center gap-2 border rounded px-3 py-2">
               <Icon icon="th" size={13} className="text-violet-500" />
               <span className="text-xs font-medium">{m.datasetName}</span>
-              <span className="ml-auto text-[11px] text-muted-foreground">Status:</span>
-              <Tag minimal intent={m.upToDate ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">
+              <span className="ml-auto text-xs text-muted-foreground">Status:</span>
+              <Tag minimal intent={m.upToDate ? Intent.SUCCESS : Intent.WARNING}>
                 {m.builtAt === null ? 'Not built' : m.upToDate ? 'Up to date' : 'Stale'}
               </Tag>
-              <span className="text-[11px] text-muted-foreground">Build interval:</span>
+              <span className="text-xs text-muted-foreground">Build interval:</span>
               <HTMLSelect minimal value={m.propagation}
                 onChange={(e) => { setPropagation.mutate({ id: m.id, propagation: e.currentTarget.value as 'automatic' | 'periodic' }) }}>
                 <option value="automatic">Automatic</option>
@@ -313,14 +313,14 @@ function CreateObjectDatasetDialog({ type, isOpen, onClose }: {
           <RadioGroup selectedValue={propagation}
             onChange={(e) => { setPropagation(e.currentTarget.value as 'automatic' | 'periodic') }}>
             <Radio value="automatic">
-              <Tag minimal intent={Intent.SUCCESS} className="!text-[10px]">Automatic</Tag>
+              <Tag minimal intent={Intent.SUCCESS}>Automatic</Tag>
               <p className="text-xs text-muted-foreground ml-6 mb-0">
                 Object datasets are built whenever updates to objects are detected.
                 As builds may happen more frequently this can increase costs.
               </p>
             </Radio>
             <Radio value="periodic">
-              <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">Periodic</Tag>
+              <Tag minimal intent={Intent.PRIMARY}>Periodic</Tag>
               <p className="text-xs text-muted-foreground ml-6 mb-0">
                 Object datasets are built when input datasources update or every 6 hours.
               </p>

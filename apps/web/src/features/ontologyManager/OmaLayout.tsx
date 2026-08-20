@@ -274,12 +274,12 @@ function CreateBranchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     <Dialog isOpen={isOpen} onClose={onClose} title="Create new branch" icon="git-new-branch" style={{ width: 420 }}>
       <DialogBody>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Branch name</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Branch name</span>
           <InputGroup placeholder="A short descriptive name for this branch" value={title}
             onChange={(e) => { setTitle(e.currentTarget.value) }} />
-          <span className="text-[11px] text-muted-foreground">Do not include sensitive information</span>
+          <span className="text-xs text-muted-foreground">Do not include sensitive information</span>
         </label>
-        <p className="text-[11px] text-muted-foreground mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           Only this ontology will be editable on this branch.
         </p>
       </DialogBody>
@@ -310,12 +310,12 @@ function BranchTaskbar() {
 
   return (
     <div className="oma-taskbar">
-      <Tag minimal className="!text-[10px]">Beta</Tag>
+      <Tag minimal>Beta</Tag>
       <span className="ml-auto" />
       <Button variant="minimal" size="small" icon="git-branch" endIcon="caret-down"
         className="!text-white" onClick={() => { setBranch(null) }}
         title="Back to Main" text={branch?.title ?? 'branch'} />
-      <Tag icon="folder-close" minimal className="!text-[10px] !text-white">{changes.length}</Tag>
+      <Tag icon="folder-close" minimal className="!text-white">{changes.length}</Tag>
       {open ? (
         <Button size="small" icon="git-pull" className="!text-white" variant="minimal"
           onClick={() => { void navigate(`/ontology/proposals?p=${open.id}`) }}>View proposal</Button>
@@ -340,7 +340,7 @@ export function SectionHead({ title, count, seeAll }: { title: string; count?: n
   return (
     <div className="oma-section-head">
       <h2 className="oma-section-title">{title}</h2>
-      {count !== undefined && <Tag minimal className="!text-[10px]">{count}</Tag>}
+      {count !== undefined && <Tag minimal>{count}</Tag>}
       <span className="ml-auto">{seeAll}</span>
     </div>
   )

@@ -92,7 +92,7 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
 
         {source !== 'linked_objects' && (
           <div className="mt-3 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Data</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Data</p>
             {/* Edit-only properties "must be permissioned to one of the datasets
                 backing the object type" — required, not decoration: the CHECK
                 refuses a user_input property with no datasource. */}
@@ -123,8 +123,8 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
         {source === 'linked_objects' && (
           <div className="mt-3 space-y-2">
             <div className="flex items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Linked objects</p>
-              <Tag minimal className="!text-[10px]">Read only</Tag>
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Linked objects</p>
+              <Tag minimal>Read only</Tag>
             </div>
             <Callout intent="none" className="!text-xs">
               Properties derived from a linked object, or traversed across multiple linked
@@ -154,7 +154,7 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
               )
             })}
             {hops.length >= MAX_HOPS && (
-              <p className="text-[11px] text-muted-foreground">Up to 3 levels — the chain is full.</p>
+              <p className="text-xs text-muted-foreground">Up to 3 levels — the chain is full.</p>
             )}
 
             <HTMLSelect fill value={property.derivedAggregation ?? ''}
@@ -188,7 +188,7 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
             even when its column is fine. */}
         {property.type === 'media_reference' && (
           <div className="mt-3 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Media source
             </p>
             {property.id === undefined

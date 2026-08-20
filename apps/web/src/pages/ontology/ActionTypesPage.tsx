@@ -78,13 +78,13 @@ export default function ActionTypesPage() {
                 <li key={a.id} className="flex items-center gap-2 px-3 py-2 text-xs">
                   <Icon icon="take-action" size={12} className="text-violet-500 shrink-0" />
                   <span className="font-medium">{a.label}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{a.api_name}</span>
-                  <Tag minimal intent={STATUS_META[a.status].intent} className="!text-[9px]"
+                  <span className="font-mono text-xs text-muted-foreground">{a.api_name}</span>
+                  <Tag minimal intent={STATUS_META[a.status].intent}
                     title={STATUS_META[a.status].help}>{STATUS_META[a.status].label}</Tag>
                   <span className="flex-1 truncate text-muted-foreground">
                     {a.action_type_rules.map(summarize).join(', ') || 'no rules'}
                   </span>
-                  <Tag minimal className="!text-[9px]">
+                  <Tag minimal>
                     {a.action_type_parameters.length} param{a.action_type_parameters.length === 1 ? '' : 's'}
                   </Tag>
                   <Button size="small" icon="play" onClick={() => { setApplying(a) }}>Apply</Button>
@@ -165,12 +165,12 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
         onChange={(e) => { setDescription(e.currentTarget.value) }} />
 
       <div className="space-y-1.5">
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Parameters</span>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Parameters</span>
         {params.map((p, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <InputGroup size="small" placeholder="Display name" value={p.label} className="flex-1 min-w-[160px]"
               onChange={(e) => { setParams(params.map((x, idx) => (idx === i ? { ...x, label: e.currentTarget.value } : x))) }} />
-            <Tag minimal className="!text-[9px] font-mono">{toCamel(p.label) || 'apiName'}</Tag>
+            <Tag minimal className="font-mono">{toCamel(p.label) || 'apiName'}</Tag>
             <HTMLSelect value={p.baseType}
               onChange={(e) => { setParams(params.map((x, idx) => (idx === i ? { ...x, baseType: e.currentTarget.value as PropertyType } : x))) }}>
               {PARAM_TYPES.map((t) => {
@@ -189,7 +189,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
       </div>
 
       <div className="space-y-2">
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Rules</span>
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Rules</span>
         {rules.map((r, i) => {
           const onInterface = targetsInterface(kinds, r.kind)
           const iface = interfaces.find((x) => x.id === r.interfaceId)
@@ -252,7 +252,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                 )
               })}
               {onInterface && r.interfaceId !== '' && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   A parameter naming {r.kind === 'create_object_of_interface'
                     ? 'the object type to create' : 'the object to edit'} is generated
                   with this rule — you do not add it.
@@ -274,7 +274,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
       <div>
         <Button intent={Intent.PRIMARY} icon="tick" disabled={!apiName} loading={save.isPending}
           onClick={submit}>Create action type</Button>
-        <p className="text-[11px] text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Creating stages it — the Save control in the header is what adds it to the ontology.
         </p>
       </div>
@@ -300,7 +300,7 @@ function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () =
           {exposed.length === 0 && <p className="text-xs text-muted-foreground">This action takes no input.</p>}
           {exposed.map((p) => (
             <label key={p.id} className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {p.display_name}{p.required && <span className="text-red-600"> *</span>}
               </span>
               <InputGroup size="small" value={values[p.api_name] ?? ''} disabled={!p.editable}
@@ -310,7 +310,7 @@ function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () =
           ))}
           {target && (
             <label className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 Target primary key<span className="text-red-600"> *</span>
               </span>
               <InputGroup size="small" value={primaryKey} className="font-mono"
@@ -318,7 +318,7 @@ function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () =
                 onChange={(e) => { setPrimaryKey(e.currentTarget.value) }} />
             </label>
           )}
-          {apply.error && <Callout intent={Intent.DANGER} className="!text-[11px]">{apply.error.message}</Callout>}
+          {apply.error && <Callout intent={Intent.DANGER}>{apply.error.message}</Callout>}
         </div>
       </DialogBody>
       <DialogFooter actions={

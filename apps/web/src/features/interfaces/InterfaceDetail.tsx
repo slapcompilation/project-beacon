@@ -22,7 +22,7 @@ export function InterfaceDetail({ row, all, types }: {
       <div className="flex items-center gap-2">
         <Icon icon="layers" size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{row.label}</h2>
-        <span className="font-mono text-[10px] text-muted-foreground">{row.api_name}</span>
+        <span className="font-mono text-xs text-muted-foreground">{row.api_name}</span>
       </div>
       <Tabs id={`iface-${row.id}`} vertical animate={false} renderActiveTabPanelOnly>
         <Tab id="overview" title="Overview" icon="desktop" panel={<OverviewTab row={row} types={types} />} />
@@ -43,10 +43,10 @@ function OverviewTab({ row, types }: { row: InterfaceRow; types: ObjectTypeDef[]
     <div className="space-y-2 text-xs">
       {row.description && <p className="text-muted-foreground">{row.description}</p>}
       <div>
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Implemented by</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Implemented by</span>
         <div className="flex flex-wrap gap-1 mt-1">
           {implementers.length === 0 && <span className="text-muted-foreground">No object type implements this interface yet.</span>}
-          {implementers.map((l) => <Tag key={l} minimal icon="cube" className="!text-[10px]">{l}</Tag>)}
+          {implementers.map((l) => <Tag key={l} minimal icon="cube">{l}</Tag>)}
         </div>
       </div>
     </div>
@@ -62,15 +62,15 @@ function PropertiesTab({ row }: { row: InterfaceRow }) {
       {[...row.interface_properties].sort((a, b) => a.position - b.position).map((p) => (
         <div key={p.property_id} className="flex items-center gap-2">
           <span className="font-medium w-40">{p.display_name}</span>
-          <code className="text-[10px] text-muted-foreground">{p.property_id}</code>
-          <Tag minimal className="!text-[10px]">{p.base_type}</Tag>
-          {p.required && <Tag minimal intent={Intent.WARNING} className="!text-[10px]">Required</Tag>}
+          <code className="text-xs text-muted-foreground">{p.property_id}</code>
+          <Tag minimal>{p.base_type}</Tag>
+          {p.required && <Tag minimal intent={Intent.WARNING}>Required</Tag>}
           {p.pk_constraint !== 'none' && (
-            <Tag minimal className="!text-[10px]">pk: {p.pk_constraint}</Tag>
+            <Tag minimal>pk: {p.pk_constraint}</Tag>
           )}
         </div>
       ))}
-      <p className="text-[11px] text-muted-foreground pt-1">
+      <p className="text-xs text-muted-foreground pt-1">
         Properties are edited where the interface is created — the list page's form.
       </p>
     </div>
@@ -86,7 +86,7 @@ function ExtensionsTab({ row, all }: { row: InterfaceRow; all: InterfaceRow[] })
     <div className="space-y-2 text-xs">
       <div className="flex flex-wrap items-center gap-1.5">
         {parents.map((p) => (
-          <Tag key={p} minimal className="!text-[10px]"
+          <Tag key={p} minimal
             onRemove={() => { setParents(parents.filter((x) => x !== p)) }}>
             {nameOf(p)}
           </Tag>
@@ -140,7 +140,7 @@ function LinkConstraintsTab({ row, all, types }: {
         <div key={c.api_name} className="flex items-center gap-2">
           <Icon icon="link" size={11} className="text-violet-500" />
           <span>{c.display_name}</span>
-          <Tag minimal className="!text-[10px]">{c.cardinality}</Tag>
+          <Tag minimal>{c.cardinality}</Tag>
           <span className="text-muted-foreground">→ {nameOf(c.target_interface_id ?? c.target_object_type_id)}</span>
           <Button variant="minimal" size="small" icon="cross" onClick={() => { drop(c.api_name) }} />
         </div>
@@ -185,11 +185,11 @@ function ActionConstraintsTab({ row }: { row: InterfaceRow }) {
             {c.display_name}
           </button>
           {(c.interface_action_parameter_constraints?.length ?? 0) > 0 && (
-            <Tag minimal className="!text-[10px]">
+            <Tag minimal>
               {c.interface_action_parameter_constraints?.length} parameter{c.interface_action_parameter_constraints?.length === 1 ? '' : 's'}
             </Tag>
           )}
-          <Tag minimal className="!text-[10px]">{c.required ? 'Required' : 'Optional'}</Tag>
+          <Tag minimal>{c.required ? 'Required' : 'Optional'}</Tag>
           <Button variant="minimal" size="small" icon="cross" onClick={() => { drop(c.api_name) }} />
         </div>
       ))}
