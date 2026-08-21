@@ -1508,3 +1508,87 @@ recorded as an open question.
   that would need it.
 - **10,000 objects per evaluation for real-time and for per-object execution** —
   both need modes we refused: live monitoring and per-object execution.
+
+## `branching-automations` read, 2026-08-21 — the picker has TEN cards, not eight
+
+**Page read in full.** Its eleven images are **not parsed**: they are the
+branching integration — add-to-branch banners, the approvals panel, the review
+and rebase dialogs — and none of it is built here. Named rather than left
+silent: `branching-add-automation-to-branch.png`,
+`branching-remove-automation-from-branch.png`,
+`branching-supported-and-unsupported-conditions.png`,
+`branching-protect-from-automation-main-page.png`,
+`branching-protected-main-branch-selector.png`,
+`branching-save-to-new-branch.png`, `branching-approvals-overview.png`,
+`branching-approval-banner.png`, `branching-review-automation-changes.png`,
+`branching-approved-automation.png`, `branching-rebase-automation-changes.png`.
+
+### The condition vocabulary is ten, and #752 shipped eight
+
+`getting-started-add-condition.png` shows eight cards and is **cut off** — the
+last one, `Automation dependency`, is half out of frame. This page enumerates
+the whole picker, as five supported on a branch plus five not:
+
+| supported on a branch | not supported on a branch |
+|---|---|
+| Time | Threshold crossed |
+| Objects added to set | Automation dependency |
+| Objects removed from set | **Time series** |
+| Objects modified in a set | **Stream** \[Beta] |
+| Run on all objects | Metric changed \[Sunset] |
+
+**Time series and Stream are new to us.** The wizard now lists ten, with both
+marked: `time_series_properties` is an orphan of the deleted product — zero
+rows, no surface, and no datasource kind backs a series — and a stream has no
+backing kind at all, since `object_type_datasources_one_backing` admits a
+dataset, a restricted view or a media set.
+
+**The rule that decides it is the one CLAUDE.md already carries:** the page that
+LISTS the set beats the capture that was cropped. #752's claim of "all eight the
+image shows" was true about the image and wrong about the vocabulary.
+
+### The effect vocabulary is four, and ours matches exactly
+
+> All Automate effects are supported on a branch:
+
+— `automate/branching-automations.md`
+
+followed by Action, Logic, Function \[Beta] and Notification. That is
+`automation_effect_kinds()` exactly, including which two are Beta or absent
+here. This is the page that lists the effect set, and we already agree with it.
+
+### The branch integration, which is a phase we have not started
+
+Automations can be added to a branch, removed from one, protected so that edits
+to `main` must go through review, reviewed side by side, and rebased. We have
+Global Branching (461–471) and automations do not participate in any of it.
+
+One sharp edge worth carrying if that is ever built:
+
+> Modifying the `name` and `description` of an automation on a branch also modifies those values on `main`.
+
+— `automate/branching-automations.md`
+
+and one that reads on our own overlay work: "A branched automation evaluates its
+conditions and executes its effects on the branch", which is a branch-scoped
+runner rather than a branch-scoped definition.
+
+### And it confirms the show-disabled pattern
+
+> When you build an automation on a branch, unsupported conditions are disabled in the condition selector.
+
+— `automate/branching-automations.md`
+
+Foundry disables rather than hides, on a different axis from ours — branch
+support rather than engine support — but the same treatment. The choice
+`action_rule_kinds()` set and #745, #752 followed is Foundry's own.
+
+## Questions
+
+1. **Is `Time series` the same feature as `time_series_properties`?** That table
+   registers a series against an object type; this is a condition that triggers
+   when one crosses a threshold. Related, plainly, and no page read here joins
+   them.
+2. **Does the ten include everything?** This page's two lists are exhaustive for
+   *branch support*, which is not quite the same claim as exhaustive for the
+   picker. No capture read here shows the picker scrolled to its end.
