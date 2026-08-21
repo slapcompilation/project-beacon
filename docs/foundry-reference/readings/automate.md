@@ -25,6 +25,13 @@ here is invented — but the decisions were taken with a third of the section
 read, and **`retries`, `limits` and `effect-settings` in particular bear
 directly on the runner that shipped**. Read them before the next slice.
 
+**That list is CLOSED as of 2026-08-21, and it is kept above rather than
+deleted** — a debt that is edited away is a debt nobody can check. Every page it
+names is now read and cited below, along with the seven the list itself missed:
+`_index`, `automation-administrators`, `execution-settings`,
+`marketplace-automate` and the three examples. Thirty-seven of thirty-seven,
+counted by listing the directory, not asserted.
+
 ## `effect-settings` read at last, 2026-08-17 — and it corrects the audit too
 
 The warning above went unheeded through 521, 522, 543 and 544 — four migrations
@@ -1672,3 +1679,180 @@ selector".
 - A sharp edge if manual execution is ever built: "Manual executions of the
   automation bypass the trigger conditions. As a result, permissions on the
   trigger objects are not checked during manual runs."
+
+## The last three pages, 2026-08-21 — the section is now read
+
+`streaming`, `performance-best-practices` and `troubleshooting-performance`,
+all in full. That closes the header's list of eighteen unopened pages: **every
+page under `automate/` has now been read and cited.**
+
+**Images: none parsed.** `stream-condition.png`, `stream-evaluation-frequency.png`
+and `raw-streams.png` all configure a stream, and there is no stream datasource
+kind here. The two performance pages carry none.
+
+### A gap the performance page exposes without meaning to
+
+Lever 1 of its three is the whole point of the page:
+
+> **Frequently updating objects (100+ updates per day):** For object types that update frequently, combine a time-based evaluation with your object set condition. This caps the number of automation evaluations at the frequency of the time condition.
+
+— `automate/performance-best-practices.md`
+
+and its worked example turns 100,000 evaluations a day into 288 by attaching a
+five-minute cadence.
+
+**That five minutes is NOT the Time condition card**, which `condition-time`
+caps at once an hour and 613 now enforces. It is *scheduled monitoring* of an
+object-set condition — a second, separate schedule that `evaluation-frequency`
+describes as "a user-defined schedule".
+
+**Ours has no such thing.** `automation_condition_valid` accepts
+`objects_added`, `objects_removed` and `run_on_all` with an `object_set_id` and
+nothing else, so every object-set condition is evaluated on the minute hand,
+every minute, with no way to cap it. Foundry's primary lever against runaway
+cost is a field we do not have.
+
+Recorded rather than built: it is a grammar change plus a runner change, and it
+wants its own slice. It is also the most likely next thing to matter, because
+the cost it controls is the one this engine will hit first.
+
+### Two vocabularies confirmed, one from an odd angle
+
+`streaming` says "select a stream condition", which is the tenth card #756 added
+from `branching-automations` — a third page agreeing that Stream is a condition
+in its own right rather than a mode of another.
+
+It also states the constraint that explains the branch list: "Stream-backed
+object types only support the **Objects modified in set** condition type for
+live monitoring."
+
+### What the troubleshooting page is, and why it changes nothing here
+
+It is a runbook for a platform with Autopilot, Workflow Lineage and Resource
+Management, none of which exist here. Its four spike patterns need machinery we
+refused — chained automations, per-object execution, function loops — and its
+mitigation steps are pause, re-scope, resume.
+
+One line is worth keeping anyway, because it is the same discipline today's
+linter investigation arrived at the hard way: the diagnostic process opens with
+**check the execution history**, then **identify condition frequency**, then
+trace, then review. Measure the observed behaviour first and read the
+configuration second. Four wrong hypotheses here went the other way round.
+
+## The seven I had not opened, and the claim I made anyway
+
+I wrote, in this file, that every page under `automate/` had now been read and
+cited — and then checked it. Seven pages were not mentioned anywhere in this file: `_index`,
+`automation-administrators`, `execution-settings`, `marketplace-automate`, and
+the three worked examples. `pnpm check:readings` passed on all 1610 quotations
+while that sentence sat at the bottom of the file, because a page-coverage claim
+is not something it counts. This is rule 7's failure for the third time, and the
+first where I caught it myself rather than an audit catching it.
+
+They are 250 lines together. Reading them was cheaper than weakening the claim,
+and three of them carry findings.
+
+### `automation-administrators` names what auto-pause is FOR
+
+Decision 3 of the sweep refused to invent auto-mute because no page named a
+trigger for it. A page does:
+
+> "Auto-pausing an automation because of cycles or limits"
+
+— `automate/automation-administrators.md`
+
+So the two causes are enumerated, and we stand differently against each. **Cycle
+detection is live-monitoring machinery** — `condition-settings` says overriding
+it "is only available for live monitoring" — and we refused live monitoring, so
+that half is out of reach by a decision already taken. **Limits we already
+hit**: `object_set_keys` raises `Automate:InputTooLarge` today. Foundry pauses
+the automation at that point; we raise and leave it armed to raise again next
+minute.
+
+That is a real gap with a named cause, and it is the first thing on this list
+that could be built without inventing a trigger. Not built here — it changes
+runner behaviour, and it belongs with the event log that would record it.
+
+The page also splits the notifications in two, which is the shape of a setting
+we do not have: **automation information notifications** (expiration,
+auto-pause, evaluation errors) and **effect failure notifications** (an action
+failing to execute, a notification failing to send). Its warning is the kind of
+detail that only appears on a page nobody reads: "changing **Effect failure
+notifications** to `Only administrators` will prevent failure notifications from
+being sent to anyone except administrators."
+
+**Image: `settings-automation-administrators.png` not parsed.**
+
+### The cadence, confirmed by a worked example and given a default
+
+`performance-best-practices` gave the lever; the example gives the number:
+
+> "Since we are using a relative time filter, the condition will be evaluated
+> using scheduled monitoring. We keep the default of daily evaluation."
+
+— `automate/example-relative-time-condition.md`
+
+Two things the concept page did not say. A **relative time filter forces**
+scheduled monitoring — the cause, not just the option — and the schedule has a
+**default of daily**. And the weekly-report example attaches one to a plain
+condition with no such filter:
+
+> "Since we only want to send the report once a week, we add a schedule to the
+> condition and specify that the automation should trigger every Monday morning
+> at 8am."
+
+— `automate/example-weekly-report.md`
+
+Four pages now describe the same field. It stays recorded rather than built for
+the reason given above, but it is no longer an inference about how Foundry
+probably works: it has a default, a forcing condition, and two worked examples.
+
+**Images: none of the three examples' eleven parsed.** Named so the debt is
+recorded and not silently dropped: `example-relative-time-condition.png`,
+`example-relative-time-effect.png`, `example-relative-time-overview.png`,
+`example-weekly-report-object-and-time-condition.png`,
+`example-weekly-report-effect-select.png`,
+`example-weekly-report-notification-recipients.png`,
+`example-weekly-report-notification-content.png`,
+`example-weekly-report-notification-notepad-template.png`,
+`example-weekly-report-notification-attachment.png`,
+`example-weekly-report-notification-overview.png`, and the five
+`example-dynamic-contract-owners-*.png`.
+
+### A permission rule, stated once, in an example
+
+> "Note that all recipients require at least **Viewer** permission on the
+> automation or they will not receive the notification."
+
+— `automate/example-dynamic-contract-owner.md`
+
+A notification effect does not bypass the automation's own access. We have no
+notification effect, so nothing to fix — but it is the kind of rule that would
+have been invented the other way round, and it is on an example page rather than
+on `effect-notification`.
+
+### `_index` and `marketplace-automate`
+
+The index states the product's scope in one sentence — "Automate is a fully
+backwards-compatible product that replaces Object Monitoring as the single entry
+point for all business automation in the platform" — and enumerates the four
+effects, which is the set `automation_effect_kinds()` already carries.
+
+`marketplace-automate` is packaging, and touches the `auto_upgrade` thread one
+more time: automations with an action or AIP Logic effect "cannot be installed
+in "production" mode as automations with these effects do not automatically
+upgrade". Version pinning has now been named by three pages and built by none.
+
+`execution-settings` is an eight-line stub pointing at two pages this reading
+already covers.
+
+## The section, closed
+
+**Thirty-seven pages under `automate/`, and now all thirty-seven read** — thirty
+before this section, seven in it, counted rather than asserted. What it produced,
+in order: 609–610 (mute and expiry), 611 (sequential execution), 612 (Frontend consumers),
+613 (the cron rule), 616 (fallbacks require sequential), #745 (the screen),
+#752/#756 (the wizard and its ten cards) — and a standing list of things
+recorded rather than built, each with the page that names it.
+
+**Every one of those migrations came from a page read for something else.**
