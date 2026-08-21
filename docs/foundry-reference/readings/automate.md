@@ -939,3 +939,103 @@ than by luck:**
 **Not built: partitioning.** The page's worked example is 40 objects at
 partition size 20, and we have no partition, so "Sequential execution settings
 apply regardless of partitioning configuration" has nothing here to apply to.
+
+## `condition-settings` read, 2026-08-21 — and it defines what an event IS
+
+Read for the event log. It settles the question that blocked auto-mute, in a
+parenthesis about queuing:
+
+> Queuing applies at the automation event level (individual runs in automation history). Concurrency settings (parallel vs. sequential effects) still apply within an individual event.
+
+— `automate/condition-settings.md`
+
+**An automation event is one firing.** Effect executions live *inside* an event —
+which is why `effect-settings`' sequential/parallel setting is described as
+applying "within an individual event", and why `history`'s eleven types include
+things with no effect execution at all.
+
+So `automation_runs` is not the event log and cannot become it by widening: it
+holds one row per **effect** per firing. The event is the firing, and the runs
+hang off it. That is Decision 4 of the previous section, now anchored on a
+sentence rather than on inference.
+
+**And it unblocks the auto-mute arithmetic.** "All effects fail for at least 80%
+of the past 30 events" counts firings, not effect rows. With an event table the
+denominator is well-defined; without one, thirty events is not thirty rows and
+any ratio computed from `automation_runs` answers a different question.
+
+### Three of the four settings on this page are live-only, and we have no live
+
+`Allow cycles`, `Drop objects over the live automation scale limit` and
+`Skip events from peering patches to this object` each state their own
+precondition — cycles: "overriding cycle detection is only available for live
+monitoring"; dropped objects: "only available with live monitoring enabled";
+peering: "This setting only applies to automations using live monitoring with an
+object set condition. Time-based triggers and scheduled evaluations are not
+affected."
+
+Decision 4 of the sweep already refused live monitoring: evaluation here is
+scheduled only, on the minute hand. **So three of these four are not gaps —
+they are settings for a mode we deliberately do not have**, and building any of
+them would mean building the mode first.
+
+`Queue effect executions` is the fourth, and it is *not* live-gated. It orders
+whole events against each other where `execution` orders effects within one.
+Ours cannot need it yet for the reason the page gives — it exists to stop
+concurrent events conflicting, and our runner takes
+`pg_try_advisory_xact_lock('beacon-run-automations')` and processes candidates
+one at a time in a single transaction. Queuing is what we already are.
+
+### Cycle detection is a fourth thing, and also live-gated
+
+> A framework has been implemented to automatically detect and disable live automations that cause cycles.
+
+— `automate/errors.md`
+
+`live` is in that sentence. A scheduled automation firing on the minute hand
+cannot loop within a tick, and detecting a cross-tick cycle is a different
+problem the page does not describe. Not built, and now for a stated reason
+rather than an absence of one.
+
+## Decisions for the event log
+
+1. **`automation_events` is a new table, one row per firing**, anchored on
+   `condition-settings`' parenthesis. `automation_runs` gains an `event_id` and
+   keeps its meaning — the effect half of an event.
+2. **The event types we can produce are the ones our engine causes.** Of
+   `history`'s eleven, this engine can currently cause `Automation triggered`,
+   `Evaluation failed`, `Paused`, `Resumed`, `Muted`, `Unmuted` and
+   `Condition edited`. Recording a type nothing writes would repeat the
+   `skipped` situation in reverse — a value with no producer — so the CHECK
+   admits only what a writer exists for.
+3. **`Subscribed` and `Unsubscribed` are NOT added.** There is no subscription
+   here at all: `history` treats subscription as gating whose history is
+   recorded, and nothing in the schema models a subscriber. Adding two tokens
+   for a feature we do not have is the half-built version CLAUDE.md forbids.
+4. **`Automation recovered` is NOT added.** The page ties it to threshold
+   conditions — "Only threshold conditions on object sets generate this event" —
+   and our condition grammar has no threshold.
+5. **Auto-mute follows in a separate change, not this one.** The denominator
+   becomes well-defined the moment events exist, but the rule also needs "all
+   effects fail", which is a per-event roll-up of the runs. One mechanism at a
+   time, and the event log has to be producing rows before a rule can count
+   them.
+6. **Three of `condition-settings`' four settings are not built and now say
+   why** — they configure live monitoring, which Decision 4 of the sweep
+   refused. The fourth, queuing, is what our single-transaction runner already
+   does.
+
+## Questions for the event log
+
+1. **Does an event exist when the condition does not fire?** `history` records
+   `Evaluation failed` but says nothing about a successful evaluation that
+   matched nothing. Ours would record only firings, which is an inference and
+   the cheaper one — a row per automation per minute would be 1,440 rows a day
+   each.
+2. **What is retention in practice?** `history` says six months, then permanent
+   deletion. Nothing here expires anything, and a cron that deletes history is
+   its own decision.
+3. **Is `Condition edited` an event on the automation or on the editor?**
+   `history` says "Recorded when any user updates the automation condition",
+   which is a metadata change with no firing — so it has no runs, and the
+   event table must allow that.
