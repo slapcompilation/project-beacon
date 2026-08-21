@@ -404,7 +404,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (188) ───────────────────────────────────────────────────
+// ── FUNCTIONS (189) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1113,6 +1113,16 @@ export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'func
 
 export const holdsMarkingPermission = { apiName: 'holds_marking_permission', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string; p_permission: string },
+  boolean
+>
+
+/**
+ *  True inside apply_action or apply_function_edits. Transaction-local, and
+ *  unreachable from PostgREST: set_config is in pg_catalog and only public is
+ *  exposed.
+ */
+export const inActionApply = { apiName: 'in_action_apply', kind: 'function' } as FunctionType<
+  Record<string, never>,
   boolean
 >
 

@@ -175,6 +175,25 @@ describe.skipIf(noDb)('actions', () => {
           and instruction = 'create' and action_type_id = $2`, [type, action])).toBe(1)
   })
 
+  // "by default, new object types only allow edits via actions" — so the same
+  // edit the action just wrote is refused when written directly, as the caller
+  // rather than through apply_action. 605's arm, asked as `authenticated`.
+  it('refuses a direct edit on a type that only allows edits via actions', async () => {
+    expect(await one('select only_edits_via_actions v from public.object_types where id = $1',
+      [type])).toEqual({ v: true })
+    const why = await refused(db, () => db.query(
+      `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
+       values ($1,'T-DIRECT','create','{}'::jsonb)`, [type]))
+    expect(why).toMatch(/Actions:PermissionDenied/)
+
+    // and with the toggle off it is the reopened mode the page discourages
+    await db.query('update public.object_types set only_edits_via_actions = false where id = $1', [type])
+    await db.query(
+      `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
+       values ($1,'T-DIRECT','create','{}'::jsonb)`, [type])
+    await db.query('update public.object_types set only_edits_via_actions = true where id = $1', [type])
+  })
+
   it('refuses to edit a type whose edits are disabled', async () => {
     await db.query('update public.object_types set edits_enabled = false where id = $1', [type])
     const why = await refused(db, () =>

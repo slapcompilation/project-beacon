@@ -267,6 +267,8 @@ describe.skipIf(noDb)('the exploration engine', () => {
     // A new long flight arrives: "updates with new results" versus "will not
     // change unless manually updated".
     await db.query(`update public.object_types set edits_enabled=true where id=$1`, [flight])
+    // an action's edit, which is the only kind this type accepts (605)
+    await db.query(`select set_config('beacon.applying_action','on',true)`)
     await db.query(
       `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
        values ($1,'F9','create','{"flight_id":"F9","distance":9000}'::jsonb)`, [flight])

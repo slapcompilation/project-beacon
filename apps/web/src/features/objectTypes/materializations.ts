@@ -48,28 +48,32 @@ export function useMaterializations(typeId: string) {
   })
 }
 
-/** The Edits configuration on the Datasources tab — the door to this tab. */
-export function useEditsEnabled(typeId: string) {
+/** The Edits configuration on the Datasources tab — the door to this tab, and
+ *  the second toggle beside it: "Only allow edits via actions", which four
+ *  pages name and 605 enforces. Both live on object_types, so one read. */
+export interface EditsConfig { editsEnabled: boolean; onlyViaActions: boolean }
+
+export function useEditsConfig(typeId: string) {
   return useQuery({
-    queryKey: ['edits-enabled', typeId],
-    queryFn: async (): Promise<boolean> => {
+    queryKey: ['edits-config', typeId],
+    queryFn: async (): Promise<EditsConfig> => {
       const { data, error } = await supabase.from('object_types')
-        .select('edits_enabled').eq('id', typeId).single()
+        .select('edits_enabled, only_edits_via_actions').eq('id', typeId).single()
       if (error) throw new Error(error.message)
-      return (data as { edits_enabled: boolean }).edits_enabled
+      const r = data as { edits_enabled: boolean; only_edits_via_actions: boolean }
+      return { editsEnabled: r.edits_enabled, onlyViaActions: r.only_edits_via_actions }
     },
   })
 }
 
-export function useSetEditsEnabled(typeId: string) {
+export function useSetEditsConfig(typeId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (enabled: boolean) => {
-      const { error } = await supabase.from('object_types')
-        .update({ edits_enabled: enabled }).eq('id', typeId)
+    mutationFn: async (patch: Partial<Record<'edits_enabled' | 'only_edits_via_actions', boolean>>) => {
+      const { error } = await supabase.from('object_types').update(patch).eq('id', typeId)
       if (error) throw new Error(error.message)
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['edits-enabled', typeId] }) },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['edits-config', typeId] }) },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

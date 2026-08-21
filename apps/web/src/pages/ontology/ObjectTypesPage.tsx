@@ -28,7 +28,7 @@ import {
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
-import { useEditsEnabled } from '@/features/objectTypes/materializations'
+import { useEditsConfig } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
 import { DependentsTab } from '@/features/objectTypes/DependentsTab'
 import { UsageTab } from '@/features/objectTypes/UsageTab'
@@ -446,7 +446,8 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
   const [editing, setEditing] = useState(false)
   // "Navigate to the Materializations tab by toggling the Edits configuration
   // in the Datasources tab" — the tab exists only while the toggle is on.
-  const { data: editsEnabled = false } = useEditsEnabled(type.id)
+  const { data: edits } = useEditsConfig(type.id)
+  const editsEnabled = edits?.editsEnabled ?? false
 
   return (
     <section className="space-y-3 border-t pt-5">

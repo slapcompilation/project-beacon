@@ -16,7 +16,7 @@ import {
   useSetDatasourcePrimaryKeyColumn,
 } from '@/features/objectTypes/hooks'
 import {
-  useMaterializations, useEditsEnabled, useSetEditsEnabled,
+  useMaterializations, useEditsConfig, useSetEditsConfig,
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
 } from '@/features/objectTypes/materializations'
 import { useRestrictedViews } from '@/features/restrictedViews/api'
@@ -111,8 +111,9 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const isRv = datasetId.startsWith('rv:')
   const { data: branches = [] } = useBranches(!datasetId || isRv ? null : datasetId)
   const [branchId, setBranchId] = useState('')
-  const { data: editsEnabled = false } = useEditsEnabled(type.id)
-  const setEdits = useSetEditsEnabled(type.id)
+  const { data: edits } = useEditsConfig(type.id)
+  const editsEnabled = edits?.editsEnabled ?? false
+  const setEdits = useSetEditsConfig(type.id)
   const [editingRv, setEditingRv] = useState<string | null>(null)
   const editingView = restrictedViews.find((v) => v.id === editingRv) ?? null
   const setKey = useSetDatasourcePrimaryKeyColumn(type.id)
@@ -226,13 +227,29 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
       </div>
       )}
 
-      {/* The Edits configuration — the door to the Materializations tab. */}
+      {/* The Edits configuration — the door to the Materializations tab, and
+          the writeback setting beside it. "by default, new object types only
+          allow edits via actions"; the other mode is the discouraged one. */}
       <div className="border-t pt-3">
         <Switch checked={editsEnabled} label="Edits"
-          onChange={(e) => { setEdits.mutate(e.currentTarget.checked) }} />
+          onChange={(e) => { setEdits.mutate({ edits_enabled: e.currentTarget.checked }) }} />
         <p className="text-xs text-muted-foreground -mt-1">
           Enable user edits for this object type. Toggling this on opens the Materializations tab.
         </p>
+        {editsEnabled && (
+          <div className="mt-3">
+            <Switch checked={edits?.onlyViaActions ?? true} label="Only allow edits via actions"
+              onChange={(e) => { setEdits.mutate({ only_edits_via_actions: e.currentTarget.checked }) }} />
+            <p className="text-xs text-muted-foreground -mt-1">
+              {edits?.onlyViaActions ?? true
+                ? 'An applier needs only Read on the objects being edited — the action is the permission. Direct writes are refused with Actions:PermissionDenied.'
+                : 'Edits are also allowed from forms, direct edits and API calls. Discouraged: it needs Edit on the writeback dataset, which exposes all of its data.'}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Turning this on does not remove historical, non-action edits; it prevents further ones.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
