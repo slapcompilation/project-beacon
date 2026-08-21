@@ -934,6 +934,39 @@
   .oma-crit-msg { display:flex; align-items:center; gap:6px; margin:-2px 0 8px 22px; }
   .oma-crit-op select { color:hsl(var(--warning)); font-weight:600; }
   .oma-crit-verb select { font-style:italic; }
+  /* Scoped sessions. The New dialog groups markings under their category; the
+   * Choose dialog is a filtered list beside a detail pane, both from the two
+   * administration screenshots. */
+  .oma-marking-list {
+    max-height:220px; overflow-y:auto;
+    border:1px solid hsl(var(--border)); border-radius:var(--radius);
+  }
+  .oma-marking-group {
+    font-size:12px; font-weight:700; padding:6px 10px;
+    background:hsl(var(--muted)); border-bottom:1px solid hsl(var(--border));
+  }
+  .oma-marking-row {
+    display:flex; align-items:center; gap:8px; padding:6px 10px; cursor:pointer;
+    border-bottom:1px solid hsl(var(--border) / 0.3);
+  }
+  .oma-marking-row.is-picked { background:hsl(var(--success) / 0.08); }
+  /* The Choose dialog is wider than Blueprint's default — the screenshot's
+   * split needs both panes legible at once. */
+  .oma-session-dialog { width:min(680px, 92vw); }
+  .oma-session-split { display:grid; grid-template-columns:minmax(0,220px) minmax(0,1fr); min-height:240px; }
+  .oma-session-list { border-right:1px solid hsl(var(--border)); background:hsl(var(--muted) / 0.4); }
+  .oma-session-label {
+    font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
+    color:hsl(var(--muted-foreground)); padding:4px 10px;
+  }
+  .oma-session-row {
+    display:flex; align-items:center; gap:6px; width:100%; text-align:left;
+    font-size:12px; padding:7px 10px; background:none; border:0; cursor:pointer;
+    border-bottom:1px solid hsl(var(--border) / 0.3); color:inherit;
+  }
+  .oma-session-row:hover { background:hsl(var(--muted)); }
+  .oma-session-row.is-selected { background:hsl(var(--primary)); color:hsl(var(--primary-foreground)); }
+  .oma-session-detail { padding:14px 16px; }
   .oma-crit-attr, .oma-crit-val { max-width:180px; }
   .oma-join {
     display:flex; align-items:center; gap:10px; padding:14px;
