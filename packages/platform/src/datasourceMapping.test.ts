@@ -211,6 +211,28 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
                         where object_type = 'Flagged'`)).toEqual([])
   })
 
+  // "edit-only properties must be permissioned to one of the datasets backing
+  // the object type" — the FK only asks that the row exist, so 608 asks whose
+  // it is. Not only edit-only: a column property names a datasource too.
+  it("a property may not be permissioned to another object type's datasource", async () => {
+    const other = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'Borrower','Borrower') returning id`, [ont, f.projectId])).id
+    const why = await refused(db, () => db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source,
+          datasource_id, position)
+       values ($1,'borrowed','borrowed','Borrowed','string','user_input',$2,0)`,
+      [other, dsA]))
+    expect(why).toMatch(/Ontology:DatasourceBacksAnotherObjectType/)
+
+    // and a property with no datasource at all is not caught by it
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source, position)
+       values ($1,'derived','derived','Derived','string','linked_objects',1)`, [other])
+  })
+
   it('a datasource that backs nothing is reported', async () => {
     const c = await dataset('dsmap586_c', ['tail_number'])
     const dsC = (await one(
