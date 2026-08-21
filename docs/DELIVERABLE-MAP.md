@@ -4,12 +4,13 @@ The only planning document. It says what is NOT built; the moment something
 ships, its entry is deleted rather than annotated. A file that accumulates
 "✅ SHIPPED" lines becomes a history, and history is what git is for.
 
-**The queue is now derived, not judged.** It used to be ordered "by the size of
-the structural absence", which meant by my estimate of it. It is now ordered by
-Foundry's own architecture: `object-backend/overview` names six services and
-draws how they connect, and `readings/ontology-backend-architecture.md` maps
-each one onto ours. An entry earns its place by being a connection the diagram
-draws and we do not.
+**When there is a queue again, it is derived, not judged.** The last one was
+first ordered "by the size of the structural absence", which meant by my
+estimate of it, and then re-derived from Foundry's own architecture:
+`object-backend/overview` names six services and draws how they connect, and
+`readings/ontology-backend-architecture.md` maps each one onto ours. An entry
+earns its place by being a connection the diagram draws and we do not — not by
+looking important.
 
 Every service has a counterpart — Ontology Metadata, object databases, Object
 Set Service, Actions, the Object Data Funnel, Functions on Objects. What is
@@ -17,285 +18,30 @@ missing is not a service. It is wiring.
 
 ---
 
-## The build order
+**The build order is finished, so it is gone.** Sections 1-6 were deleted on
+2026-08-22 under the rule above, having stayed here after they shipped. That is
+not tidying: entry 1 still read "not yet built" for work 513 did and told the
+reader to hang it off `mark_index_stale_on_commit`, a trigger **534 deliberately
+deleted** — so the one document whose job is "what to build next" opened by
+sending you to rebuild a shipped thing with a removed part. Entry 3 called
+Automate "mirrored (42 pages) and unread" while 37 of 37 pages were read and ten
+migrations had been built from them.
 
-### 1. The index is a build
-
-**The connection the diagram draws and we do not.** `mark_index_stale_on_commit`
-fires when a datasource transaction commits, so the platform knows an object
-type's index is behind — and nothing reindexes. `index_object_type` is reachable
-from tests, from its own migrations' assertions, and from a button. No timer, no
-trigger, no build.
-
-Foundry's Funnel "is comprised of a series of Foundry build jobs" that "run
-whenever their respective datasources are updated" and, when user edits exist,
-"every 6 hours". We built that engine in 493–508 — job specs, builds, the seven
-job states, build locking, contention queuing, a trigger grammar whose
-`tableUpdated` is exactly "a new transaction is committed to the table", and a
-minute-hand heartbeat. **The two halves were built separately and never joined.**
-
-This is the ontology half of the sentence the pipeline layer was built to
-finish: derivation was declared and nothing computed it. Reindexing is the same
-absence, one layer up.
-
-Reading written, Decisions recited, not yet built.
-
-### 2. Materializations
-
-The merged state — datasource plus user edits — written back out as a dataset,
-"the latest state of each object", schema taken from the Ontology rather than
-the datasource. We compute exactly that state in `object_state()` and never
-expose it. Cheap once §1 lands, because the build that indexes already produces
-it. Propagation is automatic or the same six-hour cadence.
-
-### 3. Automate
-
-The condition-and-effect layer above Actions, whose effects are "Submit Foundry
-actions" and "Execute Foundry functions" — both of which now exist and are
-verified live. Conditions are time-based, object-data-based, or both. Mirrored
-(42 pages) and unread.
-
-### 4. Cross-organization principal visibility — PREMISE CORRECTED, NEEDS A READING
-
-The guest picker adds foreign principals by ID because registries are
-org-siloed. This entry used to say "Foundry's Control Panel searches the
-enrollment", and **that was our inference, not a citation**. The one sentence
-found on looking says something different and narrower:
-
-> "You will only be able to view groups for which you have `View group
-> membership` permission on the group's Organization."
-> — `platform-security-management/manage-groups`
-
-So the mechanism is a **grantable per-organization permission** that widens who
-you can see, not a global search. That is a permission type we do not have, and
-it belongs beside the granular policies in the security phase rather than being
-bolted onto the guest picker.
-
-**No longer "small".** It needs its own reading — `manage-groups`,
-`manage-roles-`, and the Organization permissions surface — before anything is
-built. Do not build from this entry as written.
-
-**THE READING IS DONE (2026-08-18)**, in
-`readings/access-model-and-permission-vocabulary.md` §5 rather than a fourth
-file, because it is the same role/workflow vocabulary. (`manage-roles-` turned
-out to be `manage-roles` mirrored twice from a double-slash URL.) Its Decisions
-have not been read by a human, so the gate still applies.
-
-**What it found: the mechanism is already half-present and unreachable.** A
-policy on `groups` — `view group membership reaches across organizations` —
-tests `has_org_workflow(…, 'view_group_membership')`, and that workflow appears
-in **zero** `organization_role_workflows` rows. Verified rather than reasoned:
-an `organization_administrator`, the strongest role there is, holds five
-workflows and not that one, because the administrator arm can only incorporate
-workflows some role already carries.
-
-540 was right on both counts — the page describes the **legacy** per-principal
-dropdown, and no page says which role carries the workflow — but the
-consequence is a workflow nobody can ever hold.
-
-**The structural gap is that we have no workflow catalogue.** Foundry's
-workflows exist independently of roles: administrators "define custom roles in
-Control Panel by selecting individual *workflows*", and the Space permissions
-screenshot has a `Filter roles and workflows…` box, which only makes sense over
-a list. Here a workflow exists **only** as a row attaching it to a role, so one
-nobody carries cannot be selected, granted or held.
-
-Order: a workflow catalogue → `view_group_membership` in it → custom roles
-built by selecting from it → then the guest picker.
-
-**Steps 1–3 BUILT (563–564).** And the sweep found a **second** orphan in the
-same state: `manage_space_permissions`, from 554 earlier the same day, whose
-header claim that "only a subsuming administrator holds it" is false —
-subsumption redistributes what some role carries and cannot conjure a token
-that appears nowhere, so `space administrators grant roles` was dead too.
-
-`workflows` now holds twelve rows with a `published` flag (false for exactly
-one, ours); both role tables have a foreign key into it and a scope trigger, so
-an unknown workflow is refused where any well-formed string used to pass. **No
-grant changed** — the orphans are selectable, not held, which keeps 540's
-refusal intact. `workflowCatalogue.test.ts` guards the class: every workflow a
-policy tests must be catalogued.
-
-**And the surface asked a question the schema never had: who holds any of this?**
-Nobody — production held zero role grants of either kind, so no principal held
-any workflow. That made **555's portfolios unusable**: creating one needs
-`manage_portfolios_within_the_space`, and granting the role that confers it
-needs `manage_space_permissions`, so neither door opened from inside. Measured
-as the organization's own admin: both refused `42501`.
-
-**566 fixes it with this repository's own precedent** — `enforce_grant_ceiling`
-already bootstraps project roles ("someone has to grant the first Owner"), so
-space role grants get the same arm and nothing wider: an owner or admin of an
-organization the space actually serves. Only the *grant* path gets it; the
-administrator then grants `space_administrator`, which subsumes the published
-workflows, and portfolios work through the mechanism rather than around it.
-Verified end to end on real data. `spaceBootstrap.test.ts` guards the chain.
-
-**Step 4 BUILT — §4 IS COMPLETE.** The picker was a Kind dropdown beside a raw
-UUID field, which was never Foundry's shape but a workaround for not being able
-to search foreign principals. `administration/images/manage-guests.png` shows
-what it is: one search box over both kinds ("Add a user or group…"), checkbox
-rows with a principal-type icon and a "You" badge, and Cancel/Save — the same
-control the Portfolio curators and Space permissions rails use, so it is the
-platform's single way of naming a principal. What it finds stays bounded by what
-the caller may see, which is the same sentence §4 opened with.
-
-**Both allocated sweeps are settled.** `control-panel-and-banners` (12) is
-**swept**: three were the reading's own framing in quotation marks, four were
-screenshot transcriptions now attributed by path, two had their page attribution
-*inside* the blockquote — which glues it onto the quote — and one prefixed a
-heading onto the sentence below it. One string is deliberately **not** quoted
-any more: it came from a marketplace install screenshot I could no longer
-identify, and describing beats inventing a path.
-`capabilities-value-types-and-groups` (8) turned out to be **already swept** —
-it carries `verify: strict` and passes, so §4 owed it nothing. Checked rather
-than assumed.
-
-Only two readings now predate the guard: `deep-dive-ontology` (allocated
-**never**) and `materializations-links-media-and-rids`, which waits for the
-media and attachment property types.
+**A finished entry is worse than no entry.** Delete it the day it ships; a
+reader cannot tell a stale queue item from a live one, and this file is read as
+instructions. Every residual those six entries named is preserved below in
+**Known gaps** — replacement pipelines, and Automate's queue and run ceilings.
 
 ---
 
-### 5. Drop `object_type_indexes.status` — two of four steps done
-
-523 and 524 did steps 1 and 2: `object_type_index_ready()` is the predicate,
-and all ten functions that gated on `x.status = 'success'` now ask it —
-including the eight on the hot read path.
-
-**523 hid every object, and 524 fixed it forward.** The pure OSv2 predicate
-asked only whether the last index BUILD JOB completed, and every index that
-existed had been built before 513 made reindexing a build job. None had one, so
-the answer was false for all of them and exploration, counts, aggregations,
-histograms, quicksearch and restricted views all went dark. The platform suite
-caught it on the next run, which is exactly why this was worth its own change.
-`object_type_index_ready()` now prefers the job and falls back to the legacy
-scalar **only** where no job exists.
-
-Remaining, and **the order is fixed by a mistake, not by preference**:
-
-3. **Make `index_object_type` unreachable except through a build job — DONE
-   (528, reverted by 529/530, reapplied unchanged as 532).** The indexer takes
-   the build job it runs under and refuses without a RUNNING one for that type,
-   so the hole closes by signature rather than by census. Revoking EXECUTE
-   cannot do it — `run_build_job` is SECURITY INVOKER and would lose the
-   privilege along with everyone else. All three platform fixtures and the
-   Reindex button now go through `run_index_build`.
-
-   **The blocker was a real bug, and not the one I named.** 528 was reverted on
-   the theory that its guard broke the `restrictedViews` fixture. It did not.
-   Forcing that fixture down the build path for the first time exposed a defect
-   that had been there since 513: a restricted-view backing leaves
-   `object_type_datasources.dataset_id` NULL — **by CHECK**, not by accident —
-   and `job_spec_input_state` aggregated on it, which is what
-   `jsonb_object_agg` reports as "field name must not be null". Every
-   restricted-view-backed object type was unbuildable, and no test saw it
-   because all three fixtures called the indexer directly, which is the very
-   hole step 3 closes. `job_blocked_by` took the same NULL and *silently*
-   matched nothing, so such a reindex never waited for the build rewriting its
-   data. 531 resolves both through `object_type_input_datasets()`, per
-   `object-edits/materializations`: "Backing dataset: The backing dataset of
-   the restricted view."
-
-   Two lessons, both already paid for once. **A component that only fails when
-   something else forces it down a new path is not the component at fault** —
-   my note sent the next reader to the property/datasource loop, which was the
-   one part of the indexer that already resolved the view correctly. And **a
-   fixture that exercises an engine by calling its internals is not testing the
-   engine**; the three that did hid this for nineteen migrations.
-4. **The fallback arm comes out of `object_type_index_ready()` — DONE (533).**
-   Third attempt, and the first whose argument is about the system: an index
-   row exists only if `index_object_type` ran, which since 532 requires a
-   RUNNING job, so the ELSE arm cannot be taken. The three ways that chain
-   could break were checked rather than assumed — RLS refuses a direct INSERT
-   (verified **as `authenticated`**), the only `DELETE` on `builds` fires at
-   `n = 0`, and "no index reading success may fail `ready()`" is an assertion.
-   The single-writer claim it rests on is now a standing platform test.
-5. **`status` is deleted — DONE (534, 535).** The scalar carried two facts and
-   the second one was the work. "This index succeeded" was already the job's;
-   "this index is stale" was three triggers writing `'not started'`.
-
-   The page names the replacement: "When the schema of an object type changes
-   and the previous pipeline's schema is no longer up-to-date, a new
-   **replacement pipeline** must be provisioned"
-   (`object-indexing/funnel-batch-pipelines`). **`object_types.version` is
-   already that schema version** — it bumps on a type edit and on any property
-   change, which is why `mark_index_stale_properties` was dead code rather than
-   merely unattached. So `job_spec_fresh`, which already compared
-   `bj.spec_version` to the spec's version, now compares against the type's,
-   and all three trigger functions are **deleted with nothing replacing them**:
-   a datasource swap and a data commit were always covered by
-   `job_spec_input_state`.
-
-   I first built this as a trigger copying the type's version onto the spec. It
-   tripped `guard_job_spec` — publishing a spec takes the editor role, and
-   provisioning a pipeline is not a person publishing anything. **The refusal
-   was right and the design was wrong**: a second copy of a version that
-   already exists is state to keep in step. The guard was left alone.
-
-   The indexer also stops swallowing its own failure — it raises, and the job
-   records it, "in the pipeline graph" as the FAQ puts it. Surfaces read
-   `object_type_index_report()`, which reports the seven job states, so the
-   Object types page can now say *indexing* where it used to say *not indexed*.
-
-**Why the order is this way.** 525 backfilled a build for every existing index
-and asserted none was left without one — true. 526 removed the arm on that
-basis and the read path went dark again, because the assertion described the
-*rows that existed*, not the *system*: a fixture indexing a new type has no
-build, and eight exploration cases failed immediately. 527 put the arm back.
-
-That is the same error as 523 one level up — proving a property of the current
-data and treating it as a property of the system. The suite caught both within
-one run, which is the only reason neither reached CI.
-
-### 6. Automate: the retry ladder and the published limits
-
-Two divergences found by reading `retries` and `limits` AFTER shipping 517.
-
-**The fallback fires too early.** Ours runs on any failure; the page says
-fallbacks "will only execute if an object failed non-retryably, or the maximum
-number of retries has been reached". That needs the retry ladder underneath it:
-per-effect retries (action and Logic only), and event retries with an interval
-under 24 hours and a count between 1 and 5.
-
-**The object-set cap is ours and it is wrong.** `object_set_keys` truncates at
-10,000. Published: 100,000 for `Objects added`/`Objects removed`, 1,000,000 for
-`Run on all objects`, and exceeding it is an ERROR at save or evaluation — not
-a silent truncation, which is what we do and is the worse behaviour.
-
-Also unbuilt and published: 45-minute queue wait and 4-hour run ceilings.
-
-**THE RETRY SCHEDULER IS BUILT — 543/544, and §6 is closed.** It was blocked for
-a stated reason: "re-attempting needs a queue with its own clock, and inventing
-one to satisfy a sentence would be the mistake this file exists to correct."
-493–496 supplied that clock, so `run_automation_retries` became a fourth hand on
-`run_schedules` rather than a mechanism. The budget is `1 + retry_count` because
-the published count "does not include the initial attempt"; the interval is the
-effect's own; and when the budget is spent the run fails and the fallback is
-**released** — the arm of the disjunction 521 could not reach.
-
-**543 shipped two omissions, and both were mistakes already paid for once.** It
-added a CHECK tying `awaiting_retry` to a due time and a comment claiming
-`run_automations` "now also says when" — the patch was described and never
-applied, so the next retryable failure would have violated the CHECK and taken
-the whole pass down. Its assertions passed because they asked about the SHAPE
-rather than the behaviour, which is 514's grep-only assertion exactly. And its
-own header quotes "517 shipped a runner with no caller" before shipping one.
-544 corrects both, with assertions that execute the path.
-
----
-
-## The build order is complete
-
-Sections 1–6 are all built. What remains is in **Known gaps** below and in the
-readings' allocation table, and neither is a queue with an order — each item
-waits on a phase that has a reason to start.
+## Citation sweeps
 
 **Four of the five allocated citation sweeps are done** (2026-08-18), each with
 the phase that reopened its pages: `data-lineage` (the surface turned out to be
 already built), `capabilities-typeclasses-and-branching` (the Capabilities tab),
 `projects-roles-and-portfolios` (portfolios), and `control-panel-and-banners`
-(§4). `capabilities-value-types-and-groups` was found already swept.
+(the cross-organization visibility phase, 540-566).
+`capabilities-value-types-and-groups` was found already swept.
 
 **One remains**: `materializations-links-media-and-rids`, with the media and
 attachment property types. `deep-dive-ontology` is allocated **never**.
@@ -308,7 +54,7 @@ we build. The result: **one** deprecated design had reached the schema.
 
 | deprecated in Foundry | what we have |
 |---|---|
-| Object Storage v1 (Phonograph), "unavailable after June 30, 2026" | `object_type_indexes.status` was its scalar. 520 replaces it; §5 above drops it. |
+| Object Storage v1 (Phonograph), "unavailable after June 30, 2026" | `object_type_indexes.status` was its scalar. 520 replaced it and 534/535 dropped it. |
 | Writeback datasets (OSv1's edit persistence) | never built — we built object datasets, the OSv2 replacement |
 | "Ignore inherited permissions" | never built; C1 recorded the deprecation as the reason folders organize and never gate |
 | "Propagate view requirements", superseded by Projects and Markings | never built; we have both replacements |
@@ -339,6 +85,26 @@ acquire the callout between one reading and the next, which is how a build
 copies a design Foundry has already left.
 
 ## Known gaps, not queued
+
+**Automate's execution queue, and the three things waiting on it.** Published
+and unbuilt: a **45-minute** ceiling on how long an event may wait in the
+execution queue and a **4-hour** ceiling on how long one may run
+(`automate/limits`). We have no queue to apply them to, and that same absence
+blocks two more:
+
+- **Manual execution.** Not a missing function — the run ledger has one writer
+  by construction. `automation_runs` carries a SELECT policy and no INSERT or
+  UPDATE policy, and the three ledger helpers are SECURITY DEFINER granted to
+  `beacon_runner` alone (553). An inline manual run would either widen those
+  grants to `authenticated`, which is a forgery surface, or make the entry point
+  SECURITY DEFINER, which would elevate `apply_action` too. Both undo 553. The
+  page's own model avoids the choice: a manual run is an event the queue drains,
+  so `execute_automation_now` should ENQUEUE and the runner should execute.
+- **Auto-mute.** Fully specified — "all effects fail for at least 80% of the
+  past 30 events" — but an *event* is not a thing here. `automation_runs` holds
+  one row per effect per fire with no identity grouping the fire, so the window
+  cannot be counted. Auto-**pause** stays unbuildable for a different reason:
+  "excessive activity" has no published threshold.
 
 **Replacement pipelines.** A schema change should build a second index in the
 background and swap it, "without impacting the live data being served to users".
@@ -459,7 +225,7 @@ Two corrections that would have become structure:
   portfolio workflows — by default Contributor. The two-vocabularies trap.
 - **The permission is a workflow, not a role**, and both are named in the
   screenshot: `Curate portfolios within the space` and `Manage portfolios within
-  the space`. A space role **bundles workflows** — the identical mechanism §4
+  the space`. A space role **bundles workflows** — the identical mechanism 540-542
   built for organizations in 540–542, one scope up, so the precedent to copy
   already exists.
 
@@ -616,7 +382,8 @@ edited or modified by administrators"), a `type` naming the resource the role is
 valid for — **`ORGANIZATION` is one of its values, so organization roles live in
 this same model** — and an `operations` list. The role contents that every
 screenshot collapses are a **`listAvailableRoles` response**, served rather than
-published. §4's "not published" conclusion was right for the right reason.
+published. The cross-organization phase's "not published" conclusion was right
+for the right reason.
 
 **Workflow versus operation — settled enough to act on, in the same reading.**
 They are one concept at two scopes, on strong evidence and no outright
