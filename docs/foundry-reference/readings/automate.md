@@ -509,6 +509,28 @@ the `permissions` page into `security` and grown its own page.
    object set of a manual run. We have no manual execution, so nothing is wrong
    today — but the unqualified sentence in Decision 8 would have become wrong the
    moment one was added, which is exactly how a stale reading does damage.
+
+   **AMENDED 2026-08-22, after trying to build it.** The blocker is structural,
+   not a missing function, and I only found it by writing the migration and
+   watching it fail with `permission denied for function
+   automation_effect_rows`. The run ledger has ONE writer by construction:
+   `automation_runs` carries a SELECT policy and **no INSERT or UPDATE policy at
+   all**, and `record_automation_run`, `settle_automation_run` and
+   `automation_effect_rows` are SECURITY DEFINER granted to `beacon_runner`
+   alone — 553's fix, which inverted the scheduled path rather than elevating
+   around it.
+
+   An inline manual run needs one of two things, and both undo 553: those grants
+   widened to `authenticated`, which is a forgery surface on the ledger; or the
+   entry point made SECURITY DEFINER, which would also elevate `apply_action`
+   and let an editor cause writes they could never make themselves.
+
+   The third option is what the pages describe anyway — a manual run is an
+   EVENT the execution queue drains ("Max time an automation event can wait in
+   execution queue"; events "enter the queue in trigger order and begin
+   executing in trigger order"). So `execute_automation_now` should ENQUEUE and
+   `beacon_runner` should execute. **That is a structural reason to build the
+   event log rather than a preference**, which is what this entry used to be.
 5. **Notification recipient permissions are not built**, because we have no
    notification effect delivering to a recipient. Recorded so the four
    requirements arrive with the feature rather than after it.

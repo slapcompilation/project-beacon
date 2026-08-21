@@ -260,6 +260,37 @@ describe.skipIf(noDb)('automations', () => {
               timestamptz '2026-08-21 03:17+00')::int n`)).toBe(1)
   })
 
+  // 620. "While paused, scheduled and live triggers do not run, but manual runs
+  // and event retries remain available." automation_candidates filters paused;
+  // retry_candidates must NOT, and it only happens not to — one `AND NOT
+  // a.paused` added for symmetry would break a documented rule with no guard
+  // noticing. Both halves, because a runner that ignored `paused` everywhere
+  // would pass the retry half alone.
+  it('pausing stops the scheduled path and leaves retries alone', async () => {
+    const a = (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition, paused)
+       values ($1,'paused one',$2,'{"type":"time","cron":"0 3 * * *"}'::jsonb, true)
+       returning id`, [f.projectId, owner])).id
+    const e = (await one(
+      `insert into public.automation_effects (automation_id, position, kind, action_type_id, retry_count)
+       values ($1, 0, 'action', $2, 2) returning id`, [a, action])).id
+    const run = (await one(
+      `select public.record_automation_run($1,$2) as id`, [a, e])).id
+    await db.query(
+      `select public.settle_automation_run($1,'awaiting_retry','probe',
+              timestamptz '2026-08-21 00:00+00', 1)`, [run])
+
+    await db.query(`select public.run_automations(timestamptz '2026-08-21 03:00+00')`)
+    expect(await count(
+      `select count(*) n from public.automation_runs where automation_id=$1 and id<>$2`,
+      [a, run])).toBe(0)
+
+    await db.query(`select public.run_automation_retries(timestamptz '2026-08-21 03:00+00')`)
+    const { outcome } = await one(
+      `select outcome from public.automation_runs where id=$1`, [run])
+    expect(outcome).not.toBe('awaiting_retry')
+  })
+
   it('withholds a fallback only when a retry is actually due', async () => {
     // The rule is a disjunction — "failed non-retryably, OR the maximum number
     // of retries has been reached" — so with no retry config the maximum is

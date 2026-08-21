@@ -241,13 +241,14 @@ function AutomationsTab() {
 }
 
 /** The rail both screenshots draw: Overview, History, Execute, Telemetry. The
- *  last two are disabled — manual execution is decided-unbuilt and there is no
- *  telemetry — because hiding them would misdraw the application. */
+ *  last two are disabled — because hiding them would misdraw the application.
+ *  Execute's reason changed in 620: it is not the missing settings, it is that
+ *  the run ledger has a single writer and a manual run belongs in the queue. */
 const RAIL = [
   { id: 'overview', label: 'Overview', icon: 'desktop', on: true },
   { id: 'history', label: 'History', icon: 'history', on: true },
   { id: 'execute', label: 'Execute', icon: 'flash', on: false,
-    why: 'Manual execution needs batch size, parallelism and an input object set. Not built.' },
+    why: 'A manual run is an event the execution queue drains, and the run ledger has one writer. Waiting on the event log, not on this button.' },
   { id: 'telemetry', label: 'Telemetry', icon: 'timeline-bar-chart', on: false,
     why: 'No execution trace or flame chart exists here.' },
 ] as const
