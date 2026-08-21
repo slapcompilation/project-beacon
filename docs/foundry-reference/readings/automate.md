@@ -1401,3 +1401,57 @@ would refuse an automation that has none yet.
 2. **What does `Settings` hold in Foundry's wizard?** Ours carries execution
    mode, scope and expiry because those are what the schema has. The step is
    named in the rail and never shown open in any capture read here.
+
+## `effect-fallback` read, 2026-08-21 — a page whose engine shipped without it
+
+**Page read in full.** Its images (`effect-fallback-configuration.png`,
+`effect-fallback-error-info.png`) are **not parsed**: they are the wizard's
+per-effect configuration panel, which is a slice this does not build.
+
+`fallback_for` has been in the schema since 517 and `run_automations` has
+executed fallbacks since 521. The page had never been opened.
+
+### Two confirmations, from a page neither was built from
+
+> Fallback effects are not eligible for event retries. A fallback effect runs only after an object fails with a non-retryable error or reaches the maximum number of retries.
+
+— `automate/effect-fallback.md`
+
+which is `run_automations`' `held` branch exactly, and
+
+> A successful fallback execution does not resume the sequential execution chain. If an effect fails and triggers a fallback, subsequent effects in the sequence will not execute, even if the fallback succeeds.
+
+— `automate/effect-fallback.md`
+
+which is why 611 put its `EXIT` **after** the fallback block. 611 was built from
+`effect-settings`; this is the second page saying it, and independent agreement
+is the useful kind of confirmation.
+
+### One rule we did not have — 616
+
+> Fallback effects can only be configured for sequential execution and are not available for parallel execution.
+
+— `automate/effect-fallback.md`
+
+Ours allowed a fallback on any automation, and **parallel is the default** — so
+the configuration Foundry forbids is the one you get without asking. 616 guards
+it in **both directions**, because either alone leaves the illegal state
+reachable: a fallback cannot be added to a parallel automation, and an
+automation holding one cannot be switched back.
+
+**A consequence neither page states:** an automation with a fallback needs two
+orderable effects **plus** the fallback. That follows from 611's rule
+(sequential needs two orderable) and this one (fallbacks need sequential), given
+611 already excludes fallbacks from that count. Arithmetic, not invention.
+
+### Not built, and named
+
+- **Per-object fallbacks.** "fallback effects are triggered on a per-object
+  basis, so if a subset of objects to the parent action fail, only that subset
+  will be included" — we have no per-object execution.
+- **The error information a fallback can read** — error message, automation RID,
+  and the automation **event ID**. Ours runs the fallback with its static
+  parameters and passes none of it; the last of the three waits on the event log.
+- **Retry policies on the fallback itself**, which is the same
+  constant/exponential/jitter vocabulary `effect-actions` names and 521 modelled
+  as a single interval.
