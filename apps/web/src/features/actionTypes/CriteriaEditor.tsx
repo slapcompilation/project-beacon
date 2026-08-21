@@ -11,8 +11,8 @@
 // is the half that was missing.
 import { Button, HTMLSelect, Icon, InputGroup, Tag } from '@blueprintjs/core'
 import {
-  useAddCriterion, useCriteria, useDeleteCriterion, useSubmissionOperators,
-  useUpdateCriterion, childrenOf,
+  useAddCriterion, useCanEditActionType, useCriteria, useDeleteCriterion,
+  useSubmissionOperators, useUpdateCriterion, childrenOf,
   type CriterionRow, type LogicalOperator, type Template, type UserField, type ValueSource,
 } from '@/features/actionTypes/criteria'
 
@@ -35,13 +35,25 @@ export function CriteriaEditor(
   // "These parameter types are removed from the selection panel." We have no
   // object set parameter; attachment is the half of that sentence we can honour.
   const params = all.filter((p) => p.base_type !== 'attachment')
+  const { data: canEdit, isLoading: askingEdit } = useCanEditActionType(actionTypeId)
   const { data: rows = [], isLoading } = useCriteria(actionTypeId)
   const { data: operators = [] } = useSubmissionOperators()
   const add = useAddCriterion(actionTypeId)
   const update = useUpdateCriterion(actionTypeId)
   const del = useDeleteCriterion(actionTypeId)
 
-  if (isLoading) return null
+  if (isLoading || askingEdit) return null
+  if (canEdit === false) {
+    return (
+      <div className="oma-config">
+        <h3 className="text-sm font-semibold">Execution</h3>
+        <p className="text-xs text-muted-foreground mt-1">
+          Submission criteria are hidden from users who cannot edit this action type. They still
+          apply — a submission that does not meet them is refused with the criterion's message.
+        </p>
+      </div>
+    )
+  }
   const roots = childrenOf(rows, null)
 
   const addAt = (parent: string | null, node: 'condition' | 'logical') => {
