@@ -1173,10 +1173,10 @@ apart.
 ## `condition-time` and `effect-function` read, 2026-08-21 — two of the three the wizard needs
 
 **Pages read in full:** `automate/condition-time`, `automate/effect-function`.
-**Images:** neither page's images are parsed. `condition-time-add-condition.png`,
-`condition-time-ui-configuration.png` and `condition-time-cron-configuration.png`
-are the wizard's own condition step and belong to the slice that builds it;
-`effect-function` has none.
+**Images parsed (2 of 3):** `condition-time-ui-configuration.png` and
+`condition-time-cron-configuration.png` — see below. `condition-time-add-condition.png`
+is the wizard's picker and belongs to the slice that builds it. `effect-function`
+has no images.
 
 ### Automate's cron is stricter than a pipeline schedule's, and both pages say so
 
@@ -1277,11 +1277,61 @@ Nothing in a SQL heartbeat can hold that, which is what
 
 ## Questions
 
-1. **Does the wizard's UI mode write a cron, or its own shape?**
-   `condition-time` offers "hourly, daily, weekly, and monthly" through the
-   interface and a cron expression as the escape. Whether the interface stores a
-   cron or a structured schedule is not stated, and the answer decides whether
-   the wizard's condition step needs a second representation.
+1. ~~Does the wizard's UI mode write a cron, or its own shape?~~ **ANSWERED by
+   the two images: one condition, two editing modes.** The advanced toggle
+   disables the builder rather than replacing it, so there is no second stored
+   shape. See the section below.
 2. **Is `auto_upgrade` on a function EFFECT the same flag as on an action
    RULE?** Both pages describe the same behaviour in the same words; whether
    Foundry models them as one setting is not answerable from either page.
+
+### The two condition-step images, parsed — and Question 1 is answered
+
+`condition-time-ui-configuration.png` and `condition-time-cron-configuration.png`
+are the same card in its two states, which is itself the answer.
+
+**Both share a header**: a clock tile, `Time`, the subtitle *Triggers when a
+specific time is reached. E.g., "Every Monday at 9am."*, and a `Time ▾` picker
+top-right — the condition **type** selector, so the card is one step of the
+wizard with the type chosen inside it.
+
+**The body is `Define schedule` / *Define how frequently effects should be
+executed*, then a grey pill, then the builder, then a divider, then one
+toggle:** `Use Cron expression (advanced)`.
+
+| control | UI state | cron state |
+|---|---|---|
+| the pill | `At 09:00 AM` | `Every hour, between 08:00 AM and 12:00 PM, only on Monday, Tuesday, Wednesday, Thursday, and Friday` |
+| `Frequency` | `Daily ▾` | **greyed, still showing `Daily`** |
+| `Every [1] day` | a number spinner | **greyed, still showing 1** |
+| `Set time` + `At 9:00 AM [tz]` | on | **greyed, still showing 9:00 AM** |
+| `Use Cron expression (advanced)` | off | **on** |
+| `Cron expression` | — | `0 8-12 * * 1,2,3,4,5` + its own timezone dropdown |
+| preview panel | — | the same sentence as the pill |
+
+**Answering Question 1: it is ONE condition with two editing modes.** The
+advanced toggle **disables** the builder rather than replacing it — the fields
+stay on screen holding their old values. So there is no second stored shape to
+model: the builder writes a cron, and the cron is the condition.
+
+**Three things the images add that no prose here states:**
+
+1. **The natural-language string is a RENDERING, shown three times** — in the
+   pill at the top of the card, in the preview panel under the expression, and
+   in the `Condition` column of the Automations table. `At 09:00 AM` in
+   `getting-started-automations-table-filtered.png` was that rendering, not a
+   raw cron. #745 read it as Foundry parsing an expression and declined to
+   half-build a parser; that diagnosis is now confirmed and the decision stands.
+2. **The timezone sits with the condition, in both modes.** It is beside the
+   time in the builder and beside the expression in advanced mode, never
+   duplicated. 573 kept the zone on the condition and left Question 1b open;
+   this is as close to an answer as a single-cron capture can give.
+3. **`0 8-12 * * 1,2,3,4,5` independently confirms 613.** A plain-number minute,
+   a range in the hour field, a list in day-of-week — exactly what the rule
+   permits and forbids, in a capture I had not opened when I wrote it.
+
+**One thing the builder can express that a cron cannot**, recorded rather than
+resolved: `Every [N] day` is a spinner, and "every 2 days" has no cron spelling
+— day-of-month `*/2` restarts each month. Either the spinner is capped at 1 for
+`Daily`, or the builder can produce something the expression cannot. No page
+says, and the capture shows `1`.
