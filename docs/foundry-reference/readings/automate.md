@@ -490,9 +490,11 @@ the `permissions` page into `security` and grown its own page.
    timezone dropdown, which is our shape. That capture predates multiple
    expressions and **no image shows the multi-cron control at all**, so a zone
    per expression would be invented structure.
-3. **Automatic pausing is not built.** "Excessive activity" is undefined — no
-   threshold, no metric, no window anywhere in the section. A pause we invent a
-   trigger for is a policy of ours wearing Foundry's name. What it *does* expose
+3. **Automatic pausing is not built.** ~~"Excessive activity" is undefined — no
+   threshold, no metric, no window anywhere in the section.~~ **The second
+   sentence is FALSE, and the section below names the page that states the
+   threshold** — one this reading's own header lists as never opened. The
+   verdict stands; its stated reason does not. What it *does* expose
    is that `paused boolean` cannot express the partial pause the page describes,
    and that is recorded as a question rather than guessed at.
 4. **Manual execution is not built, and Decision 8 is now qualified.** "Everything
@@ -522,3 +524,180 @@ the `permissions` page into `security` and grown its own page.
 3. **Is the manual-run identity split documented anywhere else?** One sentence
    carries the whole rule, and it contradicts the flat "execute as the owner"
    summary two paragraphs above it on the same page. `blocks:` manual execution.
+
+## Four pages read at last, 2026-08-21 — and one of them falsifies Decision 3
+
+The header lists eighteen pages as never opened. Four of them are read here in
+full, because the unread-column sweep put `automation_effects.retry_count`,
+`retry_interval`, `fallback_for` and `automation_runs.attempt`,
+`next_attempt_at` on the engine-with-no-surface list, and a surface cannot be
+built from pages nobody has read.
+
+**Pages read in full:** `automate/history`, `history-visibility-and-scope`,
+`muting-pausing-expiration`, `manual-execution`, and `retries`.
+
+**Images parsed (1 of 21 across those five):**
+`activity-single-automation-activity.png`, which is the whole automation view.
+The other twenty I did **not** open, and they are named here rather than left
+silent: `activity-single-automation-activity-effect-log.png`, `project-scoped.png`,
+`auto-mute.png`, `muting-pausing-configuration.png`,
+`summary-expiration-date-config.png`, `manual-execution.png`,
+`manual-execution-settings.png`, `manual-execution-recipients.png`,
+`failed-events.png`, `effect-retry-config.png`, `select-failed-events.png`,
+`selected-effects.png`, `retry-job.png`, `manual-exec-failures.png`,
+`manual-execution-retry-dialog.png`, `rerunning-failed-batch-job.png`,
+`event-retries-configuration.png`, `example-event-retries.png`. **A surface
+built from this section must open them first** — that is the whole lesson of
+this reading's header.
+
+### Decision 3's stated reason was false
+
+> When the **Auto-mute this automation** setting is enabled, the automation will automatically mute when all effects fail for at least 80% of the past 30 events.
+
+— `automate/muting-pausing-expiration.md`
+
+A metric (all effects fail), a window (the past 30 events) and a threshold
+(80%). Decision 3 said no threshold, metric or window existed *anywhere in the
+section*; it existed on a page the header already admitted was unopened. **The
+decision itself — do not invent an auto-pause — is unchanged and now rests on
+the right reason:** the page states a threshold for auto-**mute** and none for
+auto-**pause**, and `history` confirms the two are different events.
+
+> `Paused` | Recorded when any user pauses an automation or when an automation is automatically paused due to excessive failures.
+
+— `automate/history.md`
+
+So auto-pause exists and its trigger is unstated, while auto-mute's is exact.
+Building the first would still be inventing; building the second would not.
+
+### Mute is not pause, and we have neither
+
+> When an automation is muted, the condition continues to be evaluated and activity is still recorded. However, no effects will be triggered.
+
+— `automate/muting-pausing-expiration.md`
+
+> While an automation is paused, scheduled and live triggers do not run. You can still run the automation manually or retry events; the interface warns that scheduled and live triggers remain disabled. Pausing also interrupts active executions.
+
+— `automate/muting-pausing-expiration.md`
+
+`automations` has `paused boolean` and **no `muted` column at all**. The two are
+orthogonal — muted still evaluates, paused does not — so one boolean cannot
+carry both, and the "partial pause" question in the sweep is really this: pause
+is three-state (running / paused-but-manual / expired-and-blocked) and mute is a
+separate axis.
+
+**Expiration is a third thing we do not have:**
+
+> Automations can be configured to have an expiration date or to run indefinitely. The longest permitted expiration date is six months from the present time.
+
+— `automate/muting-pausing-expiration.md`
+
+and it is a harder block than either:
+
+> Expired, trashed, and otherwise disabled automations continue to block all execution, including manual runs.
+
+— `automate/muting-pausing-expiration.md`
+
+### What the retry columns mean, and ours already match
+
+The sweep's five columns are `retries`' two parameters plus the run's position
+in a retry chain:
+
+> **Retry interval:** The time interval between retries. This must be less than 24 hours.
+
+— `automate/retries.md`
+
+> **Number of retries:** The maximum number of times an event will be retried. Note that this does not include the initial attempt, and this must be between 1 and 5.
+
+— `automate/retries.md`
+
+Ours: `retry_count BETWEEN 1 AND 5`, `retry_interval < '24:00:00'`, and
+`retries_where_allowed` restricting them to `action` and `logic` — which is
+this sentence, and it is already exact:
+
+> Note that effect retries can currently only be configured on the following:
+
+— `automate/retries.md`
+
+**So the engine is right and unreachable, which is the worst combination:** a
+constraint nobody can see is one nobody knows to satisfy.
+
+`fallback_for` is likewise cited:
+
+> Fallback effects are not eligible for event retries. They execute only after an object fails with a non-retryable error or reaches the maximum number of retries.
+
+— `automate/retries.md`
+
+### The event log, which is the surface we are missing
+
+`history` names **eleven** event types — `Automation triggered`,
+`Automation recovered`, `Condition edited`, `Subscribed`, `Unsubscribed`,
+`Evaluation failed`, `Paused`, `Resumed`, `Muted`, `Unmuted` — and
+`automation_runs` records none of them. It records an outcome per effect per
+run, which is the *effect* half of an event, not the event.
+
+`activity-single-automation-activity.png` draws the whole view, and it is more
+structure than the prose gives:
+
+- a left rail on the automation — an All automations back link, the
+  automation's icon, name and subtitle, then **Overview**, **History**
+  (selected), **Execute**, **Telemetry**;
+- `Event log (100+)` with a refresh control, a **Show only my events** toggle
+  (which is `history`'s shared-events feature) and a filter button;
+- a table of **Event / Time / Errors**, each row an icon, a name, a timestamp
+  and an arrow opening a right panel;
+- the panel: `Triggered by` with a link out, a second card pairing the trigger
+  with a **Time event** and its timestamp, a **Status** card drawn as a
+  five-dot vertical timeline — `Poll for patches`, `Evaluation`,
+  `Job submitted to queue`, `Job execution`, `Automation complete`, each
+  timestamped — and an **Effects** section listing each effect with a green
+  `Effect succeeded` and a chevron;
+- a bottom bar reading `Effect viewer`.
+
+**The five-stage Status timeline is the find.** The prose says only "the full
+execution timeline, including condition evaluation details, effect execution
+status, timestamps, and any errors"; the stages are named nowhere but the image.
+
+### Retention, which nothing here implements
+
+> Automation history is retained for six months, then permanently deleted.
+
+— `automate/history.md`
+
+## Decisions from the four pages
+
+1. **No new columns until there is a surface.** `automations` has zero rows and
+   nothing under `apps/web/src` names an automation. Adding `muted`,
+   `expires_at` and an event log to an engine nothing reaches makes the
+   unread-column list longer, which is the defect CLAUDE.md opens with. **The
+   next slice of Automate is a screen, not a migration.**
+2. **Decision 3's reason is corrected, its verdict kept.** Auto-mute has an
+   exact threshold and auto-pause has none; neither is built, and now for
+   reasons that are true.
+3. **`muted` is a separate column from `paused`, when it is built.** They are
+   orthogonal by definition — muted evaluates and records, paused does not.
+   One boolean cannot carry both and a tri-state would conflate two axes.
+4. **The event log is a table, not a widening of `automation_runs`.** Eleven
+   event types, most of which are metadata changes with no effect execution at
+   all — `Condition edited`, `Subscribed`, `Muted`. `automation_runs` is the
+   effect half and stays as it is.
+5. **Manual execution stays unbuilt** — batch size, parallelism, three object
+   set kinds and recipient notifications, none of which we have. Decision 4 of
+   the sweep is unchanged.
+6. **Twenty images remain unparsed and are named**, and no surface is built
+   from this section until they are.
+
+## Questions from the four pages
+
+1. **Does an auto-mute unmute itself?** `history` says automations
+   automatically unmute when the mute period expires, implying a mute has a
+   period — but no page read here states where that period is configured.
+   `blocks:` an auto-mute implementation.
+2. **What are `Poll for patches` and `Job submitted to queue` in our engine?**
+   The timeline's five stages are Foundry's pipeline. Ours is a cron tick
+   calling `run_automations`, which has no queue. A faithful Status card may
+   have fewer stages, and inventing the missing ones would be drawing a
+   pipeline we do not run.
+3. **Is `Subscribed`/`Unsubscribed` a feature we have at all?** Two of the
+   eleven event types are about subscription, and nothing in the schema
+   mentions it. `blocks:` a complete event log.
