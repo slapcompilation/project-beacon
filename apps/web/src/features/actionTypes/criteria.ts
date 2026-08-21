@@ -129,3 +129,32 @@ export function useDeleteCriterion(actionTypeId: string) {
  *  roots conjoin — `submission_criteria_verdict` returns the first failure. */
 export const childrenOf = (rows: CriterionRow[], parent: string | null): CriterionRow[] =>
   rows.filter((r) => r.parent_id === parent).sort((a, b) => a.position - b.position)
+
+/** The second card on the Security & Submission Criteria tab. Foundry's
+ *  `Frontend consumers` is a SET — object-monitors names a second switch for
+ *  object monitors — and Automate is the only consumer we have. */
+export function useAutomateCanSubmit(actionTypeId: string | null) {
+  return useQuery({
+    queryKey: ['automate-can-submit', actionTypeId],
+    enabled: actionTypeId !== null,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await supabase.from('action_types')
+        .select('automate_can_submit').eq('id', actionTypeId ?? '').single()
+      if (error) throw new Error(error.message)
+      return (data as { automate_can_submit: boolean }).automate_can_submit
+    },
+  })
+}
+
+export function useSetAutomateCanSubmit(actionTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (allowed: boolean) => {
+      const { error } = await supabase.from('action_types')
+        .update({ automate_can_submit: allowed }).eq('id', actionTypeId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['automate-can-submit', actionTypeId] }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}

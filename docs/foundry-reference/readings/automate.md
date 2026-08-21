@@ -1027,11 +1027,10 @@ rather than an absence of one.
 
 ## Questions for the event log
 
-1. **Does an event exist when the condition does not fire?** `history` records
-   `Evaluation failed` but says nothing about a successful evaluation that
-   matched nothing. Ours would record only firings, which is an inference and
-   the cheaper one — a row per automation per minute would be 1,440 rows a day
-   each.
+1. ~~Does an event exist when the condition does not fire?~~ **ANSWERED — and
+   it was answered in three places, one of which this reading already quoted
+   without extracting the consequence. See § An event is recorded on the
+   transition, below.**
 2. **What is retention in practice?** `history` says six months, then permanent
    deletion. Nothing here expires anything, and a cron that deletes history is
    its own decision.
@@ -1039,3 +1038,134 @@ rather than an absence of one.
    `history` says "Recorded when any user updates the automation condition",
    which is a metadata change with no firing — so it has no runs, and the
    event table must allow that.
+
+## An event is recorded on the TRANSITION, not on every evaluation
+
+I recorded this as an open question and guessed at the cheaper answer. It is
+documented, in three places, and the first is the opening sentence of a page
+this reading already quotes:
+
+> Automation history tracks **events related to condition evaluation and automation metadata changes** for individual automations.
+
+— `automate/history.md`
+
+Events *related to* condition evaluation — not one per evaluation. The two
+condition pages then say what relates them, twice:
+
+> The **Threshold crossed** condition triggers when all defined checks return `true`. Effects are triggered and activity is recorded whenever the threshold is crossed in either direction.
+
+— `automate/condition-objects.md`
+
+> The function is called during evaluation, and events are recorded when the status changes.
+
+— `automate/condition-objects.md`
+
+**Called during evaluation; recorded when the status changes.** That is the
+distinction stated outright. And the event table in `history` is consistent with
+it throughout — every row is a transition or a metadata change:
+
+| event | what causes it |
+|---|---|
+| `Automation triggered` | the condition **is met**, or a threshold goes false → true |
+| `Automation recovered` | a threshold goes true → false |
+| `Evaluation failed` | the evaluation **fails** |
+| `Condition edited`, `Paused`, `Resumed`, `Muted`, `Unmuted` | a metadata change |
+
+**So an evaluation that succeeds and matches nothing records nothing**, and a
+failed one records `Evaluation failed`. The scheduled digest example depends on
+exactly that asymmetry — "Send a weekly list of new `Support Ticket` objects
+created in the previous week, **but only if tickets exist**"
+(`evaluation-frequency`).
+
+**The lesson is not the answer, it is where the answer was.** `condition-objects`
+is 203 lines and this reading had never opened it, while the sentence in
+`history` sat inside a block already quoted here. A question filed as open
+because the pages *I* had read did not settle it is not an open question; it is
+an unread page. `automation-dependencies` (52 lines, also never opened) turned
+out to carry a fourth related statement — with the "Always trigger effects when
+automation completes" setting toggled **off**, "Nothing happens. Effects execute
+only when objects match the condition."
+
+### What this changes for the event log
+
+Nothing in the design, and that is worth saying plainly: recording only
+transitions was the guess, and it is what the pages describe. What changes is
+its status — it is now cited rather than inferred, and Decision 1 below no
+longer rests on a cost argument about 1,440 rows a day.
+
+**One thing it adds.** `history` says condition-based history "is saved at the
+user level. You can only see whether an automation triggered for you, not for
+other users (even if you created the automation)." Ours has no per-user history
+and no subscribers, so an event here is one row for everyone who can see the
+automation — a divergence to record now rather than discover later, and the same
+absence that already refuses `Subscribed`/`Unsubscribed`.
+
+## `effect-actions` read, 2026-08-21 — and it finds a gap in what shipped this morning
+
+Read as the first of the three pages the authoring wizard needs. It turned up
+something upstream of the wizard, on a tab #738 built one section of.
+
+**Images parsed:** `effect-actions-submittable-by-automate.png`.
+
+> Not all actions are appropriate to use with Automate. You can disable an action from being usable in Automate once you configure the action type in Ontology Manager.
+
+— `automate/effect-actions.md`
+
+and the image shows where. **It draws the action type's whole left rail** —
+`Overview`, `Rules`, `Form`, `Capabilities`, `Security & Submission Criteria`
+(selected), `Automations` — and the tab holds **three** cards:
+
+1. `Submission criteria`, showing `Match All conditions below` over a
+   `Current User is …` condition and `Add a condition or a logical operator`.
+   That is what #738 built, and the image confirms it independently of the
+   picker screenshots it was built from.
+2. `Frontend consumers` — one labelled switch,
+   `Allow Foundry Automate to submit this action`.
+3. `Notification failure settings` — two radio options about what happens when
+   notified users cannot see the edited object.
+
+**So the tab I built one section of has two more**, and this is the third source
+to name it `Security & Submission Criteria`: the course, this page's prose, and
+now the image.
+
+### Frontend consumers is a set, and we have one member
+
+`object-monitors/actions` describes the same card with a second switch —
+"Allow An Object Monitor To Submit This Action" — so the section is a set of
+consumers, not a boolean. We have exactly one consumer and no object monitors,
+so 612 uses a column named for the consumer it gates: a second one is a second
+column and an obvious rename, where a join table with one possible row would be
+the generic-table mistake in miniature.
+
+### Built — 612
+
+`action_types.automate_can_submit`, DEFAULT true because the prose is about
+*disabling* and the image's toggle is on. Enforced at **both ends**, because
+they fail differently: a trigger refuses an effect that names a refused action,
+so the wizard cannot build something that will never run; and the runner refuses
+it again, because the toggle can be turned off **after** the effect exists — the
+case the authoring guard cannot reach.
+
+Four cases probed by doing them: allowed by default, refused at authoring once
+off, refused at run time when turned off later, and running again when turned
+back on. The last is what stops the refusal being blanket.
+
+### Not built, and named
+
+`Notification failure settings` is the third card, and it configures what
+happens when notified users cannot see an edited object. We have no notification
+effect — `automation_effect_kinds()` marks it `executable = false` — so the card
+would configure a path nothing walks.
+
+Two more from this page, recorded rather than built: the per-effect **retry
+policy** vocabulary is richer than ours (`constant backoff`, `exponential
+backoff`, and *jitter* as either a factor or a duration), where 521 built a
+single interval; and an action effect's **execution mode** groups objects
+(`once for all`, `once for each batch`, `once for each group`), which needs the
+per-object execution we do not have.
+
+**And one sentence that reads on 611**: "the execution sequence is not
+guaranteed when multiple actions are configured; actions may be executed in any
+order" — that is *within* one action effect, and does not contradict
+`effect-settings`' ordering *between* effects. Two different orderings, one page
+apart.
