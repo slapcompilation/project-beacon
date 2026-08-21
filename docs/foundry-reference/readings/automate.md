@@ -659,10 +659,17 @@ constraint nobody can see is one nobody knows to satisfy.
 
 ### The event log, which is the surface we are missing
 
-`history` names **eleven** event types — `Automation triggered`,
+**CORRECTED 2026-08-22: the number is TEN, and the list below has always had
+ten items.** I wrote "eleven" here and repeated it in four more places
+including #748's Decisions block, while the enumeration sitting next to the
+word disagreed with it. Counting the row of a table I had already transcribed
+is the cheapest check there is, and I did not do it — rule 7 one step earlier
+than usual.
+
+`history` names **ten** event types — `Automation triggered`,
 `Automation recovered`, `Condition edited`, `Subscribed`, `Unsubscribed`,
-`Evaluation failed`, `Paused`, `Resumed`, `Muted`, `Unmuted` — and
-`automation_runs` records none of them. It records an outcome per effect per
+`Evaluation failed`, `Paused`, `Resumed`, `Muted`, `Unmuted` — and until 622
+`automation_runs` recorded none of them. It records an outcome per effect per
 run, which is the *effect* half of an event, not the event.
 
 `activity-single-automation-activity.png` draws the whole view, and it is more
@@ -728,7 +735,7 @@ status, timestamps, and any errors"; the stages are named nowhere but the image.
    have fewer stages, and inventing the missing ones would be drawing a
    pipeline we do not run.
 3. **Is `Subscribed`/`Unsubscribed` a feature we have at all?** Two of the
-   eleven event types are about subscription, and nothing in the schema
+   ten event types are about subscription, and nothing in the schema
    mentions it. `blocks:` a complete event log.
 
 ## The surface, 2026-08-21 — four more images, and the status vocabulary is in a filter pane
@@ -849,7 +856,7 @@ stages.
    the previous section holds — this slice adds no schema. If the derivation
    needs an index later, that is a measurement, not a guess.
 7. **The History tab shows RUNS, and says so.** `automation_runs` is the effect
-   half of an event; the eleven event types are not built. The tab names what
+   half of an event; the ten event types are not built. The tab names what
    it is rather than borrowing the Event log's title.
 8. **`Execute` and `Telemetry` appear in the rail, disabled.** Both images show
    four rail entries. Manual execution is decided-unbuilt, and there is no
@@ -980,7 +987,7 @@ parenthesis about queuing:
 
 **An automation event is one firing.** Effect executions live *inside* an event —
 which is why `effect-settings`' sequential/parallel setting is described as
-applying "within an individual event", and why `history`'s eleven types include
+applying "within an individual event", and why `history`'s ten types include
 things with no effect execution at all.
 
 So `automation_runs` is not the event log and cannot become it by widening: it
@@ -1032,7 +1039,7 @@ rather than an absence of one.
    `condition-settings`' parenthesis. `automation_runs` gains an `event_id` and
    keeps its meaning — the effect half of an event.
 2. **The event types we can produce are the ones our engine causes.** Of
-   `history`'s eleven, this engine can currently cause `Automation triggered`,
+   `history`'s ten, this engine can currently cause `Automation triggered`,
    `Evaluation failed`, `Paused`, `Resumed`, `Muted`, `Unmuted` and
    `Condition edited`. Recording a type nothing writes would repeat the
    `skipped` situation in reverse — a value with no producer — so the CHECK
@@ -1918,3 +1925,64 @@ in order: 609–610 (mute and expiry), 611 (sequential execution), 612 (Frontend
 recorded rather than built, each with the page that names it.
 
 **Every one of those migrations came from a page read for something else.**
+
+
+## The event log, BUILT — 622 and 623
+
+The operator read #748's Decisions block, which is the gate, and approved it.
+What shipped:
+
+**`automation_events`, one row per firing**, with `automation_runs.event_id`
+pointing back at it — "Select an event to view the full execution timeline,
+including condition evaluation details, effect execution status, timestamps,
+and any errors". Seven of the ten types, each with a writer in the same
+migration: `automation_triggered` and `evaluation_failed` from the runner, and
+`paused`/`resumed`/`muted`/`unmuted`/`condition_edited` from an AFTER UPDATE
+trigger, because `history` records them for "any user" who makes the change and
+there is more than one path to a paused automation.
+
+The three omitted are omitted for producer-shaped reasons, not for effort:
+`Automation recovered` needs a threshold condition (one of the six cards we do
+not offer), and `Subscribed`/`Unsubscribed` need a subscriber, which this schema
+does not model at all. The probe enumerates rather than samples — it makes all
+seven happen through their real paths and fails naming any token that has no
+writer.
+
+**The visibility rule now has one statement.** `can_read_automation_history()`
+holds the scope predicate and both the runs policy and the events policy call
+it, instead of the same EXISTS being written twice.
+
+### The defect the probe found, which is the real yield
+
+Writing the failure half of the probe — an object set the owner cannot read —
+took down the whole `run_automations` pass. The handler around
+`automation_fires` was there; the **membership snapshot at the bottom of the
+loop calls `object_set_keys` again, unwrapped**, so the same unreadable set
+raised a second time outside any handler. One broken automation ended the pass
+for every other one, and nothing recorded why.
+
+622 wraps it and records `evaluation_failed` when the snapshot fails on its own.
+`history` is explicit that a failure is a recorded event — "Recorded when an
+automation fails to evaluate for any reason" — and being fatal to forty-nine
+other automations is not one of the readings of that sentence.
+
+### 623, because 622 left two holes that existing guards found
+
+`record_automation_run` was dropped and recreated, and came back **reachable by
+`authenticated`**: Supabase's `ALTER DEFAULT PRIVILEGES` grants EXECUTE on new
+functions to that role explicitly, so 622's `REVOKE ALL … FROM PUBLIC` did not
+touch it. `scheduledPathRls.test.ts` caught it. `record_automation_event` had
+the identical hole and **nothing failed**, because it was not on that guard's
+list — the more dangerous of the two. It is on the list now.
+
+`catalog.test.ts` caught the second: a new table with no COMMENT saying what it
+holds.
+
+### What this unblocks, and what it does not
+
+- **Auto-mute** is now countable: "all effects fail for at least 80% of the past
+  30 events" has a denominator. Not built — it also needs a per-event verdict.
+- **Manual execution** still needs the queue rather than the log; the log is the
+  prerequisite, not the mechanism.
+- **Retention** is untouched. "retained for six months, then permanently
+  deleted" is a cron that deletes history, which is its own decision.
