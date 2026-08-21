@@ -45,6 +45,19 @@ const db = vi.hoisted(() => {
         required: true, exposed: true, editable: true, position: 0,
       }],
     }],
+    // A None over a group membership: the shape the page calls a
+    // misconfiguration, so the editor has to render it before anyone can fix it.
+    action_type_submission_criteria: [
+      { id: 'c1', action_type_id: 'at1', parent_id: null, position: 0, node_type: 'logical',
+        logical_operator: 'none', template: null, parameter_id: null, user_field: null,
+        attribute_name: null, operator: null, value_source: null, value_parameter_id: null,
+        static_value: null, failure_message: 'You may not be an auditor' },
+      { id: 'c2', action_type_id: 'at1', parent_id: 'c1', position: 0, node_type: 'condition',
+        logical_operator: null, template: 'current_user', parameter_id: null,
+        user_field: 'group_ids', attribute_name: null, operator: 'includes',
+        value_source: 'static', value_parameter_id: null, static_value: 'auditors',
+        failure_message: null },
+    ],
   }
   return { rows, staged: [] as unknown[] }
 })
@@ -69,7 +82,10 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
         ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'function']
             .map((kind) => ({ kind, targets: 'object_type',
               executable: !['create_link', 'function'].includes(kind), note: `note for ${kind}` }))
-        : [],
+        : entity.apiName === 'submission_operators'
+          ? [{ operator: 'is', arity: 'single', note: '' },
+             { operator: 'includes', arity: 'multi', note: '' }]
+          : [],
     ),
     applyAction: (args: unknown) => {
       if (entity.apiName === 'save_action_type') { db.staged.push(args); return Promise.resolve('at2') }
@@ -118,6 +134,30 @@ describe('Action types', () => {
     renderPage()
     expect((await screen.findByRole('option', { name: 'create link' })).hasAttribute('disabled')).toBe(true)
     expect(screen.getByRole('option', { name: 'modify object' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('draws the criteria tree under the tab the course names', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Security & Submission Criteria' }))
+    expect(await screen.findByText('Security & Submission Criteria')).toBeDefined()
+    expect(screen.getByText('Execution')).toBeDefined()
+    // the root's operator word is a control, and only the root takes a message
+    expect((screen.getByRole('option', { name: 'None' }).closest('select') as HTMLSelectElement).value)
+      .toBe('none')
+    expect(screen.getByDisplayValue('You may not be an auditor')).toBeDefined()
+    // "+ Add a condition or a logical operator" at both levels: root and inside the None
+    expect(screen.getAllByRole('button', { name: 'condition' })).toHaveLength(2)
+  })
+
+  it('filters the operator list by arity, which is what a group list needs', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Security & Submission Criteria' }))
+    const verb = (await screen.findByRole('option', { name: 'includes' })).closest('select')
+    expect(verb).not.toBeNull()
+    // a membership is many values, so the five single-value operators are absent
+    expect(screen.queryByRole('option', { name: 'is' })).toBeNull()
   })
 
   it('asks the form for the exposed parameters, and for a target when a rule modifies', async () => {

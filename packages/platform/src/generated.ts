@@ -14,11 +14,11 @@ import type { ActionType, FunctionType, Json } from './client'
 // Volatile: they may write. Applied, not executed.
 
 /**
- *  Apply an action: validate required parameters, run create/modify/delete
- *  rules in order, append to the edit log with the action recorded on each
- *  edit. The next index build merges the result. Criteria evaluation and the
- *  other four rule kinds refuse by name rather than half-working. Invoker —
- *  the edit lands through object_edits' own policy.
+ *  Apply an action: evaluate the submission criteria tree, validate required
+ *  parameters, run create/modify/delete rules in order, append to the edit
+ *  log with the action recorded on each edit. The next index build merges the
+ *  result. The other four rule kinds refuse by name rather than half-working.
+ *  Invoker — the edit lands through object_edits' own policy.
  */
 export const applyAction = { apiName: 'apply_action', kind: 'action' } as ActionType<
   { p_action_type: string; p_parameters?: Json; p_primary_key?: string },

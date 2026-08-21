@@ -130,8 +130,8 @@ export interface ActionDraft {
 export function useSaveActionType() {
   const qc = useQueryClient()
   return useMutation({
-    // Criteria are OMITTED BY NAME: 421 stores the tree, but nothing evaluates
-    // it yet, so an editor here would author a gate that never fires.
+    // The draft carries no criteria: they are edited on the action type itself
+    // (CriteriaEditor), not staged with its rules and parameters.
     mutationFn: (d: ActionDraft) => client(saveActionType).applyAction({
       p_action: {
         id: d.id ?? null, api_name: d.apiName, label: d.label, description: d.description,
