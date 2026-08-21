@@ -93,10 +93,17 @@ axis, because `linked_objects` is a datasource kind in the api
 Two things ours does differently, recorded rather than acted on. **Ours is a
 dialog titled `Source — <property>` with a `Source type` radio group**; Foundry
 has no such radio here — edit-only is a toggle inside the property's General
-tab, and the picker beside it is labelled `Permissioned to`. And **the
-`Current:` line is an affordance we lack**: our title-key and primary-key
-controls do not say which property holds the designation today, so a user
-toggling one cannot see what they are displacing.
+tab, and the picker beside it is labelled `Permissioned to`.
+
+**The `Current:` line is a shape difference, not a gap** — and the first draft
+of this section said it was a gap, before I read our own control. Foundry puts
+the toggle on the property and prints the current holder beneath it;
+`ObjectTypesPage` puts a **select per designation** at the top of the Properties
+section, whose value *is* the current holder and whose options are already
+filtered by `primaryKeyEligibility` and `canBeTitleKey`. Foundry asks *is this
+property the key* — from the property; we ask *which property is the key* — from
+the type. Both say what is displaced; ours cannot express a type with no
+eligible property as a per-property control would.
 
 ## 4. The sentence nothing enforces
 
@@ -161,9 +168,10 @@ phase, not a column.
    the trigger rung — it needs a second table, so no CHECK can hold it, and it
    cannot go stale on its own, so it is not an `ontology_violations()` arm
    either. Zero rows violate it today.
-4. **The `Current:` affordance is not built here.** It is a property-editor
-   change, not a permissioning one, and it belongs with whatever restructures
-   that dialog into Foundry's four tabs.
+4. **The `Current:` affordance is not a gap and nothing is built for it.** Our
+   per-designation select already names the current holder; see §3. Checked
+   against `ObjectTypesPage` rather than assumed, after the first draft of §3
+   asserted the opposite.
 5. **The true edit-only OBJECT TYPE is not built, and is named.** See §5.
 
 ## Questions
