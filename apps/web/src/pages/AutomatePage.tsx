@@ -166,21 +166,17 @@ function AutomationsTab() {
           {STATUSES.map((s) => {
             const meta = STATUS_META[s]
             return (
-              <div key={s} className="flex items-center gap-2" title={meta.why}>
+              <div key={s} className="flex items-center gap-2" title={meta.hint}>
                 <Checkbox className="mb-0 flex-1" checked={picked.includes(s)}
-                  disabled={!meta.available}
                   onChange={() => {
                     setPicked(picked.includes(s) ? picked.filter((x) => x !== s) : [...picked, s])
                   }}
                   labelElement={
                     <span className="inline-flex items-center gap-1.5">
-                      <Icon icon={meta.icon as IconName} size={12}
-                        className={meta.available ? undefined : 'text-muted-foreground'} />
+                      <Icon icon={meta.icon as IconName} size={12} />
                       {meta.label}
                     </span>} />
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {meta.available ? counts(s) : '—'}
-                </span>
+                <span className="text-xs text-muted-foreground tabular-nums">{counts(s)}</span>
               </div>
             )
           })}
@@ -334,6 +330,12 @@ function AutomationDetail({ id }: { id: string }) {
               <Card compact className="text-xs space-y-1">
                 <div><span className="text-muted-foreground">Scope</span> · {a.scope} scoped</div>
                 <div><span className="text-muted-foreground">Last run</span> · {when(a.last_run_at)}</div>
+                {/* "configured to have an expiration date or to run
+                    indefinitely" — the second is what NULL means. */}
+                <div>
+                  <span className="text-muted-foreground">Expires</span> ·{' '}
+                  {a.expires_at ? when(a.expires_at) : 'Indefinitely'}
+                </div>
                 <div><span className="text-muted-foreground">Created</span> · {when(a.created_at)}</div>
                 {a.description && <div className="pt-1">{a.description}</div>}
               </Card>

@@ -53,27 +53,31 @@ export interface Automation {
   condition: Condition
   scope: 'user' | 'project'
   paused: boolean
+  muted: boolean
+  expires_at: string | null
   last_run_at: string | null
   created_at: string
   automation_effects: AutomationEffect[]
 }
 
-/** The five the filter pane enumerates. `muted` and `expired` have no column;
- *  they are shown and disabled rather than dropped, so the vocabulary does not
- *  look smaller than the page that lists it. */
+/** The five the filter pane enumerates. All five answerable since 609 gave
+ *  `muted` and `expires_at` their columns — the two #745 had to draw disabled. */
 export const STATUSES = ['active', 'error', 'muted', 'paused', 'expired'] as const
 export type AutomationStatus = typeof STATUSES[number]
 
 export const STATUS_META: Record<AutomationStatus, {
-  label: string; icon: string; available: boolean; why?: string
+  label: string; icon: string; hint: string
 }> = {
-  active:  { label: 'Active',  icon: 'tick-circle', available: true },
-  error:   { label: 'Error',   icon: 'error', available: true },
-  muted:   { label: 'Muted',   icon: 'disable', available: false,
-             why: 'A muted automation still evaluates and records activity but fires no effects. Not modelled: automations has no muted column.' },
-  paused:  { label: 'Paused',  icon: 'pause', available: true },
-  expired: { label: 'Expired', icon: 'ban-circle', available: false,
-             why: 'An expiration date, at most six months out, that blocks all execution including manual runs. Not modelled: automations has no expires_at column.' },
+  active:  { label: 'Active',  icon: 'tick-circle',
+             hint: 'Evaluated on the minute hand; effects run when the condition is met.' },
+  error:   { label: 'Error',   icon: 'error',
+             hint: 'The most recent run failed.' },
+  muted:   { label: 'Muted',   icon: 'disable',
+             hint: 'The condition is still evaluated and activity is still recorded. No effects are triggered.' },
+  paused:  { label: 'Paused',  icon: 'pause',
+             hint: 'Scheduled and live triggers do not run.' },
+  expired: { label: 'Expired', icon: 'ban-circle',
+             hint: 'Past its expiration date. Blocks all execution, including manual runs.' },
 }
 
 export const CONDITION_META: Record<ConditionKind, { label: string; icon: string }> = {
@@ -95,11 +99,16 @@ export const conditionSummary = (c: Condition): string => {
   return c.object_set_id ? 'On an object set' : 'No object set'
 }
 
-/** Not stated by any page: Foundry's filter treats Error as an automation
- *  status while ours records `failed` on a run. The most recent run failing is
- *  the derivation, and it is an inference. */
+/** Order follows what blocks what. Expiry "blocks all execution, including
+ *  manual runs", so it outranks pause; pause stops the triggers; a muted
+ *  automation still evaluates, so it is only muted once it is neither.
+ *
+ *  Error is the inference: no page states the derivation, and Foundry's filter
+ *  treats it as an automation status while ours records `failed` on a run. */
 export function statusOf(a: Automation, latest: AutomationRun | undefined): AutomationStatus {
+  if (a.expires_at !== null && new Date(a.expires_at).getTime() <= Date.now()) return 'expired'
   if (a.paused) return 'paused'
+  if (a.muted) return 'muted'
   if (latest?.outcome === 'failed') return 'error'
   return 'active'
 }

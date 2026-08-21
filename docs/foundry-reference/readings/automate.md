@@ -836,3 +836,58 @@ stages.
    automation status while `automation_runs.outcome` carries `failed`. Ours
    derives the first from the second, which is an inference — no page states
    the derivation.
+
+### Built — 609 and 610
+
+**609** gives `muted` and `expires_at` their columns, which Decision 1 above
+gated on a surface existing. #745 is that surface, so the condition was met.
+
+- **Mute keeps the automation a candidate** and changes only the effect loop,
+  because the condition "continues to be evaluated and activity is still
+  recorded". Pause is the opposite and was already right.
+- **"Activity is still recorded" lands on `skipped`** — a value 517 put in the
+  outcome vocabulary that nothing had ever written. An allowed value with no
+  producer, given the one the word describes.
+- **Expiry is excluded from the candidate set**, not handled in the loop,
+  because expired automations "continue to block all execution, including
+  manual runs". NULL is the other
+  documented choice, "run indefinitely".
+- **The six-month cap is a trigger, not a CHECK.** "From the present time" is a
+  fact about the moment of setting; a CHECK would re-evaluate it on every write
+  and on restore, and refuse a row that was legal when it was written.
+
+**610 exists because 609's third path never ran.** The probe took its own escape
+and printed *the muted branch is unproven here* — the database holds no action
+type, so there was nothing to attach an effect to. 610 creates one and proves
+the branch **by contrast**: muted records `skipped` and nothing else; unmuted
+records something else and no `skipped`. One direction alone would pass against
+a branch that skipped everything, or one that skipped nothing.
+
+610 also found a guard I did not know about — `guard_automation_effect_ownership`
+compares `auth.uid()` to the owner, and a migration has none, so the first run
+was refused with `Automate:TakeOwnershipToEdit`. That is the guard working; the
+probe now speaks as the owner.
+
+**Auto-mute is still not built, and the refusal is the interesting part.** Its
+rule is exact — 80% of the past 30 **events** — but we have runs per effect, and
+thirty events is not thirty rows. Choosing a row-based approximation would
+invent a threshold Foundry did not state, which is Decision 3's original mistake
+one step further on.
+
+**The surface** now answers all five statuses and disables none. The ranking is
+what blocks what: expired outranks paused, which outranks muted, which outranks
+error. **The first version of that test passed with the order deliberately
+wrong** — the fixtures were disjoint, so no ordering could be told from a
+coincidence. One automation that is expired and paused and muted at once is
+what makes the assertion mean anything, and it now fails under both wrong
+orderings.
+
+## Questions from 609
+
+1. **Does unmuting need `Editor` specifically?** The page says a user with an
+   `Editor` role on the automation can unmute and can resume. Ours gates writes
+   through `editors write automations`, which is the project's editor rather
+   than a per-automation role. Close, and not obviously the same thing.
+2. **What clears an expiry — the owner, or does an expired automation stay
+   expired?** No page read here says whether `expires_at` may be moved forward
+   after it has passed. Ours allows it, which is an inference.
