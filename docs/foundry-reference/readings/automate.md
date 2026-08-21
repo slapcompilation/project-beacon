@@ -1592,3 +1592,83 @@ support rather than engine support — but the same treatment. The choice
 2. **Does the ten include everything?** This page's two lists are exhaustive for
    *branch support*, which is not quite the same claim as exhaustive for the
    picker. No capture read here shows the picker scrolled to its end.
+
+## `effect-logic` and `effect-notification` read, 2026-08-21 — the last two with engines behind them
+
+Both are kinds in `automation_effect_kinds()` marked `executable = false`, so
+they are vocabulary we have committed to from pages nobody had read — the
+`effect-fallback` shape. **Nothing is built from either**; both describe
+products we do not have. What they give is one resolution and one
+strengthening.
+
+**Images: none parsed.** Every one belongs to a configuration surface for an
+effect that cannot run here — `effect-logic-add-new.png`,
+`effect-logic-output-returns-ontology-object.png`,
+`effect-notifications-effect-configuration-ui.png`,
+`effect-notifications-effect-object-backed-recipients.png`,
+`condition-objects-execution-mode-batched.png`,
+`condition-objects-execution-mode-grouped.png`,
+`condition-objects-execution-mode-per-object.png`,
+`template-notifications-example.png`,
+`effect-notifications-function-backed-base.png`,
+`effect-notifications-function-backed-complex.png`,
+`effect-notifications-attachment-notepad-template.png`.
+
+### The effect-input discrepancy resolves toward three
+
+#752 recorded that `effect-actions` lists **three** conditions exposing effect
+inputs while the picker image shows a fourth chip on `Run on all objects`.
+`effect-notification` is a **third page**, and it lists three:
+
+> Conditions that expose affected objects are:
+
+— `automate/effect-notification.md`, over a list of exactly three: Objects added
+to set, Objects removed from set, Objects modified in set.
+
+Two prose pages agree on three; one capture shows a fourth. And the chip's
+wording differs — the three are `Added objects` / `Removed objects` /
+`Modified objects`, a **delta**, while the fourth reads `Objects from set`,
+which is the whole input. Plausibly a different thing rather than a fourth
+member. **Recorded as leaning to three, not settled**, and moot until effect
+inputs exist.
+
+### The version-pinning gap now has two pages behind it
+
+`effect-function` said a function effect pins a version and may auto-upgrade.
+`effect-logic` says the same of a Logic effect, in the same words, and adds a
+constraint:
+
+> Note that auto upgrade is not supported with Project scope mode.
+
+— `automate/effect-logic.md`
+
+So the gap recorded from `effect-function` — `automation_effects` has
+`function_id` and **no version at all**, where `action_type_rules` pins one and
+can auto-upgrade — holds for two of the four effect kinds, and whoever closes it
+inherits a rule about `scope` that we already model.
+
+### Confirmed: `logic` is right to be executable = false
+
+> The Logic effect can only call AIP Logic functions that return a list of Ontology edits as their output.
+
+— `automate/effect-logic.md`
+
+`automation_effect_kinds()`' own note — that AIP Logic is a product we do not
+have — remains exactly true. The page also shows Foundry disabling rather than
+hiding again — staged-write Logic functions "appear as disabled in the function
+selector".
+
+### Recorded, and each needs machinery we refused
+
+- **Object grouping** for notifications — once for all, once per group of
+  properties, once per object — the same three modes `effect-actions` gives
+  action effects, needing per-object execution.
+- **Logic parallelisation**, defaulting to groups of 20.
+- **Notification recipients** carry their own permission model: at least
+  `Viewer` on the automation, plus `Viewer` on the triggering object instances,
+  plus on every property when the type is multi-datasource. Worth keeping with
+  the notification effect rather than discovering later.
+- **Attachments** from Notepad documents, templates and Contour dashboards.
+- A sharp edge if manual execution is ever built: "Manual executions of the
+  automation bypass the trigger conditions. As a result, permissions on the
+  trigger objects are not checked during manual runs."
