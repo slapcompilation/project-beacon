@@ -41,26 +41,24 @@ Rules, from `CLAUDE.md`:
 
 ## The queue
 
-Ordered to match the build order in `../../DELIVERABLE-MAP.md`, because a reading
-is worth most just before the thing it describes gets built. Nothing here is
-"read the whole corpus" — 1,184 pages is a reference, not a syllabus.
+**Emptied 2026-08-22, and one entry survived.** This queue said it was "ordered
+to match the build order in `../../DELIVERABLE-MAP.md`" — a build order that was
+finished and has now been deleted. Its eight entries were all long done:
+core-concepts, create-object-type and base-types, the Ontology Manager surface,
+link types, action types, Object Explorer, and security each have a reading and
+a built phase behind them. Left in place, the list read as work to do.
 
-**Before the first object type**
+**Except entry 4, which was never done at all.** It said:
 
-1. `ontology/core-concepts` + `ontology/_index` — the frame everything else sits in
-2. `object-link-types/create-object-type`, `base-types`, `edit-object-type`,
-   `edit-properties` — including **primary key**, which does not exist here at all
-3. `ontology-manager/overview`, `navigation`, `save-changes` — the authoring surface
-   we already have a page for
-4. `ontology/ontology-anti-patterns` + `ontology-best-practices` — read BEFORE
-   designing, not after
+> `ontology/ontology-anti-patterns` + `ontology-best-practices` — read BEFORE
+> designing, not after
 
-**Then, in build order**
-
-5. `object-link-types/create-link-type`, `edit-link-types` — backings and cardinality
-6. `action-types/` — the action type, which we deleted rather than kept
-7. `object-explorer/` — the surface that proves the three above are real
-8. `security/` + `platform-security-management/` — the layer with a live gap
+and `anti-patterns` appears nowhere in this directory except that line. Three
+pages are mirrored — `ontology-anti-patterns`, `ontology-best-practices`, and
+`ontology-best-practices-and-anti-patterns` — and the whole ontology was
+designed without them. It is the one queue entry that was both live and overdue,
+which is exactly what a stale queue hides: seven finished items made the eighth
+look finished too.
 
 **Standing interest, not queued**
 
@@ -71,6 +69,13 @@ is worth most just before the thing it describes gets built. Nothing here is
 
 ## Written so far
 
+- `ontology-best-practices-and-anti-patterns.md` — the three pages the queue
+  above listed and nobody opened. Eight anti-patterns, four principles in a
+  stated priority order, and exactly **one countable indicator**: more than ten
+  action types on a single object type, now an `ontology_warnings()` arm (621).
+  The generic-name bad-lists are deliberately NOT built — both are open sets by
+  their own wording. `visibility` was confirmed already built and already read
+  by eighteen functions.
 - `slate-styles.md` — Slate's three stylesheet scopes, Blueprint as the substrate,
   static-CSS rules. Decided: Blueprint stays on citation, no Tailwind, tiers wait
   for a widget layer.
