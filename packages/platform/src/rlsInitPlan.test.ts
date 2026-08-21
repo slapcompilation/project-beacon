@@ -28,6 +28,9 @@ const HELPERS = [
 describe.skipIf(noDb)('policy helpers are InitPlans', () => {
   let db: pg.Client
 
+  const one = async (sql: string) =>
+    (await db.query(sql)).rows[0] as Record<string, string>
+
   beforeAll(async () => { db = await connect() })
   afterAll(async () => { await rollback(db) })
 
@@ -71,6 +74,36 @@ describe.skipIf(noDb)('policy helpers are InitPlans', () => {
               like '%auth.uid()%'
         order by 1`)
     expect(rows.map((r) => (r as { site: string }).site)).toEqual([])
+  })
+
+  // 619. A FOR ALL policy is evaluated on SELECT too, and RLS is permissive-OR
+  // with no order guarantee, so a cheap read predicate does not save you from
+  // an expensive write one sitting beside it. Measured as `authenticated`:
+  // count(*) over dataset_branches 66.1ms -> 4.7ms, ontology_violations()
+  // 150.5ms -> 57ms, once the write half stopped running on every SELECT.
+  //
+  // Scoped to the tables the linter walks, because that is where it was
+  // measured — a blanket rule against FOR ALL would be a claim this suite has
+  // not earned.
+  it('a SELECT on the dataset tables does not evaluate a write predicate', async () => {
+    const { rows } = await db.query(
+      `select tablename || '.' || policyname as site
+         from pg_policies
+        where schemaname = 'public'
+          and tablename in ('dataset_branches','dataset_transactions','dataset_schemas')
+          and cmd = 'ALL'
+        order by 1`)
+    expect(rows.map((r) => (r as { site: string }).site)).toEqual([])
+  })
+
+  // The premise that made 619 safe rather than a narrowing: can_write_dataset
+  // is can_read_dataset AND more, so `read OR write` was always just `read`.
+  // If someone rewrites it without that conjunct, the split becomes a real
+  // change to who can see what, and this is where they find out.
+  it('write implies read, which is why the write half could leave the SELECT path', async () => {
+    const { def } = await one(
+      `select pg_get_functiondef('public.can_write_dataset(uuid)'::regprocedure) as def`)
+    expect(def).toContain('can_read_dataset')
   })
 
   // The shape 505 had to write by hand, asserted so it is not "simplified"
