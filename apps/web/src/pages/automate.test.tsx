@@ -14,7 +14,8 @@ interface Chain extends PromiseLike<{ data: unknown[]; error: null }> {
 const db = vi.hoisted(() => {
   const automation = (id: string, name: string, over: Record<string, unknown> = {}) => ({
     id, display_name: name, description: '', owner_id: 'u1', scope: 'project',
-    paused: false, last_run_at: null, created_at: '2026-08-01T00:00:00Z',
+    paused: false, muted: false, expires_at: null,
+    last_run_at: null, created_at: '2026-08-01T00:00:00Z',
     condition: { type: 'time', cron: '0 9 * * *', timezone: 'UTC' },
     automation_effects: [], ...over,
   })
@@ -22,6 +23,9 @@ const db = vi.hoisted(() => {
     automations: [
       automation('a1', 'Good morning email'),
       automation('a2', 'Nightly reconcile', { paused: true }),
+      automation('a4', 'Quiet hours digest', { muted: true }),
+      automation('a5', 'Old campaign',
+        { expires_at: '2026-01-01T00:00:00Z', paused: true, muted: true }),
       automation('a3', 'Escalate breaches', {
         condition: { type: 'objects_added', object_set_id: 'os1' },
         automation_effects: [{
@@ -91,20 +95,44 @@ describe('Automate', () => {
     expect(await screen.findByText('Actions:ObjectVersionChanged')).toBeDefined()
   })
 
-  it('shows all five statuses and disables the two with no column behind them', async () => {
+  // 609 gave muted and expires_at their columns, so all five of the filter
+  // pane's statuses are answerable and none is disabled any more.
+  it('answers all five of the statuses the filter pane enumerates', async () => {
     const user = userEvent.setup()
     renderAt('/automate')
     await user.click(await screen.findByRole('button', { name: 'Automations' }))
 
-    for (const label of ['Active', 'Error', 'Muted', 'Paused', 'Expired']) {
-      expect(screen.getByLabelText(label, { exact: false })).toBeDefined()
-    }
     const off = (label: string) =>
       screen.getByLabelText(label, { exact: false }).hasAttribute('disabled')
-    expect(off('Muted')).toBe(true)
-    expect(off('Expired')).toBe(true)
-    expect(off('Active')).toBe(false)
-    expect(off('Paused')).toBe(false)
+    for (const label of ['Active', 'Error', 'Muted', 'Paused', 'Expired']) {
+      expect(screen.getByLabelText(label, { exact: false })).toBeDefined()
+      expect(off(label)).toBe(false)
+    }
+  })
+
+  // "Expired... continue to block all execution, including manual runs", so
+  // expiry outranks pause; a muted automation still evaluates, so it ranks
+  // below both. The order is what blocks what.
+  it('ranks expired over paused over muted over error', async () => {
+    const user = userEvent.setup()
+    renderAt('/automate')
+    await user.click(await screen.findByRole('button', { name: 'Automations' }))
+
+    // 'Old campaign' is expired AND paused AND muted at once — which is the
+    // only shape that can tell an ordering from a coincidence.
+    await user.click(screen.getByLabelText('Muted', { exact: false }))
+    expect(await screen.findByText('Quiet hours digest')).toBeDefined()
+    expect(screen.queryByText('Old campaign')).toBeNull()
+
+    await user.click(screen.getByLabelText('Muted', { exact: false }))
+    await user.click(screen.getByLabelText('Paused', { exact: false }))
+    expect(await screen.findByText('Nightly reconcile')).toBeDefined()
+    expect(screen.queryByText('Old campaign')).toBeNull()
+
+    await user.click(screen.getByLabelText('Paused', { exact: false }))
+    await user.click(screen.getByLabelText('Expired', { exact: false }))
+    expect(await screen.findByText('Old campaign')).toBeDefined()
+    expect(screen.queryByText('Quiet hours digest')).toBeNull()
   })
 
   it('derives Error from the most recent run, not from a column', async () => {
@@ -123,6 +151,8 @@ describe('Automate', () => {
     renderAt('/automate/a3')
     expect(await screen.findByText('Escalate breaches')).toBeDefined()
     expect(screen.getByText(/Retries 3 times, every 00:05:00/)).toBeDefined()
+    // NULL is the documented other choice: "run indefinitely"
+    expect(screen.getByText(/Indefinitely/)).toBeDefined()
   })
 
   it('says the History tab shows runs, not the event log', async () => {
