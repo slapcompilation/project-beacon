@@ -1,0 +1,153 @@
+// Automate: fifteen functions, three tables, a cron heartbeat — and until now
+// nothing on any screen.
+//
+// "Automate is an application for setting up business automation. You can
+// define conditions and effects." — automate/getting-started
+//
+// Read-only in this slice. The creation wizard is five pages over
+// condition-settings, effect-actions and effect-function, none of which are
+// read, so nothing here writes an automation.
+import { useQuery } from '@tanstack/react-query'
+import { automationEffectKinds } from '@beacon/platform'
+import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
+
+/** The condition grammar automation_condition_valid() enforces. */
+export type ConditionKind = 'time' | 'objects_added' | 'objects_removed' | 'run_on_all'
+export interface Condition {
+  type: ConditionKind
+  cron?: string
+  crons?: string[]
+  timezone?: string
+  object_set_id?: string
+}
+
+export type RunOutcome = 'started' | 'succeeded' | 'failed' | 'skipped' | 'awaiting_retry'
+
+export interface AutomationRun {
+  id: string
+  automation_id: string
+  effect_id: string | null
+  outcome: RunOutcome
+  error: string | null
+  ran_at: string
+  attempt: number
+  next_attempt_at: string | null
+}
+
+export interface AutomationEffect {
+  id: string
+  kind: string
+  action_type_id: string | null
+  function_id: string | null
+  retry_count: number | null
+  retry_interval: string | null
+  fallback_for: string | null
+}
+
+export interface Automation {
+  id: string
+  display_name: string
+  description: string
+  owner_id: string | null
+  condition: Condition
+  scope: 'user' | 'project'
+  paused: boolean
+  last_run_at: string | null
+  created_at: string
+  automation_effects: AutomationEffect[]
+}
+
+/** The five the filter pane enumerates. `muted` and `expired` have no column;
+ *  they are shown and disabled rather than dropped, so the vocabulary does not
+ *  look smaller than the page that lists it. */
+export const STATUSES = ['active', 'error', 'muted', 'paused', 'expired'] as const
+export type AutomationStatus = typeof STATUSES[number]
+
+export const STATUS_META: Record<AutomationStatus, {
+  label: string; icon: string; available: boolean; why?: string
+}> = {
+  active:  { label: 'Active',  icon: 'tick-circle', available: true },
+  error:   { label: 'Error',   icon: 'error', available: true },
+  muted:   { label: 'Muted',   icon: 'disable', available: false,
+             why: 'A muted automation still evaluates and records activity but fires no effects. Not modelled: automations has no muted column.' },
+  paused:  { label: 'Paused',  icon: 'pause', available: true },
+  expired: { label: 'Expired', icon: 'ban-circle', available: false,
+             why: 'An expiration date, at most six months out, that blocks all execution including manual runs. Not modelled: automations has no expires_at column.' },
+}
+
+export const CONDITION_META: Record<ConditionKind, { label: string; icon: string }> = {
+  time:            { label: 'Time', icon: 'time' },
+  objects_added:   { label: 'Objects added', icon: 'add-to-artifact' },
+  objects_removed: { label: 'Objects removed', icon: 'remove' },
+  run_on_all:      { label: 'Run on all', icon: 'layers' },
+}
+
+/** The Condition cell: the same glyph as the tile, and the condition in words.
+ *  A cron is not rendered into English — "At 09:00 AM" is Foundry parsing an
+ *  expression, and a half-done parser would mislabel the ones it cannot read. */
+export const conditionSummary = (c: Condition): string => {
+  if (c.type === 'time') {
+    const list = c.crons ?? (c.cron ? [c.cron] : [])
+    const zone = c.timezone ? ` · ${c.timezone}` : ''
+    return list.length === 0 ? 'No schedule' : `${list.join('  ·  ')}${zone}`
+  }
+  return c.object_set_id ? 'On an object set' : 'No object set'
+}
+
+/** Not stated by any page: Foundry's filter treats Error as an automation
+ *  status while ours records `failed` on a run. The most recent run failing is
+ *  the derivation, and it is an inference. */
+export function statusOf(a: Automation, latest: AutomationRun | undefined): AutomationStatus {
+  if (a.paused) return 'paused'
+  if (latest?.outcome === 'failed') return 'error'
+  return 'active'
+}
+
+/** Active carries prose rather than the word: "Running on schedule" in the
+ *  screenshot, on a time condition. An object-set trigger is not a schedule. */
+export const statusTag = (s: AutomationStatus, c: Condition): string =>
+  s === 'active' ? (c.type === 'time' ? 'Running on schedule' : 'Running on changes')
+    : STATUS_META[s].label
+
+export function useAutomations() {
+  return useQuery({
+    queryKey: ['automations'],
+    queryFn: async (): Promise<Automation[]> => {
+      const { data, error } = await supabase.from('automations')
+        .select('*, automation_effects(*)').order('display_name')
+      if (error) throw new Error(error.message)
+      return data as Automation[]
+    },
+  })
+}
+
+/** Every run of every visible automation, newest first. One query rather than
+ *  one per row: the list needs only the latest per automation, and the History
+ *  tab needs the rest. */
+export function useAutomationRuns() {
+  return useQuery({
+    queryKey: ['automation-runs'],
+    queryFn: async (): Promise<AutomationRun[]> => {
+      const { data, error } = await supabase.from('automation_runs')
+        .select('*').order('ran_at', { ascending: false }).limit(500)
+      if (error) throw new Error(error.message)
+      return data as AutomationRun[]
+    },
+  })
+}
+
+export function useEffectKinds() {
+  return useQuery({
+    queryKey: ['automation-effect-kinds'],
+    staleTime: Infinity,
+    queryFn: () => client(automationEffectKinds).executeFunction({}),
+  })
+}
+
+/** The newest run per automation, which is what the Status column reads. */
+export const latestByAutomation = (runs: AutomationRun[]): Map<string, AutomationRun> => {
+  const out = new Map<string, AutomationRun>()
+  for (const r of runs) if (!out.has(r.automation_id)) out.set(r.automation_id, r)
+  return out
+}

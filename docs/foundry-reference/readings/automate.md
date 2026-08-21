@@ -701,3 +701,138 @@ status, timestamps, and any errors"; the stages are named nowhere but the image.
 3. **Is `Subscribed`/`Unsubscribed` a feature we have at all?** Two of the
    eleven event types are about subscription, and nothing in the schema
    mentions it. `blocks:` a complete event log.
+
+## The surface, 2026-08-21 — four more images, and the status vocabulary is in a filter pane
+
+Decision 1 of the previous section says the next slice of Automate is a screen,
+and Decision 6 says no surface is built until the images are open. Four more are
+open here.
+
+**Images parsed (5 of 21 now):** `activity-single-automation-activity.png`
+(previous section), plus `automate-overview-page.png`,
+`getting-started-automations-table-filtered.png`,
+`activity-single-automation-activity-effect-log.png`.
+
+**Still unparsed (17), and still named:** `project-scoped.png`, `auto-mute.png`,
+`muting-pausing-configuration.png`, `summary-expiration-date-config.png`,
+`manual-execution.png`, `manual-execution-settings.png`,
+`manual-execution-recipients.png`, `failed-events.png`,
+`effect-retry-config.png`, `select-failed-events.png`, `selected-effects.png`,
+`retry-job.png`, `manual-exec-failures.png`,
+`manual-execution-retry-dialog.png`, `rerunning-failed-batch-job.png`,
+`event-retries-configuration.png`, `example-event-retries.png`. Every one of
+them is about authoring, manual execution or retry management — none of which
+this slice builds.
+
+### The application's IA, from two images that agree
+
+`automate-overview-page.png` and `getting-started-automations-table-filtered.png`
+share a header: a lightning app icon, the app name `Automate`, then two tabs —
+**Overview** and **Automations** — with `+ New automation` as a **green**
+primary on the right beside `Help`.
+
+The prose confirms what each tab holds:
+
+> The **Overview** page shows a list of your recent automation activity, including counts of total automations you can see, automations owned by you, automations of which you are a recipient, and paused automations. You can also see lists of recently viewed automations, failures within the last four weeks, and recently triggered automations.
+
+— `automate/getting-started.md`
+
+The image adds the shapes the sentence does not: `Active automations` with a
+count chip and a `View all →` link, three stat cards — `Owned by you` /
+*Executed on your behalf*, `For you` / *You receive notifications*, `Paused` /
+*Automation is not evaluated* — then a `Recently viewed` table
+(`FILES · CREATOR · LAST EDITED BY · LAST VIEWED`) and a
+`Failures in last 4 weeks` table (`Automation · Time · Errors`).
+
+### The status vocabulary is an enumeration, and it is in the filter pane
+
+`getting-started-automations-table-filtered.png` lists five statuses as
+checkboxes with counts, each with its own glyph:
+
+| status | glyph |
+|---|---|
+| `Active` | tick in a circle |
+| `Error` | exclamation in a circle |
+| `Muted` | bell with a slash |
+| `Paused` | pause bars |
+| `Expired` | slashed circle |
+
+**This is the page that LISTS the set**, so by the rule CLAUDE.md carries it
+beats any prose describing one member. The table itself is
+`Name · Condition · Status · Creator` with a `···` overflow per row, and the
+row is: a rounded tile with the condition's glyph, the name as a link, and
+**the condition kind as the subtitle** — `Time` here, `Objects added` in
+`activity-single-automation-activity.png`. Two images agree on that, which is
+why the subtitle is treated as structure rather than decoration.
+
+The `Condition` cell is a grey pill with the same glyph and the condition in
+words — `At 09:00 AM`. The `Status` cell is a green tick and the tag
+`Running on schedule`, which is prose for `Active` rather than a sixth value.
+
+### Three of the five we can answer, and two we deliberately cannot
+
+`automations` has `paused boolean` and nothing else of this vocabulary.
+
+- **Paused** — `paused`.
+- **Error** — derivable: the automation's most recent run failed.
+- **Active** — neither of those.
+- **Muted** and **Expired** — need the `muted` and `expires_at` columns the
+  previous section decided not to add until a surface exists. They are shown in
+  the filter pane **disabled, with the reason on hover**, which is the shape
+  `action_rule_kinds()` already set: a kind that cannot run is shown disabled
+  rather than hidden, because hiding it makes the vocabulary look smaller than
+  it is.
+
+### The Effect viewer, and why the History detail stops where it does
+
+`activity-single-automation-activity-effect-log.png` expands the bottom bar into
+an **Effect viewer**: `Triggered by`, a green `Action ran successfully`, and
+**Execution trace logs** — a flame chart of `Action effect executing via
+automate` / `Action execution` / `Edits calculation` / `Email Drafter request`
+with a `Configure log access` control.
+
+**We have no trace, no flame chart and no per-effect log**, so the detail stops
+at the run row: outcome, error text, attempt, and the next attempt when one is
+scheduled. Drawing an empty flame chart would be drawing a pipeline we do not
+run — the same reason the previous section refused to invent the five Status
+stages.
+
+## Decisions for the surface
+
+1. **Two tabs, `Overview` and `Automations`**, under the app name, exactly as
+   both images show. `+ New automation` is **not** built in this slice — the
+   creation wizard is five pages over `condition-settings`, `effect-actions`
+   and `effect-function`, none of which are read.
+2. **The five statuses are all shown; two are disabled.** Muted and Expired
+   carry the reason. The alternative — listing three — would misrepresent the
+   vocabulary as smaller than the page that enumerates it.
+3. **`Running on schedule` is not a status.** It is the Active tag's wording on
+   a time condition. Ours says the same for a time condition and
+   `Running on changes` for an object-set one, because a cron is a schedule and
+   an object-set trigger is not.
+4. **The condition kind is the row's subtitle**, and the condition itself is a
+   pill. Both come from the images; the prose describes neither.
+5. **`For you` is not built.** Its subtitle is *You receive notifications*, and
+   the notification effect is `executable = false` here with the note "No
+   notification system exists here". A card that always reads zero for a
+   feature we do not have is worse than an absent one.
+6. **Status derivation lives in the page, not in a migration.** Decision 1 of
+   the previous section holds — this slice adds no schema. If the derivation
+   needs an index later, that is a measurement, not a guess.
+7. **The History tab shows RUNS, and says so.** `automation_runs` is the effect
+   half of an event; the eleven event types are not built. The tab names what
+   it is rather than borrowing the Event log's title.
+8. **`Execute` and `Telemetry` appear in the rail, disabled.** Both images show
+   four rail entries. Manual execution is decided-unbuilt, and there is no
+   telemetry; hiding them would misdraw the application.
+
+## Questions from the surface
+
+1. **What is `Recently viewed` backed by?** Foundry tracks per-user resource
+   views. Nothing here records one, and inventing a view log for a list on one
+   page is a table with a single reader. Left out; the Overview shows the
+   counts and the failures, which are answerable.
+2. **Is `Error` a status or a run outcome?** The filter pane treats it as an
+   automation status while `automation_runs.outcome` carries `failed`. Ours
+   derives the first from the second, which is an inference — no page states
+   the derivation.
