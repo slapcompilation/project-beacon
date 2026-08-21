@@ -25,6 +25,12 @@ describe.skipIf(noDb)('an object with edits', () => {
   let objectType = ''
   let branch = ''
 
+  // Every edit below is what the page's table calls "user runs a … Action", so
+  // each one says so: 605 refuses a direct write on a type that only allows
+  // edits via actions, and 606 closes the flag at the end of each apply — so
+  // setting it once for the transaction would be an ordering dependency.
+  const asAction = () => db.query(`select set_config('beacon.applying_action','on',true)`)
+
   beforeAll(async () => {
     db = await connect()
     f = await fixture(db, 'platform_obj')
@@ -34,6 +40,7 @@ describe.skipIf(noDb)('an object with edits', () => {
     const { rows: [t] } = await db.query(
       `insert into public.object_types (ontology_id, api_name, label, edits_enabled)
        values ($1,'Ticket','Ticket',true) returning id`, [(ont as { id: string }).id])
+
     objectType = (t as { id: string }).id
     const { rows: [b] } = await db.query(
       `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
@@ -137,6 +144,7 @@ describe.skipIf(noDb)('an object with edits', () => {
     ],
     run: async ({ datasource, edit }) => {
       if (edit) {
+        await asAction()
         await db.query(
           `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
            values ($1,'pk1',$2,$3::jsonb)`,
@@ -150,6 +158,7 @@ describe.skipIf(noDb)('an object with edits', () => {
   // on a deleted object; ANY MODIFY OBJECT ACTION CALL WILL FAIL." So it asserts
   // the failure, and that the state is unmoved by it.
   it('T14 — a Modify object Action on a deleted object fails', async () => {
+    await asAction()
     const err = await refused(db, () => db.query(
       `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
        values ($1,'pk1','modify','{"col2":"newVal2"}'::jsonb)`, [objectType]))
@@ -160,6 +169,7 @@ describe.skipIf(noDb)('an object with edits', () => {
   // "Deletions are not considered an edit. Once a deletion is applied… if the
   //  object is later recreated, IT WILL NOT INHERIT THE PREVIOUS EDITS."
   it('a recreated object does not inherit the edits made before its deletion', async () => {
+    await asAction()
     await db.query(
       `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
        values ($1,'pk1','create','{"pkColumn":"pk1"}'::jsonb)`, [objectType])
