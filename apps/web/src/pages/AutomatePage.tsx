@@ -294,7 +294,17 @@ function AutomationDetail({ id }: { id: string }) {
             </section>
 
             <section className="space-y-2">
-              <h3 className="text-sm font-semibold">Effects</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold">Effects</h3>
+                {/* "In sequential execution, if an effect fails, subsequent
+                    effects in the sequence will not execute." */}
+                <Tag minimal icon={a.execution === 'sequential' ? 'sort' : 'layout-grid'}
+                  title={a.execution === 'sequential'
+                    ? 'Run in order. A failure stops the sequence — even when a fallback handles it.'
+                    : 'Effects execute independently; one failing does not affect the others.'}>
+                  {a.execution}
+                </Tag>
+              </div>
               {a.automation_effects.length === 0 ? (
                 <Card compact className="text-xs text-muted-foreground">
                   No effects — the condition is evaluated and nothing runs.
@@ -304,8 +314,18 @@ function AutomationDetail({ id }: { id: string }) {
                 return (
                   <Card key={e.id} compact className="text-xs space-y-1">
                     <div className="flex items-center gap-2">
+                      {/* Only the orderable kinds take a place in the sequence;
+                          a notification is marked instead of numbered. */}
+                      {a.execution === 'sequential' && !e.fallback_for && k?.orderable && (
+                        <span className="text-muted-foreground tabular-nums">{e.position + 1}.</span>
+                      )}
                       <Icon icon="play" size={12} className="text-violet-500" />
                       <span className="font-medium">{e.kind}</span>
+                      {k && !k.orderable && a.execution === 'sequential' && (
+                        <Tag minimal title="Only action, logic and function effects can be ordered.">
+                          not ordered
+                        </Tag>
+                      )}
                       {k && !k.executable && (
                         <Tag minimal intent="warning" title={k.note}>not executable</Tag>
                       )}

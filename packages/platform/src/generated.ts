@@ -553,7 +553,7 @@ export const automationConditionValid = { apiName: 'automation_condition_valid',
 
 export const automationEffectKinds = { apiName: 'automation_effect_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
-  { kind: string; runtime: string; executable: boolean; note: string }[]
+  { kind: string; runtime: string; executable: boolean; orderable: boolean; note: string }[]
 >
 
 /**
