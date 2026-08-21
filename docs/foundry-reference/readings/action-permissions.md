@@ -252,10 +252,11 @@ this confirms the position rather than changing it.
    backfills `false` for object types that already have non-action edits, and
    `true` for the rest. A default that silently breaks a working type is not
    what the page describes — it describes the default for *new* types.
-6. **Criteria visibility is a SEPARATE change and is not made here.** It needs
+6. **Criteria visibility is a SEPARATE change** — made in 607, after this
+   reading was written, and only because both halves land together. It needs
    the evaluator to become SECURITY DEFINER first, and a test as
    `authenticated` proving the gate still refuses. Doing half of it removes a
-   gate.
+   gate. See §8.
 7. **Read and write authorizations are not built.** Beta, and they need a
    marking hierarchy we do not have.
 8. **Nothing is built from the caption of `recommended-writeback-setting.png`.**
@@ -302,6 +303,40 @@ Reachable outside a test: an edge function or a cron job on one connection that
 applies an action and then writes. Not from PostgREST, where each request is its
 own transaction — which is precisely why a migration assertion could not find
 it.
+
+## 8. And the criteria are hidden, in the one migration that could do it safely
+
+**607** does both halves at once, because either alone is wrong:
+
+1. `eval_criterion` and `submission_criteria_verdict` become SECURITY DEFINER,
+   so evaluation no longer depends on the caller reading the tree. The `auth_*`
+   helpers read `request.jwt.claims`, a GUC, so a criterion still evaluates for
+   the **caller** rather than the owner.
+2. the SELECT policy narrows from `can_read_action_type` (any member) to
+   `can_write_action_type` (owner or admin of the ontology).
+
+**A SECDEF function needs the door the policy was.** `submission_criteria_verdict`
+is callable directly — it is the form's pre-check — so as owner it would have
+answered for an action type in an ontology the caller cannot see, leaking the
+failure messages it exists to show. It now asks `can_read_action_type` first and
+refuses with the name `apply_action` already uses. `eval_criterion` needs no
+such guard: `pg_proc` says those two functions are the only ones whose source
+names it, so the verdict is its only door.
+
+**Proved as the real role, twice.** The migration probes with *claims, not
+rows* — a member whose role is `user`, who can read the action type and cannot
+write it — and asserts three things in one transaction: the rows are invisible,
+`can_read`/`can_write` really do differ for this caller, and the verdict still
+returns the criterion's own message. `actions.test.ts` asks the same on every CI
+run. The first draft of the probe used `authenticated` with no claims at all and
+failed on the new guard — which was the guard working, and the probe measuring
+the wrong thing.
+
+**The surface says hidden rather than showing nothing.** A viewer reads an empty
+tree, which would have rendered as *No criteria — this action can be submitted
+by anyone who can see it*: false, and the opposite of the truth. `CriteriaEditor`
+asks `can_write_action_type` first and prints that they are hidden and still
+apply.
 
 ## Questions
 

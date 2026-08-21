@@ -5,7 +5,7 @@
 // determine whether an action can be submitted" — action-types/submission-criteria.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { submissionOperators } from '@beacon/platform'
+import { canWriteActionType, submissionOperators } from '@beacon/platform'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 
@@ -53,6 +53,18 @@ export function useCriteria(actionTypeId: string | null) {
       if (error) throw new Error(error.message)
       return data as CriterionRow[]
     },
+  })
+}
+
+/** "action submission criteria are hidden from users who cannot edit action
+ *  types" — 607 narrowed the policy, so a viewer reads an empty tree. Asking
+ *  first is the difference between "hidden" and "there are none". */
+export function useCanEditActionType(actionTypeId: string | null) {
+  return useQuery({
+    queryKey: ['can-write-action-type', actionTypeId],
+    enabled: actionTypeId !== null,
+    staleTime: 60_000,
+    queryFn: () => client(canWriteActionType).executeFunction({ p_action: actionTypeId as string }),
   })
 }
 

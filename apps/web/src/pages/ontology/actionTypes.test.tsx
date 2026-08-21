@@ -59,7 +59,7 @@ const db = vi.hoisted(() => {
         failure_message: null },
     ],
   }
-  return { rows, staged: [] as unknown[] }
+  return { rows, staged: [] as unknown[], canEdit: true }
 })
 
 vi.mock('@/lib/supabase/client', () => {
@@ -85,7 +85,9 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
         : entity.apiName === 'submission_operators'
           ? [{ operator: 'is', arity: 'single', note: '' },
              { operator: 'includes', arity: 'multi', note: '' }]
-          : [],
+          : entity.apiName === 'can_write_action_type'
+            ? db.canEdit
+            : [],
     ),
     applyAction: (args: unknown) => {
       if (entity.apiName === 'save_action_type') { db.staged.push(args); return Promise.resolve('at2') }
@@ -97,7 +99,7 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
 
 import ActionTypesPage from './ActionTypesPage'
 
-afterEach(() => { cleanup(); db.staged.length = 0 })
+afterEach(() => { cleanup(); db.staged.length = 0; db.canEdit = true })
 
 const renderPage = () => render(
   <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
@@ -148,6 +150,17 @@ describe('Action types', () => {
     expect(screen.getByDisplayValue('You may not be an auditor')).toBeDefined()
     // "+ Add a condition or a logical operator" at both levels: root and inside the None
     expect(screen.getAllByRole('button', { name: 'condition' })).toHaveLength(2)
+  })
+
+  it('says criteria are hidden rather than showing none, to a non-editor', async () => {
+    db.canEdit = false
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Security & Submission Criteria' }))
+    expect(await screen.findByText(/hidden from users who cannot edit/)).toBeDefined()
+    // the tree itself is not drawn, and neither is the invitation to add to it
+    expect(screen.queryByRole('option', { name: 'None' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'condition' })).toBeNull()
   })
 
   it('filters the operator list by arity, which is what a group list needs', async () => {

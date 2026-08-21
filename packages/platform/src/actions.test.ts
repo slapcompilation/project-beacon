@@ -32,6 +32,8 @@ describe.skipIf(noDb)('actions', () => {
   let type: string
   let pid: string
   let action: string
+  let org: string
+  let claims: string
 
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
@@ -40,8 +42,9 @@ describe.skipIf(noDb)('actions', () => {
 
   beforeAll(async () => {
     db = await connect()
-    const org = (await one(`insert into public.organizations (name) values ('act-regress') returning id`)).id
+    org = (await one(`insert into public.organizations (name) values ('act-regress') returning id`)).id
     await admin(db, org, `act-${Date.now()}@beacon.test`)
+    claims = (await one(`select current_setting('request.jwt.claims', true) as c`)).c
     await db.query('set local role authenticated')
 
     const space = (await one(`select public.create_space('Act regress') as id`)).id
@@ -155,6 +158,28 @@ describe.skipIf(noDb)('actions', () => {
     const why = await refused(db, () =>
       db.query(`select public.apply_action($1, '{"ticketId":"T-9","severity":"low"}'::jsonb)`, [action]))
     expect(why).toMatch(/Low severity tickets are not escalated\./)
+  })
+
+  // "action submission criteria are hidden from users who cannot edit action
+  // types" — and the gate still has to fire for them, which is the half a
+  // policy change alone would have lost (607).
+  it('hides the criteria from a non-editor and still refuses them by name', async () => {
+    // same org, a role that is not owner or admin: can see the action type,
+    // cannot edit it
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: '00000000-0000-0000-0000-0000000000aa',
+        app_metadata: { role: 'user', org_id: org } })])
+    try {
+      expect(await one('select public.can_read_action_type($1) v', [action])).toEqual({ v: true })
+      expect(await one('select public.can_write_action_type($1) v', [action])).toEqual({ v: false })
+      expect(await count(`select count(*) n from public.action_type_submission_criteria
+                           where action_type_id = $1`, [action])).toBe(0)
+      const v = await one(`select public.submission_criteria_verdict($1,
+        '{"ticketId":"T-9","severity":"low"}'::jsonb) as v`, [action])
+      expect(v.v).toMatch(/Low severity/)
+    } finally {
+      await db.query(`select set_config('request.jwt.claims', $1, true)`, [claims])
+    }
   })
 
   it('gives the form a pre-check that matches the gate', async () => {
