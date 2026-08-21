@@ -1455,3 +1455,56 @@ orderable effects **plus** the fallback. That follows from 611's rule
 - **Retry policies on the fallback itself**, which is the same
   constant/exponential/jitter vocabulary `effect-actions` names and 521 modelled
   as a single interval.
+
+## `limits` read, 2026-08-21 — and it settles where the auto-pause threshold ISN'T
+
+**Page read in full. No images.** 521 is named "the published limits and the
+retry ladder", so this page informed a migration and was never cited here — the
+same shape as `effect-fallback`, which is why it was read next.
+
+### Nothing to build: our numbers are the page's numbers
+
+| the page | ours |
+|---|---|
+| the row reading "Maximum input size for `Objects added` or `Objects removed` conditions with scheduled execution", limit 100,000 | `automation_input_limit` returns 100000 |
+| the row for "Maximum input size for `Run on all objects` condition with scheduled execution", limit 1,000,000 | returns 1000000 for `run_on_all` |
+| the limit produces an **error**, not a smaller answer | `object_set_keys` raises `Automate:InputTooLarge` |
+
+Exact, including the strictness. Recorded as a confirmation because an
+uncited page that turns out to agree is worth as much as one that does not —
+it means 521 read it and only the citation was missing.
+
+### The auto-pause threshold is absent from the page that would carry it
+
+The reading's Decision 3 said not to invent an auto-pause, and I corrected its
+*reason* earlier today: `muting-pausing-expiration` gives auto-**mute** an exact
+threshold — 80% of the past 30 events — and gives auto-**pause** none.
+
+`limits` has a section headed **Automatic pausing due to excessive activity**,
+and it still states no threshold:
+
+> The system may automatically pause an automation when it detects excessive activity. While paused, scheduled and live triggers do not run, but manual runs and event retries remain available.
+
+— `automate/limits.md`
+
+That is the page most likely to publish the number, and it does not. **The
+absence is now checked on the right page rather than inferred from the pages I
+happened to have read** — which is the distinction the event-question crawl
+taught, applied deliberately this time.
+
+It also restates the pause semantics `muting-pausing-expiration` gives, and adds
+that resuming takes an `Editor` role on the automation — the same per-automation
+role our project-level `editors write automations` policy approximates, already
+recorded as an open question.
+
+### Limits for machinery we do not have
+
+- **Max batch size 1,000** — no batching here.
+- **Max recipients per automation 10,000** — no notification effect.
+- **45 minutes in the execution queue, 4 hours maximum run** — our runner is one
+  SQL transaction on the minute hand, so there is no queue to wait in and no
+  long-running event to terminate. The 4 hours is the same bound
+  `effect-function` puts on an asynchronous function, which is the machinery
+  that would need it.
+- **10,000 objects per evaluation for real-time and for per-object execution** —
+  both need modes we refused: live monitoring and per-object execution.
