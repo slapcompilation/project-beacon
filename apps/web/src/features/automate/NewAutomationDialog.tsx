@@ -56,7 +56,7 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
 
   const effective = advanced ? cron : scheduleToCron(schedule)
   const cronOk = automateCronLooksValid(effective)
-  const conditionReady = kind === 'time' ? cronOk : kind !== null && objectSetId !== null
+  const conditionReady = kind === 'time' ? cronOk : kind !== null && objectSetId !== null && cronOk
   const canCreate = conditionReady && name.trim() !== '' && projects.length > 0
 
   const submit = () => {
@@ -111,7 +111,8 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
               </>
             ) : kind === 'time' ? (
               <TimeStep {...{ schedule, setSchedule, advanced, setAdvanced, cron, setCron,
-                timezone, setTimezone, effective, cronOk }} onBack={() => { setKind(null) }} />
+                timezone, setTimezone, effective, cronOk }} onBack={() => { setKind(null) }}
+                blurb="Define how frequently effects should be executed." />
             ) : (
               <>
                 <h3 className="text-sm font-semibold">Object set</h3>
@@ -129,6 +130,11 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
                     No saved object sets. Save one in Object Explorer first.
                   </Callout>
                 )}
+                <div className="border-t mt-4 pt-4">
+                  <TimeStep {...{ schedule, setSchedule, advanced, setAdvanced, cron, setCron,
+                    timezone, setTimezone, effective, cronOk }} onBack={null}
+                    blurb="Define how frequently the object set condition should be evaluated." />
+                </div>
                 <Button variant="minimal" size="small" icon="arrow-left" className="mt-2"
                   onClick={() => { setKind(null) }}>Choose another condition</Button>
               </>
@@ -248,12 +254,12 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
  *  divider, the advanced toggle below it, and the builder greys out when the
  *  toggle is on — which is how the screenshots draw the two states. */
 function TimeStep({ schedule, setSchedule, advanced, setAdvanced, cron, setCron,
-  timezone, setTimezone, effective, cronOk, onBack }: {
+  timezone, setTimezone, effective, cronOk, onBack, blurb }: {
   schedule: ScheduleDraft; setSchedule: (s: ScheduleDraft) => void
   advanced: boolean; setAdvanced: (b: boolean) => void
   cron: string; setCron: (s: string) => void
   timezone: string; setTimezone: (s: string) => void
-  effective: string; cronOk: boolean; onBack: () => void
+  effective: string; cronOk: boolean; onBack: (() => void) | null; blurb: string
 }) {
   const set = (patch: Partial<ScheduleDraft>) => { setSchedule({ ...schedule, ...patch }) }
   return (
@@ -262,9 +268,7 @@ function TimeStep({ schedule, setSchedule, advanced, setAdvanced, cron, setCron,
         <h3 className="text-sm font-semibold">Define schedule</h3>
         <Tag minimal icon="time" className="ml-auto">{effective}</Tag>
       </div>
-      <p className="text-xs text-muted-foreground mt-1 mb-2">
-        Define how frequently effects should be executed.
-      </p>
+      <p className="text-xs text-muted-foreground mt-1 mb-2">{blurb}</p>
 
       <div className={advanced ? 'oma-card-off space-y-2' : 'space-y-2'}>
         <label className="flex flex-col gap-1">
@@ -334,8 +338,10 @@ function TimeStep({ schedule, setSchedule, advanced, setAdvanced, cron, setCron,
         <InputGroup value={timezone} onValueChange={setTimezone} />
       </label>
 
-      <Button variant="minimal" size="small" icon="arrow-left" className="mt-3"
-        onClick={onBack}>Choose another condition</Button>
+      {onBack && (
+        <Button variant="minimal" size="small" icon="arrow-left" className="mt-3"
+          onClick={onBack}>Choose another condition</Button>
+      )}
     </>
   )
 }

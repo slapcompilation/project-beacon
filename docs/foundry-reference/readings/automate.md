@@ -1701,20 +1701,44 @@ Lever 1 of its three is the whole point of the page:
 and its worked example turns 100,000 evaluations a day into 288 by attaching a
 five-minute cadence.
 
-**That five minutes is NOT the Time condition card**, which `condition-time`
-caps at once an hour and 613 now enforces. It is *scheduled monitoring* of an
-object-set condition — a second, separate schedule that `evaluation-frequency`
-describes as "a user-defined schedule".
+**CORRECTED 2026-08-21, and the correction is the whole point.** This paragraph
+said the five minutes was not the Time condition card but *scheduled monitoring*
+of an object set condition. That is wrong, and I only found it by going back to
+build from it. The page says "combine a time-based evaluation with your object
+set condition" and then "Adding a time condition of 5 minutes", against a
+scenario whose condition is "on object update" — Objects modified in set, which
+is **live monitoring only**. So Lever 1 is a TIME CONDITION paired with a
+live-monitored object condition; it is out of reach here by Decision 4, and its
+five minutes contradicts `condition-time`'s own "A minimum frequency of once per
+hour" regardless.
 
-**Ours has no such thing.** `automation_condition_valid` accepts
+**There are two mechanisms and I had merged them into one.** The other is the
+real finding, and it is on `evaluation-frequency`:
+
+> "A schedule allows you to check an object set condition at a specific point in
+> time or on a regular cadence."
+
+> "Scheduled monitoring evaluates the condition on a user-defined schedule."
+
+— `automate/evaluation-frequency.md`
+
+**Ours had no such thing.** `automation_condition_valid` accepted
 `objects_added`, `objects_removed` and `run_on_all` with an `object_set_id` and
-nothing else, so every object-set condition is evaluated on the minute hand,
-every minute, with no way to cap it. Foundry's primary lever against runaway
-cost is a field we do not have.
+nothing else, so every object set condition was evaluated on the minute hand,
+every minute, with no way to cap it.
 
-Recorded rather than built: it is a grammar change plus a runner change, and it
-wants its own slice. It is also the most likely next thing to matter, because
-the cost it controls is the one this engine will hit first.
+**Built, 617 and 618.** The schedule is an optional `{cron, timezone}` on the
+object set condition, taking Automate's cron grammar rather than the pipeline
+one, and absent means daily. The load-bearing part is not the grammar: the
+cadence gates the whole EVALUATION, because `automation_fires` compares the set
+against a snapshot that `run_automations` used to rewrite on every tick. Gate
+only the firing and a daily automation fires once a day having seen one minute
+of additions, absorbing the rest silently.
+
+618 exists because 617's own assertion for that could not have caught it — it
+tested `condition_state IS NULL` on a column that is `NOT NULL DEFAULT '{}'`,
+and prod has no object sets so it never ran either. The real contrast is on the
+`members` key, and it now lives in the platform suite as well.
 
 ### Two vocabularies confirmed, one from an odd angle
 
@@ -1807,10 +1831,26 @@ Four pages now describe the same field. It stays recorded rather than built for
 the reason given above, but it is no longer an inference about how Foundry
 probably works: it has a default, a forcing condition, and two worked examples.
 
-**Images: none of the three examples' eleven parsed.** Named so the debt is
-recorded and not silently dropped: `example-relative-time-condition.png`,
-`example-relative-time-effect.png`, `example-relative-time-overview.png`,
-`example-weekly-report-object-and-time-condition.png`,
+**Images: two of the three examples' eleven parsed, and they carried the shape
+the prose could not.** `example-weekly-report-object-and-time-condition.png` and
+`example-relative-time-condition.png` both show `Define schedule` as a second
+card below the condition — "Define how frequently the object set condition
+should be evaluated" — with **Frequency**, an **Every N** interval, an optional
+**Set time**, a timezone, and a `Use Cron expression (advanced)` toggle. That is
+our TimeStep component exactly, which is why 617's surface half reused it rather
+than building a second one. There is no automations endpoint under `api/`, so
+without these two the shape would have been invented.
+
+They also confirm a causal claim the prose only asserts: `Use live monitoring`
+is **greyed out** on the relative-time example, whose filter forces scheduled
+monitoring, and **live** on the weekly-report example, whose condition does not.
+And the relative-time capture shows the daily default with **Set time toggled
+off** — so a daily schedule with no time is a real state, and no page says what
+hour it then runs. Midnight is 617's inference, marked as such there.
+
+**The other nine are still unparsed.** Named so the debt is recorded and not
+silently dropped: `example-relative-time-effect.png`,
+`example-relative-time-overview.png`,
 `example-weekly-report-effect-select.png`,
 `example-weekly-report-notification-recipients.png`,
 `example-weekly-report-notification-content.png`,

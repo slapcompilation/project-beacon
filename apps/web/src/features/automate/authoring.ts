@@ -161,8 +161,13 @@ export function useCreateAutomation() {
   })
 }
 
+/** An object set condition carries a cadence of its own — a second schedule,
+ *  separate from the Time condition, that says how often the set is checked.
+ *  The wizard always writes one rather than leaning on the daily default, so
+ *  what the summary shows is what the runner reads. */
 export const conditionOf = (kind: string, s: ScheduleDraft, cron: string | null,
   timezone: string, objectSetId: string | null): Condition =>
   kind === 'time'
     ? { type: 'time', cron: cron ?? scheduleToCron(s), timezone }
-    : { type: kind as ConditionKind, object_set_id: objectSetId ?? undefined }
+    : { type: kind as ConditionKind, object_set_id: objectSetId ?? undefined,
+        schedule: { cron: cron ?? scheduleToCron(s), timezone } }
