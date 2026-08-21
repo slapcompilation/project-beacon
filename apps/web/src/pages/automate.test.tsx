@@ -187,9 +187,10 @@ describe('Automate', () => {
     expect(screen.getByText('failed')).toBeDefined()
   })
 
-  // getting-started-add-condition.png lists EIGHT cards. Four are ours; the
-  // rest carry the reason they are not offered rather than being hidden.
-  it('offers all eight conditions and marks the four it cannot run', async () => {
+  // The capture shows eight and is cut off; branching-automations enumerates
+  // the whole picker as ten. Four are ours; the rest carry the reason they are
+  // not offered rather than being hidden.
+  it('offers all ten conditions and marks the six it cannot run', async () => {
     const user = userEvent.setup()
     renderAt('/automate')
     await user.click(await screen.findByRole('button', { name: /New automation/ }))
@@ -199,11 +200,11 @@ describe('Automate', () => {
 
     for (const label of ['Time', 'Objects added to set', 'Objects removed from set',
       'Objects modified in a set', 'Run on all objects', 'Metric changed',
-      'Threshold crossed', 'Automation dependency']) {
+      'Threshold crossed', 'Automation dependency', 'Time series', 'Stream']) {
       expect(wizard.getByText(label)).toBeDefined()
     }
-    // exactly four are marked, and they are the four with no engine behind them
-    expect(wizard.getAllByText('not offered')).toHaveLength(4)
+    // exactly six are marked, and they are the six with no engine behind them
+    expect(wizard.getAllByText('not offered')).toHaveLength(6)
   })
 
   // 613's rule, mirrored in the wizard so it refuses before the database does.

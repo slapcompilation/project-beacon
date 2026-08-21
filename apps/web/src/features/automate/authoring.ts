@@ -1,9 +1,13 @@
 // Authoring an automation — the wizard's vocabulary and its one write.
 //
-// The condition picker's cards come from `getting-started-add-condition.png`,
-// which lists EIGHT. We support four; the other four are shown with the reason
-// they are not offered, because hiding them makes the vocabulary look smaller
-// than the page that enumerates it — the shape action_rule_kinds() set.
+// The condition picker's cards. `getting-started-add-condition.png` shows
+// eight and is cut off; `branching-automations` ENUMERATES the whole picker as
+// five supported on a branch plus five not, so the set is TEN. The page that
+// lists wins over the capture that was cropped.
+//
+// We support four. The other six are shown with the reason they are not
+// offered, because hiding them makes the vocabulary look smaller than the page
+// that enumerates it — the shape action_rule_kinds() set.
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
@@ -21,7 +25,7 @@ export interface ConditionCard {
   why?: string
 }
 
-/** All eight, in the order the picker lists them. */
+/** All ten, in the order the picker lists them. */
 export const CONDITION_CARDS: ConditionCard[] = [
   { kind: 'time', label: 'Time', icon: 'time', exposes: null, supported: true,
     blurb: 'Triggers when a specific time is reached. E.g., "Every Monday at 9am."' },
@@ -50,6 +54,14 @@ export const CONDITION_CARDS: ConditionCard[] = [
     exposes: null, supported: false,
     why: 'Runs when a parent automation completes. No automation can depend on another here.',
     blurb: 'Evaluates when a linked automation completes.' },
+  { kind: 'time_series', label: 'Time series', icon: 'timeline-line-chart',
+    exposes: null, supported: false,
+    why: 'time_series_properties is an orphan of the deleted product: zero rows, no surface, and no datasource kind backs a series.',
+    blurb: 'Triggers when a time series threshold is crossed.' },
+  { kind: 'stream', label: 'Stream', icon: 'flow-linear',
+    exposes: null, supported: false,
+    why: 'Beta upstream, and there is no stream datasource kind here — one_backing admits a dataset, a restricted view or a media set.',
+    blurb: 'Triggers on any new records in a stream.' },
 ]
 
 /** "hourly, daily, weekly, and monthly" — the builder's four, each of which is
