@@ -537,6 +537,10 @@ for (const file of added) {
   for (const m of sql.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
     const claim = slugOf(m[1])
     if (/\.(png|jpg|jpeg|gif|svg)$/i.test(claim) || claim.endsWith('/')) continue
+    // A page slug's first segment is a word. `25/10` is a cron expression —
+    // "every tenth minute beginning from 25" — and 613 quotes one, which this
+    // read as an invented page name until the segment was checked for a letter.
+    if (!/[a-z]/i.test(m[1].split('/')[0])) continue
     if (mirror.some((x) => slugOf(x.file) === claim)) continue
     if (fs.existsSync(m[1]) || fs.existsSync(path.join(READINGS, m[1]))) continue
     misattributed.push({ name: path.basename(file), claim: m[1] })
