@@ -37,7 +37,7 @@ const db = vi.hoisted(() => {
     }],
     action_types: [{
       id: 'at1', ontology_id: 'ont1', api_name: 'ground-aircraft', label: 'Ground aircraft',
-      description: '', status: 'experimental', created_at: '',
+      description: '', status: 'experimental', created_at: '', automate_can_submit: true,
       action_type_rules: [rule('modify_object')],
       action_type_parameters: [{
         id: 'pa1', api_name: 'reason', display_name: 'Reason', description: '',
@@ -161,6 +161,15 @@ describe('Action types', () => {
     // the tree itself is not drawn, and neither is the invitation to add to it
     expect(screen.queryByRole('option', { name: 'None' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'condition' })).toBeNull()
+  })
+
+  // The second card on the tab: "Allow Foundry Automate to submit this action".
+  it('offers the Frontend consumers switch beside the criteria', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Security & Submission Criteria' }))
+    expect(await screen.findByText('Frontend consumers')).toBeDefined()
+    expect(screen.getByText('Allow Foundry Automate to submit this action')).toBeDefined()
   })
 
   it('filters the operator list by arity, which is what a group list needs', async () => {

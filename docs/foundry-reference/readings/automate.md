@@ -1099,3 +1099,73 @@ other users (even if you created the automation)." Ours has no per-user history
 and no subscribers, so an event here is one row for everyone who can see the
 automation — a divergence to record now rather than discover later, and the same
 absence that already refuses `Subscribed`/`Unsubscribed`.
+
+## `effect-actions` read, 2026-08-21 — and it finds a gap in what shipped this morning
+
+Read as the first of the three pages the authoring wizard needs. It turned up
+something upstream of the wizard, on a tab #738 built one section of.
+
+**Images parsed:** `effect-actions-submittable-by-automate.png`.
+
+> Not all actions are appropriate to use with Automate. You can disable an action from being usable in Automate once you configure the action type in Ontology Manager.
+
+— `automate/effect-actions.md`
+
+and the image shows where. **It draws the action type's whole left rail** —
+`Overview`, `Rules`, `Form`, `Capabilities`, `Security & Submission Criteria`
+(selected), `Automations` — and the tab holds **three** cards:
+
+1. `Submission criteria`, showing `Match All conditions below` over a
+   `Current User is …` condition and `Add a condition or a logical operator`.
+   That is what #738 built, and the image confirms it independently of the
+   picker screenshots it was built from.
+2. `Frontend consumers` — one labelled switch,
+   `Allow Foundry Automate to submit this action`.
+3. `Notification failure settings` — two radio options about what happens when
+   notified users cannot see the edited object.
+
+**So the tab I built one section of has two more**, and this is the third source
+to name it `Security & Submission Criteria`: the course, this page's prose, and
+now the image.
+
+### Frontend consumers is a set, and we have one member
+
+`object-monitors/actions` describes the same card with a second switch —
+"Allow An Object Monitor To Submit This Action" — so the section is a set of
+consumers, not a boolean. We have exactly one consumer and no object monitors,
+so 612 uses a column named for the consumer it gates: a second one is a second
+column and an obvious rename, where a join table with one possible row would be
+the generic-table mistake in miniature.
+
+### Built — 612
+
+`action_types.automate_can_submit`, DEFAULT true because the prose is about
+*disabling* and the image's toggle is on. Enforced at **both ends**, because
+they fail differently: a trigger refuses an effect that names a refused action,
+so the wizard cannot build something that will never run; and the runner refuses
+it again, because the toggle can be turned off **after** the effect exists — the
+case the authoring guard cannot reach.
+
+Four cases probed by doing them: allowed by default, refused at authoring once
+off, refused at run time when turned off later, and running again when turned
+back on. The last is what stops the refusal being blanket.
+
+### Not built, and named
+
+`Notification failure settings` is the third card, and it configures what
+happens when notified users cannot see an edited object. We have no notification
+effect — `automation_effect_kinds()` marks it `executable = false` — so the card
+would configure a path nothing walks.
+
+Two more from this page, recorded rather than built: the per-effect **retry
+policy** vocabulary is richer than ours (`constant backoff`, `exponential
+backoff`, and *jitter* as either a factor or a duration), where 521 built a
+single interval; and an action effect's **execution mode** groups objects
+(`once for all`, `once for each batch`, `once for each group`), which needs the
+per-object execution we do not have.
+
+**And one sentence that reads on 611**: "the execution sequence is not
+guaranteed when multiple actions are configured; actions may be executed in any
+order" — that is *within* one action effect, and does not contradict
+`effect-settings`' ordering *between* effects. Two different orderings, one page
+apart.

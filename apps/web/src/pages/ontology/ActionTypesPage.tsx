@@ -35,6 +35,7 @@ import {
   VALUE_SOURCES, type ActionRuleRow, type ActionTypeRow, type ValueSource,
 } from '@/features/actionTypes/api'
 import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
+import { FrontendConsumers } from '@/features/actionTypes/FrontendConsumers'
 
 /** A parameter is filled by a form field, so the picker offers the base types a
  *  form field can produce. The CHECK accepts every property base type. */
@@ -108,6 +109,7 @@ export default function ActionTypesPage() {
                       id: p.id, api_name: p.api_name, display_name: p.display_name,
                       base_type: p.base_type ?? 'string',
                     }))} />
+                    <FrontendConsumers actionTypeId={a.id} />
                   </div>
                 )}
                 </li>
