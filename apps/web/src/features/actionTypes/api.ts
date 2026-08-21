@@ -63,6 +63,9 @@ export interface ActionTypeRow {
   description: string
   status: ObjectTypeStatus
   created_at: string
+  /** The Frontend consumers switch (612). False keeps the action out of the
+   *  automation wizard's picker, and the runner refuses it too. */
+  automate_can_submit: boolean
   action_type_rules: ActionRuleRow[]
   action_type_parameters: ActionParameterRow[]
 }

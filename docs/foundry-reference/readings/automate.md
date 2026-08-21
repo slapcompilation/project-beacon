@@ -1335,3 +1335,69 @@ resolved: `Every [N] day` is a spinner, and "every 2 days" has no cron spelling
 — day-of-month `*/2` restarts each month. Either the spinner is capped at 1 for
 `Daily`, or the builder can produce something the expression cannot. No page
 says, and the capture shows `1`.
+
+## Built — the authoring wizard, and `getting-started-add-condition.png` parsed
+
+**Images parsed:** `getting-started-add-condition.png` — the third of
+`condition-time`'s trio, and the wizard's own picker.
+
+It draws the whole shape: `← Create new automation`, a rail of four steps —
+**Condition** (selected), **Effect**, **Settings**, **Summary** — a pane headed
+`Add condition` with *No condition configured yet. Select a condition to define
+when this automation should trigger.*, a stack of condition cards, and `Next`
+bottom-right. The app header carries `Main ▾`, a branch picker.
+
+### Eight conditions, and we run four
+
+| card | exposes | ours |
+|---|---|---|
+| Time | — | **yes** |
+| Objects added to set | `(x) Added objects` | **yes** |
+| Objects removed from set | `(x) Removed objects` | **yes** |
+| Objects modified in a set | `(x) Modified objects` | no — live monitoring only |
+| Run on all objects | `(x) Objects from set` | **yes** |
+| Metric changed | — | no — sunset upstream |
+| Threshold crossed | — | no — needs a threshold and a metric |
+| Automation dependency | — | no — nothing can depend on another automation |
+
+All eight are offered; the four we cannot run carry their reason, which is the
+shape `action_rule_kinds()` set. Hiding them would make the vocabulary look
+smaller than the page that enumerates it.
+
+**The image extends the prose on one point.** `effect-actions` lists three
+conditions that expose effect inputs — added, removed, modified — and the
+picker shows a fourth chip, `(x) Objects from set` on **Run on all objects**.
+Recorded as a discrepancy rather than resolved: both are lists, mirrored the
+same day, and we have no effect inputs at all, so nothing here turns on it.
+
+### What the wizard does, and what it leans on
+
+The time step is the two screenshots' two states: the builder writes a cron, and
+`Use Cron expression (advanced)` **greys the builder rather than replacing it**.
+613's rule is mirrored in the wizard so a bad minute is refused before the
+database sees it — with the database still deciding.
+
+Every guard from this session's earlier slices shows up: the action picker
+offers only action types where `automate_can_submit` (612), the effect step
+names the kinds `automation_effect_kinds()` marks not executable, and sequential
+is set **after** the effects are inserted, because its guard counts them and
+would refuse an automation that has none yet.
+
+### Not built, and named
+
+- **Effect inputs.** The `(x)` chips are drawn on the cards because the picker
+  draws them, and nothing consumes one: an object-set condition passes no
+  objects to its effects here.
+- **Function effects in the wizard.** The kind exists and refuses at run time
+  on this runtime, so offering it would author something that cannot run.
+- **The branch picker** (`Main ▾`). Automations are not branch-scoped here;
+  `branching-automations` is unread.
+
+## Questions
+
+1. **Does `Run on all objects` really expose an effect input?** The picker says
+   yes and `effect-actions` lists three without it. Unanswerable from either,
+   and moot until effect inputs exist.
+2. **What does `Settings` hold in Foundry's wizard?** Ours carries execution
+   mode, scope and expiry because those are what the schema has. The step is
+   named in the rail and never shown open in any capture read here.
