@@ -9,8 +9,11 @@
 // at all. See readings/automate.md § The surface.
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Button, Card, Checkbox, HTMLTable, Icon, InputGroup, NonIdealState, Tag } from '@blueprintjs/core'
+import {
+  Button, Card, Checkbox, HTMLTable, Icon, InputGroup, Intent, NonIdealState, Tag,
+} from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
+import { NewAutomationDialog } from '@/features/automate/NewAutomationDialog'
 import {
   CONDITION_META, STATUSES, STATUS_META, conditionSummary, latestByAutomation,
   statusOf, statusTag, useAutomationRuns, useAutomations, useEffectKinds,
@@ -27,6 +30,7 @@ export default function AutomatePage() {
 
 function AutomateHome() {
   const [tab, setTab] = useState<'overview' | 'automations'>('overview')
+  const [creating, setCreating] = useState(false)
   return (
     <div className="flex flex-col h-full">
       <div className="border-b px-8 pt-5 flex items-end gap-4">
@@ -41,10 +45,14 @@ function AutomateHome() {
             </button>
           ))}
         </nav>
+        {/* The green primary both screenshots put top-right. */}
+        <Button intent={Intent.SUCCESS} icon="add" className="ml-auto mb-2"
+          onClick={() => { setCreating(true) }}>New automation</Button>
       </div>
       <div className="flex-1 overflow-y-auto">
         {tab === 'overview' ? <OverviewTab /> : <AutomationsTab />}
       </div>
+      {creating && <NewAutomationDialog onClose={() => { setCreating(false) }} />}
     </div>
   )
 }

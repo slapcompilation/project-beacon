@@ -2,7 +2,7 @@
 // and the two of five we deliberately cannot answer.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -44,6 +44,15 @@ const db = vi.hoisted(() => {
         attempt: 1, next_attempt_at: null },
     ],
   }
+  rows.action_types = [
+    { id: 'at1', label: 'Ground aircraft', automate_can_submit: true,
+      action_type_rules: [], action_type_parameters: [] },
+    { id: 'at2', label: 'Sensitive purge', automate_can_submit: false,
+      action_type_rules: [], action_type_parameters: [] },
+  ]
+  rows.object_sets = []
+  rows.projects = [{ id: 'p1', name: 'Ops' }]
+  rows.ontologies = [{ id: 'ont1', api_name: 'production', label: 'Production' }]
   return { rows }
 })
 
@@ -176,6 +185,40 @@ describe('Automate', () => {
     await user.click(await screen.findByRole('button', { name: /History/ }))
     expect(screen.getByText(/The event log .* is not\s+built/s)).toBeDefined()
     expect(screen.getByText('failed')).toBeDefined()
+  })
+
+  // getting-started-add-condition.png lists EIGHT cards. Four are ours; the
+  // rest carry the reason they are not offered rather than being hidden.
+  it('offers all eight conditions and marks the four it cannot run', async () => {
+    const user = userEvent.setup()
+    renderAt('/automate')
+    await user.click(await screen.findByRole('button', { name: /New automation/ }))
+    expect(await screen.findByText('Add condition')).toBeDefined()
+    // scoped to the dialog: the Automations table also renders a `Time` subtitle
+    const wizard = within(screen.getByRole('dialog'))
+
+    for (const label of ['Time', 'Objects added to set', 'Objects removed from set',
+      'Objects modified in a set', 'Run on all objects', 'Metric changed',
+      'Threshold crossed', 'Automation dependency']) {
+      expect(wizard.getByText(label)).toBeDefined()
+    }
+    // exactly four are marked, and they are the four with no engine behind them
+    expect(wizard.getAllByText('not offered')).toHaveLength(4)
+  })
+
+  // 613's rule, mirrored in the wizard so it refuses before the database does.
+  it('refuses a cron whose minute is not a plain number', async () => {
+    const user = userEvent.setup()
+    renderAt('/automate')
+    await user.click(await screen.findByRole('button', { name: /New automation/ }))
+    const wizard = within(await screen.findByRole('dialog'))
+    await user.click(wizard.getByText('Time'))
+    await user.click(wizard.getByLabelText(/Use Cron expression/))
+
+    const field = wizard.getByDisplayValue('0 9 * * *')
+    await user.clear(field)
+    await user.type(field, '*/5 * * * *')
+    expect(screen.getByText(/fires at most once an hour/)).toBeDefined()
   })
 
   it('draws Execute and Telemetry disabled rather than hiding them', async () => {
