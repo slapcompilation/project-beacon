@@ -14,7 +14,7 @@ interface Chain extends PromiseLike<{ data: unknown[]; error: null }> {
 const db = vi.hoisted(() => {
   const automation = (id: string, name: string, over: Record<string, unknown> = {}) => ({
     id, display_name: name, description: '', owner_id: 'u1', scope: 'project',
-    paused: false, muted: false, expires_at: null,
+    paused: false, muted: false, expires_at: null, execution: 'parallel',
     last_run_at: null, created_at: '2026-08-01T00:00:00Z',
     condition: { type: 'time', cron: '0 9 * * *', timezone: 'UTC' },
     automation_effects: [], ...over,
@@ -28,10 +28,13 @@ const db = vi.hoisted(() => {
         { expires_at: '2026-01-01T00:00:00Z', paused: true, muted: true }),
       automation('a3', 'Escalate breaches', {
         condition: { type: 'objects_added', object_set_id: 'os1' },
-        automation_effects: [{
-          id: 'e1', kind: 'action', action_type_id: 'at1', function_id: null,
-          retry_count: 3, retry_interval: '00:05:00', fallback_for: null,
-        }],
+        execution: 'sequential',
+        automation_effects: [
+          { id: 'e1', position: 0, kind: 'action', action_type_id: 'at1', function_id: null,
+            retry_count: 3, retry_interval: '00:05:00', fallback_for: null },
+          { id: 'e2', position: 1, kind: 'notification', action_type_id: null, function_id: null,
+            retry_count: null, retry_interval: null, fallback_for: null },
+        ],
       }),
     ],
     // a3's most recent run failed, which is what makes it Error
@@ -59,8 +62,9 @@ vi.mock('@/lib/supabase/client', () => {
 vi.mock('@/lib/supabase/ontologyClient', () => ({
   client: () => ({
     executeFunction: () => Promise.resolve([
-      { kind: 'action', runtime: 'sql', executable: true, note: 'Execute actions on objects.' },
-      { kind: 'notification', runtime: 'none', executable: false,
+      { kind: 'action', runtime: 'sql', executable: true, orderable: true,
+        note: 'Execute actions on objects.' },
+      { kind: 'notification', runtime: 'none', executable: false, orderable: false,
         note: 'No notification system exists here.' },
     ]),
   }),
@@ -153,6 +157,17 @@ describe('Automate', () => {
     expect(screen.getByText(/Retries 3 times, every 00:05:00/)).toBeDefined()
     // NULL is the documented other choice: "run indefinitely"
     expect(screen.getByText(/Indefinitely/)).toBeDefined()
+  })
+
+  // "Action, logic, and function effects can be ordered sequentially." A
+  // notification cannot, so under sequential it is marked rather than numbered.
+  it('numbers the ordered effects and marks the one that cannot be', async () => {
+    renderAt('/automate/a3')
+    expect(await screen.findByText('sequential')).toBeDefined()
+    expect(screen.getByText('1.')).toBeDefined()
+    expect(screen.getByText('not ordered')).toBeDefined()
+    // position 1 is the notification, which is not part of the sequence
+    expect(screen.queryByText('2.')).toBeNull()
   })
 
   it('says the History tab shows runs, not the event log', async () => {

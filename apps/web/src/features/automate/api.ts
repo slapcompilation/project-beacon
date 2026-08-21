@@ -37,6 +37,7 @@ export interface AutomationRun {
 
 export interface AutomationEffect {
   id: string
+  position: number
   kind: string
   action_type_id: string | null
   function_id: string | null
@@ -54,6 +55,9 @@ export interface Automation {
   scope: 'user' | 'project'
   paused: boolean
   muted: boolean
+  /** "Otherwise, effects execute in parallel" — parallel is the fallback
+   *  whenever sequential is not configurable, so it is the default. */
+  execution: 'sequential' | 'parallel'
   expires_at: string | null
   last_run_at: string | null
   created_at: string

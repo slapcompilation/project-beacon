@@ -891,3 +891,51 @@ orderings.
 2. **What clears an expiry — the owner, or does an expired automation stay
    expired?** No page read here says whether `expires_at` may be moved forward
    after it has passed. Ours allows it, which is an inference.
+
+### Built — 611, sequential execution
+
+The four steps this reading wrote down in August, now built. Its stated reason
+for waiting had expired: the runner's live definition has been read and patched
+twice since, and this patch was taken from `pg_get_functiondef` too.
+
+`automate/errors` — read for the event log, not for this — **confirms the stop
+rule from a second page**, which is what moved it from inference to build:
+
+> **Sequential execution:** If an effect fails, subsequent effects in the sequence do not execute. A successful fallback handles the failure but does not allow the sequence to continue.
+
+— `automate/errors.md`
+
+`automations.execution` defaults to **parallel**, because the page makes that the
+fallback whenever sequential is not configurable; `orderable` joins the effect
+kinds registry for the three the page names; a trigger enforces the two-effect
+rule on both the automation and its effects, since deleting one can invalidate a
+mode that was legal when set; and the runner's effect loop gained a label and one
+`EXIT` **after** the fallback block, because a successful fallback "does not
+allow the sequence to continue".
+
+**Proved by contrast, in one transaction:** the same two effects with the same
+failing first one, run under each mode. Parallel runs both and fails one;
+sequential records exactly one run. Either assertion alone would pass against a
+runner stuck in one mode.
+
+**Three drafting errors worth keeping, because each was caught by a rule rather
+than by luck:**
+
+1. **I retyped `automation_effect_kinds()` instead of patching it.** The retyped
+   version invented a `SELECT * FROM (VALUES …) AS t(…)` wrapper the body does
+   not have, and changed the `function` kind's runtime from `function` to
+   `action-runtime`. `run_automations` compares that runtime to `'sql'`, so it
+   would not have failed loudly — the wrong value would simply have been
+   published to the surface and to `gen:client`. This is the rule's named cost,
+   collected.
+2. **A `RETURNS TABLE` signature cannot be widened in place.** Postgres refuses;
+   the function is dropped and recreated, which is safe because its callers name
+   it from inside function bodies and Postgres does not track those.
+3. **plpgsql evaluates every arm of a `CASE` expression.** The guard's first
+   draft picked the automation id with one, and `NEW.automation_id` does not
+   exist on a row of `automations`. An `IF` chain evaluates only the branch
+   taken.
+
+**Not built: partitioning.** The page's worked example is 40 objects at
+partition size 20, and we have no partition, so "Sequential execution settings
+apply regardless of partitioning configuration" has nothing here to apply to.
