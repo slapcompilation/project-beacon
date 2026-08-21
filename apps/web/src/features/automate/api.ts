@@ -20,6 +20,10 @@ export interface Condition {
   crons?: string[]
   timezone?: string
   object_set_id?: string
+  /** How often the object set condition is evaluated (617). Absent means
+   *  daily — "We keep the default of daily evaluation". Not for time
+   *  conditions, which carry their own cron above. */
+  schedule?: { cron: string; timezone?: string }
 }
 
 export type RunOutcome = 'started' | 'succeeded' | 'failed' | 'skipped' | 'awaiting_retry'
@@ -100,7 +104,11 @@ export const conditionSummary = (c: Condition): string => {
     const zone = c.timezone ? ` · ${c.timezone}` : ''
     return list.length === 0 ? 'No schedule' : `${list.join('  ·  ')}${zone}`
   }
-  return c.object_set_id ? 'On an object set' : 'No object set'
+  if (!c.object_set_id) return 'No object set'
+  // The cadence is the second half of an object set condition and the screen
+  // said nothing about it until it existed.
+  const cadence = c.schedule?.cron ?? '0 0 * * *'
+  return `On an object set  ·  ${cadence}${c.schedule?.timezone ? ` · ${c.schedule.timezone}` : ''}`
 }
 
 /** Order follows what blocks what. Expiry "blocks all execution, including

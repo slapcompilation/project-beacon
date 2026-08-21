@@ -17,6 +17,7 @@ describe.skipIf(noDb)('automations', () => {
   let owner = ''
   let auto = ''
   let action = ''
+  let ont = ''
 
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
@@ -40,7 +41,7 @@ describe.skipIf(noDb)('automations', () => {
       [JSON.stringify({ sub: owner, app_metadata: { role: 'admin', org_id: f.orgId } })])
 
     const space = (await one(`select public.create_space('Autos') as id`)).id
-    const ont = (await one(
+    ont = (await one(
       `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
        values ($1,'autos','Autos',false) returning id`, [space])).id
     action = (await one(
@@ -204,6 +205,59 @@ describe.skipIf(noDb)('automations', () => {
     expect(await refused(db, () => db.query(
       'update public.automation_effects set retry_count = 2 where id = $1', [fnEff])))
       .toContain('retries_where_allowed')
+  })
+
+  // 617/618. The cadence has to gate the EVALUATION, not the firing: the
+  // snapshot automation_fires compares against is rewritten on every tick, so
+  // a daily automation that still snapshots every minute would fire once a day
+  // having seen one minute of additions. Asserted on the `members` KEY, because
+  // condition_state is NOT NULL DEFAULT '{}' and 617's own IS NULL version of
+  // this assertion could not have failed.
+  it('holds the object set snapshot off-cadence and advances it on', async () => {
+    // In the fixture's OWN ontology: run_automations evaluates as the owner, so
+    // a set borrowed from elsewhere raises ObjectSetNotFound on the tick that
+    // actually reads it — which is itself how the off-cadence skip first showed.
+    const ot = (await one(
+      `insert into public.object_types (ontology_id, api_name, label)
+       values ($1,'SchedThing','Sched Thing') returning id`, [ont])).id
+    const set = (await one(
+      `insert into public.object_sets (name, api_name, subject_type_id, project_id, ontology_id)
+       values ('sched-set', 'schedset', $1, $2, $3) returning id`,
+      [ot, f.projectId, ont])).id
+    const a = (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition, scope)
+       values ($1, 'scheduled', $2,
+         jsonb_build_object('type','objects_added','object_set_id',$3::uuid,
+           'schedule', jsonb_build_object('cron','0 8 * * *','timezone','UTC')), 'project')
+       returning id`, [f.projectId, owner, set])).id
+
+    const members = async () => count(
+      `select (condition_state ? 'members')::int n from public.automations where id = $1`, [a])
+
+    await db.query(`select public.run_automations(timestamptz '2026-08-21 03:17+00')`)
+    expect(await members()).toBe(0)          // off-cadence: nothing was looked at
+    await db.query(`select public.run_automations(timestamptz '2026-08-21 08:00+00')`)
+    expect(await members()).toBe(1)          // on-cadence: the set was read
+  })
+
+  // The grammar it rides on. Automate's cron rule, not the pipeline one —
+  // "The minutes field must be a number between 0 and 59, with no special
+  // characters" — so */5 is refused here even though a build trigger takes it.
+  it('takes an optional schedule on an object set condition, at Automate cron', async () => {
+    const ok = async (c: string) => count(
+      `select public.automation_condition_valid($1::jsonb)::int n`, [c])
+    const base = { type: 'objects_added', object_set_id: '00000000-0000-0000-0000-000000000001' }
+    expect(await ok(JSON.stringify(base))).toBe(1)
+    expect(await ok(JSON.stringify({ ...base, schedule: { cron: '0 8 * * 1' } }))).toBe(1)
+    expect(await ok(JSON.stringify({ ...base, schedule: { cron: '*/5 * * * *' } }))).toBe(0)
+    expect(await ok(JSON.stringify({ ...base, schedule: { cron: 'nonsense' } }))).toBe(0)
+    // Absent means daily, and a time condition is never gated by this.
+    expect((await one(
+      `select public.automation_schedule_cron($1::jsonb) c`, [JSON.stringify(base)])).c)
+      .toBe('0 0 * * *')
+    expect(await count(
+      `select public.automation_due('{"type":"time","cron":"0 9 * * *"}'::jsonb,
+              timestamptz '2026-08-21 03:17+00')::int n`)).toBe(1)
   })
 
   it('withholds a fallback only when a retry is actually due', async () => {

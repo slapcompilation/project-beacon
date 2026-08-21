@@ -404,7 +404,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (190) ───────────────────────────────────────────────────
+// ── FUNCTIONS (192) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -561,6 +561,17 @@ export const automationConditionValid = { apiName: 'automation_condition_valid',
   boolean
 >
 
+/**
+ *  Whether an object set condition is due for evaluation at this instant. A
+ *  time condition is always due — automation_fires matches its own cron.
+ *  Gates the whole evaluation, snapshot included: see 618 for the contrast
+ *  that proves it, and why 617's own version of that assertion was inert.
+ */
+export const automationDue = { apiName: 'automation_due', kind: 'function' } as FunctionType<
+  { p: Json; p_at: string },
+  boolean
+>
+
 export const automationEffectKinds = { apiName: 'automation_effect_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
   { kind: string; runtime: string; executable: boolean; orderable: boolean; note: string }[]
@@ -587,6 +598,17 @@ export const automationInputLimit = { apiName: 'automation_input_limit', kind: '
 
 export const automationRetryDue = { apiName: 'automation_retry_due', kind: 'function' } as FunctionType<
   { p_effect: string; p_attempt: number },
+  string
+>
+
+/**
+ *  The cadence an object set condition is evaluated on. Absent means daily
+ *  ("We keep the default of daily evaluation",
+ *  automate/example-relative-time-condition); midnight is our inference, no
+ *  page names the hour.
+ */
+export const automationScheduleCron = { apiName: 'automation_schedule_cron', kind: 'function' } as FunctionType<
+  { p: Json },
   string
 >
 
