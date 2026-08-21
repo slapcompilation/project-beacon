@@ -8,9 +8,13 @@
 //
 // The wizard's verbs are Create / Modify / Delete object(s); the other four
 // kinds are in the vocabulary and refuse at apply, so they are shown disabled
-// rather than hidden. Submission criteria are OMITTED BY NAME — the tree is
-// stored (421) but nothing evaluates it, and a gate that never fires is worse
-// than an absent one.
+// rather than hidden.
+//
+// A row expands into "Security & Submission Criteria", the tab the course names
+// ("You can update it on the Security & Submission Criteria tab"), holding the
+// card the screenshot titles Execution. The header used to say criteria were
+// omitted because nothing evaluated them; apply_action has called
+// submission_criteria_verdict all along — see readings/submission-criteria-surface.md §5.
 
 import { useMemo, useState } from 'react'
 import {
@@ -30,6 +34,7 @@ import {
   useActionTypes, useApplyAction, useRuleKinds, useSaveActionType,
   VALUE_SOURCES, type ActionRuleRow, type ActionTypeRow, type ValueSource,
 } from '@/features/actionTypes/api'
+import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
 
 /** A parameter is filled by a form field, so the picker offers the base types a
  *  form field can produce. The CHECK accepts every property base type. */
@@ -50,6 +55,7 @@ export default function ActionTypesPage() {
   const { types } = useOmaTypes()
   const { data: actions } = useActionTypes(ontology?.id ?? null)
   const [applying, setApplying] = useState<ActionTypeRow | null>(null)
+  const [open, setOpen] = useState<string | null>(null)
 
   if (!ontology) {
     return <div className="oma-page max-w-2xl">{isLoading ? null : <NoOntologyCallout />}</div>
@@ -75,7 +81,11 @@ export default function ActionTypesPage() {
           <Card compact className="!p-0">
             <ul className="divide-y divide-border/30">
               {actions.map((a) => (
-                <li key={a.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+                <li key={a.id} className="px-3 py-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <Button variant="minimal" size="small" title="Security & Submission Criteria"
+                    icon={open === a.id ? 'chevron-down' : 'chevron-right'}
+                    onClick={() => { setOpen(open === a.id ? null : a.id) }} />
                   <Icon icon="take-action" size={12} className="text-violet-500 shrink-0" />
                   <span className="font-medium">{a.label}</span>
                   <span className="font-mono text-xs text-muted-foreground">{a.api_name}</span>
@@ -88,6 +98,18 @@ export default function ActionTypesPage() {
                     {a.action_type_parameters.length} param{a.action_type_parameters.length === 1 ? '' : 's'}
                   </Tag>
                   <Button size="small" icon="play" onClick={() => { setApplying(a) }}>Apply</Button>
+                </div>
+                {open === a.id && (
+                  <div className="pl-5 pt-2">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Security &amp; Submission Criteria
+                    </span>
+                    <CriteriaEditor actionTypeId={a.id} params={a.action_type_parameters.map((p) => ({
+                      id: p.id, api_name: p.api_name, display_name: p.display_name,
+                      base_type: p.base_type ?? 'string',
+                    }))} />
+                  </div>
+                )}
                 </li>
               ))}
             </ul>

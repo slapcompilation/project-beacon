@@ -187,11 +187,47 @@ So a criterion of the kind the page teaches raises rather than evaluates.
    they will fail the condition", so an unknown attribute name is a failing
    condition rather than an error.
 
+## 6. What was built, and where it went
+
+**602** made the left side evaluable: `current_user.group_ids` reads
+`auth_group_ids()`, and `current_user.attribute` maps `organization` and
+`markings` onto the two helpers we have, returning an empty array — a failing
+condition, not an error — for any other name. That is Decisions 8 and 9, and it
+is what the page's own worked example needs.
+
+**603** added the `ontology_warnings()` arm of Decision 5, and **604** exists
+only to fire it. 603's probe took its own early exit and printed *arm unproven
+here*, because the database holds no action type; 604 creates a scratch one in a
+subtransaction and measures three cases — the nested membership warns, an `all`
+over the same condition does not, and a `none` over `current_user.user_id` does
+not. The third is the case that would catch an arm written to the operator
+alone.
+
+603 also corrected a stale `COMMENT ON FUNCTION apply_action`, which claimed
+criteria evaluation *refuses by name rather than half-working*. `gen:client`
+copies `pg_description` verbatim, so that false sentence was being published
+into `packages/platform/src/generated.ts` and read from there. It is §5's error
+one layer down, and it had been shipping.
+
+**The surface** is `features/actionTypes/CriteriaEditor.tsx`, reached by
+expanding a row on `ActionTypesPage` under the heading the course names —
+*Security & Submission Criteria* — holding the card the screenshot titles
+`Execution`. Decisions 1–3 and 6 are in it: the root row whose operator word is
+the control, a vertical rule per nesting level, the two separate add links at
+every level, the arity filter carrying the page's own banner, and attachment
+parameters excluded from the picker. Two headers that said criteria were
+*OMITTED BY NAME … nothing evaluates it* are gone with them.
+
+**Not built, and named rather than left silent:** the drag handles are drawn
+because the screenshot draws them, and reordering is not wired — the handle is
+the one thing here that promises more than it does.
+
 ## Questions
 
-1. **Where does this live in our Ontology Manager?** The course names a
-   "Security & Submission Criteria" tab; the screenshot's card is titled
-   `Execution`. We have neither, and `ActionTypesPage` has no tabs at all.
+1. ~~Where does this live in our Ontology Manager?~~ **Answered by building it:**
+   an expandable *Security & Submission Criteria* section on the action type row,
+   holding the `Execution` card. `ActionTypesPage` still has no tabs, and the
+   course names three — Parameters, Rules, and this one. That is a separate arc.
 2. ~~What evaluates a criterion at submission time?~~ **Answered, and this
    reading had it wrong — see §5.**
 3. **Is `attribute` enough for "any other multipass attribute"?** Ours stores an
