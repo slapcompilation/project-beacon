@@ -7,7 +7,7 @@
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { noDb, connect, rollback, fixture, asAuthenticated, type Fixture } from './harness'
+import { noDb, connect, rollback, fixture, asAuthenticated, refused, type Fixture } from './harness'
 
 describe.skipIf(noDb)('access', () => {
   let db: pg.Client
@@ -176,6 +176,80 @@ describe.skipIf(noDb)('access', () => {
         'update public.organization_scoped_session_settings set allow_no_session=true where organization_id=$1',
         [f.orgId])
       expect(await passes([markingId])).toBe(true)
+    })
+
+    // The two the SURFACE calls, and neither was covered: the picker lists
+    // selectable_scoped_sessions(), and choosing writes user_scoped_session,
+    // whose WITH CHECK is the only thing stopping a session you may not hold.
+    //
+    // Both need a REAL auth.uid() — the fixture's claims carry no sub, so
+    // marking_member() is asked about NULL and every answer is vacuous.
+    const asSomebody = async <T>(fn: (uid: string) => Promise<T>): Promise<T> => {
+      const { rows: [au] } = await db.query(`
+        insert into auth.users (id, instance_id, aud, role, email)
+        values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000',
+                'authenticated', 'authenticated', 'sec-sess-' || gen_random_uuid() || '@beacon.test')
+        returning id`)
+      const uid = (au as { id: string }).id
+      await db.query(`insert into public.users (id, email, role, organization_id)
+                      values ($1, $2, 'admin', $3)`, [uid, `sec-sess-${uid}@beacon.test`, f.orgId])
+      await db.query(`select set_config('request.jwt.claims', $1, true)`,
+        [JSON.stringify({ sub: uid, app_metadata: { role: 'admin', org_id: f.orgId } })])
+      try { return await fn(uid) } finally {
+        await db.query(`select set_config('request.jwt.claims', $1, true)`, [f.claims])
+      }
+    }
+
+    it('offers only the sessions the caller holds every marking of', async () => {
+      const listed = async (): Promise<string[]> => {
+        const { rows } = await db.query('select name from public.selectable_scoped_sessions()')
+        return (rows as { name: string }[]).map((r) => r.name)
+      }
+      await asSomebody(async (uid) => {
+        expect(await listed()).not.toContain('focus')
+        await db.query(
+          'insert into public.marking_members (marking_id, user_id) values ($1,$2)', [markingId, uid])
+        expect(await listed()).toContain('focus')
+      })
+    })
+
+    it('refuses a session the caller may not choose, on the way in', async () => {
+      const { rows: [s] } = await db.query(
+        `insert into public.scoped_sessions (organization_id, name) values ($1,'unheld') returning id`,
+        [f.orgId])
+      const sid = (s as { id: string }).id
+      const { rows: [other] } = await db.query(
+        `insert into public.markings (category_id, name) values ($1,'Unheld') returning id`, [categoryId])
+      await db.query(
+        'insert into public.scoped_session_markings (scoped_session_id, marking_id) values ($1,$2)',
+        [sid, (other as { id: string }).id])
+
+      await asSomebody(async (uid) => {
+        // The contrast is inside one caller: this user holds `focus`'s marking
+        // and not `unheld`'s, so the refusal below cannot be vacuous — the same
+        // insert with the other session id succeeds.
+        await db.query(
+          'insert into public.marking_members (marking_id, user_id) values ($1,$2)', [markingId, uid])
+        const { rows } = await db.query(
+          `select public.can_choose_scoped_session($1) as unheld,
+                  public.can_choose_scoped_session(
+                    (select id from public.scoped_sessions where name='focus')) as held`, [sid])
+        expect(rows[0]).toMatchObject({ unheld: false, held: true })
+
+        // refused() INSIDE asAuthenticated, not around it: a failed statement
+        // aborts the transaction, and asAuthenticated's RESET ROLE would then
+        // error before its own rollback could clear it.
+        const why = await asAuthenticated(db, () => refused(db, () => db.query(
+          `insert into public.user_scoped_session (user_id, scoped_session_id)
+           values ((select auth.uid()), $1)`, [sid])))
+        expect(why).toMatch(/row-level security/i)
+
+        const allowed = await asAuthenticated(db, () => refused(db, () => db.query(
+          `insert into public.user_scoped_session (user_id, scoped_session_id)
+           values ((select auth.uid()),
+                   (select id from public.scoped_sessions where name='focus'))`)))
+        expect(allowed).toBeNull()
+      })
     })
 
     it('matches by overlap, not by subset', async () => {

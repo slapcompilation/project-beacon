@@ -5,6 +5,7 @@
 import { useAuthStore } from '@/stores/auth.store'
 import { AppearanceSection } from '@/features/settings/sections/AppearanceSection'
 import { SecuritySection } from '@/features/settings/sections/SecuritySection'
+import { ActiveSessionSection } from '@/features/security/ActiveSessionSection'
 
 export default function AccountPage() {
   const email = useAuthStore((s) => s.session?.user.email ?? '')
@@ -21,6 +22,7 @@ export default function AccountPage() {
 
       <div className="flex-1 overflow-y-auto px-8 py-6 max-w-2xl space-y-10">
         <AppearanceSection />
+        <ActiveSessionSection />
         <SecuritySection />
       </div>
     </div>

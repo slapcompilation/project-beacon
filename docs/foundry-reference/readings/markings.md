@@ -515,6 +515,44 @@ direction:
 - **A session that stops being selectable** (membership changed underneath) also
   degrades to an empty session rather than silently unscoping.
 
+### The surface — built later, and here is what reaches what
+
+404 built the engine and **nothing on any screen touched it for months**: no file
+under `apps/web/src` named a scoped session at all, while `resource_file_access`
+had been ANDing `passes_scoped_session` into four policies the whole time. The
+engine-with-no-surface defect, on a security feature.
+
+Three pieces, from the two screenshots:
+
+- **`ScopedSessionsSection`** in Platform Settings — the three toggles with the
+  Settings tab's own sentences, then a **Session presets** list. The
+  `NewSessionDialog` is `new_scoped_session_dialog.png` field for field: Name
+  with its helper, *Description (optional)* with the word set apart, a marking
+  search, markings **grouped under their category** with a shield pill each, and
+  the footer sentence verbatim — because "scoped sessions do not grant people
+  membership to any markings" is the thing an admin gets wrong.
+- **`ChooseScopedSessionDialog`** — `scoped_session_login_example.png`: a filter
+  over a list of names with chevrons, the selected one filled, and a detail pane
+  with the description, a divider, `Marking access`, its sentence, and pills read
+  `Category: Name` as the screenshot renders them.
+- **`ActiveSessionSection`** on Account, which is where a personal choice
+  belongs. **Hidden entirely when the org has sessions off**, since they are
+  "disabled by default" and a control for a disabled feature is noise.
+
+**Two functions the surface calls had no test**, and now do:
+`selectable_scoped_sessions()` is asked before and after a membership is granted
+in one transaction, and the `user_scoped_session` WITH CHECK is shown refusing a
+session the caller does not hold **while accepting one they do**, so the refusal
+cannot be vacuous. Both need a real `auth.uid()`; the fixture's claims carry no
+`sub`, so `marking_member()` answers about NULL and every assertion is empty —
+that is why the cases mint a user.
+
+**Not built, and named:** Foundry *forces* the dialog at login. Ours offers it;
+nothing blocks the app on choosing. The server already fails closed — unchosen
+with no-session disallowed is an **empty** session, so marked resources are
+hidden either way — so the missing piece is a prompt, not a gate. Blocking the
+shell on a feature with zero rows is the larger risk.
+
 ### Divergences
 
 - **Ours is per user, Foundry's is per login.** We have no login-time session

@@ -29,6 +29,7 @@ import {
 import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
 } from '@/features/compass/catalogApi'
+import { ScopedSessionsSection } from '@/features/security/ScopedSessionsSection'
 
 const PERMISSION_META: Record<GroupPermission, { label: string; help: string }> = {
   manage_permissions: {
@@ -53,6 +54,7 @@ export default function SettingsPage() {
         </header>
         <OrganizationSection />
         <RolesSection />
+        <ScopedSessionsSection />
         <GroupsSection />
         <TagsSection />
       </div>
