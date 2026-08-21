@@ -1169,3 +1169,119 @@ guaranteed when multiple actions are configured; actions may be executed in any
 order" — that is *within* one action effect, and does not contradict
 `effect-settings`' ordering *between* effects. Two different orderings, one page
 apart.
+
+## `condition-time` and `effect-function` read, 2026-08-21 — two of the three the wizard needs
+
+**Pages read in full:** `automate/condition-time`, `automate/effect-function`.
+**Images:** neither page's images are parsed. `condition-time-add-condition.png`,
+`condition-time-ui-configuration.png` and `condition-time-cron-configuration.png`
+are the wizard's own condition step and belong to the slice that builds it;
+`effect-function` has none.
+
+### Automate's cron is stricter than a pipeline schedule's, and both pages say so
+
+> A minimum frequency of once per hour
+
+> The minutes field must be a number between 0 and 59, with no special characters
+
+— `automate/condition-time.md`
+
+Those are one rule seen twice: a single minute value can match at most once an
+hour, so enforcing the minute field *is* enforcing the floor.
+
+**And `building-pipelines/triggers-reference` documents the opposite**, with its
+own table of legal minute values — `*` is "Every minute", `25/10` is "Every
+tenth minute beginning from 25", and `10,20-30` is a list. Same syntax, two
+products, opposite rules.
+
+**That is the trap, because `cron_field_matches` is shared.** Tightening the
+matcher would refuse pipeline schedules that Foundry documents as legal. The
+rule belongs on `automation_condition_valid()` — Automate's own validator, which
+already backs a CHECK — and that is the scoping 573 set when it added multiple
+crons and left `schedules.trigger` alone.
+
+**Where ours already agreed**, checked field by field rather than assumed: five
+fields exactly (refused by name otherwise), `*` `-` `/` `,` supported, and `W`
+refused. `L` and `#` are refused too, as `Builds:CronTokenNotBuilt` — the page
+lists them as supported, so that is a recorded gap rather than agreement, and it
+sits in the shared matcher where both products want them.
+
+### Built — 613
+
+`automate_cron_valid(text)`: five fields and a minute that is a plain 0–59.
+`automation_condition_valid` calls it for both spellings, `cron` and each
+element of `crons`.
+
+Four things probed, and the fourth is the one that matters: the minute specials
+are refused one form at a time; the page's own examples still pass, including
+the specials it allows in every other field (`15 8,20 * * *`, `15 8,14 * * 1-5`);
+the CHECK bites on a real INSERT; and **`*/5 * * * *` is still a legal schedule
+trigger and still matches in `cron_matches`** — so a failure would say the
+Automate rule had leaked into pipelines.
+
+**A consequence for every probe after this one:** `* * * * *` is no longer a
+valid Automate condition. A probe that needs a firing uses `0 * * * *` and
+passes `date_trunc('hour', now())` to `run_automations`, which takes the instant
+as an argument for exactly this reason.
+
+### `effect-function`: beta, and it names machinery we already have
+
+The page is explicit that the feature is beta. Two things in it bear on what is
+here.
+
+**A function effect pins a VERSION, and ours names only a function.**
+
+> Then, specify the function version. For stable versions (versions 1.0.0 and greater), you can toggle on **Auto upgrade to compatible versions** which will automatically upgrade non-prerelease versions up to the next major version.
+
+— `automate/effect-function.md`
+
+That is `auto_upgrade` and the caret range, word for word — the machinery
+`action_type_rules` already carries and `actionRuleVersion` already resolves.
+**`automation_effects` has `function_id` and no version at all**, so an effect
+cannot pin one and cannot auto-upgrade. 517 gave the action rule a
+`function_version_id` and the automation effect nothing, and no page justifies
+the asymmetry. A recorded gap that would reuse an engine rather than add one.
+
+**Ontology edits do not come back through a function effect:**
+
+> functions with ontology edit return types cannot apply these edits as part of a function effect; to apply the edit, you will need to use a function-backed action.
+
+— `automate/effect-function.md`
+
+Ours reaches the same outcome by a different road: `run_automations` refuses any
+effect whose runtime is not `sql`, so a `function` effect never executes on the
+heartbeat at all. The page's rule is narrower than our refusal, and when the
+action runtime does pick these up it is the rule that will matter.
+
+**Asynchronous execution is the reason the runtime split exists.** Function
+effects "execute asynchronously… the automation submits the function for
+execution and then polls for the result", and "Functions can run up to 4 hours".
+Nothing in a SQL heartbeat can hold that, which is what
+`automation_effect_kinds()` has been saying in its note since it was written.
+
+## Decisions
+
+1. **The cron rule goes on Automate's validator, never on the shared matcher.**
+   The pipeline page documents as legal exactly what the Automate page forbids,
+   so a change to `cron_field_matches` would be a regression dressed as
+   fidelity.
+2. **`L` and `#` stay refused, in the shared matcher.** Both products' pages
+   list them as supported, so this is one gap for both rather than an
+   Automate-specific rule, and it belongs wherever the parsing lives.
+3. **Non-overlap is still not enforced**, for the reason 573 gave: firing is
+   once per tick on any match, so an overlap is a non-event here.
+4. **The function-effect version gap is recorded, not built.** It reuses
+   existing machinery, which makes it cheap, but a function effect cannot run
+   at all until the action runtime picks these up — so a version to pin would
+   pin nothing today.
+
+## Questions
+
+1. **Does the wizard's UI mode write a cron, or its own shape?**
+   `condition-time` offers "hourly, daily, weekly, and monthly" through the
+   interface and a cron expression as the escape. Whether the interface stores a
+   cron or a structured schedule is not stated, and the answer decides whether
+   the wizard's condition step needs a second representation.
+2. **Is `auto_upgrade` on a function EFFECT the same flag as on an action
+   RULE?** Both pages describe the same behaviour in the same words; whether
+   Foundry models them as one setting is not answerable from either page.

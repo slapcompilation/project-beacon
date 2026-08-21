@@ -404,7 +404,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (189) ───────────────────────────────────────────────────
+// ── FUNCTIONS (190) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -538,6 +538,16 @@ export const authOrgMarkingIds = { apiName: 'auth_org_marking_ids', kind: 'funct
 export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionType<
   Record<string, never>,
   string
+>
+
+/**
+ *  Automate's cron rule, not the pipeline scheduler's: five fields and a
+ *  minute that is a plain 0-59, which is how "a minimum frequency of once per
+ *  hour" is enforced (automate/condition-time).
+ */
+export const automateCronValid = { apiName: 'automate_cron_valid', kind: 'function' } as FunctionType<
+  { p_cron: string },
+  boolean
 >
 
 /**
