@@ -251,7 +251,17 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
     const rows = await asAuthenticated(db, async () =>
       (await db.query('select * from public.ontology_violations()')).rows)
     expect(Array.isArray(rows)).toBe(true)
-  })
+    // The timeout is generous because this is the one test in the suite that
+    // runs a whole-ontology linter, against a SHARED remote database, on top
+    // of this file's own uncommitted fixtures. It has reddened main three
+    // times at the 30s default and passed on every re-run.
+    //
+    // Not a hidden regression: measured in-server as `authenticated` after
+    // 619, ontology_violations() is 77ms and dataset_branch_schema() is 17.7ms
+    // per call (it was ~250ms before). The gap between 77ms and 30s is
+    // contention, not the linter — so the assertion here stays exactly what it
+    // was (can this role read it at all), and only the clock moved.
+  }, 90_000)
 
   it('an object type icon carries a colour, and it must be a hex code', async () => {
     const { icon_color: dflt } = await one(
