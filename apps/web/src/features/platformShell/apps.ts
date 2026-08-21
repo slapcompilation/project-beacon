@@ -108,6 +108,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#634dbf',
       },
       {
+        name: 'Automate',
+        tagline: 'Run effects when a condition is met',
+        blurb: 'Define conditions and effects. Conditions are checked continuously, and effects are executed automatically when the specified conditions were met.',
+        path: '/automate',
+        icon: 'flash',
+        tint: '#c87619',
+      },
+      {
         name: 'Value Types Manager',
         tagline: 'Declare reusable semantic types',
         blurb: 'Author a value type per space — a base type plus a constraint, versioned — and bind it to properties in Ontology Manager.',

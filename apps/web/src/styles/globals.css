@@ -967,6 +967,33 @@
   .oma-session-row:hover { background:hsl(var(--muted)); }
   .oma-session-row.is-selected { background:hsl(var(--primary)); color:hsl(var(--primary-foreground)); }
   .oma-session-detail { padding:14px 16px; }
+  /* Automate. The app header's two tabs, the Automations filter pane, the
+   * condition tile the table rows carry, and the per-automation rail — all
+   * from automate-overview-page.png and getting-started-automations-table-
+   * filtered.png. */
+  .oma-apptab {
+    background:none; border:0; cursor:pointer; padding:0 0 10px; color:inherit;
+    font-size:14px; border-bottom:2px solid transparent;
+  }
+  .oma-apptab:hover { color:hsl(var(--primary)); }
+  .oma-apptab.is-active { color:hsl(var(--primary)); border-bottom-color:hsl(var(--primary)); }
+  .oma-filter-pane {
+    width:236px; flex-shrink:0; overflow-y:auto;
+    border-right:1px solid hsl(var(--border)); background:hsl(var(--muted) / 0.35);
+  }
+  .oma-cond-tile {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; flex-shrink:0; border-radius:var(--radius);
+    background:hsl(var(--primary) / 0.12); color:hsl(var(--primary));
+  }
+  .oma-rail-item {
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+    background:none; border:0; cursor:pointer; color:inherit;
+    font-size:12px; padding:7px 10px; border-radius:var(--radius);
+  }
+  .oma-rail-item:hover:not(:disabled) { background:hsl(var(--muted)); }
+  .oma-rail-item.is-active { background:hsl(var(--primary) / 0.1); color:hsl(var(--primary)); }
+  .oma-rail-item:disabled { opacity:0.45; cursor:default; }
   .oma-crit-attr, .oma-crit-val { max-width:180px; }
   .oma-join {
     display:flex; align-items:center; gap:10px; padding:14px;
