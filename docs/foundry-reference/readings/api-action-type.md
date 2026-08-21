@@ -46,10 +46,19 @@ The union's arms: `applyScenario`, `createInterfaceObject`, `createLink`,
 
 Eight map onto `action_rule_kinds()` exactly — `createObject` to `create_object`,
 `createInterfaceObject` to `create_object_of_interface`, and so on. The ninth
-does not map onto anything: **we have no scenario rule and no scenario at all.**
-`information_schema` has no table whose name contains one, while the mirror
-carries five pages — `overview-ontology-scenario`, `temporary-scenario`,
-`persisted-scenario`, `merge-scenario`, `osdk-scenario`.
+does not map onto anything: **we have no scenario rule and no scenario at all**,
+while the mirror carries five pages — `overview-ontology-scenario`,
+`temporary-scenario`, `persisted-scenario`, `merge-scenario`, `osdk-scenario`.
+
+**Re-probed 2026-08-21, because this reading's sibling made the same claim from
+the same weak evidence and was wrong.** `api-interface-type.md` said interface
+extension was missing because `information_schema` had no table whose name
+contained `extend`; the table is `interface_extensions`, which does not contain
+that substring. So this claim was re-asked three ways instead: `pg_class` for a
+relation of ANY relkind matching `scenario` — none; `pg_proc` by name **and by
+`prosrc`** — none; `information_schema.columns` by table or column — none. The
+only hits anywhere are migrations 083/136/156, which belong to the product the
+teardown deleted. The absence is real.
 
 So `applyScenario` is not a missing rule. It is one arm of a documented feature
 we have not started, and the api is where its absence becomes visible.

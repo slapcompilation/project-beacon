@@ -169,7 +169,9 @@ is worth most just before the thing it describes gets built. Nothing here is
 
 - `deep-dive-ontology.md` — the learn.palantir.com course read to the word with
   every screenshot parsed field by field. **The Ontology is a resource you select
-  between** and we have no table for it; an object type BELONGS to one. Also: a
+  between** and an object type BELONGS to one — this line used to add "and we
+  have no table for it", which stopped being true when 412 gave a space its
+  ontology; `public.ontologies` is live. Also: a
   link type has **two separately-named ends**, an action's declared property set
   IS the edit permission, saving is a **session** with errors-block/warnings-don't,
   and an object type is live only when its **index** finishes. Carries the S1–S7
@@ -192,7 +194,10 @@ is worth most just before the thing it describes gets built. Nothing here is
   because the tab has no page of its own. **Value types** are semantic wrappers
   with constraints that run at INDEX time; **type groups** are a classification
   primitive living in a project. Plus the object type Overview's seven sections,
-  of which **Dependents** is the resource index we have no equivalent of.
+  of which **Dependents** is the resource index — this line used to say we had
+  no equivalent, and it was already wrong: `object_type_dependents()`,
+  `object_type_dependent_counts()`, `dependent_kinds()` and `DependentsTab`
+  are all live.
 
 - `materializations-links-media-and-rids.md` — a **materialization** writes the
   ontology back out as a dataset (schema from **property API names**, gated on

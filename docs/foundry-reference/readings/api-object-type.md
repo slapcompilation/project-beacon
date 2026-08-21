@@ -121,8 +121,20 @@ The api's `ObjectTypeDatasource` union: `dataset`, `direct`, `editsOnly`,
 Ours, from the `object_type_datasources_one_backing` CHECK: **dataset on a
 branch**, **restricted view**, **media set**. Three.
 
-Most of the difference is infrastructure we do not have — no streams, no time
-series syncs, no `table` sources. **One is a real structural difference:**
+Most of the difference is infrastructure we do not have — no streams, no
+`table` sources, and no time series **sync**, which is the precise claim:
+`object_type_datasources_one_backing` refuses a fourth kind, so nothing can back
+an object type with a series.
+
+**Say it that precisely, because `public.time_series_properties` exists** and a
+reader grepping `time_series` will find it and think this line is wrong. It is a
+different thing — a per-property registration (table, entity column, time
+column, value column) from migrations 276/277, which predate the teardown at
+355. Zero rows, no web surface, and `capability_slots`' own comment is the only
+thing that points at it. An orphan of the deleted product rather than a
+datasource kind. *(Re-probed 2026-08-21 via `pg_class` for any relkind matching
+`stream|time_series`, after a sibling reading's absence claim turned out to rest
+on a substring that never matched.)* **One is a real structural difference:**
 `editsOnly` is a *datasource kind* in Foundry, while 545 models edit-only as a
 property `source` value permissioned to a dataset. Both express "this property
 has no backing column"; they put it in different places. Recorded, not changed —
