@@ -86,25 +86,28 @@ copies a design Foundry has already left.
 
 ## Known gaps, not queued
 
-**Automate's execution queue, and the three things waiting on it.** Published
-and unbuilt: a **45-minute** ceiling on how long an event may wait in the
-execution queue and a **4-hour** ceiling on how long one may run
-(`automate/limits`). We have no queue to apply them to, and that same absence
-blocks two more:
+**Automate: what is left after the queue.** The entry that stood here listed
+three things blocked on the execution queue. The queue, manual execution and
+auto-mute all shipped the same day (622-627), so the entry is deleted rather
+than annotated — that rule is the reason this file's build order had to be
+scrapped. What genuinely remains:
 
-- **Manual execution.** Not a missing function — the run ledger has one writer
-  by construction. `automation_runs` carries a SELECT policy and no INSERT or
-  UPDATE policy, and the three ledger helpers are SECURITY DEFINER granted to
-  `beacon_runner` alone (553). An inline manual run would either widen those
-  grants to `authenticated`, which is a forgery surface, or make the entry point
-  SECURITY DEFINER, which would elevate `apply_action` too. Both undo 553. The
-  page's own model avoids the choice: a manual run is an event the queue drains,
-  so `execute_automation_now` should ENQUEUE and the runner should execute.
-- **Auto-mute.** Fully specified — "all effects fail for at least 80% of the
-  past 30 events" — but an *event* is not a thing here. `automation_runs` holds
-  one row per effect per fire with no identity grouping the fire, so the window
-  cannot be counted. Auto-**pause** stays unbuildable for a different reason:
-  "excessive activity" has no published threshold.
+- **The 4-hour run ceiling.** Not built for a reason rather than by omission:
+  effects run inside one transaction on one tick, so there is no long-running
+  execution to time out. It becomes real the moment an effect leaves the
+  transaction.
+- **History retention.** "Automation history is retained for six months, then
+  permanently deleted" (`automate/history`). `automation_events` now grows
+  without bound and nothing expires it. A cron that DELETES data is its own
+  decision with its own probe, and this repository has never run a destructive
+  timer.
+- **Auto-pause.** Its trigger is "excessive activity", with no threshold, metric
+  or window on any page — the contrast with auto-mute's exact 80%-of-30 is what
+  makes the difference visible. Not buildable without inventing a number.
+- **Effect inputs.** Notification effects, per-object execution, batch size,
+  parallelism and a manual run's input object set all need the objects that
+  triggered a condition to reach the effects. Nothing carries them today, and it
+  is the one absence several published settings sit behind.
 
 **Replacement pipelines.** A schema change should build a second index in the
 background and swap it, "without impacting the live data being served to users".
