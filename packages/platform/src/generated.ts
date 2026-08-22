@@ -457,7 +457,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (201) ───────────────────────────────────────────────────
+// ── FUNCTIONS (202) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1635,6 +1635,16 @@ export const primaryKeyAdvice = { apiName: 'primary_key_advice', kind: 'function
 export const primaryKeyEligibility = { apiName: 'primary_key_eligibility', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
+>
+
+/**
+ *  The twelve things this platform can record happening in a Project — one
+ *  per trigger in 641, no page: the Activity feed's row grammar is
+ *  unpublished in prose and pixels (readings/compass-activity-log).
+ */
+export const projectActivityActions = { apiName: 'project_activity_actions', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**

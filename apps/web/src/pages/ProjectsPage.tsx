@@ -21,6 +21,7 @@
 // space is not yet chosen here, so a project's location falls back to /<project>.
 
 import { useState } from 'react'
+import { useProjectActivity } from '@/features/compass/api'
 import {
   Button, Callout, Card, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
   Spinner, SpinnerSize, Tag, TextArea,
@@ -178,6 +179,10 @@ function ProjectDetails({ project }: { project: Project }) {
 
       <FilesCard projectId={project.id} />
 
+      {/* "The Activity log ... is only visible at the Project level" — a
+          sibling of Access, which is where the details-panel rail draws it. */}
+      <ActivityPanel projectId={project.id} members={members} />
+
       {/* 462 stored the policy and its trigger enforces it; this is the
           "Policies rendered" leftover from readings/branch-overlay.md. */}
       <PolicyPanel project={project} members={members} canEdit={canGrant} />
@@ -185,6 +190,49 @@ function ProjectDetails({ project }: { project: Project }) {
       <AccessPanel projectId={project.id} members={members} myRole={myRole ?? null}
         canGrant={canGrant} defaultRole={project.defaultRole} />
     </section>
+  )
+}
+
+/** One row per change: actor, action, resource, time. The grammar is ours —
+ *  no page or capture publishes the feed's rows (readings/compass-activity-log,
+ *  Decision 3) — so it stays the least structure that serves the purpose. */
+function ActivityPanel({ projectId, members }: {
+  projectId: string
+  members: { userId: string | null; role: ProjectRole; label: string | null }[]
+}) {
+  const { data: rows = [] } = useProjectActivity(projectId)
+  const who = (actor: string | null): string => {
+    if (actor === null) return 'the platform'
+    const m = members.find((x) => x.userId === actor)
+    return m?.label ?? `${actor.slice(0, 8)}…`
+  }
+  return (
+    <Card compact className="!p-0">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Activity</span>
+        <span className="text-[10px] text-muted-foreground ml-auto">stores the last month</span>
+      </div>
+      {rows.length === 0 ? (
+        <p className="px-3 py-3 text-xs text-muted-foreground">
+          Nothing yet. Changes to this project's resources appear here for a month.
+        </p>
+      ) : (
+        <ul className="divide-y divide-border/30">
+          {rows.map((r) => (
+            <li key={r.id} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+              <span className="font-medium">{who(r.actor)}</span>
+              <Tag minimal className="!text-[9px]">{r.action.replace(/_/g, ' ')}</Tag>
+              <span className="truncate">
+                {r.resourceName ?? r.resourceKind.replace(/_/g, ' ')}
+              </span>
+              <span className="text-muted-foreground ml-auto whitespace-nowrap">
+                {new Date(r.occurredAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   )
 }
 

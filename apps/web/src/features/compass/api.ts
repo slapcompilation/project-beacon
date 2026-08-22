@@ -123,3 +123,34 @@ export function usePermanentDelete(projectId: string) {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+/** The Activity log: "a running view of changes made throughout the Project
+ *  and is only visible at the Project level" — so this hook takes a project
+ *  and nothing narrower. Written by 641's triggers; the daily retention job
+ *  keeps the last month, so no client-side windowing is needed. */
+export interface ActivityRow {
+  id: string
+  actor: string | null
+  action: string
+  resourceKind: string
+  resourceName: string | null
+  occurredAt: string
+}
+
+export function useProjectActivity(projectId: string | null) {
+  return useQuery({
+    queryKey: ['compass', 'activity', projectId],
+    enabled: projectId !== null,
+    queryFn: async (): Promise<ActivityRow[]> => {
+      const { data, error } = await supabase.from('project_activity')
+        .select('id, actor, action, resource_kind, resource_name, occurred_at')
+        .eq('project_id', projectId ?? '')
+        .order('occurred_at', { ascending: false }).limit(100)
+      if (error) throw new Error(error.message)
+      return (data as { id: string; actor: string | null; action: string; resource_kind: string; resource_name: string | null; occurred_at: string }[])
+        .map((r) => ({ id: r.id, actor: r.actor, action: r.action,
+          resourceKind: r.resource_kind, resourceName: r.resource_name,
+          occurredAt: r.occurred_at }))
+    },
+  })
+}
