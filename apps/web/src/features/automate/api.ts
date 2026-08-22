@@ -62,6 +62,9 @@ export interface Automation {
   /** "Otherwise, effects execute in parallel" — parallel is the fallback
    *  whenever sequential is not configurable, so it is the default. */
   execution: 'sequential' | 'parallel'
+  /** "Auto-mute this automation" — mutes when all effects fail for at least
+   *  80% of the past 30 events (624). Off by default. */
+  auto_mute: boolean
   expires_at: string | null
   last_run_at: string | null
   created_at: string

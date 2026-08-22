@@ -110,6 +110,7 @@ export interface AutomationDraft {
   projectId: string
   condition: Condition
   execution: 'sequential' | 'parallel'
+  autoMute: boolean
   scope: 'user' | 'project'
   expiresAt: string | null
   effects: EffectDraft[]
@@ -131,6 +132,7 @@ export function useCreateAutomation() {
         owner_id: me.user?.id ?? null,
         condition: d.condition as unknown as Record<string, unknown>,
         scope: d.scope,
+        auto_mute: d.autoMute,
         expires_at: d.expiresAt,
       }).select('id').single()
       if (error) throw new Error(error.message)

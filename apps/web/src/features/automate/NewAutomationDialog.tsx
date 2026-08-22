@@ -44,6 +44,7 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [execution, setExecution] = useState<'sequential' | 'parallel'>('parallel')
+  const [autoMute, setAutoMute] = useState(false)
   const [scope, setScope] = useState<'user' | 'project'>('project')
   const [expiresAt, setExpiresAt] = useState('')
 
@@ -64,7 +65,7 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
       displayName: name.trim(), description: description.trim(),
       projectId: projects[0].id,
       condition: conditionOf(kind ?? 'time', schedule, advanced ? cron : null, timezone, objectSetId),
-      execution, scope, expiresAt: expiresAt || null,
+      execution, autoMute, scope, expiresAt: expiresAt || null,
       effects,
     }, { onSuccess: onClose })
   }
@@ -190,6 +191,16 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
                   Needs at least two orderable effects. Otherwise effects execute in parallel, and
                   a failure does not stop the others.
                 </p>
+                {/* The capture groups this with execution under "Configure
+                    global effect settings", so it sits beside it rather than
+                    with scope and expiry. */}
+                <Switch checked={autoMute} className="mb-0"
+                  label="Auto-mute this automation"
+                  onChange={(e) => { setAutoMute(e.currentTarget.checked) }} />
+                <p className="text-xs text-muted-foreground -mt-1">
+                  Automatically stop executing effects when all effects on this automation fail for
+                  at least 80% of the past 30 events. The condition keeps evaluating.
+                </p>
                 <label className="flex flex-col gap-1">
                   <span className="text-xs font-semibold">Scope</span>
                   <HTMLSelect value={scope}
@@ -226,6 +237,8 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
                   <div><span className="text-muted-foreground">Effects</span> · {effects.length}</div>
                   <div><span className="text-muted-foreground">Execution</span> · {execution}</div>
                   <div><span className="text-muted-foreground">Scope</span> · {scope} scoped</div>
+                  <div><span className="text-muted-foreground">Auto-mute</span> ·{' '}
+                    {autoMute ? 'after 80% of 30 events fail' : 'off'}</div>
                   <div><span className="text-muted-foreground">Expires</span> ·{' '}
                     {expiresAt || 'Indefinitely'}</div>
                 </Card>

@@ -388,6 +388,87 @@ describe.skipIf(noDb)('automations', () => {
     for (const q of quals) expect(q).toContain('can_read_automation_history')
   })
 
+  // 624. "the automation will automatically mute when all effects fail for at
+  // least 80% of the past 30 events" — the one fully specified threshold in the
+  // section, and uncountable until 622 made an event a thing.
+  //
+  // The boundary is what these assert. 24 is 80% of 30, and "at least" means 24
+  // qualifies while 23 does not.
+  describe('auto-mute', () => {
+    /** n events on a fresh automation, the first `ok` of them succeeding. The
+     *  successes go first because the window SLIDES: a 31st event drops the
+     *  oldest, so putting failures at the old end hides a moving count. */
+    const seed = async (auto: boolean, n: number, ok: number) => {
+      const a = (await one(
+        `insert into public.automations
+           (project_id, display_name, owner_id, condition, auto_mute)
+         values ($1,'automuted',$2,'{"type":"time","cron":"0 3 * * *"}'::jsonb,$3)
+         returning id`, [f.projectId, owner, auto])).id
+      const e = (await one(
+        `insert into public.automation_effects (automation_id, position, kind, action_type_id)
+         values ($1, 0, 'action', $2) returning id`, [a, action])).id
+      for (let k = 1; k <= n; k++) {
+        const ev = (await one(
+          `select public.record_automation_event($1,'automation_triggered') as id`, [a])).id
+        const run = (await one(
+          `select public.record_automation_run($1,$2,$3) as id`, [a, e, ev])).id
+        await db.query(`select public.settle_automation_run($1,$2,'probe',null)`,
+          [run, k <= ok ? 'succeeded' : 'failed'])
+      }
+      return a
+    }
+    const due = async (a: string) => count(
+      `select public.automation_should_auto_mute($1)::int n`, [a])
+
+    it('needs a full window: twenty-nine all-failed events is not thirty', async () => {
+      expect(await due(await seed(true, 29, 0))).toBe(0)
+    })
+
+    it('is silent at 23 of 30 and fires at exactly 24', async () => {
+      const a = await seed(true, 30, 7)          // 23 failed
+      expect(await due(a)).toBe(0)
+      // one more failure slides a SUCCESS out of the window, so 24 of 30
+      const ev = (await one(
+        `select public.record_automation_event($1,'automation_triggered') as id`, [a])).id
+      const e = (await one(
+        `select id from public.automation_effects where automation_id = $1`, [a])).id
+      const run = (await one(
+        `select public.record_automation_run($1,$2,$3) as id`, [a, e, ev])).id
+      await db.query(`select public.settle_automation_run($1,'failed','probe',null)`, [run])
+      expect(await due(a)).toBe(1)
+    })
+
+    it('does nothing when the setting is off, however bad the window', async () => {
+      const a = await seed(false, 30, 0)         // every event all-failed
+      expect(await due(a)).toBe(1)               // the window qualifies
+      expect(await count(`select public.auto_mute_if_due($1)::int n`, [a])).toBe(0)
+      expect(await count(
+        `select (muted)::int n from public.automations where id = $1`, [a])).toBe(0)
+    })
+
+    it('mutes through the runner, and the mute lands in the event log', async () => {
+      const a = await seed(true, 30, 0)
+      await db.query(`select public.run_automations(timestamptz '2026-08-22 03:00+00')`)
+      expect(await count(
+        `select (muted)::int n from public.automations where id = $1`, [a])).toBe(1)
+      // 622's AFTER UPDATE trigger, not a second write path.
+      expect(await count(
+        `select count(*) n from public.automation_events
+          where automation_id = $1 and event_type = 'muted'`, [a])).toBe(1)
+    })
+
+    // 622 shipped occurred_at defaulting to now(), which is the TRANSACTION's
+    // start time — so every event of one runner pass shared a timestamp and
+    // "the past 30" ordered by it was an arbitrary 30. 624 moved it to
+    // clock_timestamp().
+    it('orders a burst of events, because now() is frozen and clock_timestamp is not', async () => {
+      const a = await seed(true, 5, 0)
+      expect(await count(
+        `select count(distinct occurred_at) n from public.automation_events
+          where automation_id = $1`, [a])).toBe(5)
+    })
+  })
+
   it('withholds a fallback only when a retry is actually due', async () => {
     // The rule is a disjunction — "failed non-retryably, OR the maximum number
     // of retries has been reached" — so with no retry config the maximum is
