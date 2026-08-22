@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**4068 pages across 102 sections.**
+**4123 pages across 107 sections.**
 
 ## action-types — 37 pages
 
@@ -2209,6 +2209,19 @@ stay findable.
 - `overview` — Checkpoints
 - `review-checkpoint-records` — Review checkpoint records
 
+## cipher — 10 pages
+
+- `_index` — Cipher
+- `apply-operations` — Apply Cipher operations to columns of datasets
+- `cipher-marketplace` — Add Cipher resources to a Marketplace product
+- `ciphertext-in-functions-and-actions` — Use CipherText properties in Functions and Actions
+- `core-concepts` — Core concepts
+- `decrypt-individual-values` — Decrypt individual values in Foundry applications
+- `example-use-case` — Example Cipher use case
+- `getting-started` — Getting started
+- `overview` — Cipher
+- `visual-obfuscation` — Use Cipher for visual obfuscation
+
 ## code-repositories — 36 pages
 
 - `_index` — Code Repositories
@@ -2362,6 +2375,20 @@ stay findable.
 - `webhooks-overview` — Webhooks
 - `webhooks-reference` — Configuration reference
 - `webhooks-setup` — Set up a webhook
+
+## data-health — 11 pages
+
+- `builds-checks-faq` — Builds and checks FAQ
+- `check-evaluation` — Check schedules
+- `check-groups-overview` — Check groups \[Sunset]
+- `check-types` — Types of checks
+- `checks-reference` — Checks reference
+- `create-watch-check-group` — Check groups \[Sunset]
+- `marketplace-data-health` — Add health checks to a Marketplace product
+- `notifications` — Notifications and issues
+- `overview` — Health checks
+- `view-check-group` — Check groups \[Sunset]
+- `watching-checks` — Watching checks
 
 ## data-integration — 28 pages
 
@@ -2628,6 +2655,26 @@ stay findable.
 - `version-range-dependencies-for-functions` — Version range dependencies for functions
 - `webhooks` — Webhooks in functions
 
+## geospatial — 17 pages
+
+- `_index` — Geospatial and geotemporal data in Foundry
+- `add-ontology-data-to-gaia` — Add Ontology data to Gaia
+- `coordinate_reference_systems_and_projections` — Coordinate reference systems and projections
+- `coordinate-reference-systems-and-projections` — Coordinate reference systems and projections
+- `data-modeling` — Data modeling
+- `example_workflows` — Example workflows
+- `example-workflows` — Example workflows
+- `faq` — FAQ
+- `geotemporal-series-overview` — Geotemporal series \[Beta]
+- `integrate-geotemporal-series-with-the-ontology` — Integrate geotemporal series with the Ontology
+- `ontology` — Use geospatial and geotemporal data in the Ontology
+- `overview` — Geospatial and geotemporal data in Foundry
+- `raster_data` — Use raster data
+- `raster-data` — Use raster data
+- `types-of-geospatial-and-geotemporal-data` — Types of geospatial and geotemporal data
+- `vector_data_in_transforms` — Use vector data in transforms \[Legacy]
+- `vector-data-in-transforms` — Use vector data in transforms \[Legacy]
+
 ## getting-started — 16 pages
 
 - `_index` — Getting started with Palantir
@@ -2656,6 +2703,17 @@ stay findable.
 - `integrations` — Integrations
 - `overview` — Global Branching
 - `resource-protection-and-approval-policies` — Resource protection and project approval policies
+
+## health-checks — 8 pages
+
+- `builds-checks-faq` — Builds and checks FAQ
+- `check-evaluation` — Check schedules
+- `check-types` — Types of checks
+- `checks-reference` — Checks reference
+- `marketplace-data-health` — Add health checks to a Marketplace product
+- `notifications` — Notifications and issues
+- `overview` — Health checks
+- `watching-checks` — Watching checks
 
 ## integrate-models — 40 pages
 
@@ -3581,6 +3639,18 @@ stay findable.
 - `third-party-apps-overview` — Third-party applications
 - `user-generated-tokens` — User-generated tokens
 - `writing-oauth2-clients` — Writing OAuth2 clients for Foundry
+
+## projects — 9 pages
+
+- `add-documentation` — Create a Project
+- `create` — Create a Project
+- `data-catalog` — Data Catalog
+- `manually-upload-data` — Manually upload data
+- `move-and-share-resources` — Move and share resources
+- `overview` — Compass
+- `tags` — Tags
+- `use-project-details-panel` — Use Project details panel
+- `use-project-navigation-panel` — Use Project navigation panel
 
 ## questions-answers — 33 pages
 
