@@ -236,4 +236,25 @@ describe.skipIf(noDb)('the property vocabulary', () => {
       expect(cmds).not.toContain('ALL')
     })
   })
+
+  // The surface for the embeddingModel union writes these five columns
+  // DIRECTLY, on the strength of save_object_type not naming them — so a
+  // schema save cannot clobber them. If that stops being true the card has to
+  // move into the draft model, and this is where whoever changed it finds out.
+  it('the property writer does not touch the vector embedding columns', async () => {
+    // apply_object_type is what actually writes a property row, and 635 taught
+    // it `vector_dimension`. It still does NOT write the five embedding
+    // columns, which is what lets the surface set them directly. If that
+    // changes, the card has to move into the draft model, and this is where
+    // whoever changed it finds out.
+    const { d } = (await db.query(
+      `select pg_get_functiondef('public.apply_object_type(jsonb,jsonb,jsonb)'::regprocedure) as d`))
+      .rows[0] as { d: string }
+    expect(d).toContain('vector_dimension')
+    for (const c of ['vector_embedding_kind', 'vector_embedding_model',
+                     'vector_deployment_rid', 'vector_deployment_input_param',
+                     'vector_deployment_output_param']) {
+      expect(d, `${c} is written by save_object_type`).not.toContain(c)
+    }
+  })
 })
