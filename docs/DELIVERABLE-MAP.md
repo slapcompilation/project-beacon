@@ -494,6 +494,26 @@ property, kept deliberately ahead of its caller.
 **Property base types beyond the 22.** Geoshape, Attachment, Time series and the
 rest each wait for something that stores one.
 
+**Time series had a table and it was a mirage (628/629).**
+`time_series_properties` came from 276, before the teardown. 379 kept it by
+declaring it in `shape_registry` — and `shape_registry` was later deleted along
+with the guards that read it, on the reasoning that wanting an allowlist is the
+signal to index instead. The allowlist went; the thing it excused stayed, and
+nothing was left that could notice. Zero rows, no foreign key, no function, no
+view, no surface, and `Time series` is not one of the twenty-two base types, so
+no property could have been one. It also registered a raw `source_table` plus
+column names, which is the generic-table shape deleted three times before.
+
+**What building it actually means:** `time-series/` is **42 mirrored pages**,
+none read — syncs, derived series, function-backed series, geospatial series,
+alerting. `base-types` gives the property one line and links straight out to it.
+
+**`proposal_reviewers` came up in the same sweep and was NOT dropped.** It has
+no SQL reader, but its siblings `proposal_reviews` and `proposal_tasks` have two
+and four, and it was built after the teardown (420). An unreached member of a
+live feature is a question; a survivor of the deleted product with nothing that
+could ever reach it is an answer. Open: does anything intend to write it?
+
 **The media half is BUILT (582)**, and it carried the reading's nine
 untraceable quotations with it as allocated — the last of the seven, closing the
 citation backlog.

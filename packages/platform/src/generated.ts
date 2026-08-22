@@ -754,7 +754,8 @@ export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'f
 /**
  *  The slot-based Capabilities vocabulary, from metadata-typeclasses (the
  *  page it replaces) and the Geospatial panel screenshot. Time series is the
- *  other panel shape and lives in time_series_properties.
+ *  other panel shape and is not built: it is not one of the twenty-two base
+ *  types, and Foundry gives it a 42-page section of its own.
  */
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,

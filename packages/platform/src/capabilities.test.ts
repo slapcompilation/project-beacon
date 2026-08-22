@@ -61,8 +61,10 @@ describe.skipIf(noDb)('capabilities', () => {
       expect(r.accepts.length, `${r.capability}/${r.slot} accepts something`).toBeGreaterThan(0)
       expect(r.note.length, `${r.capability}/${r.slot} carries its description`).toBeGreaterThan(0)
     }
-    // The two panel shapes the reading found: slot-based here, list-based in
-    // time_series_properties. Geospatial is the one the screenshot shows.
+    // Slot-based nomination. The reading found a second, list-based panel
+    // shape too; the table that carried it was a pre-teardown orphan and 628
+    // dropped it, so this is the only one built. Geospatial is the one the
+    // screenshot shows.
     expect(rows.map((r) => (r as { capability: string }).capability)).toContain('geospatial')
   })
 
