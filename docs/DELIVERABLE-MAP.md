@@ -590,6 +590,50 @@ needs the isolate to marshal it, and a token the runtime cannot carry is worse
 than a missing one** — the signature would pass and the call would fail. So the
 list grows one type at a time, when something needs to pass one.
 
+### What is NOT on disk, measured (2026-08-22)
+
+Drift asks whether what we have has moved. The other question — is there
+something we do not have — had never been answered past the headline "16% is not
+on disk". Measured by matching all 4,818 known URLs against the mirror, allowing
+for the dashed form the mirror flattens nested paths into:
+
+**61 sections are wholly absent, 1,206 pages between them. NOT ONE SECTION IS
+PARTIALLY MIRRORED.**
+
+That second sentence is the useful one. "Is this page on disk?" reduces to "is
+this section on disk?", which `MAP.md` already answers — so a `grep` of MAP that
+finds the section is sufficient, and one that does not means the whole section
+is missing rather than that particular page.
+
+**Most of the 1,206 are products this repository does not build** — Notepad
+(50), Code Workbook (43), Contour (33), Vertex (28), Carbon (25), Reports (22),
+Forms (19), plus `available-connectors` (216) and `pb-functions-transform` (96).
+No action.
+
+**Five named things we HAVE built, and their sections were absent.** Mirrored,
+55 pages, 3 failures that are index entries with no page behind them:
+
+| section | why it mattered |
+|---|---|
+| `cipher` (10) | `Cipher` is one of our twenty-two base types |
+| `projects` (10) | distinct from `compass/`, which we had; we build projects |
+| `geospatial` (18) | the Geoshape gap could not even be read about |
+| `data-health` (12) | Health issues, which `ontology_violations()` answers to |
+| `health-checks` (8) | same family |
+
+**And `cipher/` immediately produced a FOURTH source against the base type's
+spelling**: "go to the `Property Type` field and select `Cipher text` from the
+dropdown" — a UI string in Ontology Manager, which is the product we are
+building, so it is the most tempting source yet.
+
+**The rule held and nothing changed.** `properties-overview`'s table still
+enumerates `Cipher`, our base type is still `cipher`, and `vocabulary.test.ts`
+still parses that table and passes. Four sources now describe the member as
+"Cipher text" and one enumerates the set as `Cipher`; the page that LISTS beats
+the page that DESCRIBES, however many of the latter accumulate. 599 and 600 cost
+two migrations and a merged PR to learn that, and this is the first time the
+rule has been tested since — recorded so the fourth source does not reopen it.
+
 ### The drift sweep (2026-08-22) — 58 pages moved, and one rule was RELAXED
 
 `check:doc-drift` reported **58 pages changed upstream**. `object-link-types`

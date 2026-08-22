@@ -151,9 +151,18 @@ actually read, with a queue in build order. Grep it before designing anything;
 an answer already written down beats re-deriving one, and the "connects to" lines
 are how a concept met in one part of the platform gets recognised in another.
 
-4,068 mirrored pages against 4,818 known URLs — **16% is not on disk**, and
-`api/` is the opposite problem: mirrored whole, and **under-read**. Readings are
-fewer still; that is the normal state.
+4,123 mirrored pages against 4,818 known URLs, and `api/` is the opposite
+problem: mirrored whole, and **under-read**. Readings are fewer still; that is
+the normal state.
+
+**What is missing is missing by the SECTION, never by the page.** Measured
+2026-08-22: 61 sections are wholly absent and **not one section is partially
+mirrored**. So "is this page on disk" reduces to "is this section on disk",
+which `MAP.md` answers — a grep that finds the section is enough, and one that
+does not means the whole section is gone rather than that page. Most of the
+absent 1,206 are products this repo does not build (Notepad, Contour, Carbon,
+Vertex, Code Workbook); `DELIVERABLE-MAP.md` records the measurement and the
+five that named things we HAD built.
 
 **Refresh the index before trusting any answer about what exists.**
 `node scripts/mirror-foundry-docs.mjs --urls` re-derives `all-foundry-urls.txt`
@@ -233,7 +242,7 @@ packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
 supabase/migrations/     630 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
-docs/foundry-reference/  4,068 mirrored pages of 4,818 known URLs. THE SOURCE.
+docs/foundry-reference/  4,123 mirrored pages of 4,818 known URLs. THE SOURCE.
 docs/substrate-reference/ 441 mirrored Supabase pages. What we build it WITH —
                          grep it before saying the platform cannot do something.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
