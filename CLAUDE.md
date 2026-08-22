@@ -221,7 +221,7 @@ join dataset (`create-link-type.md`). If a design needs a generic table with a
 ## What is here
 
 ```
-apps/web/                120 files. Ontology Manager (/ontology), projects,
+apps/web/                141 files. Ontology Manager (/ontology), projects,
                          account, auth, the shell. Vite + React + Blueprint.
 packages/ontology/       the ontology model: object types, properties and base
                          types, link cardinality, interfaces, shared properties,
@@ -231,17 +231,20 @@ packages/platform/       the engine tested against the documentation's own
                          printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     597 migrations. 355 is where the ontology was emptied;
+supabase/migrations/     630 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
 docs/foundry-reference/  4,068 mirrored pages of 4,818 known URLs. THE SOURCE.
-docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH —
+docs/substrate-reference/ 441 mirrored Supabase pages. What we build it WITH —
                          grep it before saying the platform cannot do something.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
-The core began as eleven tables and the platform now holds ~65. **Ask the
-database what exists rather than a table in this file** — that list went stale
-here once already, and `information_schema` cannot. The rule is unchanged: every
+The core began as eleven tables and the platform holds **106** as of
+2026-08-22, with 486 functions and 134 tables under RLS. **Ask the database what
+exists rather than a table in this file** — and note that this paragraph has now
+gone stale TWICE: it said ~65 while the answer was 106, in the same sentence that
+warns about it. Every count above is a snapshot with a date, not a fact;
+`information_schema` and `pg_proc` are the fact. The rule is unchanged: every
 value in every CHECK traces to a page.
 
 **The ontology holds objects.** This paragraph used to say it could not, long
@@ -444,7 +447,7 @@ do take from their stack:
   compliance in mind". No shadcn, no lucide.
 - **No Tailwind.** Slate styles Blueprint with CSS — "like any other website,
   styles the DOM using CSS" — so ours live in `apps/web/src/styles/globals.css`:
-  Blueprint's palette as tokens, then ~227 hand-written utility rules. There is
+  Blueprint's palette as tokens, then ~294 hand-written utility rules. There is
   no build step and no config; add a rule when a surface needs one.
 - Zustand for UI/session only. Server data lives in TanStack Query.
 - **Write less code.** If the same outcome fits in 50 lines instead of 100, that
