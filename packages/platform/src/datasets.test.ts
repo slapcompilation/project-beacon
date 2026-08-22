@@ -174,4 +174,63 @@ describe.skipIf(noDb)('the dataset engine', () => {
       await db.query(`select set_config('request.jwt.claims', $1, true)`, [f.claims])
     })
   })
+
+  // 638. The api's three entry points, and the head retarget that had to land
+  // with them: advance_branch_head fired on INSERT, masked only because the
+  // engine inserts and commits inside one statement window.
+  describe('the transaction lifecycle', () => {
+    it('creates parented on the head without moving it, and commit is what moves it', async () => {
+      const { rows: [{ head }] } = await db.query(
+        `select head_transaction_id as head from public.dataset_branches where id = $1`,
+        [f.branchId]) as unknown as { rows: { head: string }[] }
+      const { rows: [{ id }] } = await db.query(
+        `select public.create_transaction($1, 'APPEND') as id`, [f.datasetId]) as
+        unknown as { rows: { id: string }[] }
+
+      const headNow = async () => (await db.query(
+        `select head_transaction_id as h from public.dataset_branches where id = $1`,
+        [f.branchId])).rows[0] as { h: string }
+
+      expect((await db.query(
+        `select parent_transaction_id as p, status from public.dataset_transactions where id = $1`,
+        [id])).rows[0]).toEqual({ p: head, status: 'OPEN' })
+      expect((await headNow()).h).toBe(head)          // creating moved nothing
+
+      // "A branch of a dataset can only have one open transaction at a time."
+      expect(await refused(db, () => db.query(
+        `select public.create_transaction($1, 'APPEND')`, [f.datasetId])))
+        .toContain('Datasets:OpenTransactionAlreadyExists')
+
+      await db.query(`select public.commit_transaction($1)`, [id])
+      expect((await headNow()).h).toBe(id)            // committing moved it
+      expect(await refused(db, () => db.query(
+        `select public.commit_transaction($1)`, [id])))
+        .toContain('Datasets:TransactionNotOpen')
+    })
+
+    // "File modifications made on this Transaction are not preserved and the
+    // Branch is not updated" — both halves, at the view level, which is where
+    // preservation is real.
+    it('an aborted transaction leaves no trace in the view', async () => {
+      const before = await view(db, f.branchId)
+      const { rows: [{ id }] } = await db.query(
+        `select public.create_transaction($1, 'APPEND') as id`, [f.datasetId]) as
+        unknown as { rows: { id: string }[] }
+      await db.query(
+        `insert into public.dataset_files (dataset_id, transaction_id, logical_path, removes, row_count)
+         values ($1,$2,'aborted-file',false,1)`, [f.datasetId, id])
+
+      // open is not preserved either: only a commit puts files in the view
+      expect(await view(db, f.branchId)).toEqual(before)
+
+      await db.query(`select public.abort_transaction($1)`, [id])
+      expect(await view(db, f.branchId)).toEqual(before)
+      const { rows: [t] } = await db.query(
+        `select status, aborted_at, committed_at from public.dataset_transactions where id = $1`,
+        [id]) as unknown as { rows: { status: string; aborted_at: string; committed_at: null }[] }
+      expect(t.status).toBe('ABORTED')
+      expect(t.aborted_at).not.toBeNull()
+      expect(t.committed_at).toBeNull()
+    })
+  })
 })
