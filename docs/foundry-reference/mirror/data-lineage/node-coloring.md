@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/node-coloring/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/node-coloring/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Node coloring
 
@@ -18,7 +18,7 @@ There are several built-in options for coloring graph nodes to give you more inf
 |**Resource type**	|Colors the nodes by Foundry resource types.	|
 |**Build status**	|Indicates the current build status of each dataset on the graph. If the nodes are grouped the more severe status would be presented.	|
 |**Data Heath**	|Indicates the status of resources health checks with the ability to filter to only watched health checks. If the nodes are grouped, the color of the group would indicate the most severe health check status of the group. 	|
-|**Out-of-date**	|This option would indicate if the data or logic is out of date relative to the dataset ancestors. <br> **Out-of-date with parent** means a direct parent of the resource had been updated and the resource itself hasn't yet updated accordingly. <br>**Out-of-date with ancestor** means the resource is up-to-date with its direct parents, but there is a resource upstream that is more updated. This options allows you to filter for two types of updates: Data and Logic. <br>**Data out-of-date** means the data was updated in an ancestor and the resource hasn't yet picked up the update in a build. <br> **Logic out-of-date** means job-specs has changed.	|
+|**Out-of-date**	|This option would indicate if the data or logic is out of date relative to the dataset ancestors. <br> **Out-of-date with parent** means a direct parent of the resource had been updated and the resource itself has not yet updated accordingly. <br>**Out-of-date with ancestor** means the resource is up-to-date with its direct parents, but there is a resource upstream that is more updated. This options allows you to filter for two types of updates: Data and Logic. <br>**Data out-of-date** means the data was updated in an ancestor and the resource has not yet picked up the update in a build. <br> **Logic out-of-date** means job-specs has changed.	|
 |**Schedule count**	|Indicates the amount of build schedules set on a dataset with the option to filter out paused schedules. 	|
 |**Sync status**	|If there are syncs set on the dataset, this option would indicate the status of the sync	|
 |**Time last built**	|Indicates the time since the last time the dataset was successfully built. 	|

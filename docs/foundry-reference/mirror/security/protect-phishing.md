@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/protect-phishing/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/protect-phishing/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Protecting against phishing
 
@@ -24,7 +24,7 @@ If implementing a single sign-on (SSO) solution with appropriate security contro
 
 ## Operational Security
 
-Humans are generally the key point-of-failure in successful phishing attacks, and proper OpSec training is key to ensuring that users don’t fall victim. Some key points to cover with personnel include:
+Humans are generally the key point-of-failure in successful phishing attacks, and proper OpSec training is key to ensuring that users do not fall victim. Some key points to cover with personnel include:
 
 * Password hygiene and management.
 * Recognizing legitimate web domains (such as palantirfoundry.com) vs. fraudulent sites operated by adversaries.
@@ -32,4 +32,4 @@ Humans are generally the key point-of-failure in successful phishing attacks, an
 
 ## Ask a Trusted Source
 
-If you’re in need of engineering assistance, or general security guidance, contact your Palantir representative; we’re happy to assist with controls to mitigate against attacker activity.
+If you are in need of engineering assistance, or general security guidance, contact your Palantir representative; we are happy to assist with controls to mitigate against attacker activity.

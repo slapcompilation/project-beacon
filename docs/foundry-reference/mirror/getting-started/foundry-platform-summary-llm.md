@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/foundry-platform-summary-llm/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/foundry-platform-summary-llm/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Foundry platform summary for LLMs
 
@@ -158,7 +158,7 @@ The Multimodal Data Plane (MMDP) is Palantir's open data and compute architectur
 
 **AIP Assist:** An in-platform LLM assistant for navigating and understanding Foundry.
 
-**AIP Observability:** A set of capabilities in Workflow Lineage that provide visibility into AIP and Ontology workflow executions, including metrics, execution history, distributed tracing, logging, and log search.
+**Ontology and AIP observability:** A set of capabilities in Workflow Lineage that provide visibility into AIP and Ontology workflow executions, including metrics, execution history, distributed tracing, logging, and log search.
 
 **Retrieval Context:** Documents, object data, or function outputs provided to an AIP chatbot to ground its responses.
 
@@ -745,7 +745,7 @@ Foundry security is built on:
 - [Observability overview](https://www.palantir.com/docs/foundry/observability/overview)
 - [Data Health](https://www.palantir.com/docs/foundry/observability/data-health)
 - [Workflow Lineage](https://www.palantir.com/docs/foundry/workflow-lineage/overview)
-- [AIP Observability](https://www.palantir.com/docs/foundry/aip-observability/overview)
+- [Ontology and AIP observability](https://www.palantir.com/docs/foundry/aip-observability/overview)
 
 ### Security
 

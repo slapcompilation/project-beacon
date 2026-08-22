@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/scheduling-best-practices/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/scheduling-best-practices/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Scheduling best practices
 
@@ -68,7 +68,7 @@ Use retries when configuring your schedule. Retries are part of a job; if a job 
 
 We recommend configuring schedules for at least three retries, with at least one minute between retries. This allows the platform to automatically intercept jobs that would be failing and re-trigger them within the same build. The additional gap of one minute gives the platform a chance to recover from transient problems that caused the job to fail the first time.
 
-There are some cases where you might not want to enable retries on your job. For example, pipelines with very tight Service Level Agreements (SLAs) where you want to be alerted as soon as there’s a failure, or transforms that have a non-idempotent side effect. However, note that even if you do not enable retries in your schedule configuration, jobs may still be retried as part of [adjudication](/docs/foundry/transforms-common/transforms-versions/#runtime-versioning).
+There are some cases where you might not want to enable retries on your job. For example, pipelines with very tight Service Level Agreements (SLAs) where you want to be alerted as soon as there is a failure, or transforms that have a non-idempotent side effect. However, note that even if you do not enable retries in your schedule configuration, jobs may still be retried as part of [adjudication](/docs/foundry/transforms-common/transforms-versions/#runtime-versioning).
 
 ### No multi-dataset force builds
 
@@ -92,7 +92,7 @@ All outputs of the pipeline should be tagged as “targets” in your schedule. 
 
 ### Fail fast
 
-Configure the build to fail immediately once a job fails by ticking the **Abort build on failure** checkbox in **Advanced options**). Failing fast will provide you with signal sooner.
+Configure the build to fail immediately once a job fails by ticking the **Abort build on failure** checkbox in **Advanced options**. Failing fast will provide you with signal sooner.
 
 ### Name schedules
 

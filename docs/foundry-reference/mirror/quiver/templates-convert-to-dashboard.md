@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/templates-convert-to-dashboard/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/templates-convert-to-dashboard/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Convert a canvas template (deprecated) to a dashboard
 

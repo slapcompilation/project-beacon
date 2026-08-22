@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/data-protection-and-governance/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/data-protection-and-governance/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Data protection and governance
 
@@ -48,7 +48,7 @@ As the data is prepared for users, data owners and preparers ensure the data is 
 
 Meanwhile, on the consumer side, the FI allows consumers to regularly request access, delete, or correct information ("Individual Participation Principle"). Furthermore, beyond FIPPs, it may be required to adhere to other financial sector requirements on how long the data needs to be retained for compliance reasons.
 
-In example alone, many complexities and considerations in handling data are involved. The best practices outlined in this documentation will provide an overview of the wide range of technical tools in Palantir Foundry that help operationalize these foundational principles when working with sensitive data, including personal data.
+In this example alone, many complexities and considerations in handling data are involved. The best practices outlined in this documentation will provide an overview of the wide range of technical tools in Palantir Foundry that help operationalize these foundational principles when working with sensitive data, including personal data.
 
 ### Beyond FIPPs
 
@@ -177,6 +177,6 @@ Sensitive Data Scanner is a Foundry application that enables administrators to c
 
 Depending on your contractual agreements or compliance needs, some data may also need to be retained. You should therefore be mindful that deletion from Foundry at some point becomes irreversible and proactively implement relevant controls, such as eligibility reviews, throughout the retention process.
 
-We highly recommended you determine retention requirements as early as possible, ideally before any data is ingested at all.
+We highly recommend you determine retention requirements as early as possible, ideally before any data is ingested at all.
 
 For more information, refer to the documentation on [how retention works in Foundry](/docs/foundry/retention/overview/), or contact your Palantir representative.

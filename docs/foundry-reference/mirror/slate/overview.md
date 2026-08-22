@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Slate
 
@@ -12,4 +12,4 @@ With Slate, builders can also build applications accessible to the [public Inter
 
 Seamlessly leverage the [Ontology](/docs/foundry/ontology/overview/), using object data, [functions](/docs/foundry/functions/overview/) and [Actions](/docs/foundry/action-types/overview/) along with data from [sources external to Foundry](/docs/foundry/slate/read-write-overview/) (for example, databases and APIs).
 
-If you're new to Slate, start by [familiarizing yourself with the interface](/docs/foundry/slate/navigation/) and learning about [managing Slate applications](/docs/foundry/slate/read-write-overview/).
+If you are new to Slate, start by [familiarizing yourself with the interface](/docs/foundry/slate/navigation/) and learning about [managing Slate applications](/docs/foundry/slate/read-write-overview/).

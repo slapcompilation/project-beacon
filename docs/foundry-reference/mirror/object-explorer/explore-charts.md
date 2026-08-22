@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/explore-charts/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/explore-charts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Explore with charts
 
@@ -185,4 +185,4 @@ On the right-hand side of the exploration view, a list of up to 20 results shows
 
 <img src="./images/preview_table.png" alt="Preview Table Sorting" height="400"/>
 
-Click a preview card to open the object in an Object View tab. To sort by a single property, use the **Sort by** option in the preview list subheader. To sort by multiple properties, hover over the header and select the gear icon, pictured here.This opens a dialog to configure sorts by many properties, which are then applied in order.
+Click a preview card to open the object in an Object View tab. To sort by a single property, use the **Sort by** option in the preview list subheader. To sort by multiple properties, hover over the header and select the gear icon, pictured here. This opens a dialog to configure sorts by many properties, which are then applied in order.

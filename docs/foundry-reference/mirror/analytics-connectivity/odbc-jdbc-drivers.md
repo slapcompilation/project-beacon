@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/odbc-jdbc-drivers/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/odbc-jdbc-drivers/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # ODBC & JDBC drivers for Foundry datasets
 
@@ -174,7 +174,7 @@ The available configuration parameters are the same across ODBC and JDBC. Each d
 | Proxy auto-detect | `EnableProxyAutoDetect` | No | Whether the driver should automatically load the configured operating system proxy (if one is set). Allowed values: `true` (default) or `false`. If credentials are required, they must still be manually specified. Set to `false` to disable and use a direct connection. |
 | SSL trust store path | `TrustStorePath` | No | Path to a custom SSL certificate trust store in `.pem` file format. Only required if the Foundry certificate is not present in the default operating system trust store. |
 | SQL Dialect | `Dialect` | No | The [SQL dialect](#sql-dialects) to be used by the connection. Allowed values: `ODBC` (default), `ANSI`, or `SPARK`. |
-| UTC Timestamps | ODBC `UtcTimestamps` / JDBC N/A | No | Whether timestamps should be returned in UTC or in the local timezone. Allowed values: `true` or `false` (default). When using BI tools and publishing reports, this setting only applies to the local DSN and may differ after publishing. This setting only applies to OBDC timestamps, as JDBC timestamps are always returned as UTC. |
+| UTC Timestamps | ODBC `UtcTimestamps` / JDBC N/A | No | Whether timestamps should be returned in UTC or in the local timezone. Allowed values: `true` or `false` (default). When using BI tools and publishing reports, this setting only applies to the local DSN and may differ after publishing. This setting only applies to ODBC timestamps, as JDBC timestamps are always returned as UTC. |
 
 ### Type handling
 

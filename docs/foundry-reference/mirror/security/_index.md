@@ -1,17 +1,17 @@
-<!-- source: https://palantir.com/docs/foundry/security/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 ![Security Overview](./images/6-Security.svg)
 
 # Security and governance
 
-Palantir helps organizations solve real-world problems using powerful, secure software platforms. For more than a decade, we’ve worked with customers in the most secure and highly-regulated industries to build software for their most sensitive data. Today, security and privacy remain the cornerstone of our product development, company culture, and internal operations.
+Palantir helps organizations solve real-world problems using powerful, secure software platforms. For more than a decade, we have worked with customers in the most secure and highly-regulated industries to build software for their most sensitive data. Today, security and privacy remain the cornerstone of our product development, company culture, and internal operations.
 
 The Palantir platform is used by healthcare providers, financial institutions, utility providers, manufacturers, telecoms, airlines, and pharmaceutical companies around the globe to handle their most sensitive workflows. The Palantir platform was built for security-conscious customers who need the capability to handle financial data, Personally Identifiable Information (PII), Protected Health Information (PHI), Controlled Unclassified Information (CUI), and even classified government data in a secure and compliant manner. Palantir's security infrastructure meets regulatory requirements across industries and continents by aligning with frameworks like HIPAA, GDPR, and ITAR.
 
 As our software powers mission-critical operations across major corporations and governments alike, our threat model focuses on defeating attacks by highly resourced, technical, and persistent adversaries. To defeat these adversaries, we take a highly opinionated stance and enforce a high minimum bar of security for all our customers. For example, multi-factor authentication has been mandatory for all our managed Software as a Service (SaaS) platform customers for years.
 
 :::callout{theme="success" title="Palantir Learning portal"}
-Understand data protection with a [learn.palantir.com course ↗](http://learn.palantir.com/deep-dive-data-protection-tools-in-foundry).
+Understand data protection with a [learn.palantir.com course ↗](https://learn.palantir.com/deep-dive-data-protection-tools-in-foundry).
 :::
 
 ## Platform security

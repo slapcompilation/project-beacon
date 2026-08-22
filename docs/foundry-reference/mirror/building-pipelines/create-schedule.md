@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-schedule/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-schedule/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create a schedule
 

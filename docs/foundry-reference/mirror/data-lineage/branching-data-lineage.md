@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/branching-data-lineage/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/branching-data-lineage/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Branching data lineage
 

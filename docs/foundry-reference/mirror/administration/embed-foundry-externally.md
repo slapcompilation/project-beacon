@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/embed-foundry-externally/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/embed-foundry-externally/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure the Content Security Policy for embedding
 
@@ -15,7 +15,7 @@ The following sections describe how to use workflows to configure your Content S
 ### Embed a Foundry resource externally
 
 :::callout{theme="warning"}
-Users of your site will be able to see the URL of your embedded Foundry resource. Do not embed Foundry into sites accessed by users who you don't want to know about your Foundry environment.
+Users of your site will be able to see the URL of your embedded Foundry resource. Do not embed Foundry into sites accessed by users who you do not want to know about your Foundry environment.
 :::
 
 To allow Foundry to be embedded into external resources, select the **Embed Foundry into an external site** workflow in the workflows tab. Follow the provided instructions to configure your CSP automatically.

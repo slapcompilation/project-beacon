@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/functions-versioning/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/functions-versioning/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Function versioning
 
@@ -85,7 +85,7 @@ It is common practice that any breaking changes be made in a minor release and a
 
 ### Accidentally releasing a backward incompatible change as a patch or minor version
 
-As soon as you realize that you’ve released a breaking change, you should correct the problem and restore backward compatibility in a new minor version.
+As soon as you realize that you have released a breaking change, you should correct the problem and restore backward compatibility in a new minor version.
 
 Consider the following example.
 

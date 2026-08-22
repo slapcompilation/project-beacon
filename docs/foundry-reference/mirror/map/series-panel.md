@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/series-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/series-panel/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Series panel \[Planned deprecation]
 

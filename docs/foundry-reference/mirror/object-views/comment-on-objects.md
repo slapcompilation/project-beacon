@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/comment-on-objects/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/comment-on-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Comment on objects
 

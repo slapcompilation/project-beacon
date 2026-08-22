@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-user-facing-error/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-user-facing-error/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # User-facing errors
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-rest/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-rest/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # REST Connector setup
 
@@ -6,7 +6,7 @@
 The following page and discusses implementation of the Power BI® connector to access Foundry resources from the Power Query interface. If you are searching for information on our Microsoft Power BI® XMLA connector for data integration, refer to our [data connectivity documentation](/docs/foundry/available-connectors/microsoft-power-bi-xmla/).
 :::
 
-You can access Palantir Foundry datasets from Power BI® without needing to install the Palantir Foundry ODBC driver. Compared to the built-in Palantir Foundry connector that is available in Power BI® by default, this connector only supports smaller dataset sizes. It is only intended for use when it is not possible to install the ODBC driver.The Palantir Foundry REST connector only supports **Import** mode for dataset ingestion and not **Direct Query**.
+You can access Palantir Foundry datasets from Power BI® without needing to install the Palantir Foundry ODBC driver. Compared to the built-in Palantir Foundry connector that is available in Power BI® by default, this connector only supports smaller dataset sizes. It is only intended for use when it is not possible to install the ODBC driver. The Palantir Foundry REST connector only supports **Import** mode for dataset ingestion and not **Direct Query**.
 
 ### Step 1: Install the Connector in the Custom Connectors Directory
 

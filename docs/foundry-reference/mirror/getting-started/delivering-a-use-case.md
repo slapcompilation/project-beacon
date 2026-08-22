@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/delivering-a-use-case/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/delivering-a-use-case/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Delivering a use case
 
@@ -29,7 +29,7 @@ Project success on the Palantir platform involves creativity and thoughtfulness.
 
 ## Outcome
 
-As you break down your project, it's more important to think about the outcome rather than the method you use to get there. For example, instead of starting with a need to build a sales dashboard, seek to understand what decisions and outcomes your work might enable. For example, is the outcome about making decisions on time and resource allocation to different sales regions, or something else?
+As you break down your project, it is more important to think about the outcome rather than the method you use to get there. For example, instead of starting with a need to build a sales dashboard, seek to understand what decisions and outcomes your work might enable. For example, is the outcome about making decisions on time and resource allocation to different sales regions, or something else?
 
 This level of understanding might involve more work at the start of your project, especially if you are building a tool, report, or analysis for someone else to use. Consider an outcome-oriented framing to help you move towards a realistic goal.
 
@@ -37,7 +37,7 @@ Flexibility and adaptation can help ensure a successful Palantir project. Identi
 
 ## Data
 
-Figuring out the right data to back your project can be a daunting task. However, if you have an outcome-oriented framing and decompose your project into smaller steps, it's easier to work backwards from that outcome and identify the necessary data.
+Figuring out the right data to back your project can be a daunting task. However, if you have an outcome-oriented framing and decompose your project into smaller steps, it is easier to work backwards from that outcome and identify the necessary data.
 
 If your organization has been using the Palantir platform for a while, the data you need may already be in the platform. Try exploring datasets curated in the [Data Catalog](/docs/foundry/compass/data-catalog/) or objects and links in [Object Explorer](/docs/foundry/object-explorer/overview/). From our outcome example, we might identify that we need data on our sales force, sales territories, products, and individual sales. Each of these objects should have a primary representation in the Ontology.
 
@@ -47,7 +47,7 @@ If you are unable to identify the key dataset for each type of data you need, co
 
 Each application is designed to operate as part of the entire platform. It will take time to familiarize yourself with the different capabilities in the platform and which tools are best for a given job.
 
-Once you understand the outcomes of your project and the necessary data, it's easier to map each step to a particular tool. For instance, suppose that in your project you recognize that one sub-project is to generate new sales metrics for each region. This sub-project creates several additional steps:
+Once you understand the outcomes of your project and the necessary data, it is easier to map each step to a particular tool. For instance, suppose that in your project you recognize that one sub-project is to generate new sales metrics for each region. This sub-project creates several additional steps:
 
 * Identify the key relevant metrics
 * Source the data

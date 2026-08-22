@@ -2531,7 +2531,7 @@ stay findable.
 - `enable-optional-features` — Enable optional features
 - `foundry-rules-workflow-configuration` — Foundry Rules workflow configuration
 - `legacy-foundry-rules-setup-taurus` — Legacy Foundry Rules Setup (Taurus)
-- `marketplace` — Add Foundry Rules to a Marketplace products
+- `marketplace` — Add Foundry Rules to a Marketplace product
 - `migrate-to-foundry-rules` — Migrate to Foundry Rules
 - `object-model` — Object model
 - `overview` — Foundry Rules

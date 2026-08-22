@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/api-object-sets/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/api-object-sets/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # API: Object sets
 
@@ -140,9 +140,9 @@ Note that for performance reasons, the number of Search Around operations you ca
 KNN is only supported on object types indexed into [OSv2](/docs/foundry/object-backend/overview/). The k value is limited to the range 0 < K <= 100. Also, the search vector must be the same size as the one used for indexing and has a 2048 dimension limit. An error will be thrown if any of these limits are exceeded.
 :::
 
-Object types with embedding properties will be available for KNN searches. These searches will return the k value objects that have an embedding property nearest to the provided embedding parameter. The following example returns the most similar movies to a provided movie script. Embeddings can be generated in transformation tools such as [Pipeline Builder](/docs/foundry/pipeline-builder/pipeline-builder-aip/#text-to-embeddings) ; or at function query time [using a Palantir-provided embedding model](language-models.md#embeddings) or [your own model in a function](/docs/foundry/functions/functions-on-models/).
+Object types with embedding properties will be available for KNN searches. These searches will return the k value objects that have an embedding property nearest to the provided embedding parameter. The following example returns the most similar movies to a provided movie script. Embeddings can be generated in transformation tools such as [Pipeline Builder](/docs/foundry/pipeline-builder/pipeline-builder-aip/#text-to-embeddings); or at function query time [using a Palantir-provided embedding model](language-models.md#embeddings) or [your own model in a function](/docs/foundry/functions/functions-on-models/).
 
-Make sure that your functions repository's `functions.json` configuration file has the `enableVectorProperties` entry set to  `true`.
+Make sure that your functions repository's `functions.json` configuration file has the `enableVectorProperties` entry set to `true`.
 
 ```typescript
 import { Objects } from "@foundry/ontology-api";
@@ -190,7 +190,7 @@ Objects.search()
     .take(10)
 ```
 
-As another example, imagine an object type `claims` which contains text of accident claims for an insurance company. We'd like to find a specific claim involving a red car and a deer. Without the `.orderByRelevance()` line, any results containing any of the words `red`, `car`, `collision`, `with`, or `deer` may have been returned in the top 10 results. With the `.orderByRelevance()` line, the first 10 results will be the claims that contain the most search terms, so that the most relevant claims will appear first.
+As another example, imagine an object type `claims` which contains text of accident claims for an insurance company. Suppose you want to find a specific claim involving a red car and a deer. Without the `.orderByRelevance()` line, any results containing any of the words `red`, `car`, `collision`, `with`, or `deer` may have been returned in the top 10 results. With the `.orderByRelevance()` line, the first 10 results will be the claims that contain the most search terms, so that the most relevant claims will appear first.
 
 ```typescript
 const results = Objects.search()
@@ -210,7 +210,7 @@ When bucketing using `.topValues()`, results will be approximate if the data has
 
 ### Grouping objects by properties
 
-In many cases, it's unnecessary to load all of the objects in your object set. Instead, you can simply load a bucketed aggregation of values to conduct further analysis.
+In many cases, it is unnecessary to load all of the objects in your object set. Instead, you can simply load a bucketed aggregation of values to conduct further analysis.
 
 To begin computing an aggregation, call the `.groupBy()` method on an object set. This allows you to specify bucketing on one of the searchable properties of the object type in the object set. For example, this code groups employees by their start date:
 
@@ -240,7 +240,7 @@ When specifying which property to bucket by, you will have to provide additional
   * `.byMinutes()` buckets values by minutes. You may pass in a number of minutes to use for bucket widths.
   * `.bySeconds()` buckets values by seconds. You may pass in a number of seconds to use for bucket widths.
 * For `Array` properties, the bucketing options are determined by the type of the elements in the array. In particular, you get the same bucketing methods for `Array<PropertyType>` as you would get for the `PropertyType` (for example, `Array<boolean>` gets the same bucketing methods as `boolean`).
-  * For example, if you have an `Array<string>` called `employeeSet` consisting of Alice and Bob who have respectively worked in `["US", "UK"]` and `["US"]`. Then `employeeSet.groupBy(e => e.pastCountries.exactValue()).count()` will return `{ "US": 2, "UK": 1 }`.
+  * For example, if you have an object set called `employeeSet` consisting of Alice and Bob, whose `Array<string>` property `pastCountries` holds `["US", "UK"]` and `["US"]` respectively, then `employeeSet.groupBy(e => e.pastCountries.exactValues()).count()` will return `{ "US": 2, "UK": 1 }`.
 
 After grouping by one property, you may optionally call the `.segmentBy()` method to perform further bucketing. This allows you to compute a three-dimensional aggregation bucketed by two searchable properties. For example, you could group employees by their start date as well as their role as follows:
 

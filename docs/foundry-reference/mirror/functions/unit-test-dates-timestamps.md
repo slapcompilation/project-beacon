@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-dates-timestamps/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-dates-timestamps/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Mock dates, timestamps, and UUIDs
 

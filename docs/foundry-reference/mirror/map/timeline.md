@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/timeline/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/timeline/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Timeline
 
@@ -50,8 +50,8 @@ You can view the [time range](/docs/foundry/map/time-overview/#selected-time-and
 
 Scroll controls:
 
-* Use your mouse's scroll wheel to zoom in our out on the timeline, and press `Cmd` (macOS)/`Ctrl` (Windows) before scrolling to pan the time range.
-* Use your trackpad to zoom in our out on the timeline by vertically swiping or pinching in or out.
+* Use your mouse's scroll wheel to zoom in or out on the timeline, and press `Cmd` (macOS)/`Ctrl` (Windows) before scrolling to pan the time range.
+* Use your trackpad to zoom in or out on the timeline by vertically swiping or pinching in or out.
 
 Select **Time range** in the top right ribbon of the timeline header to input a specific date and time range for the timeline.
 

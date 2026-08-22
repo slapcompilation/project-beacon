@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-tabs/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-tabs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure tabs
 
@@ -21,7 +21,7 @@ You can add a tab from two places within the editor: the **Tabs** section of the
 
 ### Delete a tab
 
-You can delete a tab from the list of tabs within the Object View editor sidebar. You can also click into the tab in the editor sidebar, navigate to **Advanced** , and click **Delete tab**.
+You can delete a tab from the list of tabs within the Object View editor sidebar. You can also click into the tab in the editor sidebar, navigate to **Advanced**, and click **Delete tab**.
 
 ![Delete a tab in Object View with editor sidebar](./images/delete-tab-in-editor-sidebar.png)
 ![Delete a tab in Object View with Advanced settings](./images/delete-tab-in-advanced-settings.png)

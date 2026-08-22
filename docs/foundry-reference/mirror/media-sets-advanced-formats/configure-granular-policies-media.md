@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/configure-granular-policies-media/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/configure-granular-policies-media/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure granular policies for media items
 

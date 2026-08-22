@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/troubleshooting-odbc-jdbc/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/troubleshooting-odbc-jdbc/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Troubleshooting issues when configuring ODBC & JDBC Drivers
 

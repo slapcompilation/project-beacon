@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started with Python functions
 
@@ -6,7 +6,7 @@ The following documentation will guide you through the initial steps to prepare 
 
 ## Create a Python functions repository
 
-Navigate to a project of your choice and create a new code repository by selecting **+ New > Repository**. Select the **Pythons functions** template to initialize your repository. We recommend grouping all functions for use in Workshop or Ontology-based applications in a single repository to minimize costs.
+Navigate to a project of your choice and create a new code repository by selecting **+ New > Repository**. Select the **Python functions** template to initialize your repository. We recommend grouping all functions for use in Workshop or Ontology-based applications in a single repository to minimize costs.
 
 ![Create a Python function code repository.](./images/python-functions-create-repo.png)
 

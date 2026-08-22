@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/faq/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/faq/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Slate FAQ
 
@@ -120,7 +120,7 @@ And sometimes the issue is rather with how and when Slate executes queries accor
   * Resolve this both by improving query performance: [Postgres query performance and tuning](/docs/foundry/slate/references-query-perf/) and [Controlling query execution](/docs/foundry/slate/best-practices-app-functionality/#managing-query-execution).
   * For more on timeouts specifically, review the next section on [Postgres query times out](#postgres-query-times-out).
 * Queries that fail in certain circumstances (because the Handlebars rendering is not well protected).
-  * If you have Handlebars statements in your query, make sure they're protected by `{{#if}}` statements or through logic in a function against `null` values or other edge cases.
+  * If you have Handlebars statements in your query, make sure they are protected by `{{#if}}` statements or through logic in a function against `null` values or other edge cases.
 * Queries that execute at the wrong time or fail to execute.
   * Make sure you [understand why things happen in Slate](/docs/foundry/slate/best-practices-app-functionality/#understanding-why-things-happen-in-slate) and that you are appropriately [controlling query execution](/docs/foundry/slate/best-practices-app-functionality/#managing-query-execution). For complex applications or those that rely overly-heavily on events, the note on `Event Madness` is relevant.
 
@@ -236,7 +236,7 @@ To troubleshoot, perform the following steps:
 
 If a function is behaving in an unexpected manner, confirm that you understand how they fit in to the Dependency Graph and Event Framework by [reviewing the existing best practices documentation](/docs/foundry/slate/best-practices-app-functionality/#best-practices-and-common-patterns-for-javascript-functions).
 
-It's very rare to need a pattern where an Event calls the `[f_myFunction].run` action. An application attempting to rely on this pattern should be refactored to use the normal resolution of the dependency graph. Instead of triggering the function directly, instead update an upstream dependency, for example by triggering a query or setting the value of a referenced variable.
+It is very rare to need a pattern where an Event calls the `[f_myFunction].run` action. An application attempting to rely on this pattern should be refactored to use the normal resolution of the dependency graph. Instead of triggering the function directly, instead update an upstream dependency, for example by triggering a query or setting the value of a referenced variable.
 
 Functions without inputs do not run again on a `Recalculate` event. If Slate already cached the result for a set of parameters, it returns that result instead of running the function again. To run a function at regular intervals, provide at least one input that changes with each interval, such as a timer-updated variable or a timestamp.
 
@@ -296,13 +296,13 @@ Slate is optimized for rapid application development. The underlying framework i
 
 To troubleshoot, perform the following steps:
 
-The first and best option is to consider why there is a requirement or request to print your app. Do your users simply need a way to preserve the view they've created and reference it later or use it during a presentation?
+The first and best option is to consider why there is a requirement or request to print your app. Do your users simply need a way to preserve the view they have created and reference it later or use it during a presentation?
 
 In this case, consider using the built-in [shareable view](/docs/foundry/slate/best-practices-user-interaction/#shareable-views) feature, which generates a unique URL that preserves the state of all widget selections and variables. Users can access this from the **Actions** dropdown menu in **View** mode.
 
 If you really must print or export, then you will need to define additional media CSS styles to help your application render appropriately.
 
-To start, you'll need to add at least this to the **Global Styles**:
+To start, you will need to add at least this to the **Global Styles**:
 
 ```
 @media print {

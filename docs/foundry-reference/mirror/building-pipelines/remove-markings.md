@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-markings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-markings/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Guidance on removing markings
 
@@ -6,7 +6,7 @@ Access requirements for platform resources are controlled by [Markings](/docs/fo
 
 Markings are frequently used because they are legible throughout the platform and propagate along direct dependencies, protecting sensitive data. In some circumstances, a Marking may be applied early in a pipeline and need to be removed later in a pipeline. This page provides more information on how to remove Markings depending on your pipeline structure.
 
-* If you are starting to apply Markings to your pipelines, we suggest reading through the [scenarios](#scenarios) section below to make sure you don't accidentally lock out any of your end users.
+* If you are starting to apply Markings to your pipelines, we suggest reading through the [scenarios](#scenarios) section below to make sure you do not accidentally lock out any of your end users.
 * Additionally, we recommend following the [best practices](#best-practices) when applying and removing Markings, and consulting the [documentation on how to remove inherited Markings and Organizations](/docs/foundry/building-pipelines/remove-inherited-markings/) for more advanced information.
 
 You can also [remove markings or organizations with Pipeline Builder](/docs/foundry/pipeline-builder/outputs-remove-markings-and-organizations/).
@@ -52,7 +52,7 @@ We highly recommend ***disabling*** *view requirement propagation* in favor of u
 Before disabling view requirement propagation and introducing Markings to your pipeline, it is worth considering the original purpose of enabling propagating view requirements:
 
 1. Perhaps there is no compelling reason for having "propagate view requirements" enabled. In that case, you might be able to simply disable this setting, and then ensure that users are only granted access to the datasets to which they explicitly require access. Users will no longer also require access to the upstream datasets which were previously propagating view requirements.
-2. There are a few sensitive datasets in the Project. In this case, it’s best to isolate the sensitive datasets from non-sensitive ones and follow the steps outlined below. Those steps demonstrate how to replace view requirement propagation with Markings, which are the appropriate security primitive meant for these scenarios.
+2. There are a few sensitive datasets in the Project. In this case, it is best to isolate the sensitive datasets from non-sensitive ones and follow the steps outlined below. Those steps demonstrate how to replace view requirement propagation with Markings, which are the appropriate security primitive meant for these scenarios.
 3. If the steps below do not meet your needs, contact your Palantir representative.
 
 In the example below, our goal is to disable "propagate view requirements" on the **Datasource** Project. After following the steps above, we learned that the reason "propagate view requirements" is enabled on the project was to protect the `raw_dataset_1` dataset because it has sensitive data.
@@ -63,9 +63,9 @@ In the old state, viewing the contents of Dataset **A** would require at least �
 
 In the new state, viewing contents of Dataset **A** requires at least “viewer” access on the **Downstream** Project and access to the Marking. Note that with "propagate view requirements" disabled, requiring access to Datasets **C** & **D** only requires “viewer” access on the **Downstream** Project.
 
-This change allows disabling of "propagate view requirements" by using a security Marking. In the proposed solution below, we’ll apply a Marking on `raw_dataset_1` which is then *immediately* propagated to all downstream datasets which have any non-severed transaction of `raw_dataset_1` as an input. There is an assumption that **severing was already in place**, and severing is only being replaced by Marking removal. If this is not true in your situation, see [Scenario 3](#scenario-3-applying-a-new-marking-followed-by-marking-removal-at-the-dataset-level), where we discuss implications of applying a Marking to a dataset in detail.
+This change allows disabling of "propagate view requirements" by using a security Marking. In the proposed solution below, you apply a Marking on `raw_dataset_1` which is then *immediately* propagated to all downstream datasets which have any non-severed transaction of `raw_dataset_1` as an input. There is an assumption that **severing was already in place**, and severing is only being replaced by Marking removal. If this is not true in your situation, see [Scenario 3](#scenario-3-applying-a-new-marking-followed-by-marking-removal-at-the-dataset-level), where we discuss implications of applying a Marking to a dataset in detail.
 
-The following steps are recommended for introducing this change so that users don’t lose access to Dataset **B** when the Marking is added after disabling "propagate view requirements" in the **Datasource** Project:
+The following steps are recommended for introducing this change so that users do not lose access to Dataset **B** when the Marking is added after disabling "propagate view requirements" in the **Datasource** Project:
 
 1. Create a new Marking and give relevant users access to the Marking.
 2. Apply the Marking on `raw_dataset_1`.
@@ -82,7 +82,7 @@ This potentially complex scenario involves introducing a new Marking early in an
 
 It is critical to note that the Marking introduced on Dataset **A** will immediately propagate to all resources that are downstream of that dataset along the transaction lineage. Users will require the marking to access anything derived from the marked dataset.
 
-To understand this better, let’s extend the example above with a pipeline as follows: Dataset **A** → Dataset **B** → **Downstream** Datasets:
+To understand this better, consider the example above extended with a pipeline as follows: Dataset **A** → Dataset **B** → **Downstream** Datasets:
 
 * Dataset **A** is a raw dataset (about to be marked).
 * Dataset **B** is derived from Dataset **A** with sensitive data removed (so the Marking can be removed).
@@ -162,7 +162,7 @@ If you are making these changes in an important pipeline or are unsure about any
 
 This depends on whether the **require re-approval** or **don't require re-approval** approval mode is set on the repository which has your Marking removal transform. [Learn more about approval modes.](/docs/foundry/building-pipelines/remove-inherited-markings/#approval-modes)
 
-### The Marking removal workflow and the “one repo per Project” recommendations don’t go very well together. How many repositories should we set up per Project for the Marking removal workflow?
+### The Marking removal workflow and the “one repo per Project” recommendations do not go very well together. How many repositories should we set up per Project for the Marking removal workflow?
 
 Ideally, every time the *logic* of a Marking removal transform changes, it should undergo a security approval. To balance between excessive friction in the approval process and good security posture, we recommend that, if you can, move all transforms with Marking removal logic (such as obfuscating data, removing columns, and so on) to a separate repo and set the separate repo to “Require re-approvals”.
 

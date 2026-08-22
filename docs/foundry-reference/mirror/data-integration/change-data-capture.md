@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/change-data-capture/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/change-data-capture/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Change data capture (CDC)
 
@@ -220,7 +220,7 @@ We recommend reviewing the following information on backfills, outages, and othe
 
 All changelog syncs are handled on an exclusively "going forward" basis; no automatic backfill is performed.
 
-Often, a full backfill of changelogs is not possible, since most systems do not enable CDC by default. Even if changelogs are enabled, most systems include a retention period, after which changlogs are permanently deleted and no longer recoverable.
+Often, a full backfill of changelogs is not possible, since most systems do not enable CDC by default. Even if changelogs are enabled, most systems include a retention period, after which changelogs are permanently deleted and no longer recoverable.
 
 If a full backfill is required, we recommend the following:
 

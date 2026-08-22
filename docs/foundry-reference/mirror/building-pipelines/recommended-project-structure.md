@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/recommended-project-structure/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/recommended-project-structure/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Recommended project and team structure
 
@@ -14,7 +14,7 @@ This provides a conceptual overview of the various pipeline stages and what each
 
 ## Pipeline stages
 
-These stages define the logical separation of projects that compose a well-ordered pipeline. We'll go into each in more detail below.
+These stages define the logical separation of projects that compose a well-ordered pipeline. Each is described in more detail below.
 
 1. [Data Connection](#1-data-connection): Syncs land raw data from source systems into a `Datasource project`.
 2. [Datasource project](#2-datasource-project): One `Datasource project` per logical datasource defines the basic cleanup steps for each raw dataset and applies a consistent schema.
@@ -41,7 +41,7 @@ When deciding whether to create a new project or build in an existing one, consi
 
 ### 1. Data Connection
 
-The data flowing through a pipeline in Foundry normally originates from an external source system. The [Data Connection](/docs/foundry/data-connection/overview/) service provides a management interface where source systems are registered. For each source system, one or more individual syncs are configured land data into `raw` datasets in a **Datasource project**.
+The data flowing through a pipeline in Foundry normally originates from an external source system. The [Data Connection](/docs/foundry/data-connection/overview/) service provides a management interface where source systems are registered. For each source system, one or more individual syncs are configured to land data into `raw` datasets in a **Datasource project**.
 
 In order to configure a source system or sync in the first place, an **Agent Administrator** typically needs to configure a Data Connection [agent](/docs/foundry/data-connection/core-concepts/#agents). Each agent should be stored in a dedicated project only accessible to **Agent Administrators**.
 
@@ -75,7 +75,7 @@ Establishing this project-per-datasource model has a number of convenient benefi
 
 Inside each datasource project, the goal is to prepare the synced data for consumption by a wide variety of users, use cases, and pipelines across the organization.
 
-The output datasets, and their schema, should be thought of as an API - that is , the goal will be for them to be logically organized and stable over time, as the output datasets from a data source project are the backbone of all downstream work. The outputs should map 1:1 with the source tables or files; each row in the dataset should have a direct matching row in the source system.
+The output datasets, and their schema, should be thought of as an API - that is, the goal will be for them to be logically organized and stable over time, as the output datasets from a data source project are the backbone of all downstream work. The outputs should map 1:1 with the source tables or files; each row in the dataset should have a direct matching row in the source system.
 
 To this end, some typical objectives of the raw → clean transformation include:
 
@@ -85,7 +85,7 @@ To this end, some typical objectives of the raw → clean transformation include
 * Establishing primary [Health checks](/docs/foundry/health-checks/overview/).
 * Removing [PII (Personally Identifiable Information) or other sensitive data](/docs/foundry/security/data-protection-and-governance/#sensitive-data-classification) unsuitable for general consumption.
 
-Even where the source system provide column data type information, it is sometimes necessary to bring in values as a `STRING` type. Pay special attention to `DATE`, `DATETIME`, and `TIMESTAMP` types, which are often represented in source systems in non-standard formats and numeric types, which are occasionally troublesome. If these types do prove to be unreliable in format from the source system, importing as a `STRING` type provides the option to implement more robust parsing and define logic for handling malformed values or dropping unusable or duplicated rows.
+Even where the source system provides column data type information, it is sometimes necessary to bring in values as a `STRING` type. Pay special attention to `DATE`, `DATETIME`, and `TIMESTAMP` types, which are often represented in source systems in non-standard formats and numeric types, which are occasionally troublesome. If these types do prove to be unreliable in format from the source system, importing as a `STRING` type provides the option to implement more robust parsing and define logic for handling malformed values or dropping unusable or duplicated rows.
 
 In addition to these programmatic steps, clean datasets should be rigorously documented. A qualitative description of the dataset, the source system provenance, the appropriate contacts and management protocol and, where relevant, per-column metadata describing features of the data will all ensure future developers use the data appropriately.
 
@@ -99,7 +99,7 @@ In addition to these programmatic steps, clean datasets should be rigorously doc
 4. The **Datasource Developers** implement the cleanup transformations to produce “clean” datasets ready for use in other projects.
 5. Downstream developers request new datasets from the source system, enhancements to the clean datasets, or data quality issues by filing an **Issue** with the project or a specific clean dataset.
 
-While every datasource will be somewhat unique, the steps of cleaning and preparing a source system often have shared steps, such as parsing raw string values to a given type and handling errors. When datasources have a number of similar cleanup transforms, it's best practice to define a library in [Python](/docs/foundry/transforms-python/share-python-libraries/) to provide a set of consistent tooling and reduce duplicated code.
+While every datasource will be somewhat unique, the steps of cleaning and preparing a source system often have shared steps, such as parsing raw string values to a given type and handling errors. When datasources have a number of similar cleanup transforms, it is best practice to define a library in [Python](/docs/foundry/transforms-python/share-python-libraries/) to provide a set of consistent tooling and reduce duplicated code.
 
 #### Recommended folder structure
 
@@ -159,7 +159,7 @@ In addition, as your Ontology grows more robust and more teams contribute to the
 
 Workflow projects, also known as **use case projects**, should be flexibly designed for the context at hand, but usually are built around a single project or a team to an effective unit of collaboration and delineate the boundaries of responsibility and access.
 
-In general, workflow projects should reference data from the Ontology projects, to ensure that operational workflows, business intelligence analysis, and application projects all share a common view of the world. If, in the course of developing a workflow project, the datasources available in the Ontology layer aren't sufficient as sources, it's an indication that the Ontology should be enriched and expanded. Avoid referencing data from earlier (or later) in the pipeline as this can fragment the source of truth for a particular type of data.
+In general, workflow projects should reference data from the Ontology projects, to ensure that operational workflows, business intelligence analysis, and application projects all share a common view of the world. If, in the course of developing a workflow project, the datasources available in the Ontology layer are not sufficient as sources, it is an indication that the Ontology should be enriched and expanded. Avoid referencing data from earlier (or later) in the pipeline as this can fragment the source of truth for a particular type of data.
 
 :::callout{title="Document projects"}
 Each project should be documented thoroughly throughout the development process. Here are a few common patterns and best practices:
@@ -192,7 +192,7 @@ The structure of Workflow projects will be more varied than other project types 
 
 The roles below are examples of the profiles commonly involved in the scoping, design, implementation, and management of pipelines in Foundry. Not all roles may be necessary in all circumstances, especially in the early stages of Platform development, and individuals might fill more than one role at a time. However, generally considering these role descriptions and how they interact will help create well ordered, effective teams.
 
-The diagram below relates the primary roles to the segments of the pipeline where they're most commonly active.
+The diagram below relates the primary roles to the segments of the pipeline where they are most commonly active.
 
 ![pipeline\_roles](./images/pipeline_roles.png)
 
@@ -211,7 +211,7 @@ The diagram below relates the primary roles to the segments of the pipeline wher
 ### Other roles
 
 * **Operations Manager:** This role owns the monitoring of the healthy execution of the production pipeline. They monitor data refresh of the different sources, execution of the build of different pipeline and help triage support requests. This role supports the **Release Manager**.
-* **Permissions Owner / Identity Manager:** In most cases the assignment of users into groups is managed in the customers identity management system and the information is passed into Foundry through SAML integration. In such cases the permission manager owns that process.
+* **Permissions Owner / Identity Manager:** In most cases the assignment of users into groups is managed in the customer's identity management system and the information is passed into Foundry through SAML integration. In such cases the permission manager owns that process.
 * **Data Officer:** Responsible for modeling the Ontology layer into a user-centric view of the world, owning data quality, and hunting for new data sources which should be integrated to expand the Ontology layer. The data officer is also responsible for monitoring enrichments done in the use cases and generalizing them into the Ontology layer for better reusability.
 * **Project Manager:** A project manager works with the engineers contributing to a project to ensure the alignment of technical and business goals, the adherence to best practice standards for development on the platform, and coordination between other project teams. The project manager is also responsible for documenting the project.
 * **Datasource Owner:** This is the primary point of contact for the particular source system. They will need to work closely with the **Agent Administrator** during the configuration of a new data connection, and afterwards assume some level of responsibility for “upstream” issues - either with the agent service running on their server or file system or with the integrity of the data itself.

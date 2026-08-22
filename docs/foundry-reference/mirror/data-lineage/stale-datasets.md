@@ -1,11 +1,11 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/stale-datasets/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/stale-datasets/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Understand out-of-date datasets
 
 There are a few reasons why your dataset may not be up to date. Common scenarios to explore are:
 
 * Is my dataset build failing?
-* Is there an upstream dataset that hasn't built and isn't up to date?
+* Is there an upstream dataset that has not built and is not up to date?
 * Have we received up-to-date data from the source?
 
 You can easily answer these questions by using Data Lineage.

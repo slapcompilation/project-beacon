@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-visualization/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-visualization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Visualization
 
@@ -91,7 +91,7 @@ Under the format tab within the widget configuration, aside from defaults of Tit
 
 ### Common issues and notes
 
-* This widget is searchable and sortable (oldest first, newest first). However, it doesn't support filtering, so it is not affected by filters. For filtering functionality, consider using the [Grouped Events Timeline and Table](#grouped-events-timeline-and-table) widget.
+* This widget is searchable and sortable (oldest first, newest first). However, it does not support filtering, so it is not affected by filters. For filtering functionality, consider using the [Grouped Events Timeline and Table](#grouped-events-timeline-and-table) widget.
 * If you wish to display events on a graphic timeline (and not just be a chronological list), consider using the [Grouped Events Timeline and Table](#grouped-events-timeline-and-table) widget.
 * If you wish to display a Gantt chart style timeline, there is a “Linked Objects Gantt Chart” widget. If this is not available, contact your Palantir representative for more details. This is relevant for displaying a smaller number of events, with distinct start and end dates, such as a project timeline.
 * For Timeseries visualizations, contact your Palantir team for more details about Quiver, which can be embedded in an Object View. You can also use Charts widgets (or embed charts from Contour or Quiver charts), with a date/time property on the X-axis.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-chart/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Chart
 
@@ -56,7 +56,7 @@ The following tables offer usage details about the properties available to Chart
 |name	|Name of the axis, referred to by xAxisName and yAxisName in ISeries.	|string	|Yes	|Direct Edit	|
 |position	|Position of the axis. For x-axes, position can be top or bottom. For y-axes, left or right.	|string	|Yes	|Direct Edit	|
 |label	|Label associated with the axis.	|string	|No	|Direct Edit	|
-|scale	|Axis type. For y-axes (position left and right), scale can be linear, modifiedlog, or category. For x-axes (position top and bottom), scale can also be timeseries. Note: Currently timeseries scale expects dates as integers representing ms after the epoch. SQL date format often arrives in Slate as a string, so if a time chart isn’t working try casting as an integer as follows: MySQL: `SELECT UNIX_TIMESTAMP(date_column)*1000 AS date_number` or Postgres: `SELECT EXTRACT(epoch FROM date_column)*1000 AS date_number`. Remember to update xValues to the newly created number column in the above examples, “{{query1.date\_number}}}”	|string	|No	|Direct Edit	|
+|scale	|Axis type. For y-axes (position left and right), scale can be linear, modifiedlog, or category. For x-axes (position top and bottom), scale can also be timeseries. Note: Currently timeseries scale expects dates as integers representing ms after the epoch. SQL date format often arrives in Slate as a string, so if a time chart is not working try casting as an integer as follows: MySQL: `SELECT UNIX_TIMESTAMP(date_column)*1000 AS date_number` or Postgres: `SELECT EXTRACT(epoch FROM date_column)*1000 AS date_number`. Remember to update xValues to the newly created number column in the above examples, “{{query1.date\_number}}}”	|string	|No	|Direct Edit	|
 |scaleMax	|Maximum value for axis (if unspecified, the axis will autorange).	|number	|No	|Direct Edit	|
 |scaleMin	|Minimum value for axis (if unspecified, the axis will autorange).	|number	|No	|Direct Edit	|
 |tickInterval	|Interval between tick values. Available for axes with a linear scale only.	|number	|No	|Direct Edit	|
@@ -81,9 +81,9 @@ The following tables offer usage details about the properties available to Chart
 |---	|---	|---	|---	|---	|
 |name	|The name of the dataset. Used as a legend label if no series values are specified. Plot visuals are CSS-classed with this name.	|string	|Yes	|Direct Edit	|
 |renderer	|The renderer used to draw the dataset.	|string	|Yes	|Direct Edit	|
-|seriesColors	|An array of color values which maps to the array of series names specified in the “Series Names” field. Colors can be specified either as hex (e.g. “#FF0000”) or as CSS color names (e.g. “red”).If no series names are specified in the “Series Names” array, the first color specified in the color array will color the entire chart. If no color values are specified the chart will use the default Blueprint color scheme	|string\[]	|No	|Direct Edit	|
+|seriesColors	|An array of color values which maps to the array of series names specified in the “Series Names” field. Colors can be specified either as hex (e.g. “#FF0000”) or as CSS color names (e.g. “red”). If no series names are specified in the “Series Names” array, the first color specified in the color array will color the entire chart. If no color values are specified the chart will use the default Blueprint color scheme	|string\[]	|No	|Direct Edit	|
 |seriesNames	|An array of unique series names which the array of colors specified in the “Colors” field maps onto.	|any\[]	|No	|Direct Edit	|
-|seriesValues	|An array of labels (numbers or strings) that group data into “series.”A stacked bar dataset with x = \[1, 1], y = \[1, 2], and series = \[“series1”, “series2”] will generate one stack at x=1 with the “series2” bar on top of the “series1” bar.A line dataset with multiple series will generate multiple lines.	|any\[]	|No	|Direct Edit	|
+|seriesValues	|An array of labels (numbers or strings) that group data into “series.” A stacked bar dataset with x = \[1, 1], y = \[1, 2], and series = \[“series1”, “series2”] will generate one stack at x=1 with the “series2” bar on top of the “series1” bar. A line dataset with multiple series will generate multiple lines.	|any\[]	|No	|Direct Edit	|
 
 ### ILabelsModel
 

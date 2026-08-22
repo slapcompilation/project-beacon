@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/app-building/curating-apps/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/app-building/curating-apps/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Curating apps in Applications Portal
 
@@ -10,7 +10,7 @@ Applications Portal is a tool for discovering and accessing all apps in Foundry.
 
 You can open Applications Portal by selecting the **Applications Portal** icon in the left sidebar. You will be able to view any application built in [Workshop](/docs/foundry/workshop/overview/), [Slate](/docs/foundry/slate/overview/), or [Carbon](/docs/foundry/carbon/overview/) that you have [promoted](#promoted-apps-in-applications-portal). You will also have quick access to all Foundry platform apps.
 
-You can "pin" your favorite apps to the left sidebar for easy access. Select the star icon next to the application's name from the Applications Portal or when you're editing the application. Once pinned, a section called **Promoted Apps** will appear in the Foundry sidebar with a list of your favorite promoted apps.
+You can "pin" your favorite apps to the left sidebar for easy access. Select the star icon next to the application's name from the Applications Portal or when you are editing the application. Once pinned, a section called **Promoted Apps** will appear in the Foundry sidebar with a list of your favorite promoted apps.
 
 <img src="./images/apps-portal-sidebar-promoted.png" alt="Sidebar Promoted App" width="300" />
 

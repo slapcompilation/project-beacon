@@ -1,9 +1,9 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-external-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-external-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # External pipelines in Pipeline Builder
 
 :::callout{theme="neutral"}
-If you're new to Pipeline Builder, review [how to create a batch pipeline in Pipeline Builder](/docs/foundry/building-pipelines/create-batch-pipeline-pb/) before proceeding.
+If you are new to Pipeline Builder, review [how to create a batch pipeline in Pipeline Builder](/docs/foundry/building-pipelines/create-batch-pipeline-pb/) before proceeding.
 :::
 
 Pipeline Builder now offers **external pipelines**, which push down compute to external compute engines. This functions in a similar manner as [compute pushdown in Python transforms](/docs/foundry/transforms-python/tables-compute-pushdown/), and allows Foundry's pipeline management, data lineage, and security functionality to be used on top of external data warehouse compute.

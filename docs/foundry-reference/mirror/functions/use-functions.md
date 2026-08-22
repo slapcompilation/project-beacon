@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/use-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/use-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Use functions in the platform
 
@@ -48,7 +48,7 @@ A [reference for the Aggregation API](/docs/foundry/functions/types-reference/#a
 
 ### Function-backed Actions
 
-Function-backed Actions use the [Ontology edits](/docs/foundry/functions/api-ontology-edits/) API to define the logic for how objects should be updated. This allows you to express complex edits in code—for example, updating every objected linked to some starting object. [See a tutorial for how to use Function-backed Actions end-to-end.](/docs/foundry/action-types/function-actions-getting-started/)
+Function-backed Actions use the [Ontology edits](/docs/foundry/functions/api-ontology-edits/) API to define the logic for how objects should be updated. This allows you to express complex edits in code—for example, updating every object linked to some starting object. [See a tutorial for how to use Function-backed Actions end-to-end.](/docs/foundry/action-types/function-actions-getting-started/)
 
 ### Side effects: Notifications
 

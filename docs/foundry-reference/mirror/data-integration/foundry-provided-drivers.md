@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-provided-drivers/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-provided-drivers/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Palantir-provided drivers for JDBC sources
 
@@ -83,7 +83,7 @@ To transform the certificate file into Base64 format on a Windows machine, use t
 
 Some CData drivers connecting to file-based source systems like [Amazon Marketplace](/docs/foundry/available-connectors/amazon-marketplace/) or [Microsoft OneDrive](/docs/foundry/available-connectors/microsoft-onedrive/) rely on the ability to invoke stored procedures to ingest data.
 
-![Microsoft OneDriver sync extracting a file using a stored procedure.](./images/onedrive-downloadfile-procedure.png)
+![Microsoft OneDrive sync extracting a file using a stored procedure.](./images/onedrive-downloadfile-procedure.png)
 
 Running the stored procedure will produce a table where the file content is stored as a Base64 encoded string. You can decode it in a downstream data transformation, for example in Pipeline Builder using a [Base64 decode](/docs/foundry/pb-functions-expression/base64DecodeV1/) board.
 

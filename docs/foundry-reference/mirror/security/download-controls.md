@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/download-controls/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/download-controls/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Download controls
 
@@ -16,7 +16,7 @@ A download is an action a user can take in a platform to transfer data to their 
 
 Depending on your organization’s [data governance](/docs/foundry/security/data-protection-and-governance/#data-governance-oversight) requirements and policies, it might be helpful to limit which users can download certain data from Foundry. If users do not need to download data, limiting their ability to perform download actions can better uphold principles of least privilege and *further* guard against inadvertent data spills.
 
-### Why isn’t restricting downloads comprehensive?
+### Why is restricting downloads not comprehensive?
 
 Downloads are just one type of action a user can take to transfer data from the platform. [Automated exports](/docs/foundry/data-connection/export-overview/), [calls to external systems](/docs/foundry/data-connection/external-transforms/), and [webhooks](/docs/foundry/data-connection/webhooks-setup/) are all methods of exporting data directly to another system, and they each have their own controls. It is worthwhile to note that copying to clipboard, taking a screenshot, or printing a browser page are other actions that could also be understood as data transfers out of the platform.
 
@@ -37,7 +37,7 @@ Foundry offers several capabilities to control and improve awareness around when
 
 In more advanced use cases, if users require additional privileges beyond the scope of the `Discoverer` role but are not authorized to download data, you can create a [custom role](/docs/foundry/platform-security-management/manage-roles/#creating-a-custom-role) based on an existing role to restrict specific operations that allow downloading data.
 
-**Limitation:** Not all download actions in Foundry are governed by roles. Fore example, downloading SAML metadata is managed in Control Panel.
+**Limitation:** Not all download actions in Foundry are governed by roles. For example, downloading SAML metadata is managed in Control Panel.
 
 ### Use Checkpoints to remind users downloads are sensitive actions
 
@@ -45,7 +45,7 @@ In more advanced use cases, if users require additional privileges beyond the sc
 
 Checkpoints can be set up to remind users of any organizational or governance policies regarding downloads. You can explicitly require users to acknowledge this policy or provide a justification for why a data download might be required. Enabling checkpoints for downloads helps ensure that downloads are intentional actions; it further lessens the risk of users inadvertently triggering a download action in the platform.
 
-In addition, [the Checkpoints application](/docs/foundry/checkpoints/review-checkpoint-records/) enables you to review submitted checkpoint records for download actions. This can provide data governance users with real-time information of downloads actions triggered across the platform.
+In addition, [the Checkpoints application](/docs/foundry/checkpoints/review-checkpoint-records/) enables you to review submitted checkpoint records for download actions. This can provide data governance users with real-time information of download actions triggered across the platform.
 
 **Limitation:** Not all download actions in Foundry are covered by a checkpoint.
 

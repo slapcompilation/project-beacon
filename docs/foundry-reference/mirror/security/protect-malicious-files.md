@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/security/protect-malicious-files/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/protect-malicious-files/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Protecting against malicious files
 
 Most IT and Security teams maintain tools and controls to prevent the presence of malicious files on computers. Such controls generally include network-based or endpoint-based scanning and monitoring, and they should ideally cover the entirety of your IT footprint (user workstations, administrative systems, servers, etc.).
 
-When your team begins using Foundry for syncing and storing files, it’s important to also include Foundry as in-scope for protection against malicious files and malware.
+When your team begins using Foundry for syncing and storing files, it is important to also include Foundry as in-scope for protection against malicious files and malware.
 
 ## Foundry controls
 
@@ -24,4 +24,4 @@ Although Foundry’s platform-based file controls serve as effective mitigations
 * Antimalware tooling should ideally offer periodic scans, and real-time detection.
 * Customers should enforce use of the native malware protections present in most major web browsers.
 
-If you’re a Palantir customer with any questions or concerns regarding malicious file controls, feel free to ask your Palantir representative for guidance, and our engineers will be happy to assist.
+If you are a Palantir customer with any questions or concerns regarding malicious file controls, feel free to ask your Palantir representative for guidance, and our engineers will be happy to assist.

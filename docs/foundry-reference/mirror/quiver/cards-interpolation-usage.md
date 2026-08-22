@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-interpolation-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-interpolation-usage/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Interpolation in Quiver
 
@@ -111,7 +111,7 @@ For example, assume you have three time series `A`, `B`, and `C`, in which serie
 
 If you want to search for points when the sum of the three series is `>= 6`, your search would look as follows:
 
-![Example of time series search where one of the series doesn't have interpolation set](./images/time-series-search-missing-interpolation.png)
+![Example of time series search where one of the series does not have interpolation set](./images/time-series-search-missing-interpolation.png)
 
 Although visually, the combined series "crosses" the threshold of 6 much earlier than the resulting event start, the event starts from the first actual point in the combined series that satisfies the condition. That point also happens to be the end of the event, because there are no more points after in the combined series. In contrast, if you have interpolation on series `C` as well, you would get the following result:
 

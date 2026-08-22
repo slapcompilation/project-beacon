@@ -96,7 +96,7 @@ double-chevron to expand **all the way to the raw data**" — with a warning tha
 "Adding too many nodes simultaneously may affect the graph's performance and
 usability." Answering why a node is behind is `stale-datasets`' walkthrough,
 which starts from the questions themselves —
-"Is there an upstream dataset that hasn't built and isn't up to date?"
+"Is there an upstream dataset that has not built and is not up to date?"
 — and answers them by expanding ancestors and coloring. And the
 histogram, for multi-select: "displays common properties and their values alongside
 **the number of appearances of each value on the graph**", clickable to highlight,
@@ -111,7 +111,7 @@ node. The ones that map onto things we have or nearly have:
 |---|---|
 | **Permissions** | "the level of access the user has to the data or the resource… allows you to choose **any Foundry user and view their permissions**" |
 | **Transaction type** | "Indicates each nodes transaction type: Append or Snapshot" — sic, the source's apostrophe |
-| **Out-of-date** | "**Out-of-date with parent** means a direct parent of the resource had been updated and the resource itself hasn't yet updated accordingly.… **Out-of-date with ancestor** means the resource is up-to-date with its direct parents, but there is a resource upstream that is more updated." Filterable by **Data** vs **Logic** — "**Logic out-of-date** means job-specs has changed." |
+| **Out-of-date** | "**Out-of-date with parent** means a direct parent of the resource had been updated and the resource itself has not yet updated accordingly.… **Out-of-date with ancestor** means the resource is up-to-date with its direct parents, but there is a resource upstream that is more updated." Filterable by **Data** vs **Logic** — "**Logic out-of-date** means job-specs has changed." |
 | **Storage** | "Will be **Foundry** unless you are using Virtual Tables" |
 | **Row count**, **Files** | size metrics; row count "could be calculated in the dataset details helper" |
 | **Build status**, **Data Health**, **Schedule count**, **Sync status**, **Time last built**, **Build duration**, **Spark usage**, **User views**, **Branch**, **Code Status** | pipeline operations |

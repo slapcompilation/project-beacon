@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/object-identifiers/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/object-identifiers/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Object identifiers
 
@@ -10,7 +10,7 @@ The identity of an object in Foundry is represented in a few different ways, and
 
 A "RID" refers to a [Resource Identifier ↗](https://github.com/palantir/resource-identifier), Palantir’s open-source specification used to identify an entity. Ontology objects have a RID assigned to them when they are created, either from indexing a backing dataset or as part of an Action.
 
-In functions, every [Ontology object](/docs/foundry/functions/api-objects-links/) has a `rid` field of type `string | undefined`. The reason a RID may be undefined is that it’s possible to create a new object in functions using the [object creation](/docs/foundry/functions/api-ontology-edits/#creating-objects) API. Newly created objects always have a `rid` value of `undefined`, while existing objects always have a defined `rid`.
+In functions, every [Ontology object](/docs/foundry/functions/api-objects-links/) has a `rid` field of type `string | undefined`. The reason a RID may be undefined is that it is possible to create a new object in functions using the [object creation](/docs/foundry/functions/api-ontology-edits/#creating-objects) API. Newly created objects always have a `rid` value of `undefined`, while existing objects always have a defined `rid`.
 
 ### Primary keys
 
@@ -22,7 +22,7 @@ All Ontology objects always have a `typeId` and `primaryKey` field that is prese
 
 ### Checking for equality
 
-Within functions, each Ontology object is represented using a [JavaScript object ↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object). It’s possible for one Ontology object to be represented as multiple JavaScript objects. For example, this can happen if you load the Ontology object from an [Object search](/docs/foundry/functions/api-object-sets/) multiple times, or load an object from an Object search in addition to having it passed in as a parameter:
+Within functions, each Ontology object is represented using a [JavaScript object ↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object). It is possible for one Ontology object to be represented as multiple JavaScript objects. For example, this can happen if you load the Ontology object from an [Object search](/docs/foundry/functions/api-object-sets/) multiple times, or load an object from an Object search in addition to having it passed in as a parameter:
 
 ```typescript
 public myFunction(employee: Employee): void {

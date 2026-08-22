@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/securing-a-business-application/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/securing-a-business-application/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Securing an operational application
 
@@ -6,7 +6,7 @@ After building your [data foundation](/docs/foundry/security/securing-a-data-fou
 
 ## Object data inherit dataset permissions
 
-With the backing data already transformed, you can create four objects in your ontology: `Flight`, `Flight Alert`, `Delay`, and` Aircraft`. To do this, [create new object types](/docs/foundry/object-link-types/create-object-type/) and pick the backing datasets you already built for each object. During this process, you will be mapping columns in your dataset to properties in the new object type. Each column in the backing dataset will become a property in the new object type, and each row in the backing dataset will become an instance of the object type. Therefore, the data inside an object type will be protected by the permissions of the backing datasets.
+With the backing data already transformed, you can create four objects in your ontology: `Flight`, `Flight Alert`, `Delay`, and `Aircraft`. To do this, [create new object types](/docs/foundry/object-link-types/create-object-type/) and pick the backing datasets you already built for each object. During this process, you will be mapping columns in your dataset to properties in the new object type. Each column in the backing dataset will become a property in the new object type, and each row in the backing dataset will become an instance of the object type. Therefore, the data inside an object type will be protected by the permissions of the backing datasets.
 
 For the `Aircraft` object, the data is protected by the permissions on the **/Sky Industries/Aviation \[Ontology]/aircraft** dataset. Therefore, a user in the **Aviation \[Ontology] - Viewer** group on the **Aviation \[Ontology]** Project will be able to see the data in the `Aircraft` object.
 

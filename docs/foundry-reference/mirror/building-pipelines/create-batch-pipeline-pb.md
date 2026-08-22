@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create a dataset batch pipeline with Pipeline Builder
 
@@ -268,7 +268,7 @@ You can now see the connection between the joins you just added and the datasets
 Now that you have finished transforming and structuring your data, you can add an output. For this tutorial, you will add a dataset output.
 
 1. In the **Pipeline outputs** sidebar to the right of the Pipeline Builder graph, name the output `Flight Alerts data`. Then select **Add dataset output**.
-2. Link `Join (2)` to the output by selecting the white circle to the right of the join node and connecting it to the `Flight Alerts data`dataset.
+2. Link `Join (2)` to the output by selecting the white circle to the right of the join node and connecting it to the `Flight Alerts data` dataset.
 3. Select **Use input schema** to use existing schema.
 4. From here, select the columns of data to keep. In this case, keep all the data together. <br><br>
    ![Select the columns to include in the output dataset.](./images/add-an-output.png) <br><br>
@@ -277,7 +277,7 @@ Now that you have finished transforming and structuring your data, you can add a
 
 To build your pipeline, select **Deploy** in the top right of your graph. Then, choose **Save and deploy**.
 
-![Choose to save and deploy to build you pipeline](./images/save-and-deploy.png)
+![Choose to save and deploy to build your pipeline](./images/save-and-deploy.png)
 
 You should see a small alert indicating the deploy was successful. Select **View** in the alert box to open the **Build progress** page.
 

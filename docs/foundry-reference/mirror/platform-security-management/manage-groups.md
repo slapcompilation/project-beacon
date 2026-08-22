@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-groups/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-groups/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Manage groups
 
@@ -99,7 +99,7 @@ Select **Project access** next to the **Details** tab to view Project access det
 
 The **Project access** view allows a group administrator to see all the Projects that a group has access to and the specific Project roles granted to the group. This view is especially helpful when deciding to add or remove users from a group because you can see how access will change.
 
-The **Show inherited permissions** toggle is `on` by default and will transverse all nested groups to find what Projects the group has access to. If you turn this toggle `off`, then the list will only show Projects where the group was directly applied.
+The **Show inherited permissions** toggle is `on` by default and will traverse all nested groups to find what Projects the group has access to. If you turn this toggle `off`, then the list will only show Projects where the group was directly applied.
 
 ![Project access tab](./images/project-access-tab.png)
 

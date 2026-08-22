@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-cr/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-cr/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create a dataset batch pipeline with Code Repositories
 
@@ -14,7 +14,7 @@ For this guide, we will write a SQL transform. Give your repository a name, then
 
 ## 2. Import your data
 
-If you’ve already imported a raw dataset that you will be working with, you can move on to the next step. Otherwise, you can download this sample dataset:
+If you have already imported a raw dataset that you will be working with, you can move on to the next step. Otherwise, you can download this sample dataset:
 
 [`Download titanic.csv`](/docs/resources/foundry/building-pipelines/titanic.csv)
 
@@ -34,20 +34,20 @@ This opens a dialog for selecting an existing branch and choosing a custom name 
 
 ![new-branch-dialog](./images/new-branch-dialog.png)
 
-After you create a new branch, you will see an identical file tree on the left-hand side. You’ve simply created a copy of the code on the `master` branch you started on. You can now edit files in your branch.
+After you create a new branch, you will see an identical file tree on the left-hand side. You have simply created a copy of the code on the `master` branch you started on. You can now edit files in your branch.
 
 ## 4. Edit code
 
 ### Creating a new file
 
-Now that you’re working in your own branch, create a new SQL file by clicking the ellipses icon when you hover over a folder and then selecting **New file**. Once you select **New file**, you will be prompted to select the type of file and give it a name. For this example, select **SQL Transformation** and pick a filename (without spaces or special characters):
+Now that you are working in your own branch, create a new SQL file by clicking the ellipses icon when you hover over a folder and then selecting **New file**. Once you select **New file**, you will be prompted to select the type of file and give it a name. For this example, select **SQL Transformation** and pick a filename (without spaces or special characters):
 
 ![create-new-file](./images/create-new-file.gif)
 
 Notice that your new SQL file is highlighted in the file tree at the position where the resulting dataset will exist when you build it.
 
 :::callout{theme="neutral"}
-If a filename is green in the file tree, it means it’s a newly created file in your branch that doesn’t exist on the master branch where you started. If a filename is orange, it means it’s a file that exists on the `master` but has been modified in your branch.
+If a filename is green in the file tree, it means it is a newly created file in your branch that does not exist on the master branch where you started. If a filename is orange, it means it is a file that exists on the `master` but has been modified in your branch.
 :::
 
 Your newly created `.sql` file will declare an output dataset based on the filename you provide. For instance, if your repository is inside `/Public/Authoring` and you create `titanicAnalysis.sql`, your new file will automatically declare an output dataset `/Public/Authoring/titanicAnalysis`.
@@ -75,16 +75,16 @@ Note that you must define an alias for any derived columns you create in SQL. Fo
 ## 5. Test your changes
 
 :::callout{theme="neutral"}
-In Foundry, datasets can be branched (similar to code). This is useful for testing the design of multi-step data pipelines. For instance, you can test changes to pieces of data pipelines in isolation without breaking downstream dependencies for anyone who doesn’t rely on your branch.
+In Foundry, datasets can be branched (similar to code). This is useful for testing the design of multi-step data pipelines. For instance, you can test changes to pieces of data pipelines in isolation without breaking downstream dependencies for anyone who does not rely on your branch.
 :::
 
-Now that you’ve written your data transformation code, you should test the changes you’ve made in your branch. It’s important to test your changes to be sure your code is working as expected before merging your changes into the `master` branch.
+Now that you have written your data transformation code, you should test the changes you have made in your branch. It is important to test your changes to be sure your code is working as expected before merging your changes into the `master` branch.
 
 ### Use preview to iterate on your changes
 
 As you write your code, you can use the **Preview** feature to accelerate the development cycle and iterate on changes quickly. Preview runs your code on sampled inputs and provides a sample output without the need to commit your changes, run checks, or materialize a dataset in Foundry. Sample outputs may not be representative of the result of a build, but they can provide a way to confirm your code is working and producing the expected results.
 
-To use, click **Preview** from the header, or open the **Preview** helper in the bottom bar of Code Editor. It's possible to preview file-based datasets or ones with schema.
+To use, click **Preview** from the header, or open the **Preview** helper in the bottom bar of Code Editor. It is possible to preview file-based datasets or ones with schema.
 
 For datasets with a schema, you can customize the inputs used when previewing your changes by clicking the **settings icon** for the input you wish to edit. The options are:
 
@@ -99,13 +99,13 @@ When running Preview again, there will be no need to reconfigure input files. On
 
 ### Commit your changes
 
-After writing new code, you can commit your changes. In Code Repositories, you commit changes when you want to label the work you’ve performed. Even before you make a commit, your work is auto-saved by default. A commit specifically labels your set of changes when you reach a stopping point.
+After writing new code, you can commit your changes. In Code Repositories, you commit changes when you want to label the work you have performed. Even before you make a commit, your work is auto-saved by default. A commit specifically labels your set of changes when you reach a stopping point.
 
 :::callout{theme="success" title="Tip"}
 Clicking the **Commit** button commits your changes and runs automatic checks on your code. Clicking the **Build** button also commits your changes. Specifically, clicking **Build** runs automatic code checks and starts building your output dataset. If you want to quickly test your changes without building your dataset to ensure your code passes the code checks, click **Commit**. Otherwise, you can skip ahead to [build your dataset](#build-your-dataset-on-your-branch).
 :::
 
-To commit the changes you’ve made, click the <img src="./images/commit.png" alt ="commit" width="80"> button at the top right corner and enter a summary of the changes you've made. Committing changes triggers automatic checks to run on your code. An icon in the top-right corner indicates the status of these checks; hover over it to see more details.
+To commit the changes you have made, click the <img src="./images/commit.png" alt ="commit" width="80"> button at the top right corner and enter a summary of the changes you have made. Committing changes triggers automatic checks to run on your code. An icon in the top-right corner indicates the status of these checks; hover over it to see more details.
 
 ![check-status](./images/check-status.png)
 
@@ -140,7 +140,7 @@ By this point, you have:
 * Tested your changes and built your dataset in your branch, and
 * Previewed your built output dataset.
 
-Now, you will propose your changes for review by your teammates. After you’ve tested your changes and are happy with your resulting output dataset, you can propose your changes for review by your teammates.
+Now, you will propose your changes for review by your teammates. After you have tested your changes and are happy with your resulting output dataset, you can propose your changes for review by your teammates.
 
 :::callout{theme="success" title="Tip"}
 Users with **Owner** permissions will be able to enable the option to “Automatically merge changes” when creating a *pull request*. This option is only available if at least one required check is configured and passing for your repository’s branch. If you enable the option to “Automatically merge changes”, your *pull request* will automatically get merged into the main code after you create it. Once the changes from your branch are merged into the main code, your branch will also get automatically deleted.
@@ -158,7 +158,7 @@ This creates a new pull request with your proposed changes. The pull request pag
 
 [Learn more about understanding the impact of changes in a Pull Request.](/docs/foundry/code-repositories/analyze-impact/)
 
-In general, it's important to invite others to review your changes before they’re merged into the master branch. Users can approve or reject on a file-by-file basis to keep track of which files still need to be adjusted before the pull request can be merged. To see which users have already approved or rejected a particular file, hover over the corresponding indicator icon.
+In general, it is important to invite others to review your changes before they are merged into the master branch. Users can approve or reject on a file-by-file basis to keep track of which files still need to be adjusted before the pull request can be merged. To see which users have already approved or rejected a particular file, hover over the corresponding indicator icon.
 
 Using the individual file review buttons is optional, but when you reject one file, this automatically rejects the pull request. Similarly, when you approve the pull request, all individual files get approved.
 

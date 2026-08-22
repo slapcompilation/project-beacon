@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-queries/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-queries/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Read and write to data systems
 
@@ -30,7 +30,53 @@ An example of a HTTP JSON security error:
 
 The `API Gateway` data source can be used to interact with Foundry APIs. The documentation for each service and endpoint is displayed inline. Full documentation can be found in the [API reference](/docs/foundry/api/v2).
 
-Specific examples for payload types can be found behind the **Show details** toggle next to the request input. These endpoints are secured differently than [HTTP JSON](#http-json-queries) datasource-type queries, so you do not need to [jsonStringify](/docs/foundry/slate/references-helpers/#jsonstringify) handlebar inputs.
+Specific examples for payload types can be found behind the **Show description** toggle next to the request input. These endpoints are secured differently than [HTTP JSON](#http-json-queries) datasource-type queries, so you do not need to [jsonStringify](/docs/foundry/slate/references-helpers/#jsonstringify) handlebar inputs.
+
+### Discover available endpoints
+
+The endpoints you can call are the subset of the Foundry API enabled for the data source, so the query editor lists only the services and endpoints available to you. To find an endpoint to call:
+
+1. Create a new query in the **Queries** panel and select a data source with the `API Gateway` type from the **Source** dropdown.
+2. Select a **Service**. Each service groups a set of related endpoints.
+3. Select a **Method** to choose an endpoint within that service.
+4. Select **Show description** to expand the inline documentation for the selected service, endpoint, or parameter. Descriptions are collapsed by default. The endpoint description states the HTTP method and path, and displays a warning when the endpoint is deprecated.
+
+If an endpoint you expect is not listed, it is either not enabled for the data source or not available on your enrollment. Contact your Palantir representative to request access. For the complete catalog of endpoints, see the [API reference](/docs/foundry/api/v2).
+
+For help resolving a query that fails, see [Troubleshoot API Gateway queries](#troubleshoot-api-gateway-queries).
+
+### Common data endpoints
+
+The `API Gateway` data source is frequently used to retrieve operational metadata about Foundry resources, such as when a dataset was last updated or whether its health checks are passing. The following endpoints cover the most common cases. Select an endpoint to view its full request and response documentation.
+
+| Data you want | Endpoint | Notes |
+| --- | --- | --- |
+| Dataset metadata, such as the name and parent folder | [Get Dataset](/docs/foundry/api/v2/datasets-v2-resources/datasets/get-dataset/) | Takes the dataset RID. You can retrieve the RID from the [platform widget](/docs/foundry/slate/widgets-platform/) or from the resource URL in Foundry. |
+| Dataset last update time | [Get Branch Transaction History](/docs/foundry/api/v2/datasets-v2-resources/branches/get-branch-transaction-history/) | |
+| All transactions for a dataset, across branches | [List Transactions Of Dataset](/docs/foundry/api/v2/datasets-v2-resources/datasets/list-transactions-of-dataset/) | |
+| A single transaction | [Get Transaction](/docs/foundry/api/v2/datasets-v2-resources/transactions/get-transaction/) | |
+| Which health checks are configured on a dataset | [Get Dataset Health Checks](/docs/foundry/api/v2/datasets-v2-resources/datasets/get-dataset-health-checks/) | See [health checks](/docs/foundry/data-integration/health-checks/) for background on how checks are defined. |
+| Current data health status of a dataset | [Get Dataset Health Check Reports](/docs/foundry/api/v2/datasets-v2-resources/datasets/get-dataset-health-check-reports/) | |
+| Report history for one health check | [Get Latest Check Reports](/docs/foundry/api/v2/data-health-v2-resources/check-reports/get-latest-check-reports/) | |
+| Schedules that target a dataset | [Get Dataset Schedules](/docs/foundry/api/v2/datasets-v2-resources/datasets/get-dataset-schedules/) | |
+| Dataset schema | [Get Dataset Schema](/docs/foundry/api/v2/datasets-v2-resources/datasets/get-dataset-schema/) | |
+| Ontology objects and metadata | [Ontology metadata](/docs/foundry/api/v2/ontologies-v2-resources/ontologies/get-ontology-full-metadata/) | For most Ontology read workflows, prefer the [object set panel](/docs/foundry/slate/concepts-object-sets/), [object context panel](/docs/foundry/slate/concepts-object-context/), or the [OSDK](/docs/foundry/slate/concepts-osdk/) over direct API Gateway queries. |
+
+:::callout{theme="warning"}
+Several of the endpoints above, including the transaction history and data health endpoints, are in public preview. A preview endpoint requires its `preview` parameter to be set to `true`. Without it, the request fails with an `ApiFeaturePreviewUsageOnly` error, which surfaces in Slate as a `400`. Check the release stage on the endpoint's reference page before you rely on it in a production application.
+:::
+
+### Configure the request
+
+Slate builds the request from your selections in the query editor, so you do not assemble the HTTP request by hand. After you select a service and an endpoint, the editor displays one input for each parameter that the endpoint accepts, including path parameters, query parameters, headers, and the request body. Select **Show description** next to a parameter to view its expected type.
+
+Each parameter input accepts a static value or a Handlebars reference to a widget, variable, or function. Because `API Gateway` queries are secured differently than [HTTP JSON queries](#http-json-queries), you can reference values directly without a security helper. For a request body, use the **Text** and **JSON** switch to control whether Slate sends the value as a string or as a JSON object.
+
+To review the request that your selections produce, select **Preview rendered query** in the **Queries** panel. Slate displays the read-only request with Handlebars references resolved to their current values. Select **View query template** to return to the editor.
+
+:::callout{theme="neutral"}
+[Extractors](#writing-http-json-queries) are only available for HTTP JSON queries. An `API Gateway` query returns the full response, so reference the fields you need from the query result.
+:::
 
 ## Foundry queries
 
@@ -72,7 +118,7 @@ SELECT column1 FROM {{schema someSchemaName 'allowedSchemaName1' 'allowedSchemaN
 SELECT {{column someColumnName}} FROM table1;
 ```
 
-* `alias`: The `alias` helper is used when you want to template an aliased schema, table or column name. Because the aliased name is not in the information schema, you must register it with Slate using the `alias` helper; otherwise, the name can’t be validated. You could only use the `alias` helper with constant strings and not references, i.e. `{{alias 'someConstantString'}}` is allowed and `{{alias someReference}}` is not. Templating it defeats the purpose of validating it in `schema`, `table` or `column` because they could reference the same thing.
+* `alias`: The `alias` helper is used when you want to template an aliased schema, table or column name. Because the aliased name is not in the information schema, you must register it with Slate using the `alias` helper; otherwise, the name cannot be validated. You could only use the `alias` helper with constant strings and not references, i.e. `{{alias 'someConstantString'}}` is allowed and `{{alias someReference}}` is not. Templating it defeats the purpose of validating it in `schema`, `table` or `column` because they could reference the same thing.
 
 ```sql
 SELECT
@@ -121,7 +167,7 @@ You can perform data transformations, such as basic string and math operations, 
 
 All HTTP JSON queries must conform to the following:
 
-* All Handlebars templates must be wrapped in a [jsonStringify](/docs/foundry/slate/references-helpers/#jsonstringify) helper. The `jsonStringify` helper ensures that the value of the template could not escape its current scope. For example, it couldn’t close the block and add extra properties to the request.<br>
+* All Handlebars templates must be wrapped in a [jsonStringify](/docs/foundry/slate/references-helpers/#jsonstringify) helper. The `jsonStringify` helper ensures that the value of the template could not escape its current scope. For example, it could not close the block and add extra properties to the request.<br>
   An example to use it to template a property:
 
 ```json
@@ -160,7 +206,7 @@ An example to use it to template as part of a property:
 }
 ```
 
-* `..` is not allowed in the path. This ensures that the query path does not index to any parent scope and does not access information that shouldn’t be accessed.
+* `..` is not allowed in the path. This ensures that the query path does not index to any parent scope and does not access information that should not be accessed.
 
 ### Writing HTTP JSON queries
 
@@ -169,7 +215,7 @@ The query for a HTTP JSON data source is an object that contains the following p
 * `path`: the URL path to the data source
 * `queryParams`: (optional) the map of key-value pairs to append to the URL when building the request (ie. “query”: “something” would append ?query=something to the `path`). Note that when this map is not empty, query params should not be specified in the `path`.
 * `method`: the HTTP method used to make the request. Supported methods are GET, POST, DELETE, and PUT.
-* `bodyJson`: (optional) the JSON that’s sent as data to the API endpoint (e.g., how to format and aggregate the data). This field is not required if your data source endpoint doesn’t expect JSON.
+* `bodyJson`: (optional) the JSON that is sent as data to the API endpoint (e.g., how to format and aggregate the data). This field is not required if your data source endpoint does not expect JSON.
 * `extractors`: the results the query returns. Uses [JSONPath ↗](https://github.com/jayway/JsonPath) to determine what to extract. For example, to see the whole result, use `"result": "$"`. For help writing JSONPath, consult the following [tester ↗](https://jsonpath.curiousconcept.com/). For more information on JSONPath, see [JSONPath examples ↗](https://goessner.net/articles/JsonPath/).
 * `headers`: (optional) A map of headers to set on the request. Authentication headers will be added on top of this list if present.<br>
   For example:
@@ -263,11 +309,53 @@ Adding the condition to only run when all dependencies are not null will prevent
 
 ### Example 2: only run when this returns true
 
-The following query fetches data used to populate a widget in a tabbed container. Let’s assume that the widget is not visible on page load but has dependencies on a set of page level filters. In this particular case, you might consider adding a condition to the query to only run when the widget is visible. This can be done using the `The handlebar input returns true` option in the query settings.
+The following query fetches data used to populate a widget in a tabbed container. Suppose that the widget is not visible on page load but has dependencies on a set of page level filters. In this particular case, you might consider adding a condition to the query to only run when the widget is visible. This can be done using the `The handlebar input returns true` option in the query settings.
 
 ![query-conditional-check](./images/query-conditional-check.png)
 
 ![query-conditional-return](./images/query-conditional-return.png)
+
+## Troubleshoot API Gateway queries
+
+When an [API Gateway query](#api-gateway-queries) fails, the error shown in the preview panel is not always the true source of the problem. A generic message such as a bare `400`, `500`, or `An error occurred` often wraps a more specific error returned by the underlying service. Use the following steps to locate the actual cause.
+
+### Inspect the request
+
+Select **Preview rendered query** to view the request that Slate sends. Confirm that each parameter holds the value you expect, and that no Handlebars reference resolved to an empty value. Select **View query template** to return to the editor.
+
+### Inspect the raw response
+
+Select **< / >** in the preview panel to view the raw JSON response instead of the parsed result. Foundry API errors return a JSON body that names the specific problem, even when Slate shows only a status code:
+
+```json
+{
+    "errorCode": "NOT_FOUND",
+    "errorName": "DatasetNotFound",
+    "errorInstanceId": "00813215-0844-4716-be7b-a3fe0fce9e42",
+    "parameters": {
+        "datasetRid": "ri.foundry.main.dataset.example"
+    }
+}
+```
+
+Read `errorName` first: it identifies the exact failure, and `parameters` names the resource that caused it. The [API errors reference](/docs/foundry/api/v2/general/overview/errors/) lists every `errorName` the platform returns, along with its meaning. Retain the `errorInstanceId` if you need to [file a support ticket](/docs/foundry/getting-help/file-support-ticket/), as it lets Palantir support locate the exact request.
+
+Failed queries are also consolidated in the [health check dialog](/docs/foundry/slate/applications-debug-problems/#health-check-dialog), which lets you jump directly to the query that raised the issue.
+
+### Common causes by error type
+
+| Symptom | Likely cause | Resolution |
+| --- | --- | --- |
+| `ApiFeaturePreviewUsageOnly`, surfaced as a `400` | The endpoint is in public preview and the request did not opt in. | Set the `preview` parameter of the query to `true`. |
+| An `invalid endpoint` error naming the method and path | The endpoint is not enabled for the data source. | Select the endpoint from the **Service** and **Method** dropdowns rather than reusing a query written against another data source, and contact your Palantir representative if the endpoint you need is unavailable. |
+| `PERMISSION_DENIED` code with a `403`, such as `ApiUsageDenied` or an endpoint-specific error like `ReadTablePermissionDenied` | The acting user does not have access to the resource or the operation. | Confirm the resource is shared with the user and that the user has the required role on it. Note that `NOT_FOUND` errors are also returned when a resource exists but is not visible to the user. |
+| `NOT_FOUND` code with a `404`, such as `DatasetNotFound` or `BranchNotFound` | The RID or branch does not exist, is not visible to the user, or a Handlebars reference resolved to an empty value when the query ran. | Check the `parameters` field of the response to see which value was rejected. Use a [conditional query](#conditional-queries) to prevent the query from running before its dependencies are set. |
+| `INVALID_ARGUMENT` code with a `400`, such as `Conjure:InvalidArgument` or `InvalidPageSize` | A parameter or the request body is malformed, out of range, or missing. | Select **Show description** next to each parameter to review its expected type, and compare the request against the parameter list in the endpoint documentation. |
+| `INTERNAL` code with a `500`, or a `503` | A transient service error. | Retry the request. If the problem persists, [file a support ticket](/docs/foundry/getting-help/file-support-ticket/) with the `errorInstanceId`. |
+
+### Isolate the failing input
+
+If the cause is still unclear after inspecting the raw response, temporarily replace each Handlebars reference in the query with a static value and run it again. If the query then succeeds, the problem is in how a referenced widget, variable, or function resolves rather than in the endpoint or request itself. The [debugger](/docs/foundry/slate/applications-debug-problems/#debugger) can help you trace the value each dependency produces at runtime.
 
 ## Tutorial: Make data available for Slate
 

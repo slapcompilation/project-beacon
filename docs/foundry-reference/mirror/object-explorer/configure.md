@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/configure/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/configure/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure Object Explorer
 
@@ -19,7 +19,7 @@ kind: "actions"
 name: "view_object_with_type:<OBJECT_TYPE_ID>"
 ```
 
-Let’s walk through an example of adding a success toast that links to the object view for a newly-created object instance.
+The following example shows how to add a success toast that links to the object view for a newly-created object instance.
 
 1. The Ontology Action “Create New Aircraft” allows us to create a new Aircraft object instance.
 
@@ -49,13 +49,13 @@ In some cases, you may want to use the results of an exploration as a dynamic ob
 
 The most typical use case of this feature is to add a reference to a dynamic object set as a property value on an object instance.
 
-Let's walk through an example of creating an action that allows us to assign a dynamic set of `Aircraft` objects to an `Airline` object, based on the Aircraft Manufacturer's Serial Numbers (MSNs).
+The following example shows how to create an action that allows you to assign a dynamic set of `Aircraft` objects to an `Airline` object, based on the Aircraft Manufacturer's Serial Numbers (MSNs).
 
 1. Ensure that the `Airline` object type has a `String` property (in this case `Aircraft Set`) where you can add a reference to a set of "Aircraft" objects as a value. Enable value formatting for this property, and select **Resource RID** from the dropdown. This way, the object set RIDs assigned to this property will appear as a link to the object set in Object Explorer.
 
 <img src="./images/admin_value_formatting.png" alt="Value Formatting" width="300"/>
 
-2. Now you're ready to create the action. On the action, add a **Modify Object** rule on the `Airline` object type's `Aircraft Set` property.
+2. Now you are ready to create the action. On the action, add a **Modify Object** rule on the `Airline` object type's `Aircraft Set` property.
 
 <img src="./images/admin_modify_object_rule.png" alt="Modify Object Rule" width="300"/>
 

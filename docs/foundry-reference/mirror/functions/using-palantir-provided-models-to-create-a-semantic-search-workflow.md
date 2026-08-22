@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/using-palantir-provided-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/using-palantir-provided-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Use Palantir-provided models to create a semantic search workflow
 

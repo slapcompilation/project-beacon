@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-query-perf/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-query-perf/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Optimize queries in Postgres
 
@@ -14,7 +14,7 @@ Query performance tuning is an *iterative* process. There are many different way
 
 The target execution time for PostgreSQL queries is <= 500ms. This should be possible for the majority of use cases where the dataset in question is less than 10m records, though it requires careful planning and consideration when designing the data model.
 
-When evaluating query performance, particularly with a new dataset, ensure that queries are run multiple times before collecting and analyzing statistics. This will help ensure the dataset is properly cached and the performance is better aligned with the expected usage. If you're interested in learning more about the PostgreSQL cache, see the following links:
+When evaluating query performance, particularly with a new dataset, ensure that queries are run multiple times before collecting and analyzing statistics. This will help ensure the dataset is properly cached and the performance is better aligned with the expected usage. If you are interested in learning more about the PostgreSQL cache, see the following links:
 
 * [Introduction to PostgreSQL physical storage ↗](https://rachbelaid.com/introduction-to-postgres-physical-storage/)
 * [Deeper dive into physical storage ↗](https://www.interdb.jp/pg/pgsql01.html)
@@ -22,7 +22,7 @@ When evaluating query performance, particularly with a new dataset, ensure that 
 
 ## EXPLAIN... explained
 
-EXPLAIN is particularly useful command that Postgres provides to return the query execution plan. A query plan is created for every request that Postgres receives, which uses the query structure and properties of the data to determine the fastest way to service the request. We'll start with a quick review of the EXPLAIN command, as this will be referenced throughout the guide.
+EXPLAIN is particularly useful command that Postgres provides to return the query execution plan. A query plan is created for every request that Postgres receives, which uses the query structure and properties of the data to determine the fastest way to service the request. This section starts with a review of the EXPLAIN command, which is referenced throughout the guide.
 
 ### EXPLAIN
 
@@ -42,7 +42,7 @@ The first number is the start-up cost (time to retrieve the first record). The s
 
 Cost is an **estimate** that the Postgres query planner generates based on object (generally table) **statistics**. While this number does not represent the actual runtime, it should be directly correlated to the actual execution.
 
-Cost is a combination of several work components: sequential fetch, non-sequential (random) fetch, processing of row, processing operator (function), and processing index entry. The cost represents I/O and CPU activity; the larger the number, the more work Postgres thinks it will need to do in order to complete the task. It's important to note that the Postgres query optimizer determines which execution plan to use based on the cost.
+Cost is a combination of several work components: sequential fetch, non-sequential (random) fetch, processing of row, processing operator (function), and processing index entry. The cost represents I/O and CPU activity; the larger the number, the more work Postgres thinks it will need to do in order to complete the task. It is important to note that the Postgres query optimizer determines which execution plan to use based on the cost.
 
 #### ROWS
 
@@ -72,7 +72,7 @@ Similar to *Cost*, the first number is the actual time in milliseconds (ms) need
 
 `(**actual time=10.313..12.530** rows=4857 loops=1)`
 
-As the name implies, actual time is captured by executing the statement. The keyword `ANALYZE` tells Postgres to execute the query along with displaying the execution plan. If you're having trouble with a query timing out, removing `ANALYZE` will return just the query plan, which should be significantly faster than executing the query.
+As the name implies, actual time is captured by executing the statement. The keyword `ANALYZE` tells Postgres to execute the query along with displaying the execution plan. If you are having trouble with a query timing out, removing `ANALYZE` will return just the query plan, which should be significantly faster than executing the query.
 
 *Why this matters*: This is the clearest indicator of which node(s) or operations are causing the performance issues.
 
@@ -149,7 +149,7 @@ Join operations typically process only two tables at a time. When a query involv
   * Occurs with ORDER BY, DISTINCT, GROUP BY, UNION, and merge joins.
   * Considerable startup time.
   * If sort fits in `work_mem`, then quicksort can be used.
-  * If sort doesn't fit into memory, it will spill to disk and use temporary files, which can be very expensive.
+  * If sort does not fit into memory, it will spill to disk and use temporary files, which can be very expensive.
 * `Limit`
   * Handles both LIMIT and OFFSET.
   * Can be used for min() and max() if there is no WHERE clause.
@@ -201,7 +201,7 @@ See [Common Mistakes: UNION VS. UNION ALL ↗](https://www.cybertec-postgresql.c
 
 Considering adding indexes under the following conditions:
 
-* Eliminate sequential scans (seq scan), unless it's a small table and/or the query is fetching more than 5% of the rows.
+* Eliminate sequential scans (seq scan), unless it is a small table and/or the query is fetching more than 5% of the rows.
 * If using a multi-column index, pay attention to the order in which you define the included columns.
 * Use indexes that are highly selective on frequently-used columns.
 

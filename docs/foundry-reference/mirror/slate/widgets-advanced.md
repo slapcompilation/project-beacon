@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-advanced/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-advanced/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Advanced
 
@@ -176,7 +176,7 @@ your JavaScript, as shown in the example below.
 #### Actions
 
 This is an array of strings that are the names of Actions that this
-widget will allow to be triggered by other widgets. The JavaScript within the widget should be listening for the Action using the functions provided below. Actions will be named `custom.{action_name}` when displayed in the events tab.The Action name does not need to be separately typed in the onAction parameter.
+widget will allow to be triggered by other widgets. The JavaScript within the widget should be listening for the Action using the functions provided below. Actions will be named `custom.{action_name}` when displayed in the events tab. The Action name does not need to be separately typed in the onAction parameter.
 
 To have a widget respond to an Action created in the Slate context, use
 `SlateFunctions.onAction(“action_name”,(value)=>{put JavaScript here})`
@@ -350,7 +350,7 @@ representing the portion of the state to modify and a JSON blob
 representing the new value of that portion.
 
 For example, if you wish to set the view's height of your widget to 4
-but leave all other properties, you'd call
+but leave all other properties, you would call
 `SlateFunctions.setState("view.height", 4)`. If you want to overwrite
 the whole state (as opposed to only height), you can pass in "" to the
 first argument instead of `"view.height"`.
@@ -455,7 +455,7 @@ The security model for this widget is very similar to that of Slate
 functions. The code will be executed in a sandboxed iframe with inputs
 and outputs being transferred using postMessage. This allows us to
 safely execute untrusted JavaScript code. The only modification is that
-the iframe is visible on the page, which doesn't change the security
+the iframe is visible on the page, which does not change the security
 model.
 
 ### Debugging tips

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/cleanup/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/cleanup/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology cleanup
 

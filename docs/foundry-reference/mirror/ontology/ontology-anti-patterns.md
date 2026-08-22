@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-anti-patterns/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-anti-patterns/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology design: Anti-patterns
 
@@ -25,7 +25,7 @@ System Silos occur when you create separate object types for the same real-world
 
 * Different teams own different source systems and build independently
 * Uncertainty about how to merge data from multiple sources
-* Desire to preserve system-specific fields without deciding what's essential
+* Desire to preserve system-specific fields without deciding what is essential
 
 ### Example
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/secure-tunnels/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/secure-tunnels/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure secure tunnels
 
@@ -34,9 +34,36 @@ The secure tunnels initiator is the only secure tunnels component that runs insi
 * **Token authentication:** The secure tunnels initiator authenticates to the platform with a short-lived access token. The token is issued and rotated automatically by the control plane, so no long-lived credentials are stored in your network.
 * **Deny-by-default egress:** The secure tunnels initiator can only reach destination systems [that you explicitly allow](#configure-the-egress-allowlist).
 
-## Deployment model
+## Secure tunnel cluster and node
 
-The secure tunnels initiator is deployed and managed by Palantir into an environment within your network. You are not required to download, install, or upgrade any software manually. Instead, token issuance, token rotation, TLS certificate provisioning, configuration delivery, and version upgrades are all handled for you once the initiator is deployed.
+Secure tunnel initiators are organized into clusters and nodes:
+
+* A cluster is a logical group of secure tunnel initiators that provide access to the same network and destination systems. Egress policies are associated with the cluster, so every node in the cluster provides the same logical connectivity.
+
+* A node represents an individual secure tunnel initiator deployment within a cluster. You can add multiple nodes to improve availability and distribute traffic. Each node establishes and maintains its own outbound tunnels to the platform.
+
+### Create a secure tunnel cluster and node
+
+Before deploying the secure tunnels initiator, create a cluster and node to establish its identity in the platform. The initiator uses the generated cluster and node resource identifiers (RIDs) to
+authenticate with the control plane and register as the correct node.
+
+Cluster and node names must be unique within the enrollment. Choose descriptive names that identify the network and initiator deployment they represent.
+
+1. Go to the **Network egress** section of Control Panel.
+
+2. Open the **Secure Tunnels** tab.
+
+3. Select **Create cluster**, enter a unique cluster name, and then select **Create cluster**.
+
+   ![The secure tunnels tab in control panel, with the button for creating a new cluster.](./images/secure-tunnel-create-cluster.png)
+
+4. Select **Create node**, enter a unique node name and then select **Create**.
+
+   ![The secure tunnels cluster page with the button for creating a new node.](./images/secure-tunnel-create-node.png)
+
+## Deployment models
+
+The secure tunnels initiator runs as one or more nodes in an environment within your network. You can use a [Data Connection agent](/docs/foundry/data-connection/core-concepts/#agents) or [Apollo](../../apollo/core/introduction.md) to manage the lifecycle of these nodes. With either deployment model, token issuance, token rotation, TLS certificate provisioning, and configuration delivery are handled for you once the initiator is deployed.
 
 An infrastructure or platform administrator is responsible for the following:
 
@@ -44,21 +71,18 @@ An infrastructure or platform administrator is responsible for the following:
 2. Allow [network egress](#network-egress-requirements) from that environment to the platform.
 3. Define the [egress allowlist](#configure-the-egress-allowlist) that determines which destination systems the secure tunnels initiator may reach.
 
-The secure tunnels initiator supports the following installation methods:
+The secure tunnels initiator supports the following deployment models:
 
-| Method | Availability |
-| ------ | ------------ |
-| [Helm chart managed by Apollo](#helm-chart-managed-by-apollo) | Available |
-
-:::callout{theme="neutral"}
-Deploying a Helm chart through Apollo is currently the only available installation method for the secure tunnels initiator. Additional methods will be added in future releases.
-:::
+| Deployment model | Lifecycle management |
+| ---------------- | -------------------- |
+| [Managed by a Data Connection agent](#managed-by-a-data-connection-agent) | An existing or new Data Connection agent automatically restarts and upgrades the node. |
+| [Helm chart managed by Apollo](#helm-chart-managed-by-apollo) | Apollo deploys, restarts, and upgrades the node. |
 
 ### Prerequisites
 
 Before installing the secure tunnels initiator, confirm the following:
 
-* You have an environment in your network, managed together with Palantir, where the secure tunnels initiator can run.
+* You have an environment in your network where the secure tunnels initiator can run.
 * The environment can make outbound network connections to your Palantir platform instance. See [Network egress requirements](#network-egress-requirements) for more information.
 * You know the set of destination systems (IP ranges and ports) that Palantir platform workloads require to reach through the tunnel.
 
@@ -67,6 +91,24 @@ Before installing the secure tunnels initiator, confirm the following:
 The environment that runs the secure tunnels initiator must be able to make outbound connections to the platform. No inbound connectivity to your network is required.
 
 Allow outbound (egress) network access from that environment to your Palantir platform instance. If your network denies egress by default, you may need to open a firewall or configure a proxy to permit these outbound connections.
+
+### Managed by a Data Connection agent
+
+You can use an existing [Data Connection agent](/docs/foundry/data-connection/core-concepts/#agents) or [set up a new agent](/docs/foundry/data-connection/set-up-agent/) to manage a secure tunnels node. The agent automatically restarts the node after failures and upgrades it as new versions are released. The agent can continue running its regular Data Connection jobs in parallel.
+
+To assign a Data Connection agent as the lifecycle manager for a node:
+
+1. Open the node and select **Edit lifecycle management**.
+
+   ![Edit lifecycle management of a secure tunnel node.](./images/secure-tunnel-edit-lifecycle-mgmt.png)
+
+2. Select **Use a Data Connection agent**.
+
+3. Search for and select the agent that will manage the node.
+
+4. Select **Save**.
+
+![The Lifecycle management dialog for a secure tunnels node, with the option to use a Data Connection agent selected.](./images/secure-tunnels-data-connection-agent-lifecycle-management.png)
 
 ### Helm chart managed by Apollo
 

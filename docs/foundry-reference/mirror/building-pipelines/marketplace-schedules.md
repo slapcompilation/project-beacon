@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/marketplace-schedules/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/marketplace-schedules/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add schedule to a Marketplace product
 
@@ -23,6 +23,6 @@ If you have not yet added any [pipelines](/docs/foundry/pipeline-builder/marketp
 
 ![add highlighted schedule](./images/marketplace-add-highlighted-schedules.png)
 
-Select any relevant schedules to include with your product. If you don't see any schedules, you should [create one with your source datasets](/docs/foundry/building-pipelines/create-schedule/) and then [create a new version of your product](/docs/foundry/foundry-devops/manage-products/).
+Select any relevant schedules to include with your product. If you do not see any schedules, you should [create one with your source datasets](/docs/foundry/building-pipelines/create-schedule/) and then [create a new version of your product](/docs/foundry/foundry-devops/manage-products/).
 
 ![add schedule dialog](./images/marketplace-schedule-dialog.png)

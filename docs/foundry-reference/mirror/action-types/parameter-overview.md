@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameter-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameter-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Parameters
 
@@ -11,5 +11,5 @@ A parameter can take the form of a `Ticket` object type in an action type which 
 :::
 
 :::callout{title="Example"}
-As a variable in Workshop, `previous_status` can take the current value of the `Status` property of the selected `Ticket` object. This can be passed to a hidden parameter in the action, `Previous Status`, and the `Status` parameter can contain the updated status. Upon submitting the action, the action type then passes both the `Previous Stats` and the `Status` values to the rules and executes them to edit the object.
+As a variable in Workshop, `previous_status` can take the current value of the `Status` property of the selected `Ticket` object. This can be passed to a hidden parameter in the action, `Previous Status`, and the `Status` parameter can contain the updated status. Upon submitting the action, the action type then passes both the `Previous Status` and the `Status` values to the rules and executes them to edit the object.
 :::

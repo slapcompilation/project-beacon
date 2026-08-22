@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-faster-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-faster-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Faster pipelines in Pipeline Builder
 
@@ -44,7 +44,7 @@ To convert a pipeline back to a batch pipeline, go to **Settings** and select **
 
 ![The dialog shows an unsuccessful conversion to a Faster pipeline with a warning listing incompatible features.](./images/faster-pb-cannot-convert.png)
 
-You can toggle on **Show pipeline conversion checks** at any point to see anything that's not compatible with the faster pipeline option.
+You can toggle on **Show pipeline conversion checks** at any point to see anything that is not compatible with the faster pipeline option.
 
 ![The dialog shows the show pipeline conversion checks toggled on.](./images/faster-show-conversion-checks.png)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-styles/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-styles/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure and apply styles
 
@@ -9,7 +9,7 @@ This means if your application design calls for a specific UI, your development 
 Your best friend when developing styles in your app will be the Chrome Developer Tools - specifically the “Inspector” - which lets you view the rendered HTML and CSS for any element in a web page. Right-click → “Inspect” will open the Inspector with the clicked-on element highlighted. This is key for identifying which classes are applied to which element, and therefore which classes need to be extended or over-written.
 
 :::callout{title="A note on LESS"}
-Technically the CSS you write inside of a Slate app is pre-compiler dialect called [Less ↗](https://lesscss.org/). Less provides syntax for streamlining verbose CSS and is a powerful tool for writing complex styles while maintaining legibility. On page load, all LESS is compiled to CSS, so when you inspect the rendered page, you may see differences if you've been leveraging LESS functionality. Read the LESS docs for more information on common patterns and helpful functionality.
+Technically the CSS you write inside of a Slate app is pre-compiler dialect called [Less ↗](https://lesscss.org/). Less provides syntax for streamlining verbose CSS and is a powerful tool for writing complex styles while maintaining legibility. On page load, all LESS is compiled to CSS, so when you inspect the rendered page, you may see differences if you have been leveraging LESS functionality. Read the LESS docs for more information on common patterns and helpful functionality.
 :::
 
 ## Widget styles
@@ -58,11 +58,11 @@ For example, the following is how you would reference an icon in Blueprint v6:
 
 ## Patterns for dynamic styles
 
-Since Slate's styling needs to be determined at page load, all CSS styles must be static. This means, for example, that you can't put a Handlebars statement into your CSS class to attempt to make a widget change color or change any other property. There are, however, several different patterns available to achieve dynamic styling.
+Since Slate's styling needs to be determined at page load, all CSS styles must be static. This means, for example, that you cannot put a Handlebars statement into your CSS class to attempt to make a widget change color or change any other property. There are, however, several different patterns available to achieve dynamic styling.
 
 ### Dynamic "Additional Classes"
 
-Though you can't *generate* or *modify* classes on the fly, you can use Handlebars to template the **Additional Classes** configuration for each widget. The common pattern is to pre-define a number of different classes and then use a function to determine which classes should be applied in a certain circumstance. If you're building a large, stateful application - see section above - then you might want to have a central function that determines all the correct classes to apply to all the different widgets for any given condition and then return a more complex map between a widget and the correct classes to apply.
+Though you cannot *generate* or *modify* classes on the fly, you can use Handlebars to template the **Additional Classes** configuration for each widget. The common pattern is to pre-define a number of different classes and then use a function to determine which classes should be applied in a certain circumstance. If you are building a large, stateful application - see section above - then you might want to have a central function that determines all the correct classes to apply to all the different widgets for any given condition and then return a more complex map between a widget and the correct classes to apply.
 
 In this manner, you can easily build an app that responds by changing colors, icons, or other display properties, or even resizes itself by showing and hiding entire widgets. See: Responsive Layouts section above for more on this specific pattern.
 
@@ -85,7 +85,7 @@ Slate supports the use of custom fonts to further tailor the appearance of appli
 ```css
 @font-face {
     font-family: alliance1;
-    src: url("https://developer.palantir.com/blobster/api/salt/ri.blobster.main.blob.a3dd73c4-d300-4194-b977-fc176410cdf6")
+    src: url("https://<FOUNDRY_URL>/blobster/api/salt/ri.blobster.main.blob.<RID>")
         format("opentype");
 }
 ```

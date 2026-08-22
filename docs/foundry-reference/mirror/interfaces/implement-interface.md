@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/interfaces/implement-interface/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/interfaces/implement-interface/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Implement an interface
 
@@ -61,7 +61,7 @@ Follow the steps below to implement an interface on an [object type output](/doc
 
 ### 1. Open output type configuration
 
-Select the object type output that you would like to implement an interface, then select the **Edit** option.
+Select the object type output on which you would like to implement an interface, then select the **Edit** option.
 
 <img src="./images/implement-interface-object-type-output-edit.png" alt="Edit object type output." width="800" />
 

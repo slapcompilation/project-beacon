@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/using-custom-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/using-custom-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Using custom models to create a semantic search workflow
 
@@ -56,7 +56,7 @@ The transform below runs the data through the model to return an `embedding`, th
 
 A couple of points to consider:
 
-* Each `StructField` in the `schema` variable relates to a columns that are present in the processed input dataset (`InputDatasetRid`) plus the `embedding` column added by the model.
+* Each `StructField` in the `schema` variable relates to a column that is present in the processed input dataset (`InputDatasetRid`) plus the `embedding` column added by the model.
 * When working with data at larger scales, the transform might fail if using a Pandas dataframe that is excessively large. In these cases, the transform will have to be performed in Spark.
 * Graphics Processing Units (GPUs) can be leveraged to increase the speed at which embeddings are produced by a transform. GPUs can be used by adding the `@configure` decorator to your transform. Contact your Palantir representative if you are interested in enabling this in your environment.
 

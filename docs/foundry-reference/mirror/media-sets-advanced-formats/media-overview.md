@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Media sets
 
@@ -139,7 +139,7 @@ Media item deletion is not supported for media sets that are updated through a b
 
 ## Further reading on media sets
 
-For more further information on media sets, visit:
+For further information on media sets, visit:
 
 * [Advanced media set settings](/docs/foundry/media-sets-advanced-formats/media-set-settings/)
 * [Media usage costs and limits](/docs/foundry/media-sets-advanced-formats/media-usage-limits/)

@@ -254,7 +254,7 @@ Sections ③ and ④ are one entry each:
 
 > Applications (Favorited): Find applications you have previously added a star to. Organize and access your favorite applications
 
-> Files (Favorited): Find files you have previously added a star to. Organize and access your favourite resources and objects
+> Files (Favorited): Find files you have previously added a star to. Organize and access your favorite resources and objects
 
 Section ⑤:
 
@@ -445,7 +445,7 @@ A pinned `✔ Promote App ↗` sits at the bottom of the rail.
 
 **(b) Pinning.**
 
-> You can "pin" your favorite apps to the left sidebar for easy access. Select the star icon next to the application's name from the Applications Portal or when you're editing the application.
+> You can "pin" your favorite apps to the left sidebar for easy access. Select the star icon next to the application's name from the Applications Portal or when you are editing the application.
 
 **(c) Quicksearch.** Two modes, one of which is explicitly a navigator:
 
@@ -724,7 +724,7 @@ Two things change and one does not.
 **The sidebar is replaced, not extended.** The whole resource list is swapped for the
 selected entity's pages, with a back link at the top:
 
-> Once you've opened an object type, link type, or action type, you have the option to select **Back home** from the top left corner of the view's sidebar.
+> Once you have opened an object type, link type, or action type, you have the option to select **Back home** from the top left corner of the view's sidebar.
 
 The back link's label is **not constant**: `Back home` in
 `oma-user-interface-navigation-back-home.png`, `Object types` in

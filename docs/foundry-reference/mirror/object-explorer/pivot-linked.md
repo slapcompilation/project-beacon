@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/pivot-linked/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/pivot-linked/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Pivot to explore linked objects
 
-While performing an exploration, it is possible to shift the main object type of your exploration to any linked object type. Let’s look at this through a specific example below.
+While performing an exploration, it is possible to shift the main object type of your exploration to any linked object type. The specific example below illustrates how this works.
 
 How do I find all flights departing in the next 30 days from large airports in the Eastern United States?
 

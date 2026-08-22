@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-stream-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-stream-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create a streaming pipeline with Pipeline Builder
 
@@ -45,7 +45,7 @@ Within seconds, you will see a record appear in the stream viewer on the page:
 
 ![Screenshot of stream view records tab](./images/stream-view-records.png)
 
-We have now ingested streaming data in real time. Let’s transform that data now.
+You have now ingested streaming data in real time. Next, transform that data.
 
 ## Part 3. Transform a stream
 

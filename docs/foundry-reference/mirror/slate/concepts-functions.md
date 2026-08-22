@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Define and run Slate functions
 
@@ -8,7 +8,7 @@ Slate Functions are only available in Slate and are distinct from Foundry Functi
 
 The **Functions Editor** lets you define and run JavaScript functions on Handlebars-accessible items such as query results, global variables, and widget properties.
 
-Functions don’t have access to the DOM or the Slate [space](/docs/foundry/security/orgs-and-spaces/#spaces) and no state is saved. They can be used for data transformation only.
+Functions do not have access to the DOM or the Slate [space](/docs/foundry/security/orgs-and-spaces/#spaces) and no state is saved. They can be used for data transformation only.
 
 Functions are typically used for lightweight data-processing tasks like string parsing. Functions support asynchronous syntax (including *async*, *await* keywords, and promise).
 

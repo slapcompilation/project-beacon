@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/quiver-best-practices/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/quiver-best-practices/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Quiver best practices
 
@@ -52,7 +52,7 @@ Materializations do not support time series operations; use a transform table if
 
 Quiver allows you to [search around to linked objects](/docs/foundry/quiver/objects-import-linked/) from an object set. If your object set is using Object Storage v1 (Phonograph), your input object set must have fewer than 100,000 objects. If your input object set is using Object Storage v2 (OSv2), the resulting linked object set must have fewer than 10 million objects.
 
-The same restrictions also apply when you're using the [filter object set card](/docs/foundry/quiver/card-filter-object-set/) and trying to filter using linked objects.
+The same restrictions also apply when you are using the [filter object set card](/docs/foundry/quiver/card-filter-object-set/) and trying to filter using linked objects.
 
 ## Time series
 

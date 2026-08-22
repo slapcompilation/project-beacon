@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/classification-based-access-controls/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/classification-based-access-controls/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Classification-based Access Controls
 
@@ -36,7 +36,7 @@ Consider a simple configuration where there is a single category and two classif
 
 ![classification-example](./images/classification-example.png)
 
-The `mwashington` user belongs to both the `GBR` and `CAN` classification marking groups. The user `jadams` belongs to the `GBR` group only. The `RELEASE TO` category is disjunctive, meaning that users must have access at least one marking. In a disjunctive category, a user who has access to one marking from the classification marking can view data even if it is also labeled with other markings from the same category. This means that data classified with `GBR`, `CAN` can be viewed by either `mwashington` or `jadams` because both users have access to at least one of those markings.
+The `mwashington` user belongs to both the `GBR` and `CAN` classification marking groups. The user `jadams` belongs to the `GBR` group only. The `RELEASE TO` category is disjunctive, meaning that users must have access to at least one marking. In a disjunctive category, a user who has access to one marking from the classification marking can view data even if it is also labeled with other markings from the same category. This means that data classified with `GBR`, `CAN` can be viewed by either `mwashington` or `jadams` because both users have access to at least one of those markings.
 
 The previous example is a single category in isolation. In practice, a classification marking can contain multiple categories of markings.
 

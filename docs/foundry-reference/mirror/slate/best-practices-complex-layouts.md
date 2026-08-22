@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/best-practices-complex-layouts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/best-practices-complex-layouts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Build complex layouts
 
@@ -10,7 +10,7 @@ Another way to think of this is that every style override is a tradeoff against 
 
 Use [Container widgets](/docs/foundry/slate/widgets-container/) to lay out your application. Strike a balance between enough containers to logically organize your application and nesting containers unnecessarily. Keep in mind that as you build your application, every widget will eventually add several layers to the [Document Model (DOM) ↗](https://www.w3schools.com/js/js_htmldom.asp) and that the complexity of the DOM has a direct relationship with the browser resource usage, page load, and general responsiveness of your application - that is, how “heavy” your application is. When in doubt, use fewer widgets and try to avoid nesting containers more than 3 or 4 levels deep.
 
-In almost all cases you should avoid using CSS to affect the *layout* of your application - stay away from `position` and either use the static widget positioning or a flex container for relative positioning. There are some exceptions here in specific cases, but for the general layout of an application, you'll avoid unnecessary complexity and improve legibility of your app by sticking to the built-in positioning tools.
+In almost all cases you should avoid using CSS to affect the *layout* of your application - stay away from `position` and either use the static widget positioning or a flex container for relative positioning. There are some exceptions here in specific cases, but for the general layout of an application, you will avoid unnecessary complexity and improve legibility of your app by sticking to the built-in positioning tools.
 
 ### Aligning widgets
 
@@ -46,7 +46,7 @@ Then template the `selectedTabIndex` property to toggle between hidden and visib
 
 If you need a widget to not only “hide”, but to be removed from the DOM completely, you can accomplish this by templating an additional class on the parent container to hide the widget by the root element selector. This pattern is most common in a responsive layout where you need to hide a widget *and* cause the other child widgets on the same level to reposition themselves.
 
-The root element of every slate widget has an ID selector formatted like: `widget-[widgetName]`. So let's say we have a widget called *w\_myHTMLWidget* that is a child of the *w\_sidebar* container. To hide the widget completely, you define a class in the global styles:
+The root element of every slate widget has an ID selector formatted like: `widget-[widgetName]`. So suppose we have a widget called *w\_myHTMLWidget* that is a child of the *w\_sidebar* container. To hide the widget completely, you define a class in the global styles:
 
 ```
 .hide-myHTMLWidget {
@@ -60,11 +60,11 @@ Then in *w\_sidebar* you can conditionally add this class and the entire widget 
 
 ### “Multi-Page” Applications
 
-The most common pattern for segmenting an application is to use a *Tabbed Container.* Each container tab can be treated as a separate page, however it's important to remember that these “pages” are simply a UI function - it won't affect the resolution of the dependency graph for instance, so even if a chart is on a different tab, the query to populate that chart will still run with the resolution of the dependency graph.
+The most common pattern for segmenting an application is to use a *Tabbed Container.* Each container tab can be treated as a separate page, however it is important to remember that these “pages” are simply a UI function - it will not affect the resolution of the dependency graph for instance, so even if a chart is on a different tab, the query to populate that chart will still run with the resolution of the dependency graph.
 
 If you are building a multi-page application using a tabbed container, make sure to check the `Lazy rendering enabled` option - this moves the rendering of the widgets on a tab to *when the tab opens* rather than *when the page loads*. This is especially useful for very large applications where the majority of widgets are “hidden” on another tab at any given point and can substantially improve page load times.
 
-You should use Tabbed containers even if you don't want to allow the user to select a given tab manually - if, for instance, you're building a workflow app and need to control when the user is moved to the next tab. In this case, you can uncheck the `Show tab titles` option and then use a Handlebars statement to template which tab (zero indexed) should be displayed at any given point. A common pattern is to track this tab as part of your application state (see **Building Stateful Applications** above) so that you can simply update the value of the current tab in your state variable and the tab will change in your application.
+You should use Tabbed containers even if you do not want to allow the user to select a given tab manually - if, for instance, you are building a workflow app and need to control when the user is moved to the next tab. In this case, you can uncheck the `Show tab titles` option and then use a Handlebars statement to template which tab (zero indexed) should be displayed at any given point. A common pattern is to track this tab as part of your application state (see **Building Stateful Applications** above) so that you can simply update the value of the current tab in your state variable and the tab will change in your application.
 
 ## Responsive Layouts
 

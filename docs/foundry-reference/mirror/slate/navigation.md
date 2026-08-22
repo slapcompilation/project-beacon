@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/navigation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/navigation/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Navigation
 
@@ -6,7 +6,7 @@ There are four main areas of Slate in edit mode:
 
 ![Slate UI divided into four sections labeled 1, 2, 3, 4](./images/slate-ui-annotated.png)
 
-1. **Action bar:** This is where you’ll find the application name, the **Actions** dropdown, exit to view mode, and buttons to open various editing panels.
+1. **Action bar:** This is where you will find the application name, the **Actions** dropdown, exit to view mode, and buttons to open various editing panels.
 2. **Widget List:** The Widget List is where all the widgets in your application are listed. If you have a toolbar in your application, the list is divided into toolbar widgets and canvas widgets.
 3. **Canvas:** This is the workspace for your application. Here you can rearrange widgets and test layout options. You can change the screen size using the dropdown at the top right to preview how your application will look on different screens.
 4. **Widget Editor:** When you select a widget, either from the list or from the canvas, the [Widget Editor](#widget-editor) lets you configure that widget.

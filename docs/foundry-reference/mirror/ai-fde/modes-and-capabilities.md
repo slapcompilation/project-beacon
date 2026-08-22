@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ai-fde/modes-and-capabilities/ · mirrored 2026-08-07 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ai-fde/modes-and-capabilities/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Modes and capabilities
 
@@ -6,7 +6,7 @@ AI FDE uses modes and capabilities to accomplish tasks and provide an easy way t
 
 ## Modes
 
-Modes tell the agent what kind of task you are working on. You can manually select a mode, or simply enter your task in the input field and allow the agent to select the mode for you. Agents can also change the mode mid-task as the task evolves. Modes focus the agent by loading the right documentation, giving the agent access to relevant tools, and tailoring how it approaches a problem. Providing agents with the right context helps ensure that they don't get distracted or use the wrong tools; an agent that writes Python transforms does not need governance or React application tools, so only relevant documentation and tools are provided.
+Modes tell the agent what kind of task you are working on. You can manually select a mode, or simply enter your task in the input field and allow the agent to select the mode for you. Agents can also change the mode mid-task as the task evolves. Modes focus the agent by loading the right documentation, giving the agent access to relevant tools, and tailoring how it approaches a problem. Providing agents with the right context helps ensure that they do not get distracted or use the wrong tools; an agent that writes Python transforms does not need governance or React application tools, so only relevant documentation and tools are provided.
 
 AI FDE modes include the following:
 

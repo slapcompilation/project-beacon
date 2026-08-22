@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/app-building/sentiment-analysis/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/app-building/sentiment-analysis/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Conduct sentiment analysis with AIP
 

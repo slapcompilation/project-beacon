@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-import-saved-object-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-import-saved-object-set/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Import saved object set
 

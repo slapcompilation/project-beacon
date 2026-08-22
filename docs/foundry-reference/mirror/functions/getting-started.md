@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started with functions
 
@@ -6,7 +6,7 @@
 You can author functions repositories in [VS Code workspaces](/docs/foundry/vs-code/overview/) with the same interface and tooling. VS Code workspaces support live preview, resource imports, SDK generation, and release management.
 :::
 
-There are three language options for getting started with functions in Foundry; TypeScript v1, TypeScript v2, and Python. For more information on supported features for each language, review the [language feature support](/docs/foundry/functions/language-feature-support/) specifications.
+There are three language options for getting started with functions in Foundry: TypeScript v1, TypeScript v2, and Python. For more information on supported features for each language, review the [language feature support](/docs/foundry/functions/language-feature-support/) specifications.
 
 Although each language has a different set of supported features, you will be able to access the same basic platform functionality for each language, including running, testing, and publishing functions. This page provides an overview of these features to help you understand how to use functions repositories, regardless of which language you will be working with.
 

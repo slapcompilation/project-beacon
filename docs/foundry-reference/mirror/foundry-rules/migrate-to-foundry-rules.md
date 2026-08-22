@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/migrate-to-foundry-rules/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/migrate-to-foundry-rules/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Migrate to Foundry Rules
 

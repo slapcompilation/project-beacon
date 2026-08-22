@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-carbon/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-carbon/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add to a Carbon workspace
 
@@ -14,7 +14,7 @@ Discoverable modules can be added from the general tab, while anchored and new t
 
 <img alt="Carbon discoverable module" src="./images/carbon-discoverable-module.png" width="300px">   <img alt="Carbon anchored and new tab modules" src="./images/carbon-anchored-new-tab-modules.png" width="300px">
 
-Once you’ve decided which type of module you want to add, select **Add item**. This will open a dialog. For **Type**, choose **Quiver dashboard** and then use the **Open Compass dialog** button to find the dashboard you want to add.
+Once you have decided which type of module you want to add, select **Add item**. This will open a dialog. For **Type**, choose **Quiver dashboard** and then use the **Open Compass dialog** button to find the dashboard you want to add.
 
 <img alt="Carbon add item" src="./images/carbon-add-item.png" width="400px">
 

@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/security/cross-organization-collaboration/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/cross-organization-collaboration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Cross-Organization collaboration
 
-Our Flight Alert Inbox application was very successful and has now become an integral part of our support team’s work. Sky Industries’ leadership has presented the application to multiple partner airlines and it has received great reviews. One airline, Sunrise Airline, now wants to take the operational workflow to the next level. They propose sharing all the internal Sunrise Airline maintenance issues that resulted in delaying passengers with Sky Industries. Combining the maintenance issues data with our flight delay data, Sky Industries and Sunrise Airlines could collaborate to fix recurring maintenance issue and reduce future Sunrise Airline aircraft delays.
+Our Flight Alert Inbox application was very successful and has now become an integral part of our support team’s work. Sky Industries’ leadership has presented the application to multiple partner airlines and it has received great reviews. One airline, Sunrise Airline, now wants to take the operational workflow to the next level. They propose sharing all the internal Sunrise Airline maintenance issues that resulted in delaying passengers with Sky Industries. Combining the maintenance issues data with our flight delay data, Sky Industries and Sunrise Airlines could collaborate to fix recurring maintenance issues and reduce future Sunrise Airline aircraft delays.
 
 The Foundry platform was built to support cross-Organization collaboration. Taking a step back, [Organizations](/docs/foundry/security/orgs-and-spaces/) are access requirements applied to Projects that enforce strict silos between groups of users and resources. Every user is a member of only one Organization but can be a guest member of multiple Organizations.
 

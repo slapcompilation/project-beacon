@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Language models in TypeScript v1 functions
 
@@ -45,7 +45,7 @@ import { Gpt41 } from "@foundry/languagemodelservice/models";
 
 Each language model will have generated methods available with strongly typed inputs and outputs. For example, the GPT-4.1 model provides `createChatCompletion`, `createChatVisionCompletion`, and `createChatCompletionStreamed` as different APIs to interact with the model. The list of capabilities could expand in later versions of the imported model.
 
-In the following illustrative example, the provided GPT\_4o model is used to run a simple sentiment analysis on a piece of text or image provided by a user. The function will classify the text as "Good", "Bad", or "Uncertain".
+In the following illustrative example, the provided GPT-4.1 model is used to run a simple sentiment analysis on a piece of text or image provided by a user. The function will classify the text as "Good", "Bad", or "Uncertain".
 
 ```typescript
 

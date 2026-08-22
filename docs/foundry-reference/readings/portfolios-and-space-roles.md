@@ -348,7 +348,7 @@ exactly these. What we lack is the *customisation*, which is three mechanisms:
 > customize your Organization's roles, you first need to create a custom role
 > set of the default roles."
 
-> "For the new Merger role above, we've included the Viewer role, meaning all
+> "For the new Merger role above, the Viewer role is included, meaning all
 > permissions granted by Viewer will be granted in the Merger role."
 
 > "If an administrator replaces the current role set on a space with a new role

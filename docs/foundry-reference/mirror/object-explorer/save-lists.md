@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/save-lists/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/save-lists/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Save lists
 

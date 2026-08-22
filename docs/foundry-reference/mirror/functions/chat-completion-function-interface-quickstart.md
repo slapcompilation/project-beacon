@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Register an LLM using function interfaces \[Legacy]
 

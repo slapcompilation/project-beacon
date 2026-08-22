@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/foundry-rules-workflow-configuration/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/foundry-rules-workflow-configuration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Foundry Rules workflow configuration
 

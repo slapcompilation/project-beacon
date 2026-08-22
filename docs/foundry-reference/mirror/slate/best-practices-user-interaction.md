@@ -1,16 +1,16 @@
-<!-- source: https://palantir.com/docs/foundry/slate/best-practices-user-interaction/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/best-practices-user-interaction/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Enable user interaction
 
 Almost every application needs user interaction and Slate provides three primary functions for enabling interactivity:
 
 * **Input Widgets:** Simple widgets that provide common UX elements for capturing input such as dropdown lists, text fields, radio buttons, and more.
-* **Selection state within other widgets:** Most other widget types support some type of selection. Selection works a bit differently in each widget, so you'll need to play around to understand what selection type is possible.
+* **Selection state within other widgets:** Most other widget types support some type of selection. Selection works a bit differently in each widget, so you will need to play around to understand what selection type is possible.
 * **Event triggers:** All widgets have a set of event triggers that broadcast when something in the widget state changes or when a user takes an action. Review the [**Events** documentation](/docs/foundry/slate/concepts-events/) for more details on how to incorporate events into your application.
 
-The simplest pattern for capturing user input would be a static form: add input widgets and provide static options, then the user selections can be referenced in queries and functions to provide dynamic view. Normally, however, there is some complexity of “chained” inputs, where the selection in one or more inputs affects the set of available options in the next set of inputs. It's important to keep these chains short and intelligible - having too many parameters to set can lead to unintuitive and un-performant applications. See the 'Open Ended Exploration' anti-pattern below.
+The simplest pattern for capturing user input would be a static form: add input widgets and provide static options, then the user selections can be referenced in queries and functions to provide dynamic view. Normally, however, there is some complexity of “chained” inputs, where the selection in one or more inputs affects the set of available options in the next set of inputs. It is important to keep these chains short and intelligible - having too many parameters to set can lead to unintuitive and un-performant applications. See the 'Open Ended Exploration' anti-pattern below.
 
-In this more complex configuration of dependent inputs, it's best practice to separate the workflow of configuring filters and the workflow of analyzing the resulting data. Put simply, these means that you should set any queries that depend on these user inputs to `manual` and provide the user with a button widget to *Update Data*. This pattern ensures that your application doesn't waste resources (and user time) by re-running all the queries with every filter change. This is especially key if you have any kind of free-text input - a *text field* or *text area* type widget - because otherwise downstream dependencies like queries will re-evaluate *with every user keystroke.*
+In this more complex configuration of dependent inputs, it is best practice to separate the workflow of configuring filters and the workflow of analyzing the resulting data. Put simply, this means that you should set any queries that depend on these user inputs to `manual` and provide the user with a button widget to *Update Data*. This pattern ensures that your application does not waste resources (and user time) by re-running all the queries with every filter change. This is especially key if you have any kind of free-text input - a *text field* or *text area* type widget - because otherwise downstream dependencies like queries will re-evaluate *with every user keystroke.*
 
 :::callout{title="Writeback workflows"}
 Any time your application is capturing user input to write back data, you **must** configure the query to run manually and trigger the query on an explicit user action. Otherwise your query to persist the data will run with every input change, including every keystroke in text input widgets, leading to highly unexpected behavior.
@@ -57,7 +57,7 @@ It would seem enough to simply set up an event like this: `w_resetWidgetButton.c
 return {{v_defaults}}
 ```
 
-As discussed in the [Why Things Happen in Slate](/docs/foundry/slate/best-practices-app-functionality/#understanding-why-things-happen-in-slate) section above, there is a nuance here around “forcing” the dependency graph to re-evaluate if the resolved value of the node hasn't changed. Therefore we need to add some “entropy” so that Slate understands this is a new value. It's as simple as:
+As discussed in the [Why Things Happen in Slate](/docs/foundry/slate/best-practices-app-functionality/#understanding-why-things-happen-in-slate) section above, there is a nuance here around “forcing” the dependency graph to re-evaluate if the resolved value of the node has not changed. Therefore we need to add some “entropy” so that Slate understands this is a new value. It is as simple as:
 
 ```js
 // Get the default values
@@ -72,9 +72,9 @@ return defaults
 
 With this pattern, you can easily give the user a button to click to reset the defaults or reset them after a query is submitted.
 
-You can go further with defaults by setting variable values through URL parameters. For instance, you may want to give users following a link from one application a different default that users coming to the app directly, and another set again for users who view it within an iframe inside a different tool all together.
+You can go further with defaults by setting variable values through URL parameters. For instance, you may want to give users following a link from one application a different default than users coming to the app directly, and another set again for users who view it within an iframe inside a different tool all together.
 
-To integrate this into the pattern above, rather than use a single, complex variable with multiple properties, you'd “explode” that variable to have one per default, so you could use the variable name in the URL- see [Variables](/docs/foundry/slate/concepts-variables/) for more details on how this works). One additional variable would serve as “entropy” and you could combine them all in a function that returns an object just like the one we originally had in a single variable:
+To integrate this into the pattern above, rather than use a single, complex variable with multiple properties, you would “explode” that variable to have one per default, so you could use the variable name in the URL- see [Variables](/docs/foundry/slate/concepts-variables/) for more details on how this works). One additional variable would serve as “entropy” and you could combine them all in a function that returns an object just like the one we originally had in a single variable:
 
 ```js
 const defaults = {
@@ -90,9 +90,9 @@ Whenever you wanted to move back to the defaults, you could simply have an event
 
 ## Validating User Input
 
-Frequently you will need to validate user input to disable actions and provide user feedback. There are many ways to do this in Slate, but here's a common pattern that might be helpful in general cases. This function gathers all the user inputs and then implements checks. Each check can disable the form and/or provide feedback to the user.
+Frequently you will need to validate user input to disable actions and provide user feedback. There are many ways to do this in Slate, but here is a common pattern that might be helpful in general cases. This function gathers all the user inputs and then implements checks. Each check can disable the form and/or provide feedback to the user.
 
-In this example, we will validate a form for collecting information about projects, including the title, URL, contact name, project description, and project status. We want to both check the user input is valid (such that the email address has correct formatting) and also that the project doesn't already exist (such that the primary key is not already in use).
+In this example, we will validate a form for collecting information about projects, including the title, URL, contact name, project description, and project status. We want to both check the user input is valid (such that the email address has correct formatting) and also that the project does not already exist (such that the primary key is not already in use).
 
 In the end we produce a JSON output that represents our validation and that we can reference throughout our application to provide user feedback and disable certain actions.
 
@@ -184,7 +184,7 @@ return {
 }
 ```
 
-We could use the output of this function to template the `disabled` property of our `w_submit` button to `{{f_validate.disable}}`. We can also have a simply text widget to display the error messages in a red warning:
+We could use the output of this function to template the `disabled` property of our `w_submit` button to `{{f_validate.disable}}`. We can also have a simple text widget to display the error messages in a red warning:
 
 ```html
 {{#each f_validateForm.messages}}
@@ -192,13 +192,13 @@ We could use the output of this function to template the `disabled` property of 
 {{/each}}
 ```
 
-This is a very simple example and could easily be extended to have messages that are specific to each check and displayed next to a particular widget, our provide classes to apply to specific widgets to control their display - for instance you could apply an `invalid` class that has CSS to turn the input header red.
+This is a very simple example and could easily be extended to have messages that are specific to each check and displayed next to a particular widget, or provide classes to apply to specific widgets to control their display - for instance you could apply an `invalid` class that has CSS to turn the input header red.
 
 ## “Dynamic Inputs”
 
-Sometimes you need to capture input that doesn't seem to fit into static input widgets. In many cases you can tilt the problem on it's head and find a simple solution, but let's say you need to allow users to build a more complex filter or your use case seemingly can't be done with any creative use of static inputs.
+Sometimes you need to capture input that does not seem to fit into static input widgets. In many cases you can tilt the problem on its head and find a simple solution, but suppose you need to allow users to build a more complex filter or your use case seemingly cannot be done with any creative use of static inputs.
 
-You might be tempted to use a *Repeating Container* widget for this workflow, however these widgets are limited to display only. You can use an input widget inside a repeating container, but it is scoped *only* to that container and you won't be able to reference any instance of that input widget except from another widget inside the container.
+You might be tempted to use a *Repeating Container* widget for this workflow, however these widgets are limited to display only. You can use an input widget inside a repeating container, but it is scoped *only* to that container and you will not be able to reference any instance of that input widget except from another widget inside the container.
 
 Instead, you can have a single instance of your inputs, but allow the user to make selections multiple times by allowing them to ”save” their selections. You can display the accumulated selections in an HTML widget and even build in functionality to remove previous selections.
 
@@ -212,13 +212,13 @@ const userSelections = {{v_userSelections}}
 
 // Get the new selection from the current state of the input widgets
 const newSelection = {
-    primaryCategory = {{w_primaryCategory.selectedValue}},
-    secondaryCategories = {{w_secondaryCategory.selectedValues}}
+    primaryCategory: {{w_primaryCategory.selectedValue}},
+    secondaryCategories: {{w_secondaryCategory.selectedValues}}
     ...
 }
 
 // Combine the new selections with the prior selections
-const userSelections.push(newSelection);
+userSelections.push(newSelection);
 
 // Update the value of the variable
 return userSelections;
@@ -230,9 +230,9 @@ With this pattern, you can allow users to build up arbitrarily complex sets of i
 
 In general this pattern is a specific case of the general **Stateful Application** pattern discussed in more detail below.
 
-\:::callout{title=”Mutually dependent filters”}
-The nature of the dependency graph means you can't configure widgets depend on each other in a circular relationship. Dependencies between input widgets need to “trickle down” and you won't be able to build a set of filters where the selection in *any* filter selection affect *all* widgets.
-\:::
+:::callout{title="Mutually dependent filters"}
+The nature of the dependency graph means you cannot configure widgets to depend on each other in a circular relationship. Dependencies between input widgets need to “trickle down” and you will not be able to build a set of filters where the selection in *any* filter selection affects *all* widgets.
+:::
 
 ## Shareable views
 

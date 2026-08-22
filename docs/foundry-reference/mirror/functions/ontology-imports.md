@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/ontology-imports/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/ontology-imports/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Import object, interface, and link types
 
@@ -12,7 +12,7 @@ Your Organization may not have the `Airport` and `Flight` objects. Use any objec
 
 To import additional object types, you will need to select the **Add** button in the **Resource Imports** sidebar. If no ontology was selected, you will be prompted to select an ontology. If you have at least one imported ontology type, the selected ontology will automatically be resolved.
 
-Once an ontology is selected, a search modal will appear. Your ontology will depend on the object types available in your Organization. Start by selecting a few object types and link types that connect them. In this example, we'll import the `Airport` and `Flight` objects, in addition to the link type between them.
+Once an ontology is selected, a search modal will appear. Your ontology will depend on the object types available in your Organization. Start by selecting a few object types and link types that connect them. This example imports the `Airport` and `Flight` objects, in addition to the link type between them.
 
 ![ontology-import-example](./images/ontology-import-example.png)
 

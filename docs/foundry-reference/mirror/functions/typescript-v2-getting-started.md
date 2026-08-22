@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started with TypeScript v2 functions
 
@@ -69,5 +69,6 @@ After the checks for your tag have passed, navigate back to the **Code** tab in 
 
 After you create and publish a basic function, explore these capabilities:
 
+* **Ontology SDK:** To query or edit Ontology objects, first import the object and link types you need, then [generate and install the Ontology SDK](/docs/foundry/functions/typescript-v2-migration/#generate-the-ontology-sdk).
 * **Ontology edits:** Learn how to [create, update, and delete objects](/docs/foundry/functions/typescript-v2-ontology-edits/) in your functions.
 * **Staged writes \[Beta]:** For edit functions that need read-after-write guarantees or nested function calls, see [staged writes](/docs/foundry/functions/typescript-v2-staged-writes/).

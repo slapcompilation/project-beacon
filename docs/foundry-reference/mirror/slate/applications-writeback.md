@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-writeback/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-writeback/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Write back data with Actions
 
@@ -8,7 +8,7 @@ In addition to reading from the Ontology layer through the platform tab, Slate s
 
 Slate's writeback to the Ontology is configured through a widget, rather than through the Platform tab, to allow the developer to optionally take advantage of the automatically generated Action Form. This allows developers to avoid recreating all of the form elements from Slate widgets.
 
-In this setup, it's common to place the Action widget within a [Dialog](/docs/foundry/slate/widgets-container/#dialog-widget) container and trigger the container to open with a [Slate Event](/docs/foundry/slate/concepts-events/) when the form should be shown.
+In this setup, it is common to place the Action widget within a [Dialog](/docs/foundry/slate/widgets-container/#dialog-widget) container and trigger the container to open with a [Slate Event](/docs/foundry/slate/concepts-events/) when the form should be shown.
 
 Alternatively, the form display can be toggled off, in which case the widget configuration serves as a template to collect the values to submit based on user interactions and inputs in other widgets within the app. Submission is then triggered with an event, most often from a [Button widget](/docs/foundry/slate/widgets-control/#button).
 

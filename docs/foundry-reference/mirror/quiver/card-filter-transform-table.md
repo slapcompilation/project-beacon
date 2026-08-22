@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-transform-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-transform-table/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Filter transform table
 

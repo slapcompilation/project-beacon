@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/streams/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/streams/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Streams
 
@@ -14,7 +14,7 @@ As records flow into a Foundry stream, they are stored in a hot buffer that is a
 
 ### Cold buffer
 
-All data from within a Foundry stream is transferred from the hot buffer to the cold storage every few minutes. We call this process "archiving", and it makes the data available as a standard Foundry dataset. This means that any Foundry application can operate on streaming data, even if it doesn’t process data in real-time from the hot buffer. The [dataset view](/docs/foundry/data-integration/datasets/) of a Foundry stream behaves exactly as a standard Foundry dataset in the platform.
+All data from within a Foundry stream is transferred from the hot buffer to the cold storage every few minutes. We call this process "archiving", and it makes the data available as a standard Foundry dataset. This means that any Foundry application can operate on streaming data, even if it does not process data in real-time from the hot buffer. The [dataset view](/docs/foundry/data-integration/datasets/) of a Foundry stream behaves exactly as a standard Foundry dataset in the platform.
 
 ## Stream processing
 

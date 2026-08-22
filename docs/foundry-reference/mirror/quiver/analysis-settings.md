@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-settings/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Settings
 
@@ -68,7 +68,7 @@ Applying your personal default settings to an existing analysis will overwrite e
 
 ## Time series date/number formatting
 
-* **Enable UTC time format:** By default, Quiver displays timestamps using the timezone you're currently in (according to your browser). When this switch is toggled, timestamps will instead be displayed in UTC.
+* **Enable UTC time format:** By default, Quiver displays timestamps using the timezone you are currently in (according to your browser). When this switch is toggled, timestamps will instead be displayed in UTC.
 * **Enable 24-hour format:** By default, Quiver displays the time using AM/PM specifications. When this switch is toggled, time will be displayed in 24-hour format. Note that this only affects the time display on a chart’s x-axis, and not on the plot tooltip.
 * **Significant figures shown (1-15):** Controls how many significant figures are shown in the plot hover tooltip (default of 6).
 

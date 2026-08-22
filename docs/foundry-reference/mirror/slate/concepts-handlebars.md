@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-handlebars/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-handlebars/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Access values with Handlebars
 
@@ -112,7 +112,7 @@ In general, templates in widgets are replaced with strings. If the evaluated val
    AND
 2. There are no other characters (including white spaces) outside of the brackets.
 
-Let’s look at a few examples:
+Look at a few examples:
 
 ```json
 {

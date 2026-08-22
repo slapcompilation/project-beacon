@@ -1,6 +1,6 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/marketplace/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/marketplace/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
-# Add Foundry Rules to a Marketplace products
+# Add Foundry Rules to a Marketplace product
 
 Use [Foundry DevOps](/docs/foundry/devops/overview/) to include your Foundry Rules workflow in [Marketplace products](/docs/foundry/devops/core-concepts/#product) and enable other users to install and reuse them. [Learn how to create your first product](/docs/foundry/foundry-devops/create-products/).
 

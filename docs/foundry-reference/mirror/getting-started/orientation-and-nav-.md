@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/orientation-and-nav// · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/orientation-and-nav// · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Orientation and navigation
 
@@ -14,7 +14,7 @@ The sidebar has five primary sections that allow you to navigate to different fe
 
 |  |  |
 | --- | --- |
-| <img src="./images/nav-sidebar.png" alt="Navigation sidebar with numbered legend." width="250" /> | **① Home:** Return to your organization's landing page<br>**① Search...:** Open the Quicksearch dialog<br>**① Notifications:** View platform and application notifications<br>**① What's New:** Read product announcements and release notes in the platform<br><br>**② Recent:** Quickly navigate to recently accessed resources<br>**② Files:** Jump to the Projects landing page, powered by Compass<br>**② Applications:** Find and access all platform applications using this portal<br><br>**③ Applications (Favorited):** Find applications you have previously added a star to. Organize and access your favorite applications<br><br>**④ Files (Favorited):** Find files you have previously added a star to. Organize and access your favourite resources and objects<br><br>**⑤ AIP Assist:** LLM-powered assistant for getting help<br>**⑤ Support:** Access Palantir documentation, training resources, and help<br>**⑤ Account:** Find account details and review permissions and groups<br>**⑤ Other Workspaces:** Access custom Workspaces and the Control Panel (availability depends on permissions) |
+| <img src="./images/nav-sidebar.png" alt="Navigation sidebar with numbered legend." width="250" /> | **① Home:** Return to your organization's landing page<br>**① Search...:** Open the Quicksearch dialog<br>**① Notifications:** View platform and application notifications<br>**① What's New:** Read product announcements and release notes in the platform<br><br>**② Recent:** Quickly navigate to recently accessed resources<br>**② Files:** Jump to the Projects landing page, powered by Compass<br>**② Applications:** Find and access all platform applications using this portal<br><br>**③ Applications (Favorited):** Find applications you have previously added a star to. Organize and access your favorite applications<br><br>**④ Files (Favorited):** Find files you have previously added a star to. Organize and access your favorite resources and objects<br><br>**⑤ AIP Assist:** LLM-powered assistant for getting help<br>**⑤ Support:** Access Palantir documentation, training resources, and help<br>**⑤ Account:** Find account details and review permissions and groups<br>**⑤ Other Workspaces:** Access custom Workspaces and the Control Panel (availability depends on permissions) |
 
 ## AIP Assist
 
@@ -49,11 +49,11 @@ The Notifications panel collects notices from across the platform, ordered from 
 
 <img src="./images/notifications.png" alt="Notifications panel." width="500">
 
-By default, notifications are delivered both within the platform in the Notifications panel and by email. Under the **See all** link, notifications are grouped by type for easier navigation. The notification **Settings** give you granular control over global and per-notification-type delivery preferences. If notifications are unread, the bell icon will have a small, yellow badge. If a notification occurs while you’re using the platform, a small pop-up in the lower left corner will briefly show the message.
+By default, notifications are delivered both within the platform in the Notifications panel and by email. Under the **See all** link, notifications are grouped by type for easier navigation. The notification **Settings** give you granular control over global and per-notification-type delivery preferences. If notifications are unread, the bell icon will have a small, yellow badge. If a notification occurs while you are using the platform, a small pop-up in the lower left corner will briefly show the message.
 
 ## Recent
 
-The Recent panel simply lists the last 20 resources you have opened or interacted with. Between **Favorites** and **Recent,** it’s possible to quickly navigate between primary resources in use for any project without needing to return to **Search** or browse through the Project folder structure.
+The Recent panel simply lists the last 20 resources you have opened or interacted with. Between **Favorites** and **Recent,** it is possible to quickly navigate between primary resources in use for any project without needing to return to **Search** or browse through the Project folder structure.
 
 <img src="./images/recent.png" alt="Recent panel." width="350" />
 

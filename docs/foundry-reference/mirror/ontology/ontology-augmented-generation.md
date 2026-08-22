@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-augmented-generation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-augmented-generation/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology-augmented generation
 
@@ -78,10 +78,10 @@ Animal Claims Management: General Terms:
 Animal collision is commonly insured in fully comprehensive packages...
 ```
 
-As the LLMs response is already “closer” to the real answer (structurally), it makes its embedding closer to the chunk that contains this real answer. Our semantic search in a function would then look like the following:
+As the LLM's response is already “closer” to the real answer (structurally), it makes its embedding closer to the chunk that contains this real answer. Our semantic search in a function would then look like the following:
 
 ```TypeScript
-async searchChunksByEmbedding(query: string, k: Integer): Promise<Chunk[]>> {
+async searchChunksByEmbedding(query: string, k: Integer): Promise<Chunk[]> {
    // create the full prompt for the hypothetical
    const prompt = `...`
 
@@ -193,7 +193,7 @@ For our example question of “How do we deal with animal collisions?”, the LL
 Deal with animal collisions.
 ```
 
-This response maximizes the semantic content of our query and increasing likelihood of stronger matching downstream once we run a semantic search. The above example could also be solved by removing stopwords only.
+This response maximizes the semantic content of our query and increases the likelihood of stronger matching downstream once we run a semantic search. The above example could also be solved by removing stopwords only.
 
 ```TypeScript
 async searchChunksByExtractedQuery(query: string, k: Integer): Promise<Chunk[]> {

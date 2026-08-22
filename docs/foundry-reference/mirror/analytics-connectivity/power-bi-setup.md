@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-setup/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-setup/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Setup
 
@@ -26,6 +26,6 @@ Alternatively, if you are unable to install the ODBC driver you can follow the i
 
 ### Step 3: Get Started Building Reports
 
-Now that you've installed the ODBC driver, you can follow the instructions in the [Power BI®: Getting Started Guide](/docs/foundry/analytics-connectivity/power-bi-getting-started/) to get started building your first report backed by Foundry data.
+Now that you have installed the ODBC driver, you can follow the instructions in the [Power BI®: Getting Started Guide](/docs/foundry/analytics-connectivity/power-bi-getting-started/) to get started building your first report backed by Foundry data.
 
 *Power BI® and the Power BI® logo are trademarks of the Microsoft group of companies.*

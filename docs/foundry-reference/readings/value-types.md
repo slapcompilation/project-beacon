@@ -446,7 +446,7 @@ being *consumed* rather than authored, and it shows them shipped as a product:
 
 > To configure boundary identifiers, first search for and install the "Choropleth Value Types" product in Marketplace. This product contains the ontology value types that the map application knows how to render as choropleths.
 
-> If your object type already has a property the contains one of these identifiers, select the corresponding value type in the **Value Type** dropdown menu for that property in Ontology Manager.
+> If your object type already has a property that contains one of these identifiers, select the corresponding value type in the **Value Type** dropdown menu for that property in Ontology Manager.
 
 Three things this adds. **(a)** The binding dropdown is in **Ontology Manager**,
 while creation is in the Value Types Manager — two applications, two surfaces,

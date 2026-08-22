@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/security/protecting-sensitive-data/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/protecting-sensitive-data/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Protecting sensitive data
 
-As you saw in [Securing a data foundation](/docs/foundry/security/securing-a-data-foundation/), access to data in various projects can be managed by project owners. This is what’s known as [discretionary access controls ↗](https://en.wikipedia.org/wiki/Discretionary_access_control). However, when it comes to sensitive data, a stronger, more centralized access control model is needed.
+As you saw in [Securing a data foundation](/docs/foundry/security/securing-a-data-foundation/), access to data in various projects can be managed by project owners. This is what is known as [discretionary access controls ↗](https://en.wikipedia.org/wiki/Discretionary_access_control). However, when it comes to sensitive data, a stronger, more centralized access control model is needed.
 
 In our example, we have a notional dataset containing passenger birth dates (DOBs), which constitute Personally Identifiable Information (PII). We may want to tightly control this PII, and ensure that this data is only accessible to those who have gone through a PII training. We can solve this using Markings.
 
@@ -20,13 +20,13 @@ We need to create a marking category, which is a name for a set of markings. In 
 
 ## Simulate our marking change
 
-Markings have the powerful behavior of propagating along data lineage. Accordingly, applying a new marking to an existing pipeline can risk locking out downstream users unexpectedly, so it’s best practice to always simulate applying a marking to our pipeline to see where it propagates. To do this, open the data lineage of your pipeline and turn on simulation mode. You can edit the Markings on the *raw/passengers* dataset and apply the PII Marking you created. You will then see all the datasets downstream that will be affected when the PII marking is applied.
+Markings have the powerful behavior of propagating along data lineage. Accordingly, applying a new marking to an existing pipeline can risk locking out downstream users unexpectedly, so it is best practice to always simulate applying a marking to our pipeline to see where it propagates. To do this, open the data lineage of your pipeline and turn on simulation mode. You can edit the Markings on the *raw/passengers* dataset and apply the PII Marking you created. You will then see all the datasets downstream that will be affected when the PII marking is applied.
 
-We don’t want all consumers of our data to have to have PII access, so we want to remove the sensitive DOB column at some point in our pipeline. To do this, we should click through the pipeline, reviewing where we think it’s best to remove the PII marking. Typically this is done by opening the preview view in the bottom when selecting a dataset, so we can see the data and columns.
+We do not want all consumers of our data to have to have PII access, so we want to remove the sensitive DOB column at some point in our pipeline. To do this, we should click through the pipeline, reviewing where we think it is best to remove the PII marking. Typically this is done by opening the preview view in the bottom when selecting a dataset, so we can see the data and columns.
 
 ![Data lineage view](./images/protect-sensitive-data1.png)
 
-In our notional example, we can see that the PII marking propagates all the way to the ontology dataset, which would lock out all our end-users who don’t have access to PII. Therefore, we decide it was best to keep the sensitive data in the pipeline as long as possible, but remove the “dob” column on the ontology version of the passengers data (i.e. */Sky Industries/Customer Metrics \[Ontology]/passengers*).
+In our notional example, we can see that the PII marking propagates all the way to the ontology dataset, which would lock out all our end-users who do not have access to PII. Therefore, we decide it was best to keep the sensitive data in the pipeline as long as possible, but remove the “dob” column on the ontology version of the passengers data (i.e. */Sky Industries/Customer Metrics \[Ontology]/passengers*).
 
 ## Remove soon-to-be inherited marking
 
@@ -34,7 +34,7 @@ In the data lineage view, click on the *Customer Metrics \[Ontology]/passengers*
 
 ![Remove inherited marking](./images/protect-sensitive-data2.png)
 
-After our colleague approves the pull request to stop propagating the PII marking, we will need to build this dataset and everything downstream of it so that the latest dataset transactions all “stop propagating” the soon-to-be added marking. Also, there are considerations with APPEND or UPDATE transaction types that require special attention. But in our example, everything is being build as a SNAPSHOT, which is the default transaction type in Foundry.
+After our colleague approves the pull request to stop propagating the PII marking, we will need to build this dataset and everything downstream of it so that the latest dataset transactions all “stop propagating” the soon-to-be added marking. Also, there are considerations with APPEND or UPDATE transaction types that require special attention. But in our example, everything is being built as a SNAPSHOT, which is the default transaction type in Foundry.
 
 ## Apply the marking
 

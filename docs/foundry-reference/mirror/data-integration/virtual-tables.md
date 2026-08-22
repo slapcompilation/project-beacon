@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/virtual-tables/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/virtual-tables/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Virtual tables
 
@@ -107,7 +107,7 @@ When working with tabular source types such as [Databricks](/docs/foundry/availa
 
 #### Auto-registration
 
-When enabling **auto-registration**, you create a new Foundry [project](/docs/foundry/compass/move-and-share-resources/) where virtual tables will be created automatically. The folder hierarchy in this project will mirror the structure of the source system, and be periodically updated as new tables are created in the source. When source tables are deleted, related virtual tables won't be auto-deleted in the project, but accessing them won't load any data.
+When enabling **auto-registration**, you create a new Foundry [project](/docs/foundry/compass/move-and-share-resources/) where virtual tables will be created automatically. The folder hierarchy in this project will mirror the structure of the source system, and be periodically updated as new tables are created in the source. When source tables are deleted, related virtual tables will not be auto-deleted in the project, but accessing them will not load any data.
 
 To enable auto-registration, you must have [project creation permissions](/docs/foundry/security/projects-and-roles/#create-projects) in Foundry.
 

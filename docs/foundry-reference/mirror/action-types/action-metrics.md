@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Action metrics
 
@@ -7,7 +7,7 @@ Action metrics display the near real-time usage of an action type over the last 
 * **Success/failure metrics:** Monitor the current status of your actions with success and failure counts. This enables rapid identification of issues and supports proactive troubleshooting, allowing you to address failures as soon as they occur.
 * **P95 duration metric:** Track the 95th percentile (P95) execution duration for each action type. This metric highlights the upper range of execution times, helping you detect performance bottlenecks and optimize workflows for consistent and efficient operation.
 
-You are also able to access [run history](/docs/foundry/aip-observability/run-history/), which provides a complete view of a given action's executions over the past seven days. Learn more about [AIP observability capabilities](/docs/foundry/aip-observability/overview/).
+You are also able to access [run history](/docs/foundry/aip-observability/run-history/), which provides a complete view of a given action's executions over the past seven days. Learn more about [Ontology and AIP observability capabilities](/docs/foundry/aip-observability/overview/).
 
 ![Screenshot of action metrics in the overview section.](./images/action-metrics-failures.png)
 

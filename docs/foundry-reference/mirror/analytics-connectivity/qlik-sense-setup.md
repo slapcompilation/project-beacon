@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/qlik-sense-setup/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/qlik-sense-setup/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Server setup
 
@@ -27,4 +27,4 @@ It is important to set the `UserAgent` property. Without it, data will not load 
 
 ### (Optional) Step 3: Pre-configure Qlik Sense connections
 
-If users are able to create their own connections within Qlik Sense, you can skip this step. Otherwise, you'll need to pre-configure the Foundry connections and grant access to users. See the [Getting Started](/docs/foundry/analytics-connectivity/qlik-sense-getting-started/) guide for how to create connections.
+If users are able to create their own connections within Qlik Sense, you can skip this step. Otherwise, you will need to pre-configure the Foundry connections and grant access to users. See the [Getting Started](/docs/foundry/analytics-connectivity/qlik-sense-getting-started/) guide for how to create connections.

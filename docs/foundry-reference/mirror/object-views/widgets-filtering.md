@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-filtering/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-filtering/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Filtering
 
@@ -21,12 +21,12 @@ Apart from these core Filtering Widgets, which are dedicated to filtering only, 
 * In order to have a filter applied **across different tabs**, make sure that the “filterSet value“ under the tab Settings has an identical text value across all tabs you wish to filter across. This value is case-sensitive.
   * In that case, the filters that use the same filterSet value will be affected by the same active filters. For example, if Tab A and Tab B share the same filterSet value, any filters applied on Tab A will be applied on Tab B and vice versa. <br><img src="./images/filter-across-tabs.png" alt="Filter across tabs" height="500"/>
 
-* In all filter configurations, you will select a Linked Object to the object that you’re currently editing, and not the object that you are editing itself.
-  * Example: If you’re configuring the Object View of an “Airport”, with “Flights” connected to it, you would probably have different visuals on flights (timelines, charts, list of all flights in a table), and would want to set your filters on different properties of “Flights” (e.g. filter per airline, filter per date, filter per origin city).
+* In all filter configurations, you will select a Linked Object to the object that you are currently editing, and not the object that you are editing itself.
+  * Example: If you are configuring the Object View of an “Airport”, with “Flights” connected to it, you would probably have different visuals on flights (timelines, charts, list of all flights in a table), and would want to set your filters on different properties of “Flights” (e.g. filter per airline, filter per date, filter per origin city).
   * Therefore, before you configure a filter, your current object needs to be linked to another object. Setting up the links is done in the Ontology Manager.
 
 * Most Filter Widgets only add an optional functionality that allows the user to apply filters locally for the current view of the object they currently browse.
-  * Most of the Filter Widgets do not enable you to pre-configure filters to be active by default, such that would narrow down the view for the user (Filter Container is an exception, as it does allow to set up pre-configured filters).
+  * Most of the Filter Widgets do not enable you to pre-configure filters to be active by default, such that would narrow down the view for the user (Filter Container is an exception, as it does allow you to set up pre-configured filters).
   * The user would be able to activate filters on their current view of the current object, but once they move to a different object or refresh, these filters would not apply.
 
 ## Multiselect Filter
@@ -92,7 +92,7 @@ This is the more complex option, specifically for cases where you wish to define
 
 **Common Issues and Notes:**
 
-* Consider using the Multiselect filter instead of the Dropdown filter if (a) you want the functionality of selecting more than a single option; (b) you don’t need multiple dropdowns (though this could also be solved with a filter container).
+* Consider using the Multiselect filter instead of the Dropdown filter if (a) you want the functionality of selecting more than a single option; (b) you do not need multiple dropdowns (though this could also be solved with a filter container).
 * The interaction of the Dropdown widget with the “Active Widget” is limited. Even if “Enable 'All' filter option” is toggled and enabled, users will still not be able to “Clear filter”, unless they explicitly select “All” under the Multiselect filter.
 * Once configured, you would need to mark the checkbox “allow cross-filtering” in the configuration editor settings on the right side (see details above) in order for the filter to affect the Object View.
 * There is a limit to the number of dropdown filter boxes the UI is able to present under a single dropdown filter widget (around 7-8 different dropdowns). In the unlikely event that you need more dropdown filters for a single Object View, use an additional Dropdown filter or use a Filter Container.
@@ -132,7 +132,7 @@ For all 3 types of button filters, you will have the following:
     * Make sure to delete the 0 from the Upperbound if you wish to have a “greater than”, and vice versa for “lower than”.
   * **Date Range:** offers a toggle with 2 options - exact dates (“from 1\1\2019 to 31\12\2019”) or relative to current time (“Last Month” or “Between two years ago and one year ago”). The configuration itself is done with a standard calendar date picker.
 
-* \[Optional] **Button Label:** the text to display on the button. It’s optional, but it's best practice to create a button with a label.
+* \[Optional] **Button Label:** the text to display on the button. It is optional, but it is best practice to create a button with a label.
 
 * \[Optional] **Button color:** The default color is grey. To select a different color for the button, use the Blueprint standard colors (see https://blueprintjs.com/docs/#core/colors) or use the internal Palantir Blueprint library. Basic colors (“Blue”, “Red”, “Yellow”, etc.) would also work.
   * An un-selected button would have a faded color. Only once clicked, it would change to the chosen color.
@@ -141,7 +141,7 @@ For all 3 types of button filters, you will have the following:
 **Common Issues and Notes:**
 
 * To grant users with more flexibility, consider using:
-  * “Date Range Filter“ instead of the ”Date Range Button Filter“;
+  * “Date Range Filter” instead of the “Date Range Button Filter”;
   * “Multiselect Filter” or the “Dropdown Filter” instead of the “Value List Button Filter”.
 * Note that there are 2 ways to indicate what a button filter does: (I) label the button well; (II) add an “Active Filter” widget, which shows all filters, including the actual values filtered by clicking on the button filters.
 * The Button Filter is off by default, so that it has to be clicked for the filter to apply.
@@ -264,7 +264,7 @@ How to use these toggles?
 * The pre-defined filters are only applied within the container and do not apply on any widget outside the container. This is true only for these pre-defined filters, and not for other filter widgets which could be configured within the container. Looking for a sandbox container capability? Try [Filter Sandbox Container](#filter-sandbox-container).
 * The pre-defined filters in the “Filter Container” will not be visible for the user in the UI, and will not be possible to remove by users, unless your follow the following steps:
   * Add an “Active Filter” widget within the Filter Container to display it.
-  * Make sure the toggle of “Enable removing default filters” is switched-on (it is on by default). Otherwise, users cannot remove these filters, even with the “Active Filter“ removal option.
+  * Make sure the toggle of “Enable removing default filters” is switched-on (it is on by default). Otherwise, users cannot remove these filters, even with the “Active Filter” removal option.
 * Applying filters inside a filter container will also remove non-matching options in filter widgets, such as [Dropdown Filter](#dropdown-filter). If this behavior is not desired, use [Filter Sandbox Container](#filter-sandbox-container) instead.
 
 **Part 2 - Filter Container as a Container of widgets**
@@ -289,7 +289,7 @@ Once configured, it will look like the interactive widget below, with a filter i
 
 ## Configuration
 
-There’s no configuration for the Active Filter widget. Simply add it as a new section.
+There is no configuration for the Active Filter widget. Simply add it as a new section.
 
 **Common Issues and Notes:**
 

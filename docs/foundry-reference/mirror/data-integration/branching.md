@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/branching/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/branching/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Branching
 
@@ -6,7 +6,7 @@ Software developers typically use version control systems to coordinate work in 
 
 Within Foundry, we think about data the way software developers think about code: you need a way to allow many people to make changes and interact with the same data without interfering with someone else's work. We took best practices from software development and applied them to writing data pipelines, harnessing a common feature of version control systems called **branching**.
 
-At a high level, **branching** allows you to take a fork in the road and work on data in your own branch. Then, once you’re happy with your changes, you can push your changes out of your branch back to the main road.
+At a high level, **branching** allows you to take a fork in the road and work on data in your own branch. Then, once you are happy with your changes, you can push your changes out of your branch back to the main road.
 
 ## Branching workflow
 
@@ -15,8 +15,8 @@ How to use a branching workflow to make changes to data pipeline code in Foundry
 ![branching example](./images/branching-example.png)
 
 1. **Create a branch**. In Foundry, the **`master` branch** refers to the primary data pipeline. When you want to work on your own changes, you create your own branch, which creates an environment for you to experiment and test out ideas without worrying about affecting the `master` branch.
-2. **Create commits**. Within your branch, you can make changes to data transformations. Changes, which include additions and removals, are called **commits**. Your commits are tracked so that there’s a clear history of all the changes you’ve done on your branch.
-3. **Create a pull request**. Once you’re done working in isolation, you’ll want to push your changes back to the master branch. To start this process, you create a **pull request**. A pull request signals to your team that you’ve made changes you’d like them to review and validate for the `master` data pipeline.
+2. **Create commits**. Within your branch, you can make changes to data transformations. Changes, which include additions and removals, are called **commits**. Your commits are tracked so that there is a clear history of all the changes you have done on your branch.
+3. **Create a pull request**. Once you are done working in isolation, you will want to push your changes back to the master branch. To start this process, you create a **pull request**. A pull request signals to your team that you have made changes you would like them to review and validate for the `master` data pipeline.
 4. **Review code**. After you create a pull request, your team will have the chance to review your commits. Every organization will have a different process or team for reviewing pull requests.
 
 Foundry branching implements an industry-standard Git-like version control paradigm. As such, the Code Repositories application was designed to have one active developer for each individual branch on a file. If other users are working on your **`personal` branch**, your changes may be overwritten. To avoid this, we strongly recommend having each person work in a separate branch.
@@ -75,7 +75,7 @@ For all datasets designated as *outputs* by the JobSpecs in a build, a transacti
 
 ### Example: Building on branches
 
-To understand how branches work in builds, let’s step through an example workflow:
+To understand how branches work in builds, step through an example workflow:
 
 1. Suppose that datasets A, B, and C exist on the `master` branch.
 2. A data engineer creates a branch called `feature` in their Code Repository. This creates a branch in the underlying Git repository.

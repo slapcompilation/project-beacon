@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/undefined-values/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/undefined-values/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Handle undefined values
 
@@ -33,4 +33,4 @@ public getFullName(employee: Employee): string {
 }
 ```
 
-This approach simply overrides the TypeScript compiler and asserts that the fields you're accessing are defined. Although this makes for more concise code, this can lead to cryptic errors in the case when one of the fields turns out to be `undefined`. We recommend making explicit checks when possible.
+This approach simply overrides the TypeScript compiler and asserts that the fields you are accessing are defined. Although this makes for more concise code, this can lead to cryptic errors in the case when one of the fields turns out to be `undefined`. We recommend making explicit checks when possible.

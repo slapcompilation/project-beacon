@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/actions-on-structs/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/actions-on-structs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Actions on structs
 
@@ -38,7 +38,7 @@ An instance of an object of the type specified in the `ObjectReference` paramete
 
 ## Constraints on struct parameter fields
 
-Constraints can be configured individually for struct parameter fields, as with regular parameters. For example, a string length constraint can be defined on struct parameter fields of string types to only allow string value that are between 10 and 500 characters long. This would mean that the `summary` field of a the `Resolution` struct parameter must be at least 10 characters long, but no longer than 500 characters.
+Constraints can be configured individually for struct parameter fields, as with regular parameters. For example, a string length constraint can be defined on struct parameter fields of string types to only allow string values that are between 10 and 500 characters long. This would mean that the `summary` field of the `Resolution` struct parameter must be at least 10 characters long, but no longer than 500 characters.
 
 ![Define constraints for struct parameter fields.](./images/struct-parameter-field-constraint.png)
 

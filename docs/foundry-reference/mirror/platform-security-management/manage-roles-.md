@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-roles// · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-roles// · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Manage roles
 
@@ -18,7 +18,7 @@ To understand role customizations, we need to zoom in one level deeper to operat
 
 Operations are individual permissions that Foundry applications check to verify a user has permission to perform a given action. Roles are sets of operations: when you grant someone a role on a resource (like a Project or a dataset), you are granting them a set of operations on that resource and any child resources underneath it. Each operation has a name and unique identifier.
 
-For example, one of the operations included in the default Owner role (but none of the lesser roles) is named “Change default branch” operation (with identifier: `stemma:mutate-default-branch`) which allows you change a Code Repository’s default branch. When you grant a user the Owner role on a Project, that user is granted `stemma:mutate-branch` on all resources in that Project, so they can change the default branch of any Code Repository inside.
+For example, one of the operations included in the default Owner role (but none of the lesser roles) is named “Change default branch” operation (with identifier: `stemma:mutate-default-branch`) which allows you to change a Code Repository’s default branch. When you grant a user the Owner role on a Project, that user is granted `stemma:mutate-default-branch` on all resources in that Project, so they can change the default branch of any Code Repository inside.
 
 ### Creating a custom role
 
@@ -28,23 +28,23 @@ The role management UI can be found under the Roles tab of the platform settings
 
 You can create your own entirely new custom role. You might want to create your own custom role to support different types of users in your Organization, such as the [Merger](#merger) or [Supporter](#supporter) roles detailed below.
 
-To create your own custom role, simply click “New Role”, and you’ll be prompted with the New Role dialog:
+To create your own custom role, simply click “New Role”, and you will be prompted with the New Role dialog:
 
 ![Create custom role](./images/create-custom-role.png)
 
-You can “Include” other roles. For the new Merger role above, we’ve included the Viewer role, meaning all permissions granted by Viewer will be granted in the Merger role. Once created, you can customize this role with additional operations.
+You can “Include” other roles. For the new Merger role above, the Viewer role is included, meaning all permissions granted by Viewer will be granted in the Merger role. Once created, you can customize this role with additional operations.
 
 ### Editing the default roles
 
 You can only edit default roles (e.g. Viewer) for a custom [role set](#role-sets). So to customize your Organization's roles, you first need to create a custom role set of the default roles. Then you can edit these default roles.
 
-For example, if you’d like all Editors on your instance to be able to change the default branch of repositories, you can simply edit the Editor role to include this operation.
+For example, if you would like all Editors on your instance to be able to change the default branch of repositories, you can simply edit the Editor role to include this operation.
 
 ![Editing default roles](./images/change-role.gif)
 
 ### Sample custom roles
 
-Below are a few examples of custom roles you could create if they’re useful for your situation.
+Below are a few examples of custom roles you could create if they are useful for your situation.
 
 #### Merger
 

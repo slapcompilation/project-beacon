@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-writeback/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-writeback/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Write back data to Phonograph \[Legacy]
 
@@ -33,7 +33,7 @@ The writeback index does *not* support `struct` column types. This means that a 
 :::
 
 :::callout{title="Note on Removing Syncs"}
-Currently it's not possible to unregister (delete) a sync through the UI. For usage in Slate, however, you can add a query to the "Table Registry - Unregister" endpoint. The only parameter is the Table RID and the result will be the deletion of the Table - this will not affect the input or output dataset. In the sync UI for the associated dataset, you will see that there is no longer a registered writeback sync. This will remove all data from the Table permanently, so only use it carefully and ensure you either delete the query or set it to run manually.
+Currently it is not possible to unregister (delete) a sync through the UI. For usage in Slate, however, you can add a query to the "Table Registry - Unregister" endpoint. The only parameter is the Table RID and the result will be the deletion of the Table - this will not affect the input or output dataset. In the sync UI for the associated dataset, you will see that there is no longer a registered writeback sync. This will remove all data from the Table permanently, so only use it carefully and ensure you either delete the query or set it to run manually.
 :::
 
 ## Query examples
@@ -54,7 +54,7 @@ To retrieve all of the rows from the table we will need to create a new Slate qu
 1. Begin by creating a new query in the Slate application.
 2. Select "Phonograph2" as the source for this query
 3. In the "Available Services" field, select `Table Search Service`.
-4. Fill in the `Search Request` field of this query using the code below. You'll notice that this request uses a `matchAll` block, which will return all rows. You will need to fill in the RID of the table (available in the sync configuration), as well as a column to sort on (optional).
+4. Fill in the `Search Request` field of this query using the code below. You will notice that this request uses a `matchAll` block, which will return all rows. You will need to fill in the RID of the table (available in the sync configuration), as well as a column to sort on (optional).
 
 #### q\_getAllRows example
 
@@ -157,7 +157,7 @@ The Search Service endpoints use the **search index** for the associated Phonogr
 2. `w_successToast` timeout configured to `5000` (5s)
 3. `w_successToast.close` -> `q_getAllRows`
 
-You may need to tune the duration of the toast up or down to make sure you're retrieving changed rows. Also ensure you add a `sort` block to your getAllRows query as the default sort is by the last update timestamp for the row document, which means edited rows will "move" to the back of all results.
+You may need to tune the duration of the toast up or down to make sure you are retrieving changed rows. Also ensure you add a `sort` block to your getAllRows query as the default sort is by the last update timestamp for the row document, which means edited rows will "move" to the back of all results.
 
 Alternatively, define patterns for your application that separate the display of the data and the persisting of data to Phonograph. This can be done by using a state variable to track the current view and then periodically saving that data when triggered by the user back to Phonograph, but *without automatically re-running the query to get all rows*. This pattern gives a better user experience (updates appear instant) but requires a more complicated design.
 
@@ -190,7 +190,7 @@ Queries for all three events expect a `tableEditedEventPostRequest` with a **pri
 ```
 
 :::callout{theme="neutral"}
-`rowDeleted` events have an empty `rowDeleted` object - you don't need to pass columns to delete a row.
+`rowDeleted` events have an empty `rowDeleted` object - you do not need to pass columns to delete a row.
 :::
 
 It is general best practice to use a function to build the `tableEditedEventPostRequest`. These can take many different forms depending on the desired workflow and the implementation.
@@ -235,7 +235,7 @@ We will now configure a trigger for the query so that it runs on some user actio
 
 ![new-run-manually](./images/new-run-manually.png)
 
-In addition, it's often best practice to write a separate function to validate the form inputs and generate feedback text to display alongside your form. This helps guard against data quality issues stemming from user input data. A function to do this might look like this:
+In addition, it is often best practice to write a separate function to validate the form inputs and generate feedback text to display alongside your form. This helps guard against data quality issues stemming from user input data. A function to do this might look like this:
 
 #### f\_validateForm
 
@@ -366,7 +366,7 @@ The range filter provides comparative filtering for numeric and date type column
 
 #### GeoBoundingBox and GeoDistanceSearch filter
 
-If you've generated [geohashes ↗](https://www.elastic.co/guide/en/elasticsearch/guide/current/geohashes.html) in your pipeline, then you can use these filters to perform bounding box and radius searches.
+If you have generated [geohashes ↗](https://www.elastic.co/guide/en/elasticsearch/guide/current/geohashes.html) in your pipeline, then you can use these filters to perform bounding box and radius searches.
 
 Contact your Palantir team for examples of these queries.
 
@@ -404,11 +404,11 @@ All filter types can be nested with `AND` and `OR` filter types to build up more
 
 ## Write back to Foundry
 
-The `updateRow` query we’ve written will only update the copy of `asteroid_notes` stored in Phonograph. In order to get the data to show up in Foundry, we will need to click "Build" on the preview page of the dataset within Foundry.
+The `updateRow` query created earlier will only update the copy of `asteroid_notes` stored in Phonograph. In order to get the data to show up in Foundry, we will need to click "Build" on the preview page of the dataset within Foundry.
 
 ![dataset-details](./images/dataset-details.png)
 
-Once that’s been completed, we can see our edits to `research_notes` appear in `asteroid_notes_edited`
+Once that has been completed, we can see our edits to `research_notes` appear in `asteroid_notes_edited`
 
 ![asteroid\_notes\_edited](./images/asteroid_notes_edited.png)
 
@@ -447,7 +447,7 @@ In addition to the `Post Event` endpoint we saw above, the `Table Service` provi
     }, etc...
 ```
 
-We'll discuss below how you can use the bulk endpoint and the [Events](/docs/foundry/slate/concepts-events/) framework to build a more powerful solution to handle latency for making changes.
+The following section discusses how you can use the bulk endpoint and the [Events](/docs/foundry/slate/concepts-events/) framework to build a more powerful solution to handle latency for making changes.
 
 ### Manage latency
 
@@ -457,7 +457,7 @@ The simplest method is to insert a [toast](/docs/foundry/slate/widgets-visualiza
 
 For more complex workflows, you may consider doing additional work to separate the state used to display your Slate app from the state of the editing index. To do this, on page load you would populate a Slate variable with the results of your `q_getAllRows` query and that would become your "front end state". All of your edit/delete/update events would make changes to this front-end state variable, rather than directly triggering queries to the backend. Periodically you could diff the state of the front-end variable to the data from the query and create the payload for a bulk query to apply all the changes.
 
-You would probably also want to provide some user feedback in the way of toasts or maybe an "Unsaved Changes" counter and a manual button to click to save all the changes. This setup is heavyweight for anything other than complex, long-lived applications. In most cases the toast approach is sufficient, and improvements to the `Get Rows` and `Get All Rows` endpoints should shortly make this obsolete in nearly all cases, so if you're considering this option, it's most likely best to get in touch with the Palantir team for further discussion.
+You would probably also want to provide some user feedback in the way of toasts or maybe an "Unsaved Changes" counter and a manual button to click to save all the changes. This setup is heavyweight for anything other than complex, long-lived applications. In most cases the toast approach is sufficient, and improvements to the `Get Rows` and `Get All Rows` endpoints should shortly make this obsolete in nearly all cases, so if you are considering this option, it is most likely best to get in touch with the Palantir team for further discussion.
 
 ### Aggregations
 
@@ -493,7 +493,7 @@ Below is a simple example of the syntax. Note that a raw version of the `visits`
 
 ```
 
-The query above will bucket all the rows from the `filter` section of the query by the value in the `visits` field and return the count. If you're only interested in the aggregated values, set the `pageSize` to `0` to remove the individual record hits from the results and reduce the load time and memory pressure of your application.
+The query above will bucket all the rows from the `filter` section of the query by the value in the `visits` field and return the count. If you are only interested in the aggregated values, set the `pageSize` to `0` to remove the individual record hits from the results and reduce the load time and memory pressure of your application.
 
 The return format will look like:
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-code-workbook-profiles/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-code-workbook-profiles/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure Code Workbook profiles
 
@@ -28,9 +28,9 @@ When editing the Conda environment for a profile, the UI automatically finds the
 
 In the Conda environment tab, specify the default packages when using this profile. Users will be able to customize their Conda environments in their workbook as desired.
 
-In order to execute Python and R transforms, Code Workbook requires the packages `vector-spark-module-py` and `vector-spark-module-r` respectively to be present in the profile's environment. To add those, you can either toggle the Python and R checkboxes in the Conda environment tab, or manually add them in the **Add package** dropdown menu. SQL doesn't require any additional packages and is therefore always available on any given profile.
+In order to execute Python and R transforms, Code Workbook requires the packages `vector-spark-module-py` and `vector-spark-module-r` respectively to be present in the profile's environment. To add those, you can either toggle the Python and R checkboxes in the Conda environment tab, or manually add them in the **Add package** dropdown menu. SQL does not require any additional packages and is therefore always available on any given profile.
 
-Before changing the Conda environment for a profile, make sure that the proposed environment resolves by customizing the environment in a workbook. You will be asked to acknowledge you've done so when saving changes to the Conda environment.
+Before changing the Conda environment for a profile, make sure that the proposed environment resolves by customizing the environment in a workbook. You will be asked to acknowledge you have done so when saving changes to the Conda environment.
 
 ![code workbook profiles environment](./images/code-workbook-profiles-environment.png)
 

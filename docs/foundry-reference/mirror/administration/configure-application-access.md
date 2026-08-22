@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-application-access/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-application-access/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure application access
 
@@ -42,7 +42,7 @@ Once approved, the updated approval policy will immediately start being applied 
 
 ## Restrict platform access
 
-By default, Foundry users have access to most parts of the Foundry platform. With Application access it's possible to flexibly tailor the Foundry experience for different groups.
+By default, Foundry users have access to most parts of the Foundry platform. With Application access it is possible to flexibly tailor the Foundry experience for different groups.
 
 The most restrictive configuration is to remove Foundry platform access entirely. There are two options for restricting access to the Foundry Platform: an allowlist or a blocklist. **Everyone except members of groups** restricts access for users who are in at least one of the groups specified. **Only members of groups** restricts access for users who are *not* in any of the groups specified. Users with restricted access to the Foundry platform will only have access to consumer-facing applications built in Slate or Workshop to which they have explicitly been granted resource-level access. For these users the Foundry sidebar will be hidden and they will be prevented from navigating to any other parts of Foundry. Note that application access operates at the application level; these controls do not differentiate between read and write access.
 

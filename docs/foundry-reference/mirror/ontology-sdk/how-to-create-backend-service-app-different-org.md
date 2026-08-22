@@ -1,10 +1,22 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-create-backend-service-app-different-org/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-create-backend-service-app-different-org/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create an application using a different Organization
 
-When developing a service or application in the Developer Console that uses a confidential client, a service user will be created along with your application. Once created, you must grant the service user any necessary permissions to read and write to the Ontology.
+:::callout{theme="neutral"}
+This guide describes the workflow for applications using legacy permissions. If your enrollment has Compass-managed user permissions enabled, applications inherit permissions from their parent project or folder, and sharing workflows may differ.
+:::
+
+When you develop a service or application in Developer Console that uses a confidential client, Developer Console creates a service user with your application. You must grant the service user any necessary permissions to read and write to the Ontology.
+
+:::callout{theme="neutral"}
+In environments with classification-based access controls enabled, service users do not automatically inherit the maximum classification set for the application. You must explicitly add the service user to the appropriate groups and classifications for it to have the desired access level.
+:::
 
 By default, the service user will be added as a guest of the organization that is selected in the Developer Console, as shown in the image below.
+
+:::callout{theme="neutral"}
+The Developer Console organization dropdown only shows organizations that are marked on the currently selected location. Even if you are an admin of an organization, it will not appear in the dropdown unless that organization has been marked on the location you have selected.
+:::
 
 ![The Developer Console shows the organization selector for guest organizations.](./images/guest-org-ontology-scopes.png)
 
@@ -39,3 +51,7 @@ Once you have shared the application with your default organization, you can swi
 ![An enabled application in Control Panel, with options to configure project access and marking restrictions.](./images/control-panel-enable-app.png)
 
 Once you save your changes, the service user will be added as a guest to your organization and you will be able to grant any necessary permissions.
+
+:::callout{theme="neutral"}
+Developer Console automatically detects mismatches between a confidential client's markings and its service user's markings. If markings or organization memberships differ between the client and service user, Developer Console displays a warning indicator. Check for these warnings if you encounter unexpected permission issues after enabling your application.
+:::

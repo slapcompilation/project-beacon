@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-python/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-python/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Bootstrap a new OSDK Python application
 
@@ -34,6 +34,18 @@ If your organization requires certificates for network traffic, you may need to 
 export SSL_CERT_FILE="/path/to/my.crt"
 export REQUESTS_CA_BUNDLE="/path/to/my.crt"
 ```
+
+:::callout{theme="warning"}
+If `pip install` continues to fail with `certificate verify failed` errors after you set the certificate environment variables, your certificate authority (CA) trust configuration is incomplete. Correct that configuration rather than bypassing verification.
+
+To temporarily confirm that certificate trust is the cause, run the installation once with the `--trusted-host` flag. This flag disables certificate verification for the specified host, so use it only for diagnosis and never in production or automated environments.
+
+```bash
+pip install <YOUR-PACKAGE-NAME> --upgrade --extra-index-url "https://:$FOUNDRY_TOKEN@<INDEX-URL>" --trusted-host <YOUR-FOUNDRY-HOSTNAME>
+```
+
+Replace `<YOUR-FOUNDRY-HOSTNAME>` with your Foundry environment hostname. If the installation succeeds with the flag, the missing trust chain is confirmed. Work with your network administrator to add the complete CA certificate chain to the file referenced by `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE`. Then reinstall without `--trusted-host`.
+:::
 
 ## 2: Install the latest version of your SDK
 

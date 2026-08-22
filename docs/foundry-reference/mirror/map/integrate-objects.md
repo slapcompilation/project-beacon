@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/integrate-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/integrate-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology objects
 
@@ -42,7 +42,7 @@ The current supported region types and ways of identifying them are:
   * FIPS codes
   * ANSI codes
 
-If your object type already has a property the contains one of these identifiers, select the corresponding value type in the **Value Type** dropdown menu for that property in Ontology Manager.
+If your object type already has a property that contains one of these identifiers, select the corresponding value type in the **Value Type** dropdown menu for that property in Ontology Manager.
 
 ![Image of the Value Type dropdown menu in the Ontology Manager](./images/oma-choropleth-value-type.png)
 
@@ -50,7 +50,7 @@ If you want to display choropleths for one of the region types above, but your d
 
 ### Linked objects
 
-If you want to display a choropleth with a region type is not included above, or otherwise want more control over the region geometries and properties on the regions, you can create an object type with region geometry of your choice. Then create a many-one link from the object type you want to aggregate over to that region object type.
+If you want to display a choropleth with a region type that is not included above, or otherwise want more control over the region geometries and properties on the regions, you can create an object type with region geometry of your choice. Then create a many-one link from the object type you want to aggregate over to that region object type.
 
 For example, imagine you want to display a choropleth that shows the total value of orders placed for each sales region. A simple way to configure the ontology for this is to have:
 
@@ -100,13 +100,13 @@ Objects with georectified images are indexed for geospatial search, as with all 
 Using media references in Maps is in the [beta](/docs/foundry/platform-overview/development-life-cycle/) phase of development and may not be available on your enrollment. Functionality may change during active development.
 :::
 
-Georeferenced raster imagery can also be displayed in tiles by uploading GeoTIFF imagery in a  (`.tiff`, `.tif`) to a [media set](/docs/foundry/data-integration/media-sets/). From there, object types with a [media reference property](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) can be added to the map and only the visible portions of the imagery will be loaded as the user pans or zooms around the Map.
+Georeferenced raster imagery can also be displayed in tiles by uploading GeoTIFF imagery (`.tiff`, `.tif`) to a [media set](/docs/foundry/data-integration/media-sets/). From there, object types with a [media reference property](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) can be added to the map and only the visible portions of the imagery will be loaded as the user pans or zooms around the Map.
 
 ## Track objects
 
 Objects can have numeric [time series properties](/docs/foundry/time-series/time-series-overview/) representing an object's latitude and longitude over time, allowing users to see the path the object traveled over time as well as its location at any point in time.
 
-To configure the track for the object type, select the **Track Latitude** and **Track Longitude** properties in the **Geospatial** section of the object type's **Capabilities** tab. Both properties must be numeric time series properties representing the object's location over time. See [Time series setup](/docs/foundry/time-series/time-series-setup/) for more information on configuration time series, and [track displays](/docs/foundry/map/visualize-tracks/) for more information on the options in maps for visualizing tracks.
+To configure the track for the object type, select the **Track Latitude** and **Track Longitude** properties in the **Geospatial** section of the object type's **Capabilities** tab. Both properties must be numeric time series properties representing the object's location over time. See [Time series setup](/docs/foundry/time-series/time-series-setup/) for more information on configuring time series, and [track displays](/docs/foundry/map/visualize-tracks/) for more information on the options in maps for visualizing tracks.
 
 ![Track latitude and longitude configuration in the Ontology Manager](./images/oma-capabilities-track-lat-lon.png)
 

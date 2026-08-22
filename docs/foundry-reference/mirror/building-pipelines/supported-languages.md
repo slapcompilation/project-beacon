@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/supported-languages/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/supported-languages/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Supported languages
 
-Before getting started with your data transformation, it’s important to consider the benefits as well as the limitations of each language. This table includes a summary of the key differences between the supported languages:
+Before getting started with your data transformation, it is important to consider the benefits as well as the limitations of each language. This table includes a summary of the key differences between the supported languages:
 
 |Description|[SQL](#sql)|[Python](#python)|[Java](#java)|
 |---|---|---|---|
@@ -30,7 +30,7 @@ Python is a language with plenty of external documentation available online. You
 
 * The [`transforms` Python library](/docs/foundry/api-reference/transforms-python-library/api-overview/) is an API that exposes functionalities such as file reads and writes. File-based data transformations can be useful early on in data transformation pipelines when you want to parse and clean data.
 * There is first-class support for using external libraries such as pandas, NumPy, and other machine learning libraries.
-* You get access to the full Spark Python (PySpark) API, which includes additional features of Spark that aren’t supported in other languages.
+* You get access to the full Spark Python (PySpark) API, which includes additional features of Spark that are not supported in other languages.
 
 [Learn more about Python Transforms.](/docs/foundry/transforms-python/overview/)
 

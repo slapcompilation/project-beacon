@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-filter/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-filter/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Filter object sets
 
@@ -20,7 +20,7 @@ Select the **Show/Hide data** button to switch between the **results** view and 
 
 ## Filtering on linked properties
 
-The filter object set card also supports filtering by linked object properties. This is useful when your filter condition does not relate to a property of the object you're working with, but rather a property of an object to which it is linked.
+The filter object set card also supports filtering by linked object properties. This is useful when your filter condition does not relate to a property of the object you are working with, but rather a property of an object to which it is linked.
 
 To add a linked property filter, when adding a filter select the linked object type from the **Filter by linked objects** list and then click the linked property to add it.
 

@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-function-types/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-function-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Types reference
 
 In order to be published to the registry, a TypeScript function must have explicit type annotations on all input parameters and specify an explicit return type. Below is the full list of currently supported function registry types and their corresponding language types.
+
+:::callout{theme="neutral"}
+Using a Python function as a user-defined function (UDF) in Pipeline Builder? The scalar types below (such as `str` or `int`) are the values a UDF returns because the function runs once per row and its return value becomes a new column. You do not return a DataFrame. Review [how Python functions process data in Pipeline Builder](/docs/foundry/functions/python-functions-builder/#how-python-functions-process-data) for details.
+:::
 
 | Function registry type             | TypeScript v1 type                       | TypeScript v2 type                        | Python type                               |                                           |
 |------------------------------------|------------------------------------------|-------------------------------------------|-------------------------------------------|-------------------------------------------|
@@ -43,7 +47,7 @@ In order to be published to the registry, a TypeScript function must have explic
 | User                               | `User`                                   | `UserId`                                  | `UserId`                                  | [Example](#user)                          |
 
 :::callout{theme="neutral"}
-Although both `Integer` and `Long` correspond to the Python type `int`, any fields marked as `int` directly in your function signature will be registered with type `Integer`. Therefore, we instead recommend using either the `Integer` or `Long` types from the API to register numerical data types. Similar guidelines apply to `Float` and `Double`; if  the Python type `float` is directly in your function signature, it will be registered as `Float` by default.
+Although both `Integer` and `Long` correspond to the Python type `int`, any fields marked as `int` directly in your function signature will be registered with type `Integer`. Therefore, we instead recommend using either the `Integer` or `Long` types from the API to register numerical data types. Similar guidelines apply to `Float` and `Double`; if the Python type `float` is directly in your function signature, it will be registered as `Float` by default.
 :::
 
 ## Scalar types

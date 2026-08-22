@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/migrate-to-project-based-permissions/ · mirrored 2026-08-09 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/migrate-to-project-based-permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Migrate to project-based permissions
 

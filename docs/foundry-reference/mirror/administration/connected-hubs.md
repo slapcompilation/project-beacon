@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/connected-hubs/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/connected-hubs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Connected hubs
 
@@ -85,6 +85,27 @@ Once a store is on the whitelist and properly configured:
 
 ## Install products from a connected Apollo hub
 
-To install Foundry Products from Apollo, first make sure you have a valid connection to the corresponding hub and attach the environment ID of the [Apollo environment](../../apollo/core/environments.md) to install from. Then, contact Palantir Support to enable third-party Foundry Product installations from connected hubs.
+To install [Foundry Products](/docs/foundry/marketplace/foundry-products/) from Apollo, first make sure you have a valid connection to the corresponding hub and attach the environment ID of the [Apollo environment](../../apollo/core/environments.md) to install from.
+Then, contact Palantir Support to enable third-party Foundry Product installations from connected hubs.
 
-Once the setup is complete, installing Foundry Products onto the attached Apollo environment will result in those products being imported to remote stores visible to your enrollment. More granular permissions can be set on the [remote Marketplace stores](/docs/foundry/administration/configure-remote-marketplace-stores/) page.
+## Configure installation settings
+
+Select the **Install from hub** tab to configure the behavior of products installed from a connected Apollo environment. For each connection, you can control which resource types may be installed, which spaces products may be installed into, and which markings the installed content may reference.
+
+Attempting to install or upgrade to a product version that violates these settings will result in the Apollo plan failing.
+
+![The Install from hub tab displaying the installation settings for a connected hub.](./images/connected-hubs-install-settings.png)
+
+The following installation settings are available:
+
+| Setting | Description |
+| --- | --- |
+| **Denied resource types** | The resource types, such as Ontology object types, Automations, or Compute Modules, that may not be installed from this connection. A product that attempts to install the denied resource types will be blocked from installing. By default, all resource types are allowed. |
+| **Space restrictions** | The spaces that products may be installed into. Select **Allowlist** to permit installation only into the listed spaces, or **Denylist** to block the listed spaces and permit all others. By default, products can be installed into any space. |
+| **Classification markings** | The highest classification that installed content may reference. This setting appears only when your enrollment uses classification-based access controls (CBAC). By default, this is unmarked. |
+| **Organization markings** | The organization markings that installed content may reference. By default, no organization markings are allowed. |
+| **Mandatory markings** | The mandatory markings that installed content may reference. By default, no mandatory markings are allowed. |
+
+:::callout{theme="warning"}
+If you attempt to install a product in Apollo that references any **Organization markings** or **Mandatory markings** that do not exist on the connection, the installation will fail.
+:::

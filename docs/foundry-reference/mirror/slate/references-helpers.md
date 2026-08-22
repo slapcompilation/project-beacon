@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-helpers/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-helpers/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Handlebar helpers
 
@@ -385,7 +385,7 @@ The `not` helper performs a NOT (!) logical comparison on the supplied Boolean a
 
 #### Example
 
-* `{{not var}}` where context is \`{ var : "true" } renders to "false"
+* `{{not var}}` where context is `{ var : "true" }` renders to "false"
 
 ## Widget helpers
 
@@ -516,7 +516,7 @@ The schema helper takes a schema name and a list of whitelist names. It checks t
   ```
   "SELECT * FROM schema1.table1;"
   ```
-* Using schema with a schema name that’s not in the list of whitelist names
+* Using schema with a schema name that is not in the list of whitelist names
   ```
   "SELECT * FROM {{schema schemaName 'schema1' 'schema2'}}.table1;"
   ```
@@ -558,7 +558,7 @@ The table helper takes a table name and a list of whitelist names. It checks to 
   ```
   "SELECT * FROM table1;"
   ```
-* Using table with a table name that’s not in the list of whitelist names
+* Using table with a table name that is not in the list of whitelist names
   ```
   "SELECT * FROM {{table tableName 'table1' 'table2'}};"
   ```

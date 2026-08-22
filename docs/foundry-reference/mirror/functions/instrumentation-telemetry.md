@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/functions/instrumentation-telemetry/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/instrumentation-telemetry/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Instrumentation and telemetry in functions
 
 It is possible to emit certain types of telemetry from your functions to allow for monitoring and debugging of production workflows.
 
-To learn how to view telemetry emitted by your functions, see our [AIP observability documentation](/docs/foundry/aip-observability/overview/).
+To learn how to view telemetry emitted by your functions, see our [Ontology and AIP observability documentation](/docs/foundry/aip-observability/overview/).
 
 ## Supported telemetry types
 

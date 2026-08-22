@@ -1,9 +1,9 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/upgrade-to-use-rule-actions/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/upgrade-to-use-rule-actions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Upgrade to use rule Actions
 
 :::callout{theme="warning"}
-These steps are for legacy versions of Foundry Rules (previously known as Taurus). If you are just starting to deploy Foundry Rules, then the following steps are unnecessary and are already included as part of the [default setup](/docs/foundry/foundry-rules/deploy-foundry-rules/). Unless you've been specifically directed to this section, you likely do not need to follow these steps.
+These steps are for legacy versions of Foundry Rules (previously known as Taurus). If you are just starting to deploy Foundry Rules, then the following steps are unnecessary and are already included as part of the [default setup](/docs/foundry/foundry-rules/deploy-foundry-rules/). Unless you have been specifically directed to this section, you likely do not need to follow these steps.
 :::
 
 Previously, Foundry Rules only supported dataset [inputs](/docs/foundry/foundry-rules/rule-logic/#inputs) to rules and had no concept of a [rule Action](/docs/foundry/foundry-rules/configure-rule-actions/). While authoring rules on objects is an optional feature, we strongly recommend upgrading to use **rule Actions**, especially if you upgrade to use objects.
@@ -14,7 +14,7 @@ To enable objects and rule Actions in Foundry Rules, follow the steps below:
 
 1. **Upgrade your Foundry Rules transforms library version:** Ensure that `tau-execution:tau-execution-core` is on *at least* version `0.60.4`, in the Project level `build.gradle` file:
    * `compile "com.palantir.tau-execution:tau-execution-core:0.60.4"`
-   * If you can't find the `build.gradle` file, then check the **Show hidden files and folders** option in the **Files** sidebar under the gear icon.
+   * If you cannot find the `build.gradle` file, then check the **Show hidden files and folders** option in the **Files** sidebar under the gear icon.
 
 2. **Update the logic version:** Using edit mode in your Foundry Rules Workshop application, navigate to the **Rule Editor widget** and change the **Logic Version** to be "V1". While changing this selector has no destructive effects, it is not possible to change the version back to V0 after changing it to V1. However, there would be no benefit in returning to V0.
 

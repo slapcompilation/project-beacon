@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 ![data integration overview](./images/1-Data.svg)
 

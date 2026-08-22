@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-on-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-on-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Functions on objects
 

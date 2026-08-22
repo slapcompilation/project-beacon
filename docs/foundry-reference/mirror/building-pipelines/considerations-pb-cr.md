@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/considerations-pb-cr/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/considerations-pb-cr/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Considerations: Pipeline Builder and Code Repositories
 
@@ -37,7 +37,7 @@ The following table describes the features and support available in Pipeline Bui
 |**Build interface**	|	|	|
 |Pipeline interface	|Graph and form-based 	|Web-based integrated development environment (IDE)	|
 |Supported languages	|No code required 	|Python, SQL, Java, Mesa	|
-|Reusabilty 	|Copy and paste complete pipelines or pipeline stages.	|Reuse utility functions and libraries, and copy code between files.	|
+|Reusability 	|Copy and paste complete pipelines or pipeline stages.	|Reuse utility functions and libraries, and copy code between files.	|
 |Type-safe functions	|Strongly typed; errors are flagged immediately instead of at build time.	|Code-based; errors surfaced at build time.	|
 |Parameters	|User-defined persistent parameters that can be used across a pipeline.	|Code-defined constant can be used in a repository.	|
 |**Supported pipelines**	|	|	|

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Migrate from and disable the "Propagate view requirements" setting \[Planned deprecation]
 
@@ -102,7 +102,7 @@ No action needed. Continue to [4. Disable "Propagate view requirements" on the P
 
 #### Apply an existing Marking
 
-Add all users who have access to the sensitive datasets of a particular category in the Project (for example, the datasets containing PII) as members of the existing Marking (PII). This ensures that no one will lose to access to the Project after the migration. Be aware that once the users are added as members to the existing Marking, they may be able to see any data where this Marking is applied throughout the platform.
+Add all users who have access to the sensitive datasets of a particular category in the Project (for example, the datasets containing PII) as members of the existing Marking (PII). This ensures that no one will lose access to the Project after the migration. Be aware that once the users are added as members to the existing Marking, they may be able to see any data where this Marking is applied throughout the platform.
 
 Before applying an existing Marking, review the steps to [apply a Marking](/docs/foundry/platform-security-management/manage-markings/#apply-markings). Consider the downstream impact of applying a Marking and potentially locking out other downstream users.
 

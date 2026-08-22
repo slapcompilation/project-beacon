@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Set parameter default value
 
@@ -26,7 +26,7 @@ To achieve a similar user experience without default values, input values would 
 
 ### Object property default values
 
-To set an object property as the default value for a parameter, begin by selecting an object parameter to configure. Let's assume a more generic action type called `Change Airplane Details` where, for example, users need to know the current value of a property before making edits. This can be achieved by configuring the value of each parameter to be prefilled from the currently selected object (in our case, the `Plane` object to modify). Only object reference parameters that are placed above the parameter in the input list are available to be used as a default value.
+To set an object property as the default value for a parameter, begin by selecting an object parameter to configure. Consider a more generic action type called `Change Airplane Details` where, for example, users need to know the current value of a property before making edits. This can be achieved by configuring the value of each parameter to be prefilled from the currently selected object (in this case, the `Plane` object to modify). Only object reference parameters that are placed above the parameter in the input list are available to be used as a default value.
 
 ![Configuring a property default value](./images/default_value_object_configuration.png)
 

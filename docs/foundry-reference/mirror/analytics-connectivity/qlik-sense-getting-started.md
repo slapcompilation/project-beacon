@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/qlik-sense-getting-started/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/qlik-sense-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -25,7 +25,7 @@ Qlik Sense currently has a limitation on the maximum password length you can ent
 
 ### Loading datasets
 
-After you've created a connection, a table browser will open. You can also open this browser by selecting a previously created connection. From here, you first select the Foundry project containing the dataset(s) you want to load (referred to as a "database" here).
+After you have created a connection, a table browser will open. You can also open this browser by selecting a previously created connection. From here, you first select the Foundry project containing the dataset(s) you want to load (referred to as a "database" here).
 
 The project tables will then be listed, and you can select the ones you wish to import.
 
@@ -33,7 +33,7 @@ The project tables will then be listed, and you can select the ones you wish to 
 
 ### Writing SQL queries
 
-If you're familiar with SQL, you can write your own SQL queries from within Qlik Sense. This can be helpful for filtering and aggregating large datasets, so that only the smaller transformed data is imported into Qlik.
+If you are familiar with SQL, you can write your own SQL queries from within Qlik Sense. This can be helpful for filtering and aggregating large datasets, so that only the smaller transformed data is imported into Qlik.
 
 To do this, after creating a connection, open the data load editor and create a new script. Then write a SQL query like in the below image. Datasets can be referenced by their path or dataset RID, surrounded by double quotes.
 

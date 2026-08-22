@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/restricted-views/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/restricted-views/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Restricted views
 
@@ -30,7 +30,7 @@ Learn more about [designing granular policies](/docs/foundry/platform-security-m
 Avoid using `NOT` conditions with group, marking, or organization memberships. Using a `NOT` condition in these circumstances is a misconfiguration. The platform supports scoped tokens, which carry only a subset of a user's permissions. These tokens may lack the attribute the `NOT` condition checks against, causing the condition to pass and grant more access than intended.
 :::
 
-After you've determined the design of your restricted view policy, make any pipeline and Project changes needed to power it. With a restricted view policy and pipeline in place, you can move on to creating your restricted view.
+After you have determined the design of your restricted view policy, make any pipeline and Project changes needed to power it. With a restricted view policy and pipeline in place, you can move on to creating your restricted view.
 
 ## Create restricted views
 
@@ -102,7 +102,7 @@ The dataset from which a restricted view is created must contain a column of Mar
 * You may have more than one column of Marking IDs.
 * You may mix Markings and Organizations in the same column.
 
-For example, this dataset contains lists of Markings. The sample CSV below can be uploaded directly to Foundry. However, you will need to manually modify the inferred schema. Go to **Details > Schema** and change "type": "STRING" to "type": "ARRAY, "arraySubtype": { "type": "STRING" }.
+For example, this dataset contains lists of Markings. The sample CSV below can be uploaded directly to Foundry. However, you will need to manually modify the inferred schema. Go to **Details > Schema** and change "type": "STRING" to "type": "ARRAY", "arraySubtype": { "type": "STRING" }.
 
 |Data   |Markings  |
 |---    |---    |

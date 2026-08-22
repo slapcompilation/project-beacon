@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-ranges/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-ranges/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Time and value ranges
 

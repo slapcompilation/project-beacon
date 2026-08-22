@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-apps-files/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-apps-files/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Apps and Files
 
@@ -8,8 +8,8 @@ If you are interested in building a more sophisticated object view, consider cre
 
 Some of the widgets below are not object-aware. This means interaction with other widgets in the Object View is limited.
 \* Example 1: Using the Comments Widget is only saved within that specific Object View, and does not write back to the actual object. If these comments might be useful outside the context of the specific object, consider using Actions to capture them.
-\* Example 2: Adding files using “Linked Files” is saved in Foundry, but it’s not linked to the object. If you wish to have these files re-usable, consider using [Actions attachments](/docs/foundry/action-types/upload-attachments/).
-\* Example 3: Embedding Slate or Contour does allow you to pass parameters, but it doesn’t publish or consume filters and doesn’t allow cross-filtering with other widgets such as the Charts Widget.
+\* Example 2: Adding files using “Linked Files” is saved in Foundry, but it is not linked to the object. If you wish to have these files re-usable, consider using [Actions attachments](/docs/foundry/action-types/upload-attachments/).
+\* Example 3: Embedding Slate or Contour does allow you to pass parameters, but it does not publish or consume filters and does not allow cross-filtering with other widgets such as the Charts Widget.
 
 ## Quiver Dashboard
 
@@ -193,7 +193,7 @@ To use the Media Preview widget, you will need to configure the current object i
 
 Alternatively, the Media Preview widget can also be used to display existing media on Foundry using URLs stored in a property. Users viewing the object view will require access to both the object and the location the media is stored. To add media to your object views, follow these steps:
 
-1. **Upload media to Foundry:** Datasets can be used as a way to store a collection of arbitrary files. To create such a dataset, you can begin by uploading the files to a folder and, in the pop-up that appears, selecting **Bundle all files as a single dataset**. If you're only uploading a single file, this option will appear as **Upload to a dataset without a schema**.
+1. **Upload media to Foundry:** Datasets can be used as a way to store a collection of arbitrary files. To create such a dataset, you can begin by uploading the files to a folder and, in the pop-up that appears, selecting **Bundle all files as a single dataset**. If you are only uploading a single file, this option will appear as **Upload to a dataset without a schema**.
 
 ![upload files as dataset](./images/widgets_hu-upload-files.png)
 
@@ -260,8 +260,8 @@ This section has no customization options. You can still change the title and ot
 **Common issues and notes:**
 
 * Files uploaded through this widget are not written-back as a part of the ontology, i.e. they are not saved as a property on the current object. In order to achieve that, consider using Foundry Forms with writeback instead.
-* There’s currently no way to hide one of the two options, so it always shows both “Upload files” and “Link new file”.
-* There’s currently no way to set up a default destination for file uploads, so the user has to browse for a destination location in Foundry every time they make an upload.
+* There is currently no way to hide one of the two options, so it always shows both “Upload files” and “Link new file”.
+* There is currently no way to set up a default destination for file uploads, so the user has to browse for a destination location in Foundry every time they make an upload.
 
 ## Iframe
 
@@ -272,7 +272,7 @@ You can embed an inline frame of a Slate dashboard or other Foundry application 
 To embed an iframe, you need to configure the link to the correct Foundry address using Handlebar syntax as described below.
 
 1. **Required:** Copy the full link to the page you wish to embed, and remove all text before `/workspace/`.
-   * Report example: For `https://EXAMPLE.palantirfoundry.com/workspace/report/ri.report.main.report.ABCDEF-1234-5678` , you should keep `/workspace/report/ri.report.main.report.ABCDEF-1234-5678`.
+   * Report example: For `https://EXAMPLE.palantirfoundry.com/workspace/report/ri.report.main.report.ABCDEF-1234-5678`, you should keep `/workspace/report/ri.report.main.report.ABCDEF-1234-5678`.
    * Slate example: For `https://EXAMPLE.palantirfoundry.com/workspace/slate/documents/SLATE_DOCUMENT_NAME`, you should keep `/workspace/slate/documents/SLATE_DOCUMENT_NAME`.
 2. **Required:** Add `embedded=true` to simply show the full view. Add a prefix of `/?` if `embedded=true` is the only statement, or `&` if `embedded=true` is attached to other statements.
    * Report example: `/workspace/report/ri.report.main.report.ABCDEF-1234-5678/?embedded=true`

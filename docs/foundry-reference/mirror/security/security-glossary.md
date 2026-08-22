@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/security/security-glossary/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/security-glossary/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Security glossary
 
-Below are all the security terms you'll want to familiarize yourself with.
+Below are all the security terms you will want to familiarize yourself with.
 
 * **Access:** Indicates whether a user is able to know of a resource’s existence. If a user has access, they can receive various capabilities to use the resource via Roles. If a user does not have access, they will not know the existence of the resource.
   *See: Resource, Role*

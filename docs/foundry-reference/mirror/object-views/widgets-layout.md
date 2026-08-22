@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-layout/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-layout/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Layout
 
@@ -106,7 +106,7 @@ To use this condition type, you first select the property you want to use. Next,
 * **Is one of** – The value of the property matches one of the values that you define.
 * **Is not one of** – The value of the property *does not* match one of the values that you define.
 
-For **is one of** and **is not one of**, the values you define are translated to match the property type (if it’s integer, double, date or boolean). See below for more details on how this property comparison is done.
+For **is one of** and **is not one of**, the values you define are translated to match the property type (if it is integer, double, date or boolean). See below for more details on how this property comparison is done.
 
 ***Condition 3 – Linked Objects***
 
@@ -138,7 +138,7 @@ After completing these three steps, your Conditional Container should be set up 
 * If several conditions are added, conditions are evaluated from top to bottom - the sections of the first condition met will be rendered, and the others ignored.
 * The conditional container by property value option works on either a 1-to-1 or many-to-1 relationship, where the current object in display is on the related side (the “many”).
   * It *does not* allow conditions of many-to-many or 1-to-many where the current object is on the primary side, and it *does not* allow conditional visibility by aggregations of values in Linked objects.
-  * *Example*: looking at an aircraft object, I could add a condition dependent on what airline it belongs to (assuming it belongs to only one airline), but I can’t add a condition dependent on “does it have a linked flight object with property X?”
+  * *Example*: looking at an aircraft object, I could add a condition dependent on what airline it belongs to (assuming it belongs to only one airline), but I cannot add a condition dependent on “does it have a linked flight object with property X?”
 * This widget is an extension of the tab-level optional “Visibility” configuration, but at the widget level. However, it is not a complete equivalent:
   * “Visibility” enables you to define conditional tabs according to users profiles.
   * This widget allows you to set conditional views (1) within a single tab; (2) option of conditional visibility by applied filters (dependent on user’s interaction); (3) does not include conditional view per users profiles.
@@ -160,7 +160,7 @@ This widget enables adding rich text as a part of an Object View layout. It prov
 *Additional configurations*:
 
 * Line breaks, with 2 options:
-  * Enable line breaks - when on (default), a single line breaks in the editor works as an actual line break; when off, line break in the editor doesn’t affect the result. Using headers formats would still serve.
+  * Enable line breaks - when on (default), a single line breaks in the editor works as an actual line break; when off, line break in the editor does not affect the result. Using headers formats would still serve.
   * Convert "\n" to line breaks - shows `\n` as a line-break (requires the "Enable line breaks" to be on).
 * Enable sanitized HTML rendering - Safe HTML rendering with markdown-it. Embedding HTML from object properties are disabled; all property values are escaped for security.
 
