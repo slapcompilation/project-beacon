@@ -515,10 +515,25 @@ the page says *should* not, against a list that says Point *must* be allowed.
 PostGIS would answer them, and adopting it is a substrate decision. Recorded as
 being LESS strict rather than half-implemented.
 
+**Struct is done too (633)**, and it was the largest of them: `struct` was a
+base type with a jsonb column of any shape and no way to say what fields it has,
+against six mirrored pages. The shape question was the whole job — the obvious
+build is a `struct_types` registry properties point at, and that is wrong.
+`create-struct-type` never leaves the Property editor, so the fields belong to
+the PROPERTY. Twelve field types, enumerated, and nesting falls out of the
+enumeration rather than needing a rule of its own. "Structs must have at least
+1 field" is an `ontology_violations()` arm rather than a refusal, on the
+media-source precedent: the base type is picked at step 3 and the first field
+added at step 5.
+
+Not built and named: struct field RIDs (properties have no `rid` column at all,
+so fields would be ahead of their parent), shared-property field inheritance,
+main fields (Beta), automapping.
+
 **Still shapeless**, and each for its own reason: `attachment` (`base-types`
 gives it one sentence and names no structure), `time_series` and
-`geotemporal_series` (42 and 6 unread pages behind them), `vector`, `struct`,
-`array`, `marking`, `cipher`.
+`geotemporal_series` (42 and 6 unread pages behind them), `vector`, `array`,
+`marking`, `cipher`.
 
 **Time series had a table and it was a mirage (628/629).**
 `time_series_properties` came from 276, before the teardown. 379 kept it by

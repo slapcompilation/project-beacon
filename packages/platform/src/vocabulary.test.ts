@@ -189,4 +189,51 @@ describe.skipIf(noDb)('the property vocabulary', () => {
       expect(d).toContain('property_column_check')
     })
   })
+
+  // 633. `struct` was a base type with nothing behind it — a jsonb column of
+  // any shape and no way to say what fields it has. Foundry gives it six pages,
+  // and the fields belong to the PROPERTY, not to a named struct type.
+  describe('a struct property has fields', () => {
+    it('offers the twelve the page enumerates, all of them real base types', async () => {
+      const { f } = (await db.query(
+        `select public.struct_field_types() as f`)).rows[0] as { f: string[] }
+      expect(f).toHaveLength(12)
+      expect([...f].sort()).toEqual([
+        'boolean', 'byte', 'date', 'decimal', 'double', 'float',
+        'geopoint', 'integer', 'long', 'short', 'string', 'timestamp',
+      ])
+      // a subset of the base types, not a second vocabulary
+      const { n } = (await db.query(
+        `select count(*)::int n from unnest(public.struct_field_types()) x
+          where not (x = any (public.property_base_types()))`)).rows[0] as { n: number }
+      expect(n).toBe(0)
+      // "Structs have a depth of one and cannot be nested" — enforced by the
+      // enumeration rather than by a separate rule.
+      expect(f).not.toContain('struct')
+    })
+
+    it('the at-least-one-field MUST is a violation, not a refusal', async () => {
+      // A refusal would make the property uncreatable: the base type is chosen
+      // before the first field exists.
+      const d = (await db.query(
+        `select pg_get_functiondef('public.ontology_violations()'::regprocedure) as d`))
+        .rows[0] as { d: string }
+      expect(d.d).toContain('struct_property_problems')
+      // and it is not in the warnings list, which does not block a save
+      const w = (await db.query(
+        `select pg_get_functiondef('public.ontology_warnings()'::regprocedure) as d`))
+        .rows[0] as { d: string }
+      expect(w.d).not.toContain('struct_property_problems')
+    })
+
+    it('starts with its write policy already scoped, unlike its neighbour', async () => {
+      // 619 had to go back and split object_type_properties-style FOR ALL
+      // policies off the read path. This table was built with them split.
+      const { rows } = await db.query(
+        `select cmd from pg_policies where tablename = 'property_struct_fields'`)
+      const cmds = (rows as { cmd: string }[]).map((r) => r.cmd).sort()
+      expect(cmds).toEqual(['DELETE', 'INSERT', 'SELECT', 'UPDATE'])
+      expect(cmds).not.toContain('ALL')
+    })
+  })
 })
