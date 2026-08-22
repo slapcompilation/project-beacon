@@ -414,7 +414,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (194) ───────────────────────────────────────────────────
+// ── FUNCTIONS (197) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1093,6 +1093,27 @@ export const functionVersionString = { apiName: 'function_version_string', kind:
 >
 
 /**
+ *  A geopoint is "a string of either latitude,longitude ... or a Geohash"
+ *  (geospatial/ontology). WGS 84 bounds the pair; the geohash alphabet is
+ *  base32 without a, i, l, o.
+ */
+export const geopointValid = { apiName: 'geopoint_valid', kind: 'function' } as FunctionType<
+  { p: string },
+  boolean
+>
+
+/**
+ *  A geoshape is "a GeoJSON Geometry string" of one of six types, and must
+ *  not be a Feature, FeatureCollection or GeometryCollection
+ *  (geospatial/ontology). Winding order and self-intersection are NOT checked
+ *  — see 632.
+ */
+export const geoshapeValid = { apiName: 'geoshape_valid', kind: 'function' } as FunctionType<
+  { p: string },
+  boolean
+>
+
+/**
  *  Privileges an application role holds that no policy can restrain. TRUNCATE
  *  is the dangerous one: row-level security does not apply to it.
  */
@@ -1568,6 +1589,16 @@ export const projectRole = { apiName: 'project_role', kind: 'function' } as Func
 export const propertyBaseTypes = { apiName: 'property_base_types', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  The CHECK clause an indexed column carries for its base type, or empty. A
+ *  fact about one row that is always true, which is the first rung of the
+ *  ladder.
+ */
+export const propertyColumnCheck = { apiName: 'property_column_check', kind: 'function' } as FunctionType<
+  { p_base_type: string; p_column: string },
+  string
 >
 
 export const propertyColumnType = { apiName: 'property_column_type', kind: 'function' } as FunctionType<

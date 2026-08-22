@@ -42,7 +42,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import {
   PROPERTY_TYPES, primaryKeyEligibility, canBeTitleKey, type PropertyType,
 } from '@beacon/ontology'
-import { noDb, connect, rollback } from './harness'
+import { noDb, connect, rollback, refused } from './harness'
 
 const PAGE = new URL(
   '../../../docs/foundry-reference/mirror/object-link-types/properties-overview.md',
@@ -120,5 +120,73 @@ describe.skipIf(noDb)('the property vocabulary', () => {
       expect(fromDb[type], `database, ${type}`).toBe(published.title)
       expect(canBeTitleKey(type as PropertyType), `TypeScript, ${type}`).toBe(published.title)
     }
+  })
+
+  // 632. Every base type already had a column type; what the geo pair lacked
+  // was a SHAPE, and the column type was wrong besides — geospatial/ontology
+  // says both are strings and ours were jsonb. That section was not on disk
+  // until it was mirrored, which is why this went unnoticed.
+  describe('geopoint and geoshape carry the shape the page prints', () => {
+    const ok = async (fn: string, v: string) => Number((await db.query(
+      `select public.${fn}($1)::int n`, [v])).rows[0].n)
+
+    it('stores both as the strings the page describes, and moves nothing else', async () => {
+      for (const [t, want] of [['geopoint', 'text'], ['geoshape', 'text'],
+                               ['string', 'text'], ['struct', 'jsonb'],
+                               ['timestamp', 'timestamptz']] as const) {
+        const { c } = (await db.query(
+          `select public.property_column_type($1) as c`, [t])).rows[0] as { c: string }
+        expect(c, `${t} column type`).toBe(want)
+      }
+    })
+
+    // "a string of either latitude,longitude ... or a Geohash"
+    it('takes the two geopoint forms the page names, and nothing else', async () => {
+      expect(await ok('geopoint_valid', '57.64911,10.40744')).toBe(1)  // the page's own
+      expect(await ok('geopoint_valid', 'u4pruydqqvj')).toBe(1)        // the page's own
+      expect(await ok('geopoint_valid', '91,0')).toBe(0)               // WGS 84 bounds
+      expect(await ok('geopoint_valid', '0,181')).toBe(0)
+      expect(await ok('geopoint_valid', 'u4pruydqqvi')).toBe(0)        // no i in base32
+      expect(await ok('geopoint_valid', '{"lat":1}')).toBe(0)
+    })
+
+    // Six types must be allowed, three must not — and Point is on the allowed
+    // list while "should not" be used, so it is legal and discouraged.
+    it('allows the six geoshape geometries and refuses the three collections', async () => {
+      expect(await ok('geoshape_valid',
+        '{ "type": "LineString", "coordinates": [ [100.0, 0.0], [101.0, 1.0] ] }')).toBe(1)
+      expect(await ok('geoshape_valid', '{"type":"Point","coordinates":[1,2]}')).toBe(1)
+      for (const bad of ['{"type":"Feature","geometry":{}}',
+                         '{"type":"FeatureCollection","features":[]}',
+                         '{"type":"GeometryCollection","geometries":[]}',
+                         'not json']) {
+        expect(await ok('geoshape_valid', bad), bad).toBe(0)
+      }
+    })
+
+    // The clause is only worth anything if it is SQL that refuses, so build a
+    // table out of it and make it refuse.
+    it('emits a CHECK that a real table enforces', async () => {
+      const { c } = (await db.query(
+        `select public.property_column_check('geopoint','g') as c`)).rows[0] as { c: string }
+      expect(c).toContain('geopoint_valid')
+      await db.query(`create temp table geo632 (g text${c})`)
+      await db.query(`insert into geo632 values ('57.64911,10.40744')`)
+      // A deliberate failure inside a shared transaction needs a savepoint, or
+      // it aborts every test after it.
+      expect(await refused(db, () => db.query(
+        `insert into geo632 values ('{"nonsense":true}')`))).not.toBeNull()
+      await db.query(`drop table geo632`)
+      // and a base type with no published shape emits nothing
+      expect((await db.query(
+        `select public.property_column_check('string','x') as c`)).rows[0]).toEqual({ c: '' })
+    })
+
+    it('is reached by the indexer, not just defined', async () => {
+      const { d } = (await db.query(
+        `select pg_get_functiondef('public.index_object_type(uuid,uuid)'::regprocedure) as d`))
+        .rows[0] as { d: string }
+      expect(d).toContain('property_column_check')
+    })
   })
 })

@@ -494,8 +494,31 @@ and could bite another pair of functions.
 `@surface-orphan-ok`: a maplibre map that plots any object with a geopoint
 property, kept deliberately ahead of its caller.
 
-**Property base types beyond the 22.** Geoshape, Attachment, Time series and the
-rest each wait for something that stores one.
+**Property base type SHAPES — the entry that stood here was wrong twice.** It
+said Geoshape, Attachment and Time series were "beyond the 22" and each waited
+"for something that stores one". Checked: `property_base_types()` returns 22 and
+all three are IN it, and `property_column_type()` returns a SQL type for every
+one, so nothing was waiting. What they lacked was a shape — of the eleven
+jsonb-backed types only `media_reference` had a validator (582).
+
+**Geopoint and Geoshape are done (632)**, and doing them found a storage bug:
+`geospatial/ontology` says a geopoint's contents are "a string of either
+latitude,longitude ... or a Geohash" and a geoshape is "a GeoJSON Geometry
+string". Ours mapped both to `jsonb`. Corrected to `text`, free because zero
+properties used either and `property_column_type` has exactly one reader.
+
+The validators sit on the first rung of the ladder — a CHECK the indexer emits
+onto the generated column — and the must/should split is honoured: the three
+collections are refused, and a `Point` geoshape is legal-but-discouraged because
+the page says *should* not, against a list that says Point *must* be allowed.
+**Winding order and self-intersection are NOT checked**: they are real geometry,
+PostGIS would answer them, and adopting it is a substrate decision. Recorded as
+being LESS strict rather than half-implemented.
+
+**Still shapeless**, and each for its own reason: `attachment` (`base-types`
+gives it one sentence and names no structure), `time_series` and
+`geotemporal_series` (42 and 6 unread pages behind them), `vector`, `struct`,
+`array`, `marking`, `cipher`.
 
 **Time series had a table and it was a mirage (628/629).**
 `time_series_properties` came from 276, before the teardown. 379 kept it by
