@@ -10,7 +10,9 @@
 // that enumerates it — the shape action_rule_kinds() set.
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { executeAutomationNow } from '@beacon/platform'
 import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
 import type { Condition, ConditionKind } from '@/features/automate/api'
 
 export interface ConditionCard {
@@ -173,3 +175,22 @@ export const conditionOf = (kind: string, s: ScheduleDraft, cron: string | null,
     ? { type: 'time', cron: cron ?? scheduleToCron(s), timezone }
     : { type: kind as ConditionKind, object_set_id: objectSetId ?? undefined,
         schedule: { cron: cron ?? scheduleToCron(s), timezone } }
+
+/** "You can manually run automations on existing object sets. This is useful
+ *  for backfilling data or testing automations before a wider release."
+ *
+ *  It QUEUES: the effects are executed by the runner on the next tick, as the
+ *  owner, and `requested_by` records who asked. Allowed while paused, refused
+ *  when expired, and refused to anyone below editor. */
+export function useExecuteNow() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) =>
+      await client(executeAutomationNow).applyAction({ p_automation: id }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['automation-events'] })
+      toast.success('Queued — the runner picks it up on the next tick')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}

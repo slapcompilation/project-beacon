@@ -162,6 +162,10 @@ export interface AutomationEvent {
   event_type: AutomationEventType
   occurred_at: string
   detail: string | null
+  /** NULL while the event is still waiting in the execution queue (625). */
+  executed_at: string | null
+  /** Who pressed Execute. NULL is the scheduler. */
+  requested_by: string | null
 }
 
 /** The label Foundry prints, which is not the token we store. */
@@ -180,7 +184,7 @@ export function useAutomationEvents() {
     queryKey: ['automation-events'],
     queryFn: async (): Promise<AutomationEvent[]> => {
       const { data, error } = await supabase.from('automation_events')
-        .select('id, automation_id, event_type, occurred_at, detail')
+        .select('id, automation_id, event_type, occurred_at, detail, executed_at, requested_by')
         .order('occurred_at', { ascending: false }).limit(200)
       if (error) throw new Error(error.message)
       return data as AutomationEvent[]
