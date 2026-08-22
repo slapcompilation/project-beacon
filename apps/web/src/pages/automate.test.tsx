@@ -41,7 +41,14 @@ const db = vi.hoisted(() => {
     automation_runs: [
       { id: 'r1', automation_id: 'a3', effect_id: 'e1', outcome: 'failed',
         error: 'Actions:ObjectVersionChanged', ran_at: '2026-08-20T10:00:00Z',
-        attempt: 1, next_attempt_at: null },
+        attempt: 1, next_attempt_at: null, event_id: 'ev1' },
+    ],
+    // 622: the event is the firing, the run is its effect half.
+    automation_events: [
+      { id: 'ev1', automation_id: 'a3', event_type: 'automation_triggered',
+        occurred_at: '2026-08-20T10:00:00Z', detail: null },
+      { id: 'ev2', automation_id: 'a3', event_type: 'evaluation_failed',
+        occurred_at: '2026-08-20T11:00:00Z', detail: 'Ontology:ObjectSetNotFound' },
     ],
   }
   rows.action_types = [
@@ -179,11 +186,21 @@ describe('Automate', () => {
     expect(screen.queryByText('2.')).toBeNull()
   })
 
-  it('says the History tab shows runs, not the event log', async () => {
+  // Until 622 this test asserted the opposite — that the tab SAYS the event log
+  // is not built. The engine now writes one, so the surface reads it; an
+  // engine nothing reaches is this repository's dominant defect.
+  it('shows the event log above the effect runs it explains', async () => {
     const user = userEvent.setup()
     renderAt('/automate/a3')
     await user.click(await screen.findByRole('button', { name: /History/ }))
-    expect(screen.getByText(/The event log .* is not\s+built/s)).toBeDefined()
+    expect(screen.getByText('Event log')).toBeDefined()
+    // Foundry's label, not our stored token.
+    expect(screen.getByText('Automation triggered')).toBeDefined()
+    expect(screen.getByText('Evaluation failed')).toBeDefined()
+    // the failure detail is what "View failure details in the History tab" means
+    expect(screen.getByText('Ontology:ObjectSetNotFound')).toBeDefined()
+    // and the effect half is still there, under its own heading
+    expect(screen.getByText('Effect runs')).toBeDefined()
     expect(screen.getByText('failed')).toBeDefined()
   })
 

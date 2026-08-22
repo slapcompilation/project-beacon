@@ -27,7 +27,11 @@ const ENTRIES = ['run_schedules', 'drain_waiting_jobs', 'run_automations', 'run_
 const HELPERS = ['schedule_candidates', 'record_schedule_state', 'record_schedule_run',
   'waiting_job_candidates', 'fail_build_job', 'automation_candidates',
   'automation_effect_rows', 'record_automation_run', 'settle_automation_run',
-  'record_automation_state', 'retry_candidates']
+  'record_automation_state', 'retry_candidates',
+  // 622's new ledger writer. It shipped reachable by `authenticated` and
+  // nothing failed, because it was not on this list — the more dangerous of
+  // the two holes 623 closed. A ledger writer belongs here the day it exists.
+  'record_automation_event']
 
 describe.skipIf(noDb)('the scheduled path and RLS', () => {
   let db: pg.Client

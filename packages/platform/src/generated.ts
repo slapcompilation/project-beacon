@@ -404,7 +404,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (192) ───────────────────────────────────────────────────
+// ── FUNCTIONS (193) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -664,6 +664,17 @@ export const canManagePortfolio = { apiName: 'can_manage_portfolio', kind: 'func
 
 export const canReadActionType = { apiName: 'can_read_action_type', kind: 'function' } as FunctionType<
   { p_action: string },
+  boolean
+>
+
+/**
+ *  The scope rule from automate/history-visibility-and-scope: the owner
+ *  always, and any project viewer when the automation is project-scoped.
+ *  Called by both the runs policy and the events policy so the rule has one
+ *  statement.
+ */
+export const canReadAutomationHistory = { apiName: 'can_read_automation_history', kind: 'function' } as FunctionType<
+  { p_automation: string },
   boolean
 >
 

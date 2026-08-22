@@ -291,6 +291,103 @@ describe.skipIf(noDb)('automations', () => {
     expect(outcome).not.toBe('awaiting_retry')
   })
 
+  // 622. An event is one FIRING; the runs are its effect half. The vocabulary
+  // is history's Event table, snake-cased, minus the three nothing here can
+  // produce (Automation recovered needs a threshold condition; Subscribed and
+  // Unsubscribed need a subscriber).
+  //
+  // The assertion is deliberately an ENUMERATION rather than a spot check: a
+  // CHECK value with no writer is the `skipped` situation in reverse, and the
+  // only way to know is to make each one happen through its real path.
+  it('produces every event type it admits, through the path that produces it', async () => {
+    const a = (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition)
+       values ($1,'evented',$2,'{"type":"time","cron":"0 4 * * *"}'::jsonb) returning id`,
+      [f.projectId, owner])).id
+    await db.query(
+      `insert into public.automation_effects (automation_id, position, kind, action_type_id)
+       values ($1, 0, 'action', $2)`, [a, action])
+
+    // four metadata events, through the trigger
+    for (const sql of [
+      `update public.automations set paused = true where id = $1`,
+      `update public.automations set paused = false where id = $1`,
+      `update public.automations set muted = true where id = $1`,
+      `update public.automations set muted = false where id = $1`,
+      `update public.automations set condition = '{"type":"time","cron":"0 6 * * *"}'::jsonb where id = $1`,
+    ]) await db.query(sql, [a])
+
+    // a firing, and then a failure, through the runner
+    await db.query(`select public.run_automations(timestamptz '2026-08-22 06:00+00')`)
+    await db.query(
+      `update public.automations set condition = jsonb_build_object(
+         'type','objects_added','object_set_id',gen_random_uuid(),
+         'schedule', jsonb_build_object('cron','0 7 * * *','timezone','UTC'))
+        where id = $1`, [a])
+    await db.query(`select public.run_automations(timestamptz '2026-08-22 07:00+00')`)
+
+    const { rows } = await db.query(
+      `select distinct event_type from public.automation_events
+        where automation_id = $1 order by 1`, [a])
+    expect((rows as { event_type: string }[]).map((r) => r.event_type)).toEqual([
+      'automation_triggered', 'condition_edited', 'evaluation_failed',
+      'muted', 'paused', 'resumed', 'unmuted',
+    ])
+
+    // the effect half hangs off the firing
+    expect(await count(
+      `select count(*) n from public.automation_runs r
+         join public.automation_events e on e.id = r.event_id
+        where e.automation_id = $1 and e.event_type = 'automation_triggered'`, [a]))
+      .toBeGreaterThan(0)
+  })
+
+  // The defect 622's probe turned up, which is the reason it touched the
+  // snapshot at all: run_automations caught automation_fires but then called
+  // object_set_keys AGAIN, unwrapped, to remember membership. An object set the
+  // owner cannot read raised there and ended the whole pass — one broken
+  // automation taking every other one down with it, and nothing recording why.
+  it('one unreadable object set does not end the pass for the others', async () => {
+    const broken = (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition)
+       values ($1,'broken',$2, jsonb_build_object(
+         'type','objects_added','object_set_id',gen_random_uuid(),
+         'schedule', jsonb_build_object('cron','0 8 * * *','timezone','UTC')))
+       returning id`, [f.projectId, owner])).id
+    const ok = (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition)
+       values ($1,'healthy',$2,'{"type":"time","cron":"0 8 * * *"}'::jsonb) returning id`,
+      [f.projectId, owner])).id
+    await db.query(
+      `insert into public.automation_effects (automation_id, position, kind, action_type_id)
+       values ($1, 0, 'action', $2)`, [ok, action])
+
+    // Does not throw — that is the regression.
+    await db.query(`select public.run_automations(timestamptz '2026-08-22 08:00+00')`)
+
+    // the healthy one still fired, and the broken one recorded why it did not
+    expect(await count(
+      `select count(*) n from public.automation_events
+        where automation_id = $1 and event_type = 'automation_triggered'`, [ok]))
+      .toBeGreaterThan(0)
+    expect(await count(
+      `select count(*) n from public.automation_events
+        where automation_id = $1 and event_type = 'evaluation_failed'`, [broken]))
+      .toBeGreaterThan(0)
+  })
+
+  // Composed, not restated: both history policies call one function, so the
+  // scope rule from history-visibility-and-scope has a single statement.
+  it('run and event history share one visibility predicate', async () => {
+    const { rows } = await db.query(
+      `select policyname, qual from pg_policies
+        where tablename in ('automation_runs','automation_events')
+          and policyname like '%history follows the scope%' order by 1`)
+    const quals = (rows as { qual: string }[]).map((r) => r.qual)
+    expect(quals).toHaveLength(2)
+    for (const q of quals) expect(q).toContain('can_read_automation_history')
+  })
+
   it('withholds a fallback only when a retry is actually due', async () => {
     // The rule is a disjunction — "failed non-retryably, OR the maximum number
     // of retries has been reached" — so with no retry config the maximum is

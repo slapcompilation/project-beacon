@@ -146,6 +146,45 @@ export function useAutomations() {
 /** Every run of every visible automation, newest first. One query rather than
  *  one per row: the list needs only the latest per automation, and the History
  *  tab needs the rest. */
+/** Foundry's Event log. `history` enumerates ten types; we admit the seven
+ *  this engine can actually cause (622) — the three omitted need a threshold
+ *  condition or a subscriber, neither of which exists here. */
+export type AutomationEventType =
+  | 'automation_triggered' | 'evaluation_failed' | 'condition_edited'
+  | 'paused' | 'resumed' | 'muted' | 'unmuted'
+
+export interface AutomationEvent {
+  id: string
+  automation_id: string
+  event_type: AutomationEventType
+  occurred_at: string
+  detail: string | null
+}
+
+/** The label Foundry prints, which is not the token we store. */
+export const EVENT_LABEL: Record<AutomationEventType, string> = {
+  automation_triggered: 'Automation triggered',
+  evaluation_failed: 'Evaluation failed',
+  condition_edited: 'Condition edited',
+  paused: 'Paused',
+  resumed: 'Resumed',
+  muted: 'Muted',
+  unmuted: 'Unmuted',
+}
+
+export function useAutomationEvents() {
+  return useQuery({
+    queryKey: ['automation-events'],
+    queryFn: async (): Promise<AutomationEvent[]> => {
+      const { data, error } = await supabase.from('automation_events')
+        .select('id, automation_id, event_type, occurred_at, detail')
+        .order('occurred_at', { ascending: false }).limit(200)
+      if (error) throw new Error(error.message)
+      return data as AutomationEvent[]
+    },
+  })
+}
+
 export function useAutomationRuns() {
   return useQuery({
     queryKey: ['automation-runs'],

@@ -15,9 +15,10 @@ import {
 import type { IconName } from '@blueprintjs/icons'
 import { NewAutomationDialog } from '@/features/automate/NewAutomationDialog'
 import {
-  CONDITION_META, STATUSES, STATUS_META, conditionSummary, latestByAutomation,
-  statusOf, statusTag, useAutomationRuns, useAutomations, useEffectKinds,
-  type Automation, type AutomationRun, type AutomationStatus,
+  CONDITION_META, EVENT_LABEL, STATUSES, STATUS_META, conditionSummary,
+  latestByAutomation, statusOf, statusTag, useAutomationEvents, useAutomationRuns,
+  useAutomations, useEffectKinds,
+  type Automation, type AutomationEvent, type AutomationRun, type AutomationStatus,
 } from '@/features/automate/api'
 
 const when = (iso: string | null) =>
@@ -257,12 +258,14 @@ function AutomationDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const { data: automations = [] } = useAutomations()
   const { data: runs = [] } = useAutomationRuns()
+  const { data: events = [] } = useAutomationEvents()
   const { data: kinds = [] } = useEffectKinds()
   const [pane, setPane] = useState<'overview' | 'history'>('overview')
 
   const a = automations.find((x) => x.id === id)
   if (!a) return <div className="p-8"><NonIdealState icon="flash" title="No such automation" /></div>
   const mine = runs.filter((r) => r.automation_id === a.id)
+  const myEvents = events.filter((e) => e.automation_id === a.id)
   const cm = CONDITION_META[a.condition.type]
 
   return (
@@ -371,29 +374,63 @@ function AutomationDetail({ id }: { id: string }) {
             </section>
           </>
         ) : (
-          <section className="space-y-2">
-            <h3 className="text-sm font-semibold">History</h3>
-            {/* Foundry's Event log holds eleven event types; ours records an
-                outcome per effect per run, which is the effect half of an
-                event. The tab says what it is rather than borrowing the name. */}
-            <p className="text-xs text-muted-foreground">
-              Effect runs. The event log — condition evaluations, edits, pauses and mutes — is not
-              built; these are the effects each firing executed.
-            </p>
-            <Card compact className="!p-0">
-              {mine.length === 0 ? (
-                <p className="text-xs text-muted-foreground p-3">Nothing has run yet.</p>
-              ) : (
-                <HTMLTable compact className="w-full text-xs">
-                  <thead><tr><th>Outcome</th><th>Time</th><th>Attempt</th><th>Errors</th></tr></thead>
-                  <tbody>{mine.map((r) => <RunRow key={r.id} run={r} />)}</tbody>
-                </HTMLTable>
-              )}
-            </Card>
+          <section className="space-y-4">
+            {/* Two halves of one thing, in the order the page describes them:
+                "Select an event to view the full execution timeline". The event
+                is the firing; the runs are its effects. 622 built the first. */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">Event log</h3>
+              <p className="text-xs text-muted-foreground">
+                One row per firing, plus the metadata changes. Three of Foundry's ten types are
+                absent because nothing here produces them — they need a threshold condition or a
+                subscriber.
+              </p>
+              <Card compact className="!p-0">
+                {myEvents.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3">No events yet.</p>
+                ) : (
+                  <HTMLTable compact className="w-full text-xs">
+                    <thead><tr><th>Event</th><th>Time</th><th>Detail</th></tr></thead>
+                    <tbody>{myEvents.map((e) => <EventRow key={e.id} event={e} />)}</tbody>
+                  </HTMLTable>
+                )}
+              </Card>
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold">Effect runs</h3>
+              <p className="text-xs text-muted-foreground">What each firing executed.</p>
+              <Card compact className="!p-0">
+                {mine.length === 0 ? (
+                  <p className="text-xs text-muted-foreground p-3">Nothing has run yet.</p>
+                ) : (
+                  <HTMLTable compact className="w-full text-xs">
+                    <thead><tr><th>Outcome</th><th>Time</th><th>Attempt</th><th>Errors</th></tr></thead>
+                    <tbody>{mine.map((r) => <RunRow key={r.id} run={r} />)}</tbody>
+                  </HTMLTable>
+                )}
+              </Card>
+            </div>
           </section>
         )}
       </div>
     </div>
+  )
+}
+
+/** The event's own row. `detail` carries the failure message, which is where
+ *  "View failure details in the automation's History tab" lands. */
+function EventRow({ event }: { event: AutomationEvent }) {
+  return (
+    <tr>
+      <td>
+        <Tag minimal intent={event.event_type === 'evaluation_failed' ? Intent.DANGER : Intent.NONE}>
+          {EVENT_LABEL[event.event_type]}
+        </Tag>
+      </td>
+      <td className="text-muted-foreground">{new Date(event.occurred_at).toLocaleString()}</td>
+      <td className="text-muted-foreground">{event.detail ?? '—'}</td>
+    </tr>
   )
 }
 
