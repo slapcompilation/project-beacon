@@ -28,6 +28,7 @@ import {
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
+import { StructFieldsCard } from '@/features/objectTypes/StructFieldsCard'
 import { useEditsConfig } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
 import { DependentsTab } from '@/features/objectTypes/DependentsTab'
@@ -466,6 +467,11 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
                 in readings/object-type-overview.md Decision 7. */}
             <MetadataCard type={type} ontologyName={ontology?.label ?? 'Ontology'}
               status={<StatusControl type={type} />} />
+            {/* Foundry edits struct fields inside the Property editor; ours is
+                a card because the Properties step is draft-and-save and these
+                rows are written immediately (633). Absent when the type has no
+                struct property. */}
+            <StructFieldsCard properties={type.properties} />
             {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
             <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
           </div>
