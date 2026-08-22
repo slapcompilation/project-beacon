@@ -469,6 +469,101 @@ describe.skipIf(noDb)('automations', () => {
     })
   })
 
+  // 625. A manual run is an EVENT the queue drains, not a second writer of the
+  // ledger — which is what 620 tried and could not do without undoing 553.
+  describe('manual execution', () => {
+    const mk = async (paused = false) => {
+      const a = (await one(
+        `insert into public.automations
+           (project_id, display_name, owner_id, condition, paused)
+         values ($1,'manual',$2,'{"type":"time","cron":"0 3 * * *"}'::jsonb,$3)
+         returning id`, [f.projectId, owner, paused])).id
+      await db.query(
+        `insert into public.automation_effects (automation_id, position, kind, action_type_id)
+         values ($1, 0, 'action', $2)`, [a, action])
+      return a
+    }
+
+    it('queues rather than executing, so the ledger keeps one writer', async () => {
+      const a = await mk()
+      const ev = (await one(`select public.execute_automation_now($1) as id`, [a])).id
+      // Queued: no effect has run yet.
+      expect(await count(
+        `select count(*) n from public.automation_events
+          where id = $1 and executed_at is null and requested_by is not null`, [ev])).toBe(1)
+      expect(await count(
+        `select count(*) n from public.automation_runs where event_id = $1`, [ev])).toBe(0)
+    })
+
+    it('runs while PAUSED, which is the state the page names by hand', async () => {
+      const a = await mk(true)
+      const ev = (await one(`select public.execute_automation_now($1) as id`, [a])).id
+      await db.query(`select public.run_automations(timestamptz '2026-08-22 10:00+00')`)
+      expect(await count(
+        `select count(*) n from public.automation_events
+          where id = $1 and executed_at is not null`, [ev])).toBe(1)
+      expect(await count(
+        `select count(*) n from public.automation_runs where event_id = $1`, [ev]))
+        .toBeGreaterThan(0)
+    })
+
+    it('is refused on an EXPIRED automation, which is the other half', async () => {
+      const a = await mk()
+      await db.query(
+        `update public.automations set expires_at = now() - interval '1 day' where id = $1`, [a])
+      expect(await refused(db, () => db.query(
+        `select public.execute_automation_now($1)`, [a])))
+        .toContain('Automate:AutomationExpired')
+    })
+
+    // "Max time an automation event can wait in execution queue | 45 mins |
+    // The event is terminated and none of the effects execute."
+    it('terminates an event that waited past 45 minutes, executing nothing', async () => {
+      const a = await mk()
+      const ev = (await one(
+        `insert into public.automation_events
+           (automation_id, event_type, requested_by, occurred_at)
+         values ($1,'automation_triggered',$2, timestamptz '2026-08-22 09:00+00')
+         returning id`, [a, owner])).id
+      await db.query(`select public.run_automations(timestamptz '2026-08-22 09:46+00')`)
+      expect(await count(
+        `select count(*) n from public.automation_runs where event_id = $1`, [ev])).toBe(0)
+      const { detail } = await one(
+        `select detail from public.automation_events where id = $1`, [ev])
+      expect(detail).toContain('Terminated')
+    })
+
+    // 627. 625 defined the queue as "any unexecuted event", so 622's metadata
+    // trigger fed it: PAUSING an automation executed its effects. Measured at
+    // one effect run from a single `set paused = true`. The queue holds manual
+    // runs, and the two writers now say which is which.
+    it('pausing, muting or editing a condition executes nothing', async () => {
+      const a = await mk()
+      await db.query(`update public.automations set paused = true where id = $1`, [a])
+      await db.query(`update public.automations set muted = true where id = $1`, [a])
+      await db.query(
+        `update public.automations set condition = '{"type":"time","cron":"0 9 * * *"}'::jsonb
+          where id = $1`, [a])
+      await db.query(`select public.run_automations(clock_timestamp())`)
+      expect(await count(
+        `select count(*) n from public.automation_runs where automation_id = $1`, [a])).toBe(0)
+      // and none of them is left looking like pending work
+      expect(await count(
+        `select count(*) n from public.automation_events
+          where automation_id = $1 and executed_at is null`, [a])).toBe(0)
+    })
+
+    // The scheduled path opens its own events and executes them on the same
+    // tick, so it must not leave them sitting in the queue it just joined.
+    it('leaves nothing of its own queued', async () => {
+      const a = await mk()
+      await db.query(`select public.run_automations(timestamptz '2026-08-22 03:00+00')`)
+      expect(await count(
+        `select count(*) n from public.automation_events
+          where automation_id = $1 and executed_at is null`, [a])).toBe(0)
+    })
+  })
+
   it('withholds a fallback only when a retry is actually due', async () => {
     // The rule is a disjunction — "failed non-retryably, OR the maximum number
     // of retries has been reached" — so with no retry config the maximum is

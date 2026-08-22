@@ -239,12 +239,23 @@ describe('Automate', () => {
     expect(screen.getByText(/fires at most once an hour/)).toBeDefined()
   })
 
-  it('draws Execute and Telemetry disabled rather than hiding them', async () => {
+  // Execute went live in 625. Telemetry is still drawn-but-disabled, because
+  // hiding a rail entry would misdraw the application.
+  it('draws Telemetry disabled rather than hiding it, and Execute is live', async () => {
     renderAt('/automate/a1')
     const railOff = (name: RegExp) =>
       screen.getByRole('button', { name }).hasAttribute('disabled')
     expect(await screen.findByRole('button', { name: /Overview/ })).toBeDefined()
-    expect(railOff(/Execute/)).toBe(true)
+    expect(railOff(/Execute/)).toBe(false)
     expect(railOff(/Telemetry/)).toBe(true)
+  })
+
+  it('the Execute pane queues a run and says what queuing means', async () => {
+    const user = userEvent.setup()
+    renderAt('/automate/a1')
+    await user.click(await screen.findByRole('button', { name: /Execute/ }))
+    expect(screen.getByRole('button', { name: /Run now/ })).toBeDefined()
+    // The 45-minute ceiling is stated where it applies, not buried in a header.
+    expect(screen.getByText(/45 minutes/)).toBeDefined()
   })
 })

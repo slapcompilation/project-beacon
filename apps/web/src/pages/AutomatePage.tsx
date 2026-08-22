@@ -10,10 +10,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Card, Checkbox, HTMLTable, Icon, InputGroup, Intent, NonIdealState, Tag,
+  Button, Callout, Card, Checkbox, HTMLTable, Icon, InputGroup, Intent, NonIdealState, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { NewAutomationDialog } from '@/features/automate/NewAutomationDialog'
+import { useExecuteNow } from '@/features/automate/authoring'
 import {
   CONDITION_META, EVENT_LABEL, STATUSES, STATUS_META, conditionSummary,
   latestByAutomation, statusOf, statusTag, useAutomationEvents, useAutomationRuns,
@@ -241,15 +242,14 @@ function AutomationsTab() {
   )
 }
 
-/** The rail both screenshots draw: Overview, History, Execute, Telemetry. The
- *  last two are disabled — because hiding them would misdraw the application.
- *  Execute's reason changed in 620: it is not the missing settings, it is that
- *  the run ledger has a single writer and a manual run belongs in the queue. */
+/** The rail both screenshots draw: Overview, History, Execute, Telemetry.
+ *  Telemetry stays disabled — hiding it would misdraw the application. Execute
+ *  went live in 625, once a manual run became an event the queue drains rather
+ *  than a second writer of the ledger. */
 const RAIL = [
   { id: 'overview', label: 'Overview', icon: 'desktop', on: true },
   { id: 'history', label: 'History', icon: 'history', on: true },
-  { id: 'execute', label: 'Execute', icon: 'flash', on: false,
-    why: 'A manual run is an event the execution queue drains, and the run ledger has one writer. Waiting on the event log, not on this button.' },
+  { id: 'execute', label: 'Execute', icon: 'flash', on: true },
   { id: 'telemetry', label: 'Telemetry', icon: 'timeline-bar-chart', on: false,
     why: 'No execution trace or flame chart exists here.' },
 ] as const
@@ -260,12 +260,15 @@ function AutomationDetail({ id }: { id: string }) {
   const { data: runs = [] } = useAutomationRuns()
   const { data: events = [] } = useAutomationEvents()
   const { data: kinds = [] } = useEffectKinds()
-  const [pane, setPane] = useState<'overview' | 'history'>('overview')
+  const [pane, setPane] = useState<'overview' | 'history' | 'execute'>('overview')
+  const run = useExecuteNow()
 
   const a = automations.find((x) => x.id === id)
   if (!a) return <div className="p-8"><NonIdealState icon="flash" title="No such automation" /></div>
   const mine = runs.filter((r) => r.automation_id === a.id)
   const myEvents = events.filter((e) => e.automation_id === a.id)
+  const queued = myEvents.filter((e) => e.executed_at === null)
+  const expired = a.expires_at !== null && new Date(a.expires_at).getTime() <= Date.now()
   const cm = CONDITION_META[a.condition.type]
 
   return (
@@ -285,7 +288,9 @@ function AutomationDetail({ id }: { id: string }) {
             <button key={r.id} type="button" disabled={!r.on}
               title={'why' in r ? r.why : undefined}
               className={r.id === pane ? 'oma-rail-item is-active' : 'oma-rail-item'}
-              onClick={() => { if (r.id === 'overview' || r.id === 'history') setPane(r.id) }}>
+              onClick={() => {
+                if (r.id === 'overview' || r.id === 'history' || r.id === 'execute') setPane(r.id)
+              }}>
               <Icon icon={r.icon as IconName} size={13} />
               <span>{r.label}</span>
             </button>
@@ -294,7 +299,41 @@ function AutomationDetail({ id }: { id: string }) {
       </aside>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-4 max-w-3xl">
-        {pane === 'overview' ? (
+        {pane === 'execute' ? (
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Execute</h3>
+            <p className="text-xs text-muted-foreground">
+              Runs this automation's effects without waiting for its condition — for backfilling,
+              or for testing before a wider release. It queues an event; the runner executes it on
+              the next tick, as the owner.
+            </p>
+            {expired ? (
+              <Callout intent={Intent.WARNING} className="!text-xs">
+                Expired automations block all execution, including manual runs. Clear or extend the
+                expiration date first.
+              </Callout>
+            ) : a.paused && (
+              <Callout intent={Intent.PRIMARY} className="!text-xs">
+                This automation is paused. A manual run still executes — scheduled triggers stay
+                disabled.
+              </Callout>
+            )}
+            <Button intent={Intent.PRIMARY} icon="flash" disabled={expired || run.isPending}
+              loading={run.isPending} onClick={() => { run.mutate(a.id) }}>
+              Run now
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              {queued.length === 0
+                ? 'Nothing waiting in the queue. '
+                : `${queued.length} event(s) waiting. `}
+              An event that waits longer than 45 minutes is terminated, and none of its effects
+              execute.
+            </p>
+            {/* Batch size, parallelism and an input object set are settings on
+                this page in Foundry. All three need effect inputs, which we
+                have none of, so they are absent rather than faked. */}
+          </section>
+        ) : pane === 'overview' ? (
           <>
             <section className="space-y-2">
               <h3 className="text-sm font-semibold">Condition</h3>

@@ -2030,3 +2030,61 @@ transaction.
 **Auto-PAUSE is still not built and still for the right reason.** Its trigger is
 "excessive activity" with no threshold, metric or window anywhere — the contrast
 with this page is what makes the difference visible.
+
+
+## Manual execution, BUILT — 625/626/627
+
+The `Execute` rail entry has been drawn-and-disabled since #745 and named as
+blocked in three places since 620. It is live.
+
+**The shape is the pages', and it dissolves the problem 620 hit.** An inline
+manual run needed either the ledger's grants widened to `authenticated` or a
+SECURITY DEFINER entry point that would also elevate `apply_action`. Both undo
+553. But a manual run is an EVENT a queue drains — "Max time an automation event
+can wait in execution queue"; events "enter the queue in trigger order and begin
+executing in trigger order" — so `execute_automation_now` ENQUEUES and
+`beacon_runner` executes. The entry point can be SECURITY DEFINER safely
+*because it contains no `apply_action`*: it writes one row and returns.
+
+**I changed my mind about the identity.** 620's header argued for running as the
+caller. With a queue that reading collapses — the drain happens on a later tick,
+with no caller present to be — so the general rule applies, the effects execute
+as the owner, and `requested_by` carries the attribution.
+
+Built alongside: the **45-minute** queue ceiling ("The event is terminated and
+none of the effects execute"). The neighbouring 4-hour run ceiling is not, and
+for a reason rather than by omission: our effects run inside one transaction on
+one tick, so there is no long execution to time out.
+
+**Named rather than glossed:** "configured effects ... will be triggered
+immediately" — ours waits for the next minute-hand tick, up to sixty seconds.
+Well inside the ceiling the same section publishes, and closing it would mean a
+second execution path beside the runner, which is what this design avoids.
+
+### 627, and it is the worst defect this phase produced
+
+625 defined the queue as *any* event with no `executed_at`. 622's AFTER UPDATE
+trigger records `paused`, `muted` and `condition_edited` through
+`record_automation_event`, which does not set one. So **pausing an automation
+executed its effects.** Measured: one effect run from a single
+`UPDATE automations SET paused = true`.
+
+**625's own probes could not have caught it.** Each built a fresh automation and
+asserted about the event it had just queued, so none asked what *else* was in
+the queue. The platform suite found it inside the hour, because its tests share
+one transaction and the auto-mute suite had left a hundred unexecuted events in
+front of the manual one — the failure presented as "the manual run was not
+drained". **A shared-fixture suite asks a question a purpose-built probe cannot,
+and that is the transferable part.**
+
+The fix is a definition, at the writer as well as the reader:
+`record_automation_event` records something that HAS happened and stamps
+`executed_at`; `execute_automation_now` records something to DO and leaves it
+null. Filtering the queue alone would have stopped the damage while leaving
+every metadata event looking like pending work forever.
+
+626 is smaller and the same species: `catalog.test.ts` wanted an index on
+`requested_by`, which 625's foreign key did not have. **Three guards in four
+migrations caught something this phase shipped** — the ledger writer reachable
+by `authenticated`, the table with no COMMENT, and this index — all written long
+before the phase existed.

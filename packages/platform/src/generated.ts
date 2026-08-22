@@ -10,7 +10,7 @@ import type { ActionType, FunctionType, Json } from './client'
 //   public.object_type_nearest
 //   public.rid_of
 
-// ── ACTION TYPES (46) ────────────────────────────────────────────────
+// ── ACTION TYPES (47) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -148,6 +148,16 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
   { p_kind?: string; p_id?: string; p_branch?: string },
   number
+>
+
+/**
+ *  Queues a manual run. The effects are executed by beacon_runner on the next
+ *  tick, as the owner; requested_by records who asked. Allowed while paused,
+ *  refused when expired (automate/manual-execution).
+ */
+export const executeAutomationNow = { apiName: 'execute_automation_now', kind: 'action' } as ActionType<
+  { p_automation: string },
+  string
 >
 
 /**
