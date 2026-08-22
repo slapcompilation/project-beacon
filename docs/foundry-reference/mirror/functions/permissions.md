@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -28,7 +28,7 @@ In a functions repository, you can import the needed Ontology resources by navig
 
 ![ontology-settings](./images/ontology-settings-flights.png)
 
-If your user account has access to multiple Ontologies, you can also choose which Ontology you’d like to use. Currently, importing multiple Ontologies into a single Project is unsupported.
+If your user account has access to multiple Ontologies, you can also choose which Ontology you would like to use. Currently, importing multiple Ontologies into a single Project is unsupported.
 
 ![ontology-picker](./images/ontology-picker.png)
 

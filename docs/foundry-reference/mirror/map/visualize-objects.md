@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Visualize Ontology data
 
@@ -42,7 +42,7 @@ Each display contains many customizable attributes which are covered in detail o
 
 Use **Value-based styling** to control the appearance of a display rendered for an object by a value associated with that object. For example, you can configure the color of an icon to represent the temperature of a weather station, or the size of a circle to represent the number of employees at a company. The most common types of attributes that use value-based styling are colors and numeric attributes (for example, line width, icon size, circle radius, etc.).
 
-The idea is that for each object being rendered, you specify a **value source**, which determines the a value to use for styling from each object being rendered. Then, specify some way of converting a value into the style attribute (for example, color, size, opacity). The value sources typically available for each stylable attribute are:
+The idea is that for each object being rendered, you specify a **value source**, which determines the value to use for styling from each object being rendered. Then, specify some way of converting a value into the style attribute (for example, color, size, opacity). The value sources typically available for each stylable attribute are:
 
 * **Fixed:** Explicitly select a single style value that will be applied uniformly to all objects in the layer.
 * **Property:** Style each object according to a property on the object.
@@ -61,7 +61,7 @@ When using a fixed color style, select a single color that will be applied unifo
 
 ### Value-based
 
-When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
+When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points on the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
 
 ![Gradient styling panel.](./images/styling-gradient-editor.png)
 

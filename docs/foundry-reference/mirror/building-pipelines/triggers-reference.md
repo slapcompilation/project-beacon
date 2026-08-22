@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/triggers-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/triggers-reference/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Trigger types reference
 
@@ -133,7 +133,7 @@ If both the Day of Month and Day of Week fields are not `*`, the trigger will be
 | `0 9-17/2 10 * *` | Every two hours from 9:00am to 5:00pm on the 10<sup>th</sup> of the month |
 | `0 9,17 10 * *` | 9:00am and 5:00pm on the 10<sup>th</sup> of the month |
 | `0/5 9-17 15 3 *` | Every five minutes from 9:00am to 5:55pm on the 15<sup>th</sup> of March |
-| `0/5 9,17 15 3 *` | Every five minutes from 9:00am to 9:55pm and from 5:00pm to 5:55pm on the 15<sup>th</sup> of March |
+| `0/5 9,17 15 3 *` | Every five minutes from 9:00am to 9:55am and from 5:00pm to 5:55pm on the 15<sup>th</sup> of March |
 | `0 9 L * *` | 9:00am on the last of the month |
 | `0 9 L 2 *` | 9:00am on the last of February |
 | `0 9 * * L` | 9:00am on Saturday |
@@ -188,7 +188,7 @@ In the following examples, `T1`, `T2` are time triggers and `E1`, `E2` are event
 | `AND(T1, T2)` <sup>**\[1]**</sup> | Satisfied at times that satisfy both `T1` and `T2` |
 | `OR(T1, T2)` | Satisfied at either `T1` or `T2` |
 | `AND(E1, E2)` | Satisfied when both `E1` and `E2` have occurred |
-| `OR(E1, E2)` | Satisfied when either `E1` and `E2` have occurred |
+| `OR(E1, E2)` | Satisfied when either `E1` or `E2` has occurred |
 | `AND(T1, OR(E1, E2))` | Satisfied at `T1` if either `E1` or `E2` has occurred |
 | `OR(T1, AND(E1, E2))` | Satisfied at `T1` or when both `E1` and `E2` have occurred |
 

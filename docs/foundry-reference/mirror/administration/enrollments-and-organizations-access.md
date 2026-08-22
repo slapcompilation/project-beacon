@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/enrollments-and-organizations-access/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/enrollments-and-organizations-access/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Managing access
 
@@ -10,7 +10,7 @@ Users granted the **Enrollment administrator** role can manage permissions for t
 
 Settings in Control Panel are presented as tabs on the side panel grouped by enrollment / organization levels. These settings tabs are only visible to users who have the relevant permissions. For instance, the **Authentication** tab requires the **Manage SAML providers** workflow.
 
-If you're unable to see a specific settings tab in Control Panel, open the search dialog by clicking on Search in the side panel or using the Cmd+J (MacOS) or Ctrl+J (Windows) keyboard shortcut. You can then search for the relevant setting. If you see a message such as `Contact your organization administrator to grant you access` (as shown below), ask the person who manages permissions for your enrollment/organization to grant you the correct role.
+If you are unable to see a specific settings tab in Control Panel, open the search dialog by clicking on Search in the side panel or using the Cmd+J (MacOS) or Ctrl+J (Windows) keyboard shortcut. You can then search for the relevant setting. If you see a message such as `Contact your organization administrator to grant you access` (as shown below), ask the person who manages permissions for your enrollment/organization to grant you the correct role.
 
 ![no access search result](./images/no-access-search-result.png)
 
@@ -18,7 +18,7 @@ In some cases, you may see a message like `Contact Palantir Support to unlock th
 
 ![beta search result](./images/beta-extension-search-result.png)
 
-If you're unsure which role to grant, use the search feature in **Enrollment/Organization permissions** to look for keywords. This will search over role names, descriptions, and workflows, as well as the setting(s) that each role enables.
+If you are unsure which role to grant, use the search feature in **Enrollment/Organization permissions** to look for keywords. This will search over role names, descriptions, and workflows, as well as the setting(s) that each role enables.
 
 ![extension search result](./images/extension-search-results.png)
 

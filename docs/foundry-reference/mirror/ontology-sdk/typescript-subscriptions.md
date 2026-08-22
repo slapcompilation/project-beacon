@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-subscriptions/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-subscriptions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Subscribe to changes in object sets with the TypeScript OSDK
 
@@ -87,7 +87,7 @@ client(Country).subscribe({
 Properties on the `Osdk.Instance` object provided to the handler represent the most up to date values for that object. The primary key property and the `$primaryKey` field on the object will always be defined.
 
 It is possible for any property on the `Osdk.Instance` object to be undefined. This does not necessarily indicate that the property was updated to be undefined, but rather
-that the property simply wasn't returned.
+that the property simply was not returned.
 
 If more properties have been added to an object type since the SDK was last generated, it is possible to receive updates even though none of the properties on the provided value have changed. This indicates that a property that your SDK is not aware of has changed on the object.
 

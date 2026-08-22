@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-workflows-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-workflows-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Media workflows
 
-Now that you have set up a media set and can use your media in the Palantir platform, let's walk through some example workflows.
+Now that you have set up a media set and can use your media in the Palantir platform, the following pages walk through some example workflows.
 
 * [Add a DICOM media set](/docs/foundry/media-sets-advanced-formats/add-dicom-media-set/)
 * [Transcribe an audio media set](/docs/foundry/media-sets-advanced-formats/add-audio-transcription/)

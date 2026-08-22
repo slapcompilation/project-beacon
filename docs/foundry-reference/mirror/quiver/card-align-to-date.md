@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-align-to-date/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-align-to-date/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Align to date
 

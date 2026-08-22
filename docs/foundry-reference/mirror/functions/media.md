@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/functions/media/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/media/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Media
 
 Functions enable you to access and modify media in [TypeScript v2](/docs/foundry/functions/typescript-v2-getting-started/), [Python](/docs/foundry/functions/python-getting-started/), and [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/). TypeScript v2 and Python use the `Media` type to read, upload, and transform media, and support media uploads through [Ontology edits](/docs/foundry/functions/edits-overview/) and the OSDK. TypeScript v1 functions provide a `MediaItem` type with built-in operations for working with different kinds of media without external libraries.
 
-If you need any operations that don't currently exist out-of-the-box, you will likely need to use external libraries or write your own custom code. [Learn more about adding dependencies to functions repositories.](/docs/foundry/functions/add-dependencies/)
+If you need any operations that do not currently exist out-of-the-box, you will likely need to use external libraries or write your own custom code. [Learn more about adding dependencies to functions repositories.](/docs/foundry/functions/add-dependencies/)
 
 ## TypeScript v2 and Python
 
@@ -14,7 +14,9 @@ You can construct Ontology edits in TypeScript v2 and Python functions by upload
 
 ### Use as a function input or output type
 
-Functions can take in a `Media` as an input, create temporary media by uploading data with `uploadMedia`, or retrieve `Media` from a media reference property on an object. Functions can return a `Media` type as well, whether it has been temporarily uploaded, or if it came from an object's media reference property. In a function, you can fetch the byte contents of the `Media`, fetch its metadata, or attach it to an Ontology object via Ontology edits. In Python, you can also fetch the full per-variant metadata; in TypeScript v2, `fetchMetadata` currently exposes only the high-level fields (`mediaType`, `sizeBytes`, `path`).
+Functions can take in a `Media` as an input, create temporary media by uploading data with `uploadMedia`, or retrieve `Media` from a media reference property on an object. Functions can return a `Media` type as well, whether it has been temporarily uploaded, or if it came from an object's media reference property. In a function, you can fetch the byte contents of the `Media`, fetch its metadata, or attach it to an Ontology object via Ontology edits. Both TypeScript v2 and Python can retrieve either the high-level metadata fields (`mediaType`, `sizeBytes`, and `path`, in snake\_case for Python) or the [full metadata](#get-media-metadata) specific to the media type.
+
+[Live preview](/docs/foundry/functions/getting-started/#test-in-live-preview) supports functions that take a media parameter. You can search your media sets and select an item inline instead of entering a media reference manually.
 
 ```typescript tab="TypeScript v2"
 import type { Media } from "@osdk/client";
@@ -61,7 +63,7 @@ from ontology_sdk import FoundryClient
 from foundry_sdk_runtime.media import Media
 from functions.api import function
 
-@function(beta=True)
+@function
 def upload_media(body: str, media_set_filename: str) -> Media:
     client = FoundryClient()
     media: Media = client.ontology.media.upload_media(
@@ -76,7 +78,7 @@ from ontology_sdk import FoundryClient
 from foundry_sdk_runtime.media import Media
 from functions.api import function
 
-@function(beta=True)
+@function
 async def upload_media(body: str, media_set_filename: str) -> Media:
     client = FoundryClient()
     media_coroutine = client.ontology.media.async_upload_media(
@@ -125,7 +127,7 @@ from ontology_sdk.ontology.objects import Aircraft
 from functions.api import function, OntologyEdit
 from foundry_sdk_runtime.media import Media
 
-@function(beta=True, edits=[Aircraft])
+@function(edits=[Aircraft])
 def upload_text_to_new_plane() -> list[OntologyEdit]:
     client = FoundryClient()
     edits = client.ontology.edits()
@@ -189,7 +191,7 @@ from io import BytesIO
 raw_data: BytesIO = my_aircraft.my_media_property.get_media_content()
 ```
 
-### Get media metadata
+#### Get media metadata
 
 You can retrieve the metadata of the `Media`:
 
@@ -212,12 +214,33 @@ size_bytes = media_metadata.size_bytes
 media_type = media_metadata.media_type
 ```
 
-In Python, `get_media_full_metadata()` returns a `MediaFullMetadata` whose `item_metadata` is a discriminated union over the media type. Narrow on the variant class (or check `item_metadata.type`) to access type-specific fields:
+Both languages can also retrieve the full metadata for the media type. This metadata includes fields that apply only to that type, such as the page count of a document or the dimensions and bands of an image. TypeScript v2 exposes `fetchFullMetadata` and Python exposes `get_media_full_metadata`. Each returns a `MediaFullMetadata` whose `itemMetadata` (`item_metadata` in Python) is a discriminated union over the media type.
+
+To access the type-specific fields, narrow the union first. In TypeScript v2, check the `itemMetadata.type` string discriminant. In Python, use `isinstance` with the variant class or check `item_metadata.type`.
+
+```typescript tab="TypeScript v2"
+// Ensure you are using @osdk/client 2.56.0 or greater for fetchFullMetadata.
+fetchFullMetadata?(): Promise<MediaFullMetadata>;
+
+// Other variants include "audio", "video", "spreadsheet", "model3d", "dicom",
+// "email", and "untyped". See the full type definition:
+// https://github.com/palantir/osdk-ts/blob/main/packages/api/src/object/Media.ts
+
+const fullMetadata = await myAircraft.myMediaProperty.fetchFullMetadata?.();
+const itemMetadata = fullMetadata?.itemMetadata;
+
+if (itemMetadata?.type === "document") {
+    const pageCount = itemMetadata.pages;
+    const title = itemMetadata.title;
+} else if (itemMetadata?.type === "imagery") {
+    const dimensions = itemMetadata.dimensions;
+    const bands = itemMetadata.bands;
+}
+```
 
 ```python tab="Python"
 get_media_full_metadata(self) -> MediaFullMetadata: ...
 
-# Narrow on the variant class (or check item_metadata.type) to access type-specific fields.
 # Other variants include AudioMediaItemMetadata, VideoMediaItemMetadata,
 # SpreadsheetMediaItemMetadata, Model3dMediaItemMetadata, DicomMediaItemMetadata,
 # EmailMediaItemMetadata, and UntypedMediaItemMetadata. See the full schema:
@@ -240,6 +263,10 @@ elif isinstance(item, ImageryMediaItemMetadata):
     bands = item.bands
 ```
 
+In TypeScript v2, `fetchFullMetadata` is an optional member of the `Media` interface so that external implementations of `Media` continue to compile. Every `Media` returned by the Ontology SDK implements it, so calling it with `?.()` as shown above is safe.
+
+TypeScript v2 also defines an `unknown` variant. If the platform returns a media type that your installed SDK version does not yet model, `itemMetadata` uses that variant and `itemMetadata.raw` preserves the original payload for inspection. Upgrade `@osdk/client` to narrow the type. The `unknown` variant is distinct from the `untyped` variant, which is a platform type for [media sets that accept any file format](/docs/foundry/media-sets-advanced-formats/media-overview/#multimodal-media-sets).
+
 ### Transform media
 
 :::callout{theme="warning"}
@@ -251,17 +278,18 @@ You can transform media items (such as rotating, resizing, or re-encoding images
 In TypeScript v2, transformations are exposed through `@osdk/api/unstable` as an experimental helper. In Python, call `client.ontology.media.transform_and_wait` on a generated `FoundryClient`. The async variant `async_transform_and_wait` takes the same arguments and can be awaited.
 
 ```typescript tab="TypeScript v2"
-// Ensure you are using @osdk/api 2.8.0 or greater for transformAndWait.
+// Ensure you are using @osdk/api 2.55.0 or greater for transformAndWait.
+// In versions before 2.55.0, this helper was exported as
+// __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait and took a "mediaReference"
+// argument instead of the "media" argument shown below.
+//
 // "MediaTransformation" is a discriminated union:
 // each variant (`$image`, `$video`, `$audio`, `$documentToText`, `$documentToImage`, `$documentToDocument`, `$audioToText`, etc.)
 // selects a transformation kind, with its own encoding and operation fields.
 // See the "MediaTransformation" type definition for a full set of variants and operations:
 // https://github.com/palantir/osdk-ts/blob/main/packages/api/src/experimental/MediaTransformation.ts
 
-import {
-    __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    type MediaTransformation,
-} from "@osdk/api/unstable";
+import { transformAndWait, type MediaTransformation } from "@osdk/api/unstable";
 import type { Client, Media } from "@osdk/client";
 import { uploadMedia } from "@osdk/functions";
 
@@ -276,10 +304,8 @@ export default async function rotateImage(
         },
     };
 
-    const result: Response = await client(
-        __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    ).transformAndWait({
-        mediaReference: media.getMediaReference(),
+    const result: Response = await client(transformAndWait).transformAndWait({
+        media,
         transformation,
         options: { pollIntervalMs: 3000, pollTimeoutMs: 30000 },
     });
@@ -337,10 +363,7 @@ def image_transform(document: Media) -> Media:
 This workflow takes a PDF (uploaded to a media set or attached to an object) and runs OCR on every page, requesting hOCR output. hOCR is HTML with `bbox` attributes on every detected word and line, so you can extract both the recognized text and its bounding box coordinates from the same response. Each `transform_and_wait` call returns the bytes for one page; iterate to cover the whole document.
 
 ```typescript tab="TypeScript v2"
-import {
-    __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    type MediaTransformation,
-} from "@osdk/api/unstable";
+import { transformAndWait, type MediaTransformation } from "@osdk/api/unstable";
 import type { Client, Media } from "@osdk/client";
 import type { Integer } from "@osdk/functions";
 
@@ -349,10 +372,7 @@ export default async function ocrPdfPages(
     media: Media,
     pageCount: Integer,
 ): Promise<string[]> {
-    const transformAndWait = client(
-        __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    ).transformAndWait;
-    const mediaReference = media.getMediaReference();
+    const runTransformation = client(transformAndWait).transformAndWait;
 
     const pageResults: string[] = [];
     for (let pageNumber = 0; pageNumber < pageCount; pageNumber++) {
@@ -370,8 +390,8 @@ export default async function ocrPdfPages(
             },
         };
 
-        const result = await transformAndWait({
-            mediaReference,
+        const result = await runTransformation({
+            media,
             transformation,
             options: { pollTimeoutMs: 120_000 },
         });
@@ -442,10 +462,7 @@ For workflows that need the visual rendering of each page (for downstream image 
 Render a single page as a PNG image:
 
 ```typescript tab="TypeScript v2"
-import {
-    __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    type MediaTransformation,
-} from "@osdk/api/unstable";
+import { transformAndWait, type MediaTransformation } from "@osdk/api/unstable";
 import type { Client, Media } from "@osdk/client";
 import { uploadMedia } from "@osdk/functions";
 
@@ -459,9 +476,10 @@ export default async function renderFirstPageAsPng(
             $operation: { $renderPage: { $pageNumber: 0, $width: 1200 } },
         },
     };
-    const result = await client(
-        __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    ).transformAndWait({ mediaReference: media.getMediaReference(), transformation });
+    const result = await client(transformAndWait).transformAndWait({
+        media,
+        transformation,
+    });
     if (!result.ok) {
         throw new Error(`Render failed: ${result.status}`);
     }
@@ -499,10 +517,7 @@ def render_first_page_as_png(document: Media) -> Media:
 Slice a page range into a new PDF document:
 
 ```typescript tab="TypeScript v2"
-import {
-    __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    type MediaTransformation,
-} from "@osdk/api/unstable";
+import { transformAndWait, type MediaTransformation } from "@osdk/api/unstable";
 import type { Client, Media } from "@osdk/client";
 import { uploadMedia } from "@osdk/functions";
 
@@ -522,9 +537,10 @@ export default async function sliceFirstTenPages(
             },
         },
     };
-    const result = await client(
-        __EXPERIMENTAL__NOT_SUPPORTED_YET__transformAndWait,
-    ).transformAndWait({ mediaReference: media.getMediaReference(), transformation });
+    const result = await client(transformAndWait).transformAndWait({
+        media,
+        transformation,
+    });
     if (!result.ok) {
         throw new Error(`Slice failed: ${result.status}`);
     }
@@ -565,7 +581,104 @@ def slice_first_ten_pages(document: Media) -> Media:
 
 #### Example: Annotate every page with detected bounding boxes
 
-To produce a visual debugging output (each PDF page rendered with its OCR-detected bounding boxes drawn on top) chain three transformations for every page. For each page, render the page as an image, OCR the same page to recover word/line bounding boxes, then re-upload the rendered image and annotate it with `$image.$annotate`. The page count comes from `get_media_full_metadata()`, which is currently available in Python only. Each step calls `transform_and_wait` and feeds the bytes of the previous step into the next as a fresh upload, and each annotated page is re-uploaded so the function returns one `Media` per page.
+To produce visual debugging output (each PDF page rendered with its OCR-detected bounding boxes drawn on top), chain three transformations for every page. For each page, render the page as an image and OCR the same page to recover word and line bounding boxes. Then re-upload the rendered image and annotate it with the image annotate operation. The page count comes from the full metadata, so read it with `fetchFullMetadata` in TypeScript v2 or `get_media_full_metadata` in Python. Each step feeds the bytes of the previous step into the next as a fresh upload. The function re-uploads each annotated page so it returns one `Media` per page.
+
+```typescript tab="TypeScript v2"
+import { transformAndWait, type MediaTransformation } from "@osdk/api/unstable";
+import type { Client, Media } from "@osdk/client";
+import { uploadMedia } from "@osdk/functions";
+
+export default async function annotatePdfWithOcrBoxes(
+    client: Client,
+    media: Media,
+): Promise<Media[]> {
+    const runTransformation = client(transformAndWait).transformAndWait;
+
+    // Use the full metadata to discover the page count.
+    const fullMetadata = await media.fetchFullMetadata?.();
+    const itemMetadata = fullMetadata?.itemMetadata;
+    if (itemMetadata?.type !== "document" || itemMetadata.pages == null) {
+        throw new Error("Expected a PDF document with a known page count");
+    }
+
+    const annotatedPages: Media[] = [];
+    for (let pageNumber = 0; pageNumber < itemMetadata.pages; pageNumber++) {
+        const renderTransformation: MediaTransformation = {
+            $documentToImage: {
+                $encoding: "png",
+                $operation: { $renderPage: { $pageNumber: pageNumber, $width: 1200 } },
+            },
+        };
+        const ocrTransformation: MediaTransformation = {
+            $documentToText: {
+                $operation: {
+                    $ocrOnPage: {
+                        $pageNumber: pageNumber,
+                        $parameters: {
+                            $outputFormat: { $hocr: {} },
+                            $languages: [{ $language: "ENG" }],
+                        },
+                    },
+                },
+            },
+        };
+
+        // 1. Render the page as a PNG and OCR the same page. Both read from the
+        // same source document and are independent, so they can run concurrently.
+        const [renderResult, ocrResult] = await Promise.all([
+            runTransformation({ media, transformation: renderTransformation }),
+            runTransformation({
+                media,
+                transformation: ocrTransformation,
+                options: { pollTimeoutMs: 120_000 },
+            }),
+        ]);
+        if (!renderResult.ok || !ocrResult.ok) {
+            throw new Error(`Page ${pageNumber} failed to render or OCR`);
+        }
+
+        // 2. Parse hOCR for bounding boxes in image pixels.
+        // The parseHocrBoundingBoxes helper is omitted here; see the note below the example.
+        const boxes = parseHocrBoundingBoxes(await ocrResult.text());
+
+        // 3. Re-upload the rendered PNG as a temporary media item.
+        const renderedMedia = await uploadMedia(client, {
+            data: await renderResult.blob(),
+            fileName: `page-${pageNumber}.png`,
+        });
+
+        // 4. Annotate the rendered page with a media transformation.
+        const annotateTransformation: MediaTransformation = {
+            $image: {
+                $encoding: "png",
+                $operations: [{
+                    $annotate: {
+                        $annotations: boxes.map(({ label, boundingBox }) => ({
+                            $geometry: { $boundingBox: boundingBox },
+                            $label: label,
+                        })),
+                    },
+                }],
+            },
+        };
+        const annotatedResult = await runTransformation({
+            media: renderedMedia,
+            transformation: annotateTransformation,
+        });
+        if (!annotatedResult.ok) {
+            throw new Error(`Annotation failed on page ${pageNumber}`);
+        }
+
+        // 5. Re-upload the annotated page so the function returns a Media.
+        annotatedPages.push(await uploadMedia(client, {
+            data: await annotatedResult.blob(),
+            fileName: `page-${pageNumber}-annotated.png`,
+        }));
+    }
+
+    return annotatedPages;
+}
+```
 
 ```python tab="Python"
 from foundry_sdk.v2.media_sets.models import (
@@ -595,7 +708,7 @@ def annotate_pdf_with_ocr_boxes(document: Media) -> list[Media]:
     client = FoundryClient()
     media_reference = document.get_media_reference()
 
-    # Use the full metadata (Python only) to discover the page count.
+    # Use the full metadata to discover the page count.
     metadata = document.get_media_full_metadata().item_metadata
     if not isinstance(metadata, DocumentMediaItemMetadata) or metadata.pages is None:
         raise ValueError("Expected a PDF document with a known page count")
@@ -763,7 +876,7 @@ async def annotate_pdf_with_ocr_boxes(document: Media) -> list[Media]:
     return list(await asyncio.gather(*(annotate_page(p) for p in range(metadata.pages))))
 ```
 
-The `parse_hocr_bounding_boxes` helper is omitted here. Any HTML parser (such as `lxml` or `BeautifulSoup`) can extract `class="ocrx_word"` elements and their `title="bbox X1 Y1 X2 Y2 ..."` attributes, which you convert into `BoundingBox(left=X1, top=Y1, width=X2-X1, height=Y2-Y1)`.
+The hOCR parsing helper is omitted from both examples. Any HTML parser can extract `class="ocrx_word"` elements and their `title="bbox X1 Y1 X2 Y2 ..."` attributes. In Python, use a parser such as `lxml` or `BeautifulSoup` and convert each match into `BoundingBox(left=X1, top=Y1, width=X2-X1, height=Y2-Y1)`. In TypeScript v2, convert each match into `{ $left: X1, $top: Y1, $width: X2-X1, $height: Y2-Y1 }`.
 
 ## TypeScript v1
 
@@ -885,7 +998,7 @@ The following can optionally be provided as a TypeScript object:
 * `scripts`: A list of scripts to recognize (can be empty).
 * `outputType`: Specifies the output type as `text` or `hocr`.
 
-Remember that you need to use type guards in order to access media-type specific operations. Here's an example of using the `isDocument()` type guard to then perform OCR text extraction:
+Remember that you need to use type guards in order to access media-type specific operations. Here is an example of using the `isDocument()` type guard to then perform OCR text extraction:
 
 ```typescript tab="TypeScript v1"
 import { MediaItem } from "@foundry/functions-api";

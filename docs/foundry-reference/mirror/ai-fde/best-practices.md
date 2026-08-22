@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ai-fde/best-practices/ · mirrored 2026-08-07 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ai-fde/best-practices/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Best practices for using AI FDE
 

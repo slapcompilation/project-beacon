@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-join-to-linked-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-join-to-linked-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Join to linked objects
 

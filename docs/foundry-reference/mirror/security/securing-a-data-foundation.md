@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/securing-a-data-foundation/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/securing-a-data-foundation/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Securing a data foundation
 

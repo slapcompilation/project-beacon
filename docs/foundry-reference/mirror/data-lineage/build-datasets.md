@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/build-datasets/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/build-datasets/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Build datasets
 
@@ -43,7 +43,7 @@ If you decide you do not want to build *all* out-of-date ancestors, you must cli
 
 ## All transforms in between selected datasets
 
-This strategy lets you bind your builds to a subset of your pipeline. A common use case for this strategy can occur when new raw data regularly lands in your pipeline and there is a particular dataset that you want to update to reflect the new data, but you don’t want to build *all* out-of-date ancestors. You can then use Data Lineage to determine which other datasets need to be built to bring your dataset of interest more up to date.
+This strategy lets you bind your builds to a subset of your pipeline. A common use case for this strategy can occur when new raw data regularly lands in your pipeline and there is a particular dataset that you want to update to reflect the new data, but you do not want to build *all* out-of-date ancestors. You can then use Data Lineage to determine which other datasets need to be built to bring your dataset of interest more up to date.
 
 1. Add the dataset you ultimately want to build to the graph.
 2. Add any raw datasets to the graph (or any upstream dataset)

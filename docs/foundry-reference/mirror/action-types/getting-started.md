@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -38,7 +38,7 @@ You can now see the full detailed view of your action type. You can make additio
 
 ## Edit parameters
 
-Select the **Forms** tab to get an overview of the parameters. The `Ticket` and `Priority` parameter have already been created based by the **Rule**.
+Select the **Forms** tab to get an overview of the parameters. The `Ticket` and `Priority` parameters have already been created based on the **Rule**.
 
 ![Actions form](./images/actions_form.png)
 

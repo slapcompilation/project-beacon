@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-batch-analyze/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-batch-analyze/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Batch analyze time series
 
@@ -16,7 +16,7 @@ This section will show you how to use time series columns in a transform table t
 
 ![Object set transform table](./images/resource-object-set-transform-table.gif)
 
-2. Add the time series property as a column using the **Properties** button in the transform table. This is only required if the time series property is not already in your table. In the example below, the existing columns are removed with the \**Clear all* button before the `Temperature` time series column is added.
+2. Add the time series property as a column using the **Properties** button in the transform table. This is only required if the time series property is not already in your table. In the example below, the existing columns are removed with the **Clear all** button before the `Temperature` time series column is added.
 
 ![Add time series column](./images/resource-transform-table-time-series-properties.gif)
 

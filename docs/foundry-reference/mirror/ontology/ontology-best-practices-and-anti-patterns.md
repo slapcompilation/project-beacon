@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-best-practices-and-anti-patterns/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-best-practices-and-anti-patterns/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology design: Best practices
 
@@ -13,7 +13,7 @@ The following guidelines are a practical checklist for Ontology design. Where ap
 2. **Curate intentionally:** Every property should have clear business or technical value.
    * **Structural recommendation:** [Normalization and derived properties](/docs/foundry/ontology/ontology-structural-guidance/#normalization-and-derived-properties)
 3. **Collaborate across teams:** Ontology design should involve stakeholders from multiple departments or teams. Siloed teams are a leading cause of duplication.
-   * **Design principle:** [Don't repeat yourself](#2-dont-repeat-yourself-rule-of-three)
+   * **Design principle:** [Do not repeat yourself](#2-do-not-repeat-yourself-rule-of-three)
 4. **Keep object types focused:** Each object type should represent one distinct entity.
    * **Design principle:** [Domain-driven design](#1-domain-driven-design)
 5. **Choose the right tool:** Use action types for human or agentic decisions and pipelines for automated transformations.
@@ -29,7 +29,7 @@ These four principles are derived from extensive field experience across governm
 | Priority | Principle | Core idea |
 |-------------|-------------|----------|
 |1	|[Domain-driven design](#1-domain-driven-design)	|Model the real world, not the source data.|
-|2	|[Don't repeat yourself](#2-dont-repeat-yourself-rule-of-three)	|If you built the same thing three times, refactor.|
+|2	|[Do not repeat yourself](#2-do-not-repeat-yourself-rule-of-three)	|If you built the same thing three times, refactor.|
 |3	|[Open for extension, closed for modification](#3-open-for-extension-closed-for-modification)	|Protect core models. Enable builders to extend them.|
 |4	|[Composition over deep hierarchies](#4-composition-over-deep-hierarchies)	|Favor multiple inheritance via interfaces. Keep things pluggable.|
 
@@ -92,7 +92,7 @@ OrderData                                  Order
 4. **Model the domain, then map the data:** Understand the domain, then design the object model, then map source data into that model. Do not attempt to look at the data and replicate its shape.
 5. **Mark non-semantic types as hidden:** When non-semantic types (types that serve a technical purpose rather than modeling real-world domain entities) are necessary for specific workflows, mark them as hidden to keep default views of the Ontology clean. They remain available for builders to leverage when building applications.
 
-### 2. Don't repeat yourself (rule of three)
+### 2. Do not repeat yourself (rule of three)
 
 <img width="1280" height="720" alt="3-Don't Repeat" src="./images/do-not-repeat.png" />
 

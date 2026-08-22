@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-visualization/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-visualization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Visualization
 
@@ -34,7 +34,7 @@ The following tables offer usage details about the properties available to Graph
 |hideLabelsScale |The zoom level at which the labels are hidden. Use this to hide labels that are too small to read. |number |No |Direct Edit |
 |nodeColorScaleRange |An array of two or more colors used to create a linear gradient to color the nodes. Example: with node.colorScaleValues = \[0, 5, 10] and a color range array of \[“red”, “blue”] the resulting colors will be: red, purple, blue. Colors can be specified either as hex (e.g. “#FF0000”) or as CSS color names (e.g. “red”). If unspecified or fewer than 2 colors, the default color range used is composed of Blueprint colors @green4, @gold4, and @red4 (\[“#15B371”, “#F2B824”, “#F55656”]) |string\[] |No |Direct Edit |
 |nodeLabelPosition |The position of a label relative to the node circle. |string |No |Direct Edit |
-|layout |Type of layout the graph will use to arrange the nodes. “Force Directed”: The graph is laid out using a method that spreads out the nodes.“Flow Up/Down/Left/Right”: The nodes are arranged so that the edges generally point in a given direction. “Manual” Allows the user to drag the nodes to new positions and persists the locations upon save. Dragged node positions in other layouts won’t be saved. |string |No |Direct Edit |
+|layout |Type of layout the graph will use to arrange the nodes. “Force Directed”: The graph is laid out using a method that spreads out the nodes.“Flow Up/Down/Left/Right”: The nodes are arranged so that the edges generally point in a given direction. “Manual” Allows the user to drag the nodes to new positions and persists the locations upon save. Dragged node positions in other layouts will not be saved. |string |No |Direct Edit |
 |nodeDiameter |The diameter of the node circle in pixels. |number |No |Direct Edit |
 |nodeLabelOffset |The label’s offset from the center of the node. The direction of the offset is determined by Label Position |number |No |Direct Edit |
 |nodeMargin |The minimum distance between nodes, used by Flow and Force Directed layouts. |number |No |Direct Edit |
@@ -331,7 +331,7 @@ You can also style all markers/clusters in a layer using the layer name or `.lay
 |tileLayer |The base tile layer(s). |string |Yes |Direct Edit |
 |tileUrlLabels |A JSON array of names for each of your custom tile layer URLs. If you provide no labels, default names such as “Custom”, “Custom (1)”, etc. will be used. |string |No |Direct Edit |
 |tileUrls |A JSON array of custom tile layer URLs. Tile layer URLs should be in the standard form of “http:/{s}.example.com/blah/{z}/{x}/{y}.png”. Where {s} is an optional subdomain, {z} is the zoom level, and {x} and {y} are tile coordinates. This template URL will be used by the map to look up each tile image. |string |No |Direct Edit |
-|shapeSelectionEnabled |Enables drag selection controls on the map. Hold down CMD or CTRL to use additive selection.Drag selection supports two modes: Area selection will create a persistent shape and will be available on the template as an array named selection.areas. Data selection further allows the user to directly select location markers, updating the value of selection.ids. |boolean |Yes |Direct Edit |
+|shapeSelectionEnabled |Enables drag selection controls on the map. Hold down CMD or CTRL to use additive selection. Drag selection supports two modes: Area selection will create a persistent shape and will be available on the template as an array named selection.areas. Data selection further allows the user to directly select location markers, updating the value of selection.ids. |boolean |Yes |Direct Edit |
 |selectionType |The mode of selection. Area selection will create a persistent shape and will be available on the template as an array named selection.areas. Data selection further allows the user to directly select location markers, updating the value of selection.ids. |string |No |Direct Edit |
 
 #### IBaseLayerOptions

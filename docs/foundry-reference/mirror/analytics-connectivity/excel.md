@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/excel/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/excel/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Excel
 
@@ -9,7 +9,7 @@ This guide will teach you how import a dataset into Excel using the Foundry ODBC
 1. Open the Windows ODBC Administrator App (search for "odbc" in the Windows search bar and open the 32 or 64 bit version matching your Excel version).
 2. Create a new User DSN, choosing the FoundrySqlDriver driver. Give it a meaningful name, such as `Foundry Excel`.
 3. For the **Server**, enter your Foundry URL (example: `myorganization.palantirfoundry.com`).
-4. Optional: If you're using OAuth to authenticate, set the [OAuth properties](/docs/foundry/analytics-connectivity/odbc-jdbc-drivers/#use-oauth-to-authenticate).
+4. Optional: If you are using OAuth to authenticate, set the [OAuth properties](/docs/foundry/analytics-connectivity/odbc-jdbc-drivers/#use-oauth-to-authenticate).
 5. Optional: You can save an authentication token here, but we recommend entering it later in Excel where you will be prompted when importing data.
 6. Click **OK** to save the DSN.
 

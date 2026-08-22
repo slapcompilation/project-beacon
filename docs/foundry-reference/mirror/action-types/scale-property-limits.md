@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/scale-property-limits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/scale-property-limits/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Scale and property limits
 
@@ -92,4 +92,4 @@ Currently, actions cannot be used to edit the **primary key** of an object. Modi
 
 ## Notification recipients
 
-When using [side effect notifications](/docs/foundry/action-types/notifications/), a maximum of 500 recipients can notified in a single action. This limit is reduced to fifty recipients when notifications content is rendered "From a function". For further information about limits to account for when generating notifications, see the documentation on [maximum recipient limits for notifications](/docs/foundry/action-types/notifications/#maximum-recipient-limits).
+When using [side effect notifications](/docs/foundry/action-types/notifications/), a maximum of 500 recipients can be notified in a single action. This limit is reduced to fifty recipients when notifications content is rendered "From a function". For further information about limits to account for when generating notifications, see the documentation on [maximum recipient limits for notifications](/docs/foundry/action-types/notifications/#maximum-recipient-limits).

@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/external-functions/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/external-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # External Functions
 
 External Functions allow you to call [webhooks](/docs/foundry/data-connection/webhooks-overview/) from a Function and use them to interact with external systems. You can call these systems from applications built using [Workshop](/docs/foundry/workshop/overview/), [Actions](/docs/foundry/action-types/overview/), and [Functions](/docs/foundry/functions/overview/).
+
+:::callout{theme="neutral"}
+Webhooks can also be published directly as reusable Ontology functions without writing wrapper code. For more information, see [Webhook functions](/docs/foundry/data-connection/webhooks-reference/#webhook-functions).
+:::
 
 To use a webhook in a Function, you must first configure a [Data Connection source](/docs/foundry/data-connection/set-up-source/) that supports the webhooks capability. Normally this will be a [REST API source](/docs/foundry/available-connectors/rest-apis/#rest-api-source). Once you have a source with webhooks configured, you can import the source into your [Functions repository](/docs/foundry/functions/getting-started/) and create Functions that call webhooks and other logic.
 

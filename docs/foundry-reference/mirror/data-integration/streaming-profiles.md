@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/streaming-profiles/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/streaming-profiles/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Streaming profiles
 
@@ -52,7 +52,7 @@ Typically, profiles will be imported automatically into Projects within the rele
 
 All users are able to import most profiles as Project references into their Projects, provided they have sufficient permission to import resources. This generally means that the user has been assigned a Role which grants them the `compass:import-resource-to` permission on the Project. You can find Role configurations by navigating to the **Roles** tab in your user **Settings**. Search for the permission using the `Filter operations...` search tool on the page.
 
-To view a list of all available streaming profiles, visit the “Streaming profiles” tab in the “Enrollment Settings” section of Control Panel. From here you can pick any specific profile and see all Projects (to which you have access) where that profile has been added as a Project reference, as well as import it into new Projects. You can also remove references to a profile from an Project that it has been imported into; but note **this will break any streaming jobs in that Project that rely on that profile**, because we require that profiles be imported into the same Project as a streaming job in order to be used.
+To view a list of all available streaming profiles, visit the “Streaming profiles” tab in the “Enrollment Settings” section of Control Panel. From here you can pick any specific profile and see all Projects (to which you have access) where that profile has been added as a Project reference, as well as import it into new Projects. You can also remove references to a profile from a Project that it has been imported into; but note **this will break any streaming jobs in that Project that rely on that profile**, because we require that profiles be imported into the same Project as a streaming job in order to be used.
 
 ## Use large streaming profiles
 

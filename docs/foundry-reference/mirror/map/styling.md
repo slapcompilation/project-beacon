@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/styling/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/styling/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Styling
 
@@ -11,7 +11,7 @@ Edit styling for a layer by using the edit styling button in the **Layers** pane
 ![Open styling panel.](./images/styling-edit-button.png)
 
 :::callout{theme="neutral"}
-This list contains styling options that are used across different layers, but the options available for each layer vary based on the kind of data contained within the layer. For example the **Fill polygons** option only appears when the styler being configured render as a polygon. Within each option, the available modes also vary by the layer type: property, function, and measure based styling are only available on object layers, while fixed styling is available on every layer type.
+This list contains styling options that are used across different layers, but the options available for each layer vary based on the kind of data contained within the layer. For example the **Fill polygons** option only appears when the styler being configured renders as a polygon. Within each option, the available modes also vary by the layer type: property, function, and measure based styling are only available on object layers, while fixed styling is available on every layer type.
 :::
 
 ### Color
@@ -23,7 +23,7 @@ Use the **Color** section to control the coloring for objects in the layer. The 
 * **Property:** Color objects using values from a property.
 * **Measure:** Color objects using values from a [time series](/docs/foundry/time-series/time-series-overview/).
 
-When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
+When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points on the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
 
 ![Gradient styling panel](./images/styling-gradient-editor.png)
 

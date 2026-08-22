@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-set-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/media-set-settings/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Advanced media set settings
 

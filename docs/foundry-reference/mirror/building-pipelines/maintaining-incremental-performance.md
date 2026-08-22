@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/maintaining-incremental-performance/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/maintaining-incremental-performance/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Maintaining high performance
 
@@ -42,7 +42,7 @@ Regular snapshotting has several drawbacks, as described below:
 
 The most recommended way of dealing with incremental buildup is to add a [dataset projection](/docs/foundry/optimizing-pipelines/projections-overview/) to the datasets involved. Dataset projections offer an alternate mechanism for querying for data in a dataset, and are stored and updated independently from the canonical dataset. Because of these traits, dataset projections can break out of the append-only model of incremental computation, and reorganize their internal data representation automatically as the volume of data grows. This is called compaction—compaction ensures reads are always performant from the projection, no matter how many files or transactions are in the canonical dataset.
 
-This is particularly useful for incremental pipelines because dataset projections do not need to be completely in sync with the canonical dataset for readers to benefit from improved performance. All Foundry products know how to combine data coming from the projection and from the canonical dataset to reconstruct the view the same as if the projection wasn’t there. For example, if a dataset has 100 incremental transactions, and has a projection that was built with the first 99, then 99 will be read from the projection and only one from the dataset. Because of this, it is usually sufficient to update dataset projections daily or weekly, making them very computationally cheap to maintain.
+This is particularly useful for incremental pipelines because dataset projections do not need to be completely in sync with the canonical dataset for readers to benefit from improved performance. All Foundry products know how to combine data coming from the projection and from the canonical dataset to reconstruct the view the same as if the projection was not there. For example, if a dataset has 100 incremental transactions, and has a projection that was built with the first 99, then 99 will be read from the projection and only one from the dataset. Because of this, it is usually sufficient to update dataset projections daily or weekly, making them very computationally cheap to maintain.
 
 Note that because the dataset projection is a separate resource from the canonical dataset, it can be built at any time, even if the canonical dataset is itself building (and the other way around). Readers will just use whatever state is current according to the valid transactions. For example, if a dataset is building transaction 10 and the projection starts building at the same time, it will read from transaction 9. A reader that queries data in this scenario will read transactions 1-8 from the projection, and 9 from the dataset, effectively seeing the same data as if reading from the dataset directly.
 
@@ -54,12 +54,12 @@ Drawbacks of dataset projections include:
 
 ### Retention policies
 
-Sometimes a pipeline’s use case does not require keeping historical data in-platform forever, and it’s fine to retain only the most recent transactions, which can be done automatically using Foundry Retention. In this case incremental pipelines can be built without special consideration, as long as the transforms logic doesn’t include any cross-transactional dependencies (such as aggregations or differential computation). A special `allow_retention` flag must be set in Python Transforms to the incremental decorator (otherwise `DELETE` transactions will trigger a snapshot run).
+Sometimes a pipeline’s use case does not require keeping historical data in-platform forever, and it is fine to retain only the most recent transactions, which can be done automatically using Foundry Retention. In this case incremental pipelines can be built without special consideration, as long as the transforms logic does not include any cross-transactional dependencies (such as aggregations or differential computation). A special `allow_retention` flag must be set in Python Transforms to the incremental decorator (otherwise `DELETE` transactions will trigger a snapshot run).
 
 Drawbacks of retention policy changes include:
 
 * Loss of historical data.
-* If transactions aren’t self-contained units from a data perspective, retention policies may lead to inconsistent state (e.g. an end event without a matching start).
+* If transactions are not self-contained units from a data perspective, retention policies may lead to inconsistent state (e.g. an end event without a matching start).
 
 ## Additional options to consider
 
@@ -77,4 +77,4 @@ Note that aborted builds are considered successful, and will advance the input t
 
 Changelog logic enables you to implement edit semantics on append-only transactions, making it possible to perform joins and aggregations reliably in incremental pipelines. However, besides the previously-mentioned file and transaction count problems, implementing edit semantics on append-only transactions may allow the row count to grow without bounds, making transforms performance increasingly worse at the point where a state resolution stage is reached (or a standalone snapshot required).
 
-Keeping the row count under control for such pipelines is a little trickier. Snapshotting is possible, and may help a lot in intermediate transforms when partial states are present (since those mostly go away in a full rebuild). But to fully benefit from snapshots, the logic must collapse rows to their latest state, which is not always desirable (in some cases we may want to figure out the state of rows at any given point in time, not just the latest). Dataset projections can only help so much. And retention policies may not have the desired effect if rows aren’t atomic units (for example, we may end up with an end event without a matching start event). So special care must be taken when designing such pipelines.
+Keeping the row count under control for such pipelines is a little trickier. Snapshotting is possible, and may help a lot in intermediate transforms when partial states are present (since those mostly go away in a full rebuild). But to fully benefit from snapshots, the logic must collapse rows to their latest state, which is not always desirable (in some cases we may want to figure out the state of rows at any given point in time, not just the latest). Dataset projections can only help so much. And retention policies may not have the desired effect if rows are not atomic units (for example, we may end up with an end event without a matching start event). So special care must be taken when designing such pipelines.

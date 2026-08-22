@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/tableau-setup/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/tableau-setup/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Set up
 
@@ -24,4 +24,4 @@ If you cannot find the `My Tableau Repository` folder in the above location, or 
 
 ## Step 3: Get started building interactive dashboards
 
-Now that you've installed the JDBC driver and the Tableau connector file, you can follow the instructions in the [Tableau: Getting Started Guide](/docs/foundry/analytics-connectivity/tableau-getting-started/) to get started building your first interactive dashboard backed by Foundry data.
+Now that you have installed the JDBC driver and the Tableau connector file, you can follow the instructions in the [Tableau: Getting Started Guide](/docs/foundry/analytics-connectivity/tableau-getting-started/) to get started building your first interactive dashboard backed by Foundry data.

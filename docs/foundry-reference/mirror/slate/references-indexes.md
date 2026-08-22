@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-indexes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-indexes/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Optimize indexes and schema design
 
@@ -8,15 +8,15 @@ The documentation on this page focuses on tuning indexes for optimal performance
 
 A performant and maintainable application relies on well factored datasets and proper indexing.
 
-Most aspects of schema design for Postgres are completely agnostic to Slate. These concepts are well-documented elsewhere and generic best practices for database design is outside the scope of this discussion. Google will rapidly take you down that rabbit hole if you're not already familiar with different schema patterns or guidance on choosing which columns to index.
+Most aspects of schema design for Postgres are completely agnostic to Slate. These concepts are well-documented elsewhere and generic best practices for database design is outside the scope of this discussion. Google will rapidly take you down that rabbit hole if you are not already familiar with different schema patterns or guidance on choosing which columns to index.
 
-Instead, we'll focus on some best practices that do relate to Slate and Foundry more specifically.
+Instead, this section focuses on best practices that relate specifically to Slate and Foundry.
 
 #### Push work as far upstream as possible
 
 At every stage in the application development process, ask the question: “Where is the right place to do this work?” and always bias towards moving work as far upstream as possible. For instance, if you find yourself writing a complicated JavaScript function to aggregate your data or extract metrics, ask: “Can I do this instead in my query?”
 
-If you're doing the same work in a query on every page load, for instance deriving a yearly total with a `SUM()` or creating a list with a `DISTINCT()`, ask yourself: “Can I do this in a derived dataset?”
+If you are doing the same work in a query on every page load, for instance deriving a yearly total with a `SUM()` or creating a list with a `DISTINCT()`, ask yourself: “Can I do this in a derived dataset?”
 
 In Foundry, distributed storage and compute are “cheaper” compared to work done in a query or in the users browser, so pre-compute as much as possible.
 

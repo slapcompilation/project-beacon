@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -74,6 +74,6 @@ Quiver parameters allow you to easily switch between different views of the data
 
 Quiver analyses are saved manually by clicking the Save button in the top right of the application. A version history is also provided, allowing you to view or revert your analysis to previous saved versions. Additionally, in between each Save action, Quiver auto-saves your "working" state (storing it in the `state` URL variable, for example `state=j05na7mun3`). This allows you to refresh your page and get back your exact analysis state even if you have not saved. Note that if you are sharing a URL link with the `state` variable set, this will open that working state rather than the latest analysis version.
 
-If multiple users are working on the same analysis at the same time, they are able to work independently without interference, however saving changes will overwrite each others saved changes.
+If multiple users are working on the same analysis at the same time, they are able to work independently without interference, however saving changes will overwrite each other's saved changes.
 
 [Learn more about saving and versioning.](/docs/foundry/quiver/analysis-save-share/)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk-migration/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk-migration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # TypeScript OSDK migration guide (1.x to 2.0)
 
@@ -282,7 +282,7 @@ const link = object.$link.myObjectProperty.fetchPage({ $pageSize: 100 });
 
 #### `WHERE` clauses
 
-##### TypeScript OSDK 1.x (legacy)\*\*
+##### TypeScript OSDK 1.x (legacy)
 
 ```
 legacyClient.ontology.objects.legacyObject
@@ -437,13 +437,13 @@ in the `Options` object. It is not possible to return edits and validateOnly at 
 #### TypeScript OSDK 1.x (legacy)
 
 ```
-await legacyClient.ontology.actions.`createObject`({ ...params },
-    { mode: ActionExcecutionMode.VALIDATE_AND_EXECUTE,
+await legacyClient.ontology.actions.createObject({ ...params },
+    { mode: ActionExecutionMode.VALIDATE_AND_EXECUTE,
     returnEdits: ReturnEditsMode.ALL });
 
 // If you only want to validate
 await legacyClient.ontology.actions.createObject({ ...params },
-    { mode: ActionExcecutionMode.VALIDATE_ONLY });
+    { mode: ActionExecutionMode.VALIDATE_ONLY });
 ```
 
 #### TypeScript OSDK 2.0

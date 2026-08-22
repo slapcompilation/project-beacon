@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-parameters/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-parameters/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Parameters
 
@@ -98,7 +98,7 @@ To add a parameter from a card configuration editor:
 
 ## Example: Use parameters to dynamically filter object sets
 
-In the analysis below, we have created a bar plot and two numerical aggregations that both read from the **Filter Transactions** object set. Let’s run through how to control the filtering of objects in the object set using parameters and watch the bar plot and numeric aggregations update accordingly.
+In the analysis below, we have created a bar plot and two numerical aggregations that both read from the **Filter Transactions** object set. The following steps show how to control the filtering of objects in the object set using parameters, and how the bar plot and numeric aggregations update accordingly.
 
 To begin, we can add a property filter for Retailer Name. Next, create a new [property value select parameter](/docs/foundry/quiver/card-property-value-select-parameter/) to control this value. You can create the parameter by selecting the **Use variable input** button next to the filter input box and then **Create new parameter**. This will both add the new parameter card to your analysis and set it to control the filter.
 

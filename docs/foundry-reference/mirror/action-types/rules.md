@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/rules/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/rules/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Rules
 
@@ -23,16 +23,16 @@ An Ontology rule changes specific elements of the Ontology. They can create, mod
 
 ### Values and parameters
 
-When creating or modifying links and objects, the Rules require additional values for their operation. When modifying an object, the rules also define which properties are modified. Each property in return is mapped to a value provided by one of multiple options (Rules on links can only take object reference parameters):
+When creating or modifying links and objects, the Rules require additional values for their operation. When modifying an object, the rules also define which properties are modified. Each property in turn is mapped to a value provided by one of multiple options (Rules on links can only take object reference parameters):
 
 * **From parameter:** An existing parameter of the same type as the property. By default, every new property being added to the rule will automatically create a parameter with the same name and will be mapped to take the value of this parameter.
 * **Object parameter property:** A property of an existing object reference parameter. The property type of the object parameter needs to match the property type it is mapped to.
-* **Static value:** A static value that only exists in the Rules part of the action type. This value is cannot be changed when interacting with the action in Workshop, Slate, or Object Views.
-* **Current User/Time:** String and timestamp properties can also take on contextual values in the form of the actions current user or the time of submission. Just like the **Static value**, these values cannot be interacted with when submitting the action and cannot be used in other parts of the action type.
+* **Static value:** A static value that only exists in the Rules part of the action type. This value cannot be changed when interacting with the action in Workshop, Slate, or Object Views.
+* **Current User/Time:** String and timestamp properties can also take on contextual values in the form of the action's current user or the time of submission. Just like the **Static value**, these values cannot be interacted with when submitting the action and cannot be used in other parts of the action type.
 
 ### Creating an object & many-to-many link
 
-You can also create objects and linked many-to-many at the same time. While just creating a many-to-many link requires objects on both sides of the link to exist prior, you can create both entities via one action type. Start by configuring a **Create object** rule with an object type that has a many-to-many link. Then click the **Add link** button below **Add property** to select the link type and configure the links.
+You can also create objects and many-to-many links at the same time. While just creating a many-to-many link requires objects on both sides of the link to exist prior, you can create both entities via one action type. Start by configuring a **Create object** rule with an object type that has a many-to-many link. Then click the **Add link** button below **Add property** to select the link type and configure the links.
 
 In order to create a one-to-many or one-to-one link type, simply edit the foreign key on the object.
 

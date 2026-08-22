@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview-semantic-search/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview-semantic-search/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Semantic search
 

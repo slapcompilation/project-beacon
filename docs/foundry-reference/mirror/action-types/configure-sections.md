@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/configure-sections/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/configure-sections/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure sections
 
@@ -10,7 +10,7 @@ The action form can be customized with **sections**. These sections provide a lo
 
 In the Form tab, click **Add section**. This will open a detailed section configuration modal where you can add a title, choose a column layout, and optionally write a user-facing description. The description is not stylized and, unlike parameter descriptions, will always be shown in the section itself, not in a tooltip.
 
-You can organize parameters in columns to make better use of the space within a form or to group related parameters closer together. A section can be divided into one or two columns. Separate columns are especially useful when you use parameters that don’t require a lot of space within the form.
+You can organize parameters in columns to make better use of the space within a form or to group related parameters closer together. A section can be divided into one or two columns. Separate columns are especially useful when you use parameters that do not require a lot of space within the form.
 
 <img src="./images/section-config.png" alt="section inside a form" width="500" />
 

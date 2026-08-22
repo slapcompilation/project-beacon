@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/stream-vs-batch/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/stream-vs-batch/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Comparison: Streaming vs batch
 

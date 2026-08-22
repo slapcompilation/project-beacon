@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/action-reverts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/action-reverts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Revert or undo actions
 
@@ -44,7 +44,7 @@ Edits reverted:
 An action revert may fail in some cases:
 
 * An action on an object cannot be reverted once any subsequent edit has been made to the object, even if the edit is on a different property. In other words, an action on an object can only be reverted if the action is the most recent edit to an object.
-* An action cannot be reverted if action reverts has been toggled off after action submission, even if action reverts have been toggled on again.
+* An action cannot be reverted if action reverts have been toggled off after action submission, even if action reverts have been toggled on again.
 
 An action revert only reverts the edits to the object instance, but it will not revert side effects, such as notifications or webhooks, nor will it call them in the same way that the applied action would have.
 

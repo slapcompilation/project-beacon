@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/checking-permissions/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/checking-permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Checking Permissions
 
@@ -24,7 +24,7 @@ In addition to the access requirements described above, certain files may requir
 
 ### Check access examples
 
-In this first example, notional user *John Smith* meets access requirements for this dataset, but doesn't meet the additional data requirements because of the `Common: Food` Marking inherited through lineage. This means that he can see the dataset and its metadata, but not its data.
+In this first example, notional user *John Smith* meets access requirements for this dataset, but does not meet the additional data requirements because of the `Common: Food` Marking inherited through lineage. This means that he can see the dataset and its metadata, but not its data.
 
 <img src="./images/checking-permissions-dataset.png" alt="Check access example on dataset" width="300">
 
@@ -56,7 +56,7 @@ In this example, the notional user *Jane Doe* meets the access requirements of o
 
 ![Data Lineage in resource mode example](./images/checking-permissions-data-lineage-example-1.png)
 
-We can also see that Jane does not meet the additional data requirements for any of the datasets in the pipeline. When checking in the **Access information** panel, we can see that Jane does not meet the additional data requirements for the `Derived Fruit` dataset because she doesn't have access to the inherited Marking (`Common: Food`).
+We can also see that Jane does not meet the additional data requirements for any of the datasets in the pipeline. When checking in the **Access information** panel, we can see that Jane does not meet the additional data requirements for the `Derived Fruit` dataset because she does not have access to the inherited Marking (`Common: Food`).
 
 ![Data Lineage in data mode example](./images/checking-permissions-data-lineage-example-2.png)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v1-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v1-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started with TypeScript v1 functions
 

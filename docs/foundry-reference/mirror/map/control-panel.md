@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/control-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/control-panel/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Control Panel
 

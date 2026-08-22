@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/save-changes/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/save-changes/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Save changes to the Ontology
 
@@ -68,7 +68,7 @@ Once you have read through the impact of your changes detailed in the warning me
 
 ## Troubleshooting when a save fails
 
-If the backend services powering the Ontology encounter a problem when you save, you will receive an error message "toast" (pop-up), as in the image below. At the end of the text explaining why you can’t save, the name of the error message will be printed. The error message name will begin with the prefix `OntologyMetadata:` or `Phonograph2:`.
+If the backend services powering the Ontology encounter a problem when you save, you will receive an error message "toast" (pop-up), as in the image below. At the end of the text explaining why you cannot save, the name of the error message will be printed. The error message name will begin with the prefix `OntologyMetadata:` or `Phonograph2:`.
 
 <img src="./images/save-error-message.png" alt="Error message" width="500"/>
 

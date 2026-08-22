@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-structural-guidance/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-structural-guidance/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology design: Structural guidance
 
@@ -128,7 +128,7 @@ Structs are especially valuable in AI-first workflows where large language model
 
 **Use interfaces to build reusable, future-proof abstractions.**
 
-Interfaces are the primary tool for achieving the ["Don't repeat yourself" design principle](/docs/foundry/ontology/ontology-best-practices/#2-dont-repeat-yourself-rule-of-three) and [open/closed extensibility](/docs/foundry/ontology/ontology-best-practices/#3-open-for-extension-closed-for-modification). They define a shared shape (properties, links, actions) that multiple object types can implement, enabling workflows to target the interface rather than individual types.
+Interfaces are the primary tool for achieving the ["Do not repeat yourself" design principle](/docs/foundry/ontology/ontology-best-practices/#2-do-not-repeat-yourself-rule-of-three) and [open/closed extensibility](/docs/foundry/ontology/ontology-best-practices/#3-open-for-extension-closed-for-modification). They define a shared shape (properties, links, actions) that multiple object types can implement, enabling workflows to target the interface rather than individual types.
 
 ### When to use interfaces
 
@@ -330,7 +330,7 @@ RestrictedPatient (object type)      →       - clinicalNotes (column-restricte
 
 |Problem	|Impact|
 |-|-|
-|Duplicated types for security	|Schemas drift out of sync; properties added to one type are easily forgotten on the other. Violates the ["Don't repeat yourself" design principle](/docs/foundry/ontology/ontology-best-practices/#2-dont-repeat-yourself-rule-of-three).|
+|Duplicated types for security	|Schemas drift out of sync; properties added to one type are easily forgotten on the other. Violates the ["Do not repeat yourself" design principle](/docs/foundry/ontology/ontology-best-practices/#2-do-not-repeat-yourself-rule-of-three).|
 |Over-permissive defaults	|Starting with broad access and restricting later risks exposing sensitive data before lockdown is complete.|
 |Ad-hoc filtering instead of policy	|Security logic scattered through application code rather than enforced at the Ontology layer is fragile and difficult to audit.|
 |Misaligned boundaries	|Security boundaries that do not follow domain boundaries are harder to reason about and more likely to have gaps.|

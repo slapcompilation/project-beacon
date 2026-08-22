@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-builder/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-builder/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Use a Python function in Pipeline Builder
 
@@ -13,6 +13,45 @@ This guide assumes you have already authored and published a Python function. Re
 ## Architecture
 
 Python functions run in a Pipeline Builder pipeline as a sidecar container. This means that the function does not need to be deployed and scales dynamically with the size of your pipeline. Embedded functions can be [previewed](/docs/foundry/pipeline-builder/outputs-preview-pipeline/) similarly to other transforms in Pipeline Builder.
+
+## How Python functions process data
+
+When you use a Python function as a user-defined function (UDF) in Pipeline Builder, the function runs **once per row**. Pipeline Builder does not pass an entire table, `pandas` DataFrame, or Spark DataFrame to your function. Instead, you map one or more input columns to the function's parameters, and Pipeline Builder invokes the function for every row, passing that row's cell values as the parameter arguments.
+
+The value your function returns becomes a new column in the output table, with one value produced per row. For this reason, a Python UDF returns a scalar (single-value) type such as `str`, `int`, `float`, `bool`, or `datetime` rather than a DataFrame. There is no DataFrame type to return: the column that Pipeline Builder assembles from each row's return value *is* the resulting tabular output.
+
+The following example takes two columns as input and returns one `str` value per row, which Pipeline Builder writes to a new column:
+
+```python tab="Python"
+from functions.api import function
+
+@function
+def full_name(first_name: str, last_name: str) -> str:
+    return f"{first_name} {last_name}"
+```
+
+When you [configure the transform](#use-your-function-in-a-pipeline-builder-pipeline), map the `first_name` and `last_name` parameters to the corresponding input columns. When the transform runs, Pipeline Builder evaluates `full_name` for each row and writes the returned string to a new output column.
+
+For the full list of supported input and output types and their Python equivalents, review the [types reference](/docs/foundry/functions/types-reference/).
+
+### Return a struct
+
+To return multiple related values from a single function, return a [custom type (struct)](/docs/foundry/functions/types-reference/#structcustom-type) instead of a scalar. Pipeline Builder adds the returned value as a single struct column with one field for each attribute of the custom type. You can then extract individual fields with the [Get struct field](/docs/foundry/pipeline-builder/functions-index/#get-struct-field) transform.
+
+```python tab="Python"
+from dataclasses import dataclass
+from functions.api import function, Double
+
+@dataclass
+class Stats:
+    total: Double
+    average: Double
+
+@function
+def compute_stats(a: Double, b: Double) -> Stats:
+    total = a + b
+    return Stats(total=total, average=total / 2)
+```
 
 ## Use your function in a Pipeline Builder pipeline
 

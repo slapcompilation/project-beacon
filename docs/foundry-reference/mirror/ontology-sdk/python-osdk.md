@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Python OSDK
 
@@ -475,8 +475,8 @@ Example query:
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
 numExampleRestaurant = client.ontology.objects.ExampleRestaurant
-    .where(~ExampleRestaurant.object_type.restaurant_name).is_null())
-    .group_by(ExampleRestaurant.object_type.restaurant_name).exact())
+    .where(~ExampleRestaurant.object_type.restaurant_name.is_null())
+    .group_by(ExampleRestaurant.object_type.restaurant_name.exact())
     .count()
     .compute()
 ```

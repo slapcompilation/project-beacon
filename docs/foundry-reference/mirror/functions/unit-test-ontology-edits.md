@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-ontology-edits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-ontology-edits/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Verify Ontology edits
 
@@ -6,7 +6,7 @@ You can use the `verifyOntologyEditFunction()` API to verify edits performed by 
 
 #### Verify object creation
 
-You can use the `.createsObjects` method to verify an object creation. Here's an example:
+You can use the `.createsObjects` method to verify an object creation. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -50,7 +50,7 @@ export class MyFunctions {
 
 #### Verify edits on a newly created object
 
-You can verify edits that are created involving a newly created object. For example, you may want to create a new `ExampleDataFlight` objects and verify that the link is created to the `new-flight-delay-0`. Here's an example:
+You can verify edits that are created involving a newly created object. For example, you may want to create a new `ExampleDataFlight` objects and verify that the link is created to the `new-flight-delay-0`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -99,7 +99,7 @@ export class MyFunctions {
 
 #### Verify object property edits
 
-You can verify edits to the property using `.modifiesObjects`. Here's an example:
+You can verify edits to the property using `.modifiesObjects`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -147,7 +147,7 @@ export class MyFunctions {
 
 #### Verify no other edits to an object
 
-You can ensure there are no other edits using the optional `.hasNoMoreEdits()`. This means that only the specified edits are allowed, and the verification will fail if other edits are detected. Here's an example:
+You can ensure there are no other edits using the optional `.hasNoMoreEdits()`. This means that only the specified edits are allowed, and the verification will fail if other edits are detected. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -178,7 +178,7 @@ When using `.hasNoMoreEdits()`, you can ignore specific kinds of edits that take
 
 #### Verify link creation to an object
 
-You can verify link creation on an object using `.addsLink`. Here's an example:
+You can verify link creation on an object using `.addsLink`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -238,7 +238,7 @@ export class MyFunctions {
 
 #### Verify link removal from an object
 
-You can verify link removal from an object using `.removesLink`. Here's an example:
+You can verify link removal from an object using `.removesLink`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -278,7 +278,7 @@ export class MyFunctions {
 
 #### Verify deleting an object
 
-You can verify deleting an object using `.deletesObject`. Here's an example:
+You can verify deleting an object using `.deletesObject`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -316,7 +316,7 @@ export class MyFunctions {
 
 #### Verify multiple objects were created
 
-You can use the `.createsObjects` method and pass in a list to create multiple objects to test on. Here's an example:
+You can use the `.createsObjects` method and pass in a list to create multiple objects to test on. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Properties and links
 
@@ -26,7 +26,7 @@ There are several settings that affect the display in the Properties Widget:
   * Hidden: The property will not be displayed in the Properties widget (or anywhere in the Object View or Object Explorer). This option is used for properties such as internal IDs, relation-columns for links to other objects, and so on.
 * Render Hints
   * Long text: This option, marking a property as a long text (usually for long strings, such as descriptions, comments, etc.), enables displaying texts in a separate section of the Properties widget.
-  * Keywords: Render a property as a keyword, which changes the way it is viewed in the Properties widget, and also allows to display it in a separate section within the widget.
+  * Keywords: Render a property as a keyword, which changes the way it is viewed in the Properties widget, and also allows you to display it in a separate section within the widget.
 * Type classes: This allows you to define type classes to properties, which would affect their functionality.
 * Make a property editable: If you wish to make a property editable, set up an [action type](/docs/foundry/action-types/overview/) or an [inline action](/docs/foundry/action-types/inline-edits/).
 

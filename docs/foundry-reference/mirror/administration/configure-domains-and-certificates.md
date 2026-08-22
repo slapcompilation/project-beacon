@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-domains-and-certificates/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-domains-and-certificates/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure domains and certificates
 
@@ -36,7 +36,7 @@ Signing the certificate should be completed outside of the platform. This can be
 * The certificate must be publicly trusted by major browsers. If you wish to use a certificate signed by a custom CA, contact Palantir Support for guidance.
 
 :::callout{theme="neutral"}
-If you received multiple signed certificates (including both leaf certificates signed by intermediate CAs and intermediate certificates signed by the root CA), concatenate these certificates into a single `.pem` file with the leaf certificate first, followed by intermediate certificates. Certificates uploaded to Control Panel must be signed by a root CA approved by the Palantir security team in order to be accepted.
+If your CA returned the leaf certificate and any required intermediate certificates as separate files, upload each `.pem` file to Control Panel in any order. You can also upload a single `.pem` file containing the complete certificate chain with the leaf certificate first, followed by intermediate certificates. Certificates uploaded to Control Panel must be signed by a root CA approved by the Palantir security team in order to be accepted.
 :::
 
 This process may vary based on the domain and method you choose to sign the certificate.
@@ -77,7 +77,7 @@ This process may vary based on the domain and method you choose to sign the cert
 
 * `NotAllowedByPalantirSecurity`: The certificate authority is not allowed by Palantir security. Common root causes for this error include:
   * Uploading a self-signed certificate or a certificate signed by a CA that is not recognized by major browsers. Contact Palantir Support for assistance if you need to use a custom CA.
-  * Uploading a certificate signed by an intermediate CA. Ensure that the full certificate chain is uploaded, including any intermediate certificates.
+  * Uploading only the leaf certificate when it was signed by an intermediate CA. Upload the entire certificate chain, including all required intermediate certificates, as separate `.pem` files in any order, or include the complete certificate chain in a single `.pem` file.
 * `UntrustedAlgorithm`: The certificate was signed using an untrusted algorithm.
 * `InvalidSignedCertificate`: The signed certificate is invalid, or it does not match the CSR.
 * `ShortExpiryForCertificate`: The duration until certificate expiration is too short.
@@ -159,9 +159,9 @@ The following section serves to answer frequently asked questions.
 
 No. The Palantir-owned domain provided with your enrollment is not modifiable in self-service. If you have an enterprise account and need to change your domain to another Palantir-owned domain, contact your Palantir representative.
 
-### Can I have my certificate signed by an intermediate CA rather than the root CA?
+### Can I only have my certificate signed by an intermediate CA rather than the root CA?
 
-No. Certificates uploaded to Control Panel must be signed by a root CA approved by the Palantir security team to be accepted. Leaf certificates are not permitted on their own. As mentioned in [step 2](#2-sign-the-certificate), you must concatenate leaf and intermediate certificates into a single `.pem` file with the leaf certificate first, followed by intermediate(s):
+No. Upload the leaf certificate and all required intermediate certificates as separate `.pem` files in any order. You can also upload a single `.pem` file containing the complete certificate chain. In either case, the certificate must chain to a root CA approved by the Palantir security team. If you choose to concatenate the certificate chain into one `.pem` file, it should be in the following order:
 
 ```
 -----BEGIN CERTIFICATE-----

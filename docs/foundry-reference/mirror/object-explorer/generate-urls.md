@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/generate-urls/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/generate-urls/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Generate Object Explorer URLs
 

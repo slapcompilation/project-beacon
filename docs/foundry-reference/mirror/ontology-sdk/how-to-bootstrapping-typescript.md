@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-typescript/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-typescript/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Bootstrap a new OSDK TypeScript application
 
@@ -61,6 +61,30 @@ Your project files have now been generated in a directory based on the project n
 cd <project-directory>
 npm install
 npm run dev
+```
+
+#### Use OSDK React packages (optional)
+
+If your application uses React, you can use the following libraries.
+
+##### `@osdk/react`
+
+Use [`@osdk/react`](/docs/foundry/ontology-sdk-react-applications/osdk-react/) for typed hooks, shared caching, actions, functions, and custom data-driven interfaces.
+
+Install the latest version of `@osdk/react`:
+
+```bash
+npm install @osdk/react@latest
+```
+
+##### `@osdk/react-components`
+
+Use [`@osdk/react-components`](/docs/foundry/ontology-sdk-react-applications/osdk-react-components/) for pre-built, Ontology-aware interface elements. This library builds on `@osdk/react`.
+
+Install the latest version of `@osdk/react-components`:
+
+```bash
+npm install @osdk/react-components@latest
 ```
 
 ## Troubleshooting

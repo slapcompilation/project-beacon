@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/unsupported-types/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/unsupported-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Unsupported types in OSDK
 
@@ -78,7 +78,7 @@ The following Python SDK function input types are unsupported:
 * `CustomType`
 * `GeoShape`
 * `Group`
-* `MandatoryControl`
+* `MandatoryMarking`
 * `ModelGraph`
 * `Notification`
 * `OntologyEdit`
@@ -99,7 +99,7 @@ The following Python SDK function output types are unsupported:
 * `CustomType`
 * `GeoShape`
 * `Group`
-* `MandatoryControl`
+* `MandatoryMarking`
 * `ModelGraph`
 * `Notification`
 * `OntologyEdit`
@@ -121,7 +121,7 @@ The following Java SDK function input types are unsupported:
 * `CustomType`
 * `GeoShape`
 * `Group`
-* `MandatoryControl`
+* `MandatoryMarking`
 * `ModelGraph`
 * `Notification`
 * `OntologyEdit`
@@ -141,7 +141,7 @@ The following Java SDK function output types are unsupported:
 * `CustomType`
 * `GeoShape`
 * `Group`
-* `MandatoryControl`
+* `MandatoryMarking`
 * `ModelGraph`
 * `Notification`
 * `OntologyEdit`

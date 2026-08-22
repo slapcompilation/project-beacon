@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/shared-security-responsibility-model/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/shared-security-responsibility-model/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Shared security responsibility model
 

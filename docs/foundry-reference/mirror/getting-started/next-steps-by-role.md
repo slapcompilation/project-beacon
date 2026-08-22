@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/next-steps-by-role/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/next-steps-by-role/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Next steps by user role
 

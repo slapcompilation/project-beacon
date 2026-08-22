@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/interfaces/create-interface/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/interfaces/create-interface/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create an interface
 

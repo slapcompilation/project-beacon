@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-events/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-events/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure Events and Actions
 
@@ -84,7 +84,7 @@ This event will run a query when the button is clicked on – but only if the us
 
 Assume there are two input widgets (user-enterable text fields) named `w_input1` and `w_input2`. Additionally, assume there is a button named `w_buttonConditional` and a manual query `q_queryConditional`.
 
-Assume further that the query depends on the user-entered values into the input boxes, that is to say, `w_input1.text` and `w_input2.text` and it would be useless to run the query without these two having values – so we don’t want to run the query if these are blank, even if the button is clicked. We can implement this in the following way. Create a new event, and then choose `w_buttonConditional.click` for the event, and `q_queryConditional.run` for the action. Then fill in the code in the events panel as follows:
+Assume further that the query depends on the user-entered values into the input boxes, that is to say, `w_input1.text` and `w_input2.text` and it would be useless to run the query without these two having values – so we do not want to run the query if these are blank, even if the button is clicked. We can implement this in the following way. Create a new event, and then choose `w_buttonConditional.click` for the event, and `q_queryConditional.run` for the action. Then fill in the code in the events panel as follows:
 
 ```js
 var input1Text = {{w_input1.text}};

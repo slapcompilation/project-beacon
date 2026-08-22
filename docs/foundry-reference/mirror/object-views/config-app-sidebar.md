@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure the applications sidebar
 
@@ -69,5 +69,5 @@ There are two main ways to add an application to the sidebar:
    * By default, the details of the current object are available using these parameters: `{{objectId}}` & `{{objectTypeId}}`.
 
 :::callout{theme="neutral"}
-If a user doesn’t have permissions to the embedded application, they would not be able to open it but would still see the application card. Make sure you set up the right permissions on each application in the sidebar.
+If a user does not have permissions to the embedded application, they would not be able to open it but would still see the application card. Make sure you set up the right permissions on each application in the sidebar.
 :::

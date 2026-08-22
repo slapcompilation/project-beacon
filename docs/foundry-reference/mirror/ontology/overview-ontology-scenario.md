@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview-ontology-scenario/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview-ontology-scenario/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Scenarios \[Beta]
 
@@ -27,11 +27,15 @@ To manage storage costs, a scenario has a default lifespan of 30 days. After 30 
 
 ## Auto-rebasing
 
-A scenario is auto-rebased every 10 minutes on top of their main or global branch. The rebase feature allows you to incorporate the latest changes from the base Ontology into your active scenario, keeping it in sync with the latest state of your data.
+A scenario is auto-rebased every 10 minutes on top of its main or global branch. The rebase feature allows you to incorporate the latest changes from the base Ontology into your active scenario, keeping it in sync with the latest state of your data.
 
 ## Global Branching vs. Ontology scenarios
 
 [Global branching](/docs/foundry/global-branching/overview/) is a tool used by builders to develop and test end-to-end workflows in the Palantir platform. These workflows would otherwise be too disruptive to run against a live production environment. An Ontology scenario provides a sandbox for users (humans and agents) of these workflows to apply edits to the Ontology without disrupting the main Ontology data. Users can create and compare multiple scenarios and merge edits to main Ontology data.
+
+## Govern actions by execution context
+
+[Action submission criteria](/docs/foundry/action-types/submission-criteria/#execution-context) can distinguish between actions executed within a scenario and actions executed against the main Ontology. This safeguard allows planners and agents to use more permissive submission criteria when testing actions in a scenario's isolated sandbox, without granting them permission to apply those actions to the main Ontology. Applying approved scenario edits to the main Ontology is controlled separately through the submission criteria of the [merge action](/docs/foundry/ontology/merge-scenario/#configure-the-merge-action).
 
 ## Functions on a scenario
 

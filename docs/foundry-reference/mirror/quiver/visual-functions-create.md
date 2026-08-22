@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/visual-functions-create/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/visual-functions-create/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create and use visual functions
 
@@ -30,7 +30,7 @@ Click **Set as output** at the bottom of the screen.
 
 Alternatively, you can select the output by using the dropdown in the output section in the function editor on the right.
 
-Once you’ve set the output, eligible inputs in the analysis graph will be highlighted in purple. This means you can select any of the highlighted cards as input to the function.
+Once you have set the output, eligible inputs in the analysis graph will be highlighted in purple. This means you can select any of the highlighted cards as input to the function.
 
 ![Eligible inputs of the visual function](./images/howto-visual-function-eligible-inputs.png)
 
@@ -112,7 +112,7 @@ This will save a new version of the function. When using a function in an analys
 
 ## Share a function
 
-When you publish a function, the function will inherit the users permissions on the folder it’s been saved in, meaning that users who have access to this folder will be able to use this function in their analysis.
+When you publish a function, the function will inherit the users permissions on the folder it has been saved in, meaning that users who have access to this folder will be able to use this function in their analysis.
 
 Additionally, you can further share the function with users or groups of users by using the Share panel. To do so, open the function in a separate tab (clicking on the function's name in the top header ![Opening function tab](./images/howto-visual-function-open-tab.png)) and click on **Share** in the top right corner.
 

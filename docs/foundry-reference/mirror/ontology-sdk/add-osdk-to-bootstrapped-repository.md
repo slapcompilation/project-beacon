@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/add-osdk-to-bootstrapped-repository/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/add-osdk-to-bootstrapped-repository/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add an OSDK to a bootstrapped repository
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/analyze-user-activity-metrics/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/analyze-user-activity-metrics/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Analyze user activity metrics
 

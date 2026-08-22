@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-ignore-inherited-permissions/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-ignore-inherited-permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Migrate from and disable "Ignore inherited permissions" setting \[Planned deprecation]
 

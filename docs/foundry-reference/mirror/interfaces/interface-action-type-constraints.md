@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/interfaces/interface-action-type-constraints/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/interfaces/interface-action-type-constraints/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Interface action type constraints
 

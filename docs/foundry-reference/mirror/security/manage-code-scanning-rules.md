@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/manage-code-scanning-rules/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/manage-code-scanning-rules/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Manage code scanning rules
 

@@ -1,11 +1,11 @@
-<!-- source: https://palantir.com/docs/foundry/functions/foo-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/foo-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started with functions on objects
 
 One of core features of functions is they can easily access data that has been integrated into the Foundry Ontology. The Ontology provides semantic modeling of data for your organization, which makes it easy to access structured data and reuse logic across use cases.
 
 :::callout{title="Prerequisites"}
-This tutorial assumes that you have created and set up a TypeScript repository. If you haven't yet, complete the [Getting started](/docs/foundry/functions/getting-started/) tutorial first.
+This tutorial assumes that you have created and set up a TypeScript repository. If you have not done so yet, complete the [Getting started](/docs/foundry/functions/getting-started/) tutorial first.
 :::
 
 ### Import Ontology types
@@ -20,7 +20,7 @@ Your organization may not have the Airport and Flight objects. Use any object ty
 
 To import additional object types, you will need to select the **Add** button in the **Resource Imports** side bar. If no Ontology has been selected you will be prompted to select an Ontology. If you have at least one imported Ontology type, the selected Ontology will automatically be resolved.
 
-Once an Ontology is selected, a search modal will appear. Your Ontology will depend on the object types available in your organization. Start by selecting a few object types and link types that connect them. In this example, we'll import the Airport and Flight objects, in addition to the link type between them.
+Once an Ontology is selected, a search modal will appear. Your Ontology will depend on the object types available in your organization. Start by selecting a few object types and link types that connect them. This example imports the Airport and Flight objects, in addition to the link type between them.
 
 ![ontology-import-example](./images/ontology-import-example.png)
 
@@ -38,7 +38,7 @@ If you are using a private Ontology, replace `@foundry/ontology-api` with `@foun
 
 ### Add an object-backed function
 
-Next, let's write a function using an object type you just imported. Your code will depend on the object types, properties, and link types available to you. Switch back to the **Code** tab, and try importing one of the object types you just added:
+Next, write a function using an object type you just imported. Your code will depend on the object types, properties, and link types available to you. Switch back to the **Code** tab, and try importing one of the object types you just added:
 
 ```typescript
 import { Airport } from "@foundry/ontology-api";
@@ -78,7 +78,7 @@ Then, use the dialog to import the backing datasources for your object types:
 
 ![helper-datasource-import-dialog](./images/helper-datasource-import-dialog.png)
 
-After you've imported the datasources, choose an object and select **Run** to see results:
+After you have imported the datasources, choose an object and select **Run** to see results:
 
 ![helper-preview-run-foo](./images/helper-preview-run-foo.png)
 

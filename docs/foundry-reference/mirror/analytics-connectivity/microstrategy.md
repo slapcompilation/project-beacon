@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/microstrategy/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/microstrategy/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Connecting to Foundry datasets from MicroStrategy
 
 The MicroStrategy analytics platform includes a MicroStrategy-certified connector that enables users to easily create MicroStrategy reports and dossiers backed by Foundry datasets. The connector offers compatibility with Foundry access controls, including granular permissions.
 
-### Supported products:
+### Supported products
 
 * MicroStrategy Workstation as preview feature (2021 Update 8 release)
 * MicroStrategy Workstation (2021 Update 9 release or later)

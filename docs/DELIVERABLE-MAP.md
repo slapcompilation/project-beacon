@@ -621,10 +621,37 @@ Two citations broke and were repaired to the current wording: a typo upstream
 FIXED that a reading had quoted verbatim ("the type of column X may been
 changed"), and a `won't` that became `will not`.
 
-**The remaining sections of the 58 are not swept.** Named so the debt is
-recorded: `security/`, `platform-security-management/`, `functions/`,
-`building-pipelines/`, `administration/`, `data-integration/`, `map/`,
-`ai-fde/`, `foundry-rules/`, `action-types/`, `osdk/`. Drift will keep saying so.
+**The rest was swept the same day.** 22 further sections re-mirrored, 861 pages
+written, 28 failed — and all 28 are pages we never had on disk, not damage.
+Nothing was deleted; the failures are part of the 16% the mirror has never
+covered.
+
+**Thirteen more citations broke and were repaired.** Almost all of it was the
+same copy-editing pass: contractions expanded, smart apostrophes normalised. Two
+were upstream FIXING a typo a reading had quoted verbatim — "a property the
+contains one of these identifiers" and "each others saved changes" — which is
+the drift guard working in the pleasant direction. One was a genuine rewrite,
+`manage-roles`' "we've included the Viewer role" becoming "the Viewer role is
+included".
+
+**One correction lands on a page we built from, and we were already right.**
+`building-pipelines/triggers-reference` — the page 613 cites — changed its OR
+operator from "Satisfied when either `E1` and `E2` have occurred" to "Satisfied
+when either `E1` or `E2` has occurred". Our `schedule_satisfied` returns true on
+the first satisfied child and false otherwise, which is disjunction; we read
+through the confusing wording in 493-496 and the page now agrees. Its cron
+example also had 9:55**pm** corrected to 9:55**am**, which our parser never read.
+
+**New capability, not a falsification:** `functions/media` grew by ~160 lines —
+`uploadMedia`, media metadata unions, an `itemMetadata.type` discriminant across
+TypeScript and Python. Functions-on-media is not built here (F1 is a QuickJS
+isolate with declared imports), so this is a section that moved ahead of us
+rather than under us.
+
+**A caveat on the sweep's own method.** Re-mirroring an entire section to find
+its changed pages rewrites the `mirrored <date>` line in every file, so 890
+files show as modified and 14 of 47 actually changed. `git diff --numstat` with
+a threshold of one line each way separates them; a plain file count does not.
 
 ### The drift sweep (2026-08-18/19) — the corpus moved under fourteen readings
 

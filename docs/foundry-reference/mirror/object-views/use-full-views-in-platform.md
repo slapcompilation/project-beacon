@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/use-full-views-in-platform/ · mirrored 2026-08-08 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/use-full-views-in-platform/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Use full Object Views
 

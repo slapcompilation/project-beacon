@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-transform-table-index-null-error-handling/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-transform-table-index-null-error-handling/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Null and error handling
 

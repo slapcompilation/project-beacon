@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk-migration/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk-migration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Python OSDK migration guide (1.x to 2.x)
 

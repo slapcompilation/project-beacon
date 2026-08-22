@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-time/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-time/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Time
 
@@ -19,7 +19,7 @@ The following tables offer usage details about the properties available to Calen
 
 |Attribute	|Description	|Type	|Required	|Changed By	|
 |---	|---	|---	|---	|---	|
-|areEventsAllDay	|An Array of booleans that determine if the corresponding events are all-day events. All day events will appear in the “all-day” section of the views, and will only appear on days that are fully within the start and end times. Additionally, When all-day events are selected, their start and end times will reflect the adjusted time boundaries. For example: An all-day event from “January 1st 03:00” to “January 3rd 03:00” will render as “January 1st 00:00” to “January 3rd 00:00”.If left empty, events will default to All Day = false.	|json	|No	|Direct Edit	|
+|areEventsAllDay	|An Array of booleans that determine if the corresponding events are all-day events. All day events will appear in the “all-day” section of the views, and will only appear on days that are fully within the start and end times. Additionally, when all-day events are selected, their start and end times will reflect the adjusted time boundaries. For example: An all-day event from “January 1st 03:00” to “January 3rd 03:00” will render as “January 1st 00:00” to “January 3rd 00:00”. If left empty, events will default to All Day = false.	|json	|No	|Direct Edit	|
 |dateRangeEnabled	|Adds the date range as a title for the Calendar that corresponds to the current view. This will be the day, week, or month currently displayed depending on the view.	|string	|Yes	|Direct Edit	|
 |defaultDate	|The date that the calendar will default to on page load. If set to the empty string this will default the view to “today” thus causing the range to match the current date on page load.	|string	|Yes	|User Interaction	|
 |eventEnds	|The end times of each event.	|json	|Yes	|Direct Edit	|

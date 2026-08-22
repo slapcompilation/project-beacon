@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/legacy-foundry-rules-setup-taurus/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/legacy-foundry-rules-setup-taurus/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Legacy Foundry Rules Setup (Taurus)
 
@@ -31,7 +31,7 @@ While rule Actions are configured with Foundry Actions, Actions are not executed
 :::
 
 :::callout{theme="neutral"}
-Some legacy versions of Foundry Rules (previously known as Taurus) deployed prior to January 2021, need to upgrade in order to use rule Actions. Unless you've been specifically directed to, you likely do not need to do this.
+Some legacy versions of Foundry Rules (previously known as Taurus) deployed prior to January 2021, need to upgrade in order to use rule Actions. Unless you have been specifically directed to, you likely do not need to do this.
 
 Learn more about [upgrading to use rule Actions](/docs/foundry/foundry-rules/upgrade-to-use-rule-actions/).
 :::

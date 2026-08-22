@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/integrate-searcharounds/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/integrate-searcharounds/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Map Search Arounds
 

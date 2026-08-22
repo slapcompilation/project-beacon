@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/view-usage/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/view-usage/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Ontology metrics
 
@@ -20,7 +20,7 @@ There are two places in the Ontology Manager to view object type and link type u
 ![Usage graph on the overview tab](./images/oma-user-interface-overview-usage.png)
 
 :::callout{theme="warning" title="Warning"}
-If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it’s possible that internal tables may not have been configured. Contact your Palantir representative for more information.
+If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it is possible that internal tables may not have been configured. Contact your Palantir representative for more information.
 :::
 
 * A dedicated **Usage** tab: Detailed usage metrics for resources. Users can see, over the last 30 days, who has used each object type, when, and in which Foundry applications. The feature is intended to help Ontology users make Ontology changes more safely by providing a clearer understanding of a change's impact. The **Usage** tab can also be accessed by clicking **See more** on the usage graph in the **Overview** tab.

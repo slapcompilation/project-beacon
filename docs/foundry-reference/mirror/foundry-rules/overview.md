@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/overview/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Foundry Rules
 
@@ -11,7 +11,7 @@ Foundry Rules comprises a set of components for creating, managing, and applying
 
 ![Screenshot of filter group with rules and conditions](./images/filter_group.png)
 
-The following pages describe several [core concepts](/docs/foundry/foundry-rules/core-concepts/) and provides instructions for how to [deploy](/docs/foundry/foundry-rules/deploy-foundry-rules/) and [customize](/docs/foundry/foundry-rules/customization/) Foundry Rules.
+The following pages describe several [core concepts](/docs/foundry/foundry-rules/core-concepts/) and provide instructions for how to [deploy](/docs/foundry/foundry-rules/deploy-foundry-rules/) and [customize](/docs/foundry/foundry-rules/customization/) Foundry Rules.
 
 ## Example use cases
 

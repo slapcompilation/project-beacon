@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameters-filter/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameters-filter/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Filter results of a parameter dropdown
 
@@ -24,7 +24,7 @@ The image below shows the possible values for the `Name` parameter:
 
 ### Data privacy implications
 
-When using the new validation on an object parameter, it's possible for data to be viewed by everyone who can view the action type. If there are sensitive static values in the parameter filters, users will be able to view those values even if they cannot view the underlying objects that are being filtered. [Learn more about the data privacy implications.](/docs/foundry/action-types/dropdown-security/)
+When using the new validation on an object parameter, it is possible for data to be viewed by everyone who can view the action type. If there are sensitive static values in the parameter filters, users will be able to view those values even if they cannot view the underlying objects that are being filtered. [Learn more about the data privacy implications.](/docs/foundry/action-types/dropdown-security/)
 
 ## Supported operations
 

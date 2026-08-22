@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/branching-release-process/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/branching-release-process/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Branching and release process
 
@@ -8,7 +8,7 @@ The high level goal is to design a process to strike a balance between quick ite
 
 ## Scope of release
 
-Before we jump into the internals of the release management process, we need to better define exactly "what is the product" that we are releasing? For our purposes we'll define the `product` to be *the set of assets released as a conceptual unit*.
+Before we jump into the internals of the release management process, we need to better define exactly "what is the product" that we are releasing? For our purposes, we will define the `product` to be *the set of assets released as a conceptual unit*.
 
 Taking [Recommended Project structure](/docs/foundry/building-pipelines/recommended-project-structure/) as a reference for how we build pipelines in Foundry, we see that the pipeline is defined by
 multiple projects of different types - datasource, transforms, Ontology and workflow. In most cases, however, we will not manage each project on its own as a product, but instead, each project will define a subset of its resources as one of the following product types:
@@ -49,7 +49,7 @@ source.
 and tested. This branch is derived from `dev` branch. This is a
 short-lived branch, meaning it can be deleted once the branch is being
 merged into master. Since the branch is derived from `dev` it will be
-sourced with the same data `dev` branch has. Note that this remains true as long as the fallback branches don't get reconfigured, and as long as the input datasets don't exist on the feature branch.
+sourced with the same data `dev` branch has. Note that this remains true as long as the fallback branches do not get reconfigured, and as long as the input datasets do not exist on the feature branch.
 
 ![basic-branching](./images/branches-1.png)
 
@@ -106,7 +106,7 @@ The upgrade process should be treated the same way as a feature development cyc
 1. `master` should be upgraded through `dev`.
 
 2. When prompted to upgrade `dev`, an automated feature branch will be
-   created. You can test the configuration changes by running a build on this branch once CI checks are complete. After confirming the transforms still execute after the upgrade, merge the configuration changes into `dev`. Once `dev`is upgraded, a PR should be used to push these changes to master.
+   created. You can test the configuration changes by running a build on this branch once CI checks are complete. After confirming the transforms still execute after the upgrade, merge the configuration changes into `dev`. Once `dev` is upgraded, a PR should be used to push these changes to master.
 
 3. To upgrade all open feature branches, merge `dev` back into each branch to include these configuration upgrades.
 
@@ -166,7 +166,7 @@ The above workflow allows for a relatively fast collaboration cycle between the 
 
 ### Foundry Issues feature review workflow
 
-Below is an example of how a team can use Foundry Issues to track requests for review from other stakeholders, carry out conversations around new features, and control and document the process or merging code to `master`, so all interested parties remain informed and up-to-date. Consider this directional, rather than proscriptive, and adapt it to existing operational and technical processes as needed.
+Below is an example of how a team can use Foundry Issues to track requests for review from other stakeholders, carry out conversations around new features, and control and document the process of merging code to `master`, so all interested parties remain informed and up-to-date. Consider this directional, rather than proscriptive, and adapt it to existing operational and technical processes as needed.
 
 **Example workflow**
 
@@ -184,7 +184,7 @@ The diagram below shows how an issue is created on the build output dataset.
 
 2. Report the issue on the whole dataset by clicking **Report Issue**.
 
-3. If the feature has to do with a specific column, you can using the column level report issue to provide the reviewer better context of the change you made.
+3. If the feature has to do with a specific column, you can use the column level report issue to provide the reviewer better context of the change you made.
 
 4. Complete the issue fields as prompted by the form.
 

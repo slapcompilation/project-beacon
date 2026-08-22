@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/file-support-ticket/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/file-support-ticket/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # File a support ticket
 
@@ -44,7 +44,7 @@ Here are some tips for creating a minimal, complete, and verifiable example:
 
 ### Example
 
-The following is an historical example of a minimal, complete, and verifiable issue that has been resolved.
+The following is a historical example of a minimal, complete, and verifiable issue that has been resolved.
 
 Steps to reproduce the problem at the time:
 

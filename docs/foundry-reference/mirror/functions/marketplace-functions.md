@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/marketplace-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/marketplace-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Functions in Marketplace
 
@@ -56,6 +56,10 @@ The way a function's API name is resolved is as follows:
 
 :::callout{theme="neutral" title="Beta"}
 Stable mode is in the [beta](/docs/foundry/platform-overview/development-life-cycle/) phase of development and may not be available on your enrollment. Functionality may change during active development. Contact Palantir Support to enable this on your enrollment.
+:::
+
+:::callout{theme="warning"}
+Stable mode is not supported for [compute module functions](/docs/foundry/compute-modules/functions/) because compute module functions have their own versioning behavior in Foundry.
 :::
 
 Versions and API names are an integral part of your function’s API. It is therefore desirable in many cases to preserve them when packaging and installing them through Marketplace. It is especially important when installing functions alongside upstream applications that reference function dependencies statically, as in [Developer Console applications](/docs/foundry/developer-console/marketplace-installation/).

@@ -394,7 +394,7 @@ received edits; and the exemptions:
 
 A different failure mode again, after the dialog is satisfied:
 
-> If the backend services powering the Ontology encounter a problem when you save, you will receive an error message "toast" (pop-up), as in the image below. At the end of the text explaining why you can't save, the name of the error message will be printed. The error message name will begin with the prefix `OntologyMetadata:` or `Phonograph2:`.
+> If the backend services powering the Ontology encounter a problem when you save, you will receive an error message "toast" (pop-up), as in the image below. At the end of the text explaining why you cannot save, the name of the error message will be printed. The error message name will begin with the prefix `OntologyMetadata:` or `Phonograph2:`.
 
 The screenshot shows the full shape, including a machine-readable operations
 payload the prose never mentions:
@@ -602,7 +602,7 @@ with the matching error:
 Two stated use cases — code-editing the ontology, and copying one ontology's
 working state into another:
 
-> * If you'd like to copy the working state of one Ontology to another Ontology, you can export the Ontology's current state as a JSON file and then import the copied JSON back into the platform (making any desired changes to the JSON in a code editor).
+> * If you would like to copy the working state of one Ontology to another Ontology, you can export the Ontology's current state as a JSON file and then import the copied JSON back into the platform (making any desired changes to the JSON in a code editor).
 
 ---
 
@@ -1212,7 +1212,7 @@ row* rendered by a more talkative application, not evidence of anything.
 **Where Quiver must NOT be copied.** Its concurrency model is the opposite of the
 Ontology Manager's:
 
-> If multiple users are working on the same analysis at the same time, they are able to work independently without interference, however saving changes will overwrite each others saved changes.
+> If multiple users are working on the same analysis at the same time, they are able to work independently without interference, however saving changes will overwrite each other's saved changes.
 
 Last-write-wins, with no merge at all. The Ontology Manager has `Update`,
 conflicts and keep-or-override (§6), so it is the more careful product and

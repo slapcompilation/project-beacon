@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/styles-global-stylesheet/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/styles-global-stylesheet/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Global stylesheets \[Experimental]
 
@@ -10,7 +10,7 @@ In addition to allowing you to apply styles to your Slate application at the app
 
 Global stylesheets are not available for applications stored outside a space for example in a private folder. The user requires the `slate:edit-stylesheet` role on the space to create or update global stylesheets and `slate:view-stylesheet` on the space to use global stylesheets.
 
-Enabling global stylesheets in your Slate application applies the stylesheets to the application, just as if they were added to the local styles of the Styles Editor. This allows these styles to be reused across projects in the same organization in order to maintain a consistent look-and-feel across some or all applications in a given organization or project. Changes made to these global stylesheets apply to all Slate applications that use them, which means that editors won't need to change all of their applications if the underlying style guide is changed.
+Enabling global stylesheets in your Slate application applies the stylesheets to the application, just as if they were added to the local styles of the Styles Editor. This allows these styles to be reused across projects in the same organization in order to maintain a consistent look-and-feel across some or all applications in a given organization or project. Changes made to these global stylesheets apply to all Slate applications that use them, which means that editors will not need to change all of their applications if the underlying style guide is changed.
 
 If you have the correct permissions on the space the Styles Editor will look like the following:
 

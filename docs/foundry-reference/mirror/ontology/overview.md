@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 ![Ontology overview header image.](./images/ontology-overview-header.png)
 
@@ -31,5 +31,5 @@ The goal of investing in the Ontology is to facilitate better decision-making in
 [Learn more about how to leverage the Ontology in user-facing applications.](/docs/foundry/ontology/applications/)
 
 :::callout{theme="success" title="Palantir Learning portal"}
-Now that you know the theory, get started on building your first Ontology with our course on [learn.palantir.com ↗](http://learn.palantir.com/deep-dive-creating-your-first-ontology).
+Now that you know the theory, get started on building your first Ontology with our course on [learn.palantir.com ↗](https://learn.palantir.com/deep-dive-creating-your-first-ontology).
 :::

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/filter-results/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/filter-results/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Filter results
 
@@ -20,7 +20,7 @@ In the search menu, you can find a list of all properties **(B)** (and optionall
 
 ![Search](./images/explore_search_filtered.png)
 
-Type in the search bar **(A)** to search for specific property types. When the desired property is selected, a pop-over will you allow to chose values to filter on for that property. The input experience varies based on the type of the property (numeric, text, date, etc.). For text properties (e.g. language), options can be filtered by typing in the pill.
+Type in the search bar **(A)** to search for specific property types. When the desired property is selected, a pop-over will allow you to choose values to filter on for that property. The input experience varies based on the type of the property (numeric, text, date, etc.). For text properties (e.g. language), options can be filtered by typing in the pill.
 
 → You know the value but not which property it belongs to?
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-outbound-applications/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-outbound-applications/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure outbound applications with OAuth 2.0 authorization code grants
 

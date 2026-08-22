@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/public-applications-data-upload/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/public-applications-data-upload/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Upload data for public applications
 

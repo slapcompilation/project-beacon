@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-user-and-group-visibility/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-user-and-group-visibility/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure user and group visibility
 

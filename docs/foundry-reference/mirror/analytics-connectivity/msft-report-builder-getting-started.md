@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/msft-report-builder-getting-started/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/msft-report-builder-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -14,15 +14,15 @@ This guide will teach you how to authenticate with Foundry via Report Builder, s
 
 ### Build your connection string
 
-You'll now need to create your connection string for your Foundry connection by pasting the following Base Connection String into the Connection string text box in Report Builder, and replacing '<URL>' and '<Token>' as described below:
+You will now need to create your connection string for your Foundry connection by pasting the following Base Connection String into the Connection string text box in Report Builder, and replacing '<URL>' and '<Token>' as described below:
 
 * **Base Connection String:** `DSN=FoundrySql;BaseUrl=<URL>;PWD=<Token>`
 * **URL:** Add your Foundry connection URL as the "Base URL". Your Foundry connection URL is the link you normally use to access Foundry. To do so, replace the '<URL>' with this path by logging into Foundry, copying the URL, and deleting the `https://` prefix as well as anything after `.com`.
 * **Token:** Follow the instructions on [generating a token](/docs/foundry/platform-security-third-party/user-generated-tokens/) to generate a private authentication token inside Foundry. Once you have the token, you can paste it into the '<Token>' section of the Base Connection String.
-* Your Foundry data source should now be connected. You can now try clicking the "Test Connection" button. If you receive an error at this point, ensure you've completed the [installation instructions](/docs/foundry/analytics-connectivity/msft-report-builder-setup/).
+* Your Foundry data source should now be connected. You can now try clicking the "Test Connection" button. If you receive an error at this point, ensure you have completed the [installation instructions](/docs/foundry/analytics-connectivity/msft-report-builder-setup/).
 
 :::callout{theme="neutral"}
-Your credentials should now be saved in Report Builder and will continue to work as long as they are valid. You won't be prompted for a token again until your token validity has expired. At this point you can follow the above instructions again to generate a new token.
+Your credentials should now be saved in Report Builder and will continue to work as long as they are valid. You will not be prompted for a token again until your token validity has expired. At this point you can follow the above instructions again to generate a new token.
 :::
 
 Click "OK" and proceed to the next step.

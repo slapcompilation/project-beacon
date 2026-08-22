@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create an incremental pipeline with Pipeline Builder
 
@@ -14,13 +14,13 @@ For incremental pipelines, you have the option to [force incremental behavior fo
 
 Suppose we have an input dataset of `flights` that appends new data every week. We want to filter down to only the flights departing `JFK` airport, then append only those flights to the output `filtered_flights`.
 
-Let’s say that the `flights` dataset is 20 million rows, but only 1 million rows are added each week. With incremental computation, the pipeline only needs to consider the latest unprocessed transactions in `flights` instead of all rows as in snapshot computation.
+Suppose that the `flights` dataset is 20 million rows, but only 1 million rows are added each week. With incremental computation, the pipeline only needs to consider the latest unprocessed transactions in `flights` instead of all rows as in snapshot computation.
 
 :::callout{theme="success"}
 If a pipeline runs regularly, incremental processing can significantly reduce the data scale of each run, saving time and resources.
 :::
 
-Now, let’s walk through how to set up an incremental pipeline.
+The following sections walk through how to set up an incremental pipeline.
 
 ## Part 2: Validate incremental requirements
 

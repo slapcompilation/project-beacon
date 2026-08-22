@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/orgs-and-spaces/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/orgs-and-spaces/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Organizations and spaces
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/see-impact-marking-changes/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/see-impact-marking-changes/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # See the impact of Marking changes
 

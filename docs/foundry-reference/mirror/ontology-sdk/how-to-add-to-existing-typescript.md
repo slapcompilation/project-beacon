@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-add-to-existing-typescript/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-add-to-existing-typescript/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add an OSDK package to an existing application
 
 This page will walk you through the process of adding an OSDK package to an existing application. If you do not have an existing application, view the documentation on [bootstrapping a new OSDK application](/docs/foundry/developer-console/how-to-bootstrapping-typescript/).
+
+:::callout{theme="neutral"}
+This guide covers adding OSDK to client-facing applications that use public OAuth. For a backend service that uses a service user, see [Bootstrap a new OSDK TypeScript application with a service user](/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript/).
+:::
 
 ## 1: Prerequisites
 
@@ -36,6 +40,15 @@ Add the following code to your repository or user .npmrc file, replacing any `< 
 //<REGISTRY-URL-FROM-OVERVIEW-PAGE>:_authToken=${FOUNDRY_TOKEN}
 <PACKAGE-NAME>:registry=https://<REGISTRY-URL-FROM-OVERVIEW-PAGE>
 ```
+
+:::callout{theme="warning"}
+If you receive a 404 error when installing packages, npm may be using a different registry instead of the Foundry registry. Check for and remove any overriding npm registry configurations:
+
+1. Run `npm config delete registry` to remove any globally configured npm registry that may override your project settings.
+2. Ensure no other `.npmrc` file in your project or user directory is setting a different registry URL.
+3. Confirm that the registry URL in your `.npmrc` matches the URL on the **Overview** page for the SDK in Developer Console.
+4. Ensure the `FOUNDRY_TOKEN` environment variable is set to a valid token.
+:::
 
 ### Optional: Set up certificate
 
@@ -84,4 +97,28 @@ export default function SimpleReactComponent() {
         }
     }, []);
 };
+```
+
+### Use OSDK React packages (optional)
+
+If your application uses React, you can use the following libraries:
+
+#### `@osdk/react`
+
+Use [`@osdk/react`](/docs/foundry/ontology-sdk-react-applications/osdk-react/) for typed hooks, shared caching, actions, functions, and custom data-driven interfaces.
+
+Install the latest version of `@osdk/react`:
+
+```bash
+npm install @osdk/react@latest
+```
+
+#### `@osdk/react-components`
+
+Use [`@osdk/react-components`](/docs/foundry/ontology-sdk-react-applications/osdk-react-components/) for pre-built, Ontology-aware interface elements. This library builds on `@osdk/react`.
+
+Install the latest version of `@osdk/react-components`:
+
+```bash
+npm install @osdk/react-components@latest
 ```

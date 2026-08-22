@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/compare-object-sets/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/compare-object-sets/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Compare object sets
 
@@ -8,7 +8,7 @@ Comparison Views provide users with the option to compare two filtered object se
 
 To use Comparison Mode:
 
-* Go to Object Explorer, open an object type, and filter down to the set of objects of that type you want to compare. In the example below, we’ve filtered to flights leaving New York City.
+* Go to Object Explorer, open an object type, and filter down to the set of objects of that type you want to compare. In the example below, the results are filtered to flights leaving New York City.
 * Select the **Compare** button below the search bar. After selecting **Compare**, you can choose a comparison set of objects, for instance:
   * An existing saved exploration,
   * All objects of the given type (such as **All Flights**), or

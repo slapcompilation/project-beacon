@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-notepad/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-notepad/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add to a Notepad document
 
@@ -28,7 +28,7 @@ Follow the steps below to add a dashboard to a Notepad document.
 
 <img alt="Notepad widget config" src="./images/notepad-quiver-widget-config.png" width="300px">
 
-* Select the version of the dashboard you want to insert, or toggle **Auto-update** if you’d like the latest version to always be shown.
+* Select the version of the dashboard you want to insert, or toggle **Auto-update** if you would like the latest version to always be shown.
 * Finally, if your dashboard has inputs defined, the inputs will be displayed in the **Dashboard inputs** section. You can map the inputs to variables in your Notepad document with the mapping table below.
 
 |Quiver input type |Notepad input type |

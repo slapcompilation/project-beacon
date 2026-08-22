@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-foundry-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-foundry-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Use Foundry Functions in Slate
 
@@ -30,4 +30,4 @@ Using Foundry Functions to organize and manage the logic layer of a complex Slat
 
 Foundry Functions supports a wide range of standard, ontology-generated, and custom input and output types as documented in [Functions Input and Output Types](/docs/foundry/functions/types-reference/).
 
-In a *thick Functions* approach, it's common to define [custom input and output types](/docs/foundry/functions/types-reference/#structcustom-type) so that data is returned in exactly the format necessary to populate specific charts or populate HTML widgets.
+In a *thick Functions* approach, it is common to define [custom input and output types](/docs/foundry/functions/types-reference/#structcustom-type) so that data is returned in exactly the format necessary to populate specific charts or populate HTML widgets.

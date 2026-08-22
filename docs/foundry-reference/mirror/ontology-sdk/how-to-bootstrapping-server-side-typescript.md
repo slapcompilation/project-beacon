@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-server-side-typescript/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-server-side-typescript/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Bootstrap a new OSDK TypeScript application with a service user
 
@@ -10,19 +10,13 @@ When developing on a service or application that uses a confidential client, a s
 
 ## 1. Create an OSDK package using Developer Console
 
-[Navigate to Developer Console](/docs/foundry/developer-console/overview/) in your Foundry instance, then select **+ New application**.
-
-:::callout{theme="neutral"}
-If the **+ New application** button does not appear, you likely do not have the right permissions. Review the [permissions documentation](/docs/foundry/developer-console/permissions/#user-permissions) for more information.
-:::
-
-Follow the steps in the creation wizard and add the following details:
+Follow [Create a new Developer Console application](/docs/foundry/developer-console/create-application/), using these backend service-specific selections:
 
 * On the **Application type** page, choose [**Backend service**](/docs/foundry/developer-console/permissions/).
 
 ![The application type selection page with backend service selected.](./images/app-type-backend-service.png)
 
-* On the **Permission** page, choose [**Application's permissions**](/docs/foundry/developer-console/permissions/).
+* On the **Permissions** page, choose [**Application's permissions**](/docs/foundry/developer-console/permissions/).
 
 ![The permission page shows the application permissions option selected.](./images/oauth-service-user-permissions.png)
 
@@ -50,6 +44,10 @@ Review and confirm the information you entered, then select **Create application
 If you lose your client secret, you can rotate and obtain a new secret on the **Permissions & OAuth** page. Keep in mind that this will break existing applications using this service user and secret.
 :::
 
+:::callout{theme="neutral"}
+When [packaging confidential client applications for Marketplace](/docs/foundry/developer-console/marketplace-installation/#limitations), the client secret is not included. After installation, you must generate a new secret in the destination environment by navigating to **OAuth & scopes** and selecting **Rotate secret**.
+:::
+
 Finally, select **Generate first version** to use your newly created OSDK.
 
 ![Select the Generate first version button to create your SDK.](./images/sdk-generate-first.png)
@@ -60,7 +58,7 @@ Once the generation of the OSDK is complete, you will see a set of installation 
 
 ## 3. Use the OSDK in your code project
 
-In this walkthrough, we use [Next.js© ↗](http://nextjs.org). Next.js supports rendering code on the server side which is required for our service user example. To bootstrap a new Next.js project, follow the [Next.js© documentation ↗ ](https://nextjs.org/docs/getting-started/installation).
+In this walkthrough, we use [Next.js© ↗](https://nextjs.org). Next.js supports rendering code on the server side which is required for our service user example. To bootstrap a new Next.js project, follow the [Next.js© documentation ↗ ](https://nextjs.org/docs/getting-started/installation).
 
 ### Client and OAuth creation
 

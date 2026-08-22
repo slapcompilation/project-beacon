@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/restore-changes/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/restore-changes/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Review and restore changes
 

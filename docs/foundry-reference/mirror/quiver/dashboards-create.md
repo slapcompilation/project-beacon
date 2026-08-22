@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-create/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-create/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create a dashboard
 
@@ -70,7 +70,7 @@ While building your analysis, you can add cards to a dashboard directly without 
 
 ### Create parameters and metrics cells
 
-Once you’ve added a parameter or metric card to the dashboard, you can add more cards of the same type to the same cell. You can then reposition them on your dashboard at the same time. To do this, drop the cards on the blue drop zone inside the cell.
+Once you have added a parameter or metric card to the dashboard, you can add more cards of the same type to the same cell. You can then reposition them on your dashboard at the same time. To do this, drop the cards on the blue drop zone inside the cell.
 One benefit of adding multiple parameters or metrics to the same cell is that there is no limit on how many you can add side-by-side. On regular cards, you would be limited to three in the same row.
 
 ![Create parameters cell](./images/howto-dashboards-create-parameters-cell.gif)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-events-and-actions-index/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-events-and-actions-index/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Available events and actions
 
@@ -293,7 +293,7 @@ return {
 
 ### slate.showCheckpoint
 
-The `slate.showCheckpoint` action will open a the specified Checkpoint modal. You can read more about Checkpoints in the [Checkpoints documentation.](/docs/foundry/checkpoints/overview/)
+The `slate.showCheckpoint` action will open the specified Checkpoint modal. You can read more about Checkpoints in the [Checkpoints documentation.](/docs/foundry/checkpoints/overview/)
 
 To use this action, add a return statement as below:
 

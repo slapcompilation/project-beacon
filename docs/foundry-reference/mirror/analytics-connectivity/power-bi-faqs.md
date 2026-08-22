@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-faqs/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/analytics-connectivity/power-bi-faqs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # FAQs
 
@@ -34,7 +34,7 @@ In **Import mode**, the selected tables and columns are imported into Power BI®
 * *Usage Guidance*: Import mode is recommended for dashboards you want to build with fast response times and a lot of interactivity on top of small- to medium-sized Foundry datasets. Import mode is likely preferable for most circumstances unless you are working with very large data, which cannot be pre-filtered in Foundry prior to the dashboard consumption layer.
 * *Usage Limitations*: You may not be able to import large datasets due to the size limit threshold for data transmission via the connector. See [Is there a size limit on how much data I can transmit?](#is-there-a-size-limit-on-how-much-data-i-can-transmit) for more details.
 
-In **DirectQuery mode**, the data is not imported or copied into Power BI®. As you create or interact with a visualization, Power BI® queries Foundry as the underlying data source, so you’re always viewing current data, and you can push back data transformations and filtering into the Foundry layer.
+In **DirectQuery mode**, the data is not imported or copied into Power BI®. As you create or interact with a visualization, Power BI® queries Foundry as the underlying data source, so you are always viewing current data, and you can push back data transformations and filtering into the Foundry layer.
 
 * *Usage Guidance*: DirectQuery mode is recommended for simple dashboards with low interactivity that must be built on top of a very large dataset, as you can leverage Foundry’s computation engine to dynamically query and pull in results. However, the performance is slower than import mode, as you are pushing back computation to Foundry’s distributed computation engine. For this reason, we recommend keeping DirectQuery dashboards to relatively few queries.
 * *Usage Limitations*: As with import mode, the user can only return up to the maximum result size to Power BI®. However, they can work with much larger datasets in Foundry, so long as the results returned are within the limit bounds.
@@ -123,7 +123,7 @@ You can think of an authentication token as your own private password that autho
 
 ### Why is OAuth authentication not working?
 
-If you encounter an error message when trying to authenticate via OAuth, it's possible this feature has not been enabled. Your error message may look similar to the screenshot below. In order to use this feature, Power BI® must be enabled as a third-party application. The [managing third-party applications](/docs/foundry/platform-security-third-party/manage-3pa/) security documentation details how a Foundry administrator can enable this integration.
+If you encounter an error message when trying to authenticate via OAuth, it is possible this feature has not been enabled. Your error message may look similar to the screenshot below. In order to use this feature, Power BI® must be enabled as a third-party application. The [managing third-party applications](/docs/foundry/platform-security-third-party/manage-3pa/) security documentation details how a Foundry administrator can enable this integration.
 
 If OAuth authentication is not yet enabled you can continue to connect via the alternative [token-based authentication option](/docs/foundry/analytics-connectivity/power-bi-getting-started/#foundry-token-authentication).
 
@@ -145,15 +145,15 @@ If you receive an "Unable to connect" message, it is likely your authentication 
 
 ### Blank report after downloading from Power BI® Server
 
-There might be a problem regarding your authentication credentials, or Power BI® might want to ask for your permissions to run a query. In that case, Power BI® might fail silently and display a blank report page with no option to "Apply Changes". In this case, you should click on "Edit Queries". It can give you options to proceed. If it doesn't, contact your Palantir representative and share the error message.
+There might be a problem regarding your authentication credentials, or Power BI® might want to ask for your permissions to run a query. In that case, Power BI® might fail silently and display a blank report page with no option to "Apply Changes". In this case, you should click on "Edit Queries". It can give you options to proceed. If it does not, contact your Palantir representative and share the error message.
 
 ## Dataset FAQs
 
-* [Why don’t I see my table in the table navigator?](#why-dont-i-see-my-table-in-the-table-navigator)
+* [Why is my table not visible in the table navigator?](#why-is-my-table-not-visible-in-the-table-navigator)
 * [Slow import or import failure due to table size?](#slow-import-or-import-failure-due-to-table-size)
 * [Data refresh is no longer working for a dataset](#data-refresh-is-no-longer-working-for-a-dataset)
 
-### Why don’t I see my table in the table navigator?
+### Why is my table not visible in the table navigator?
 
 When selecting a dataset via “Get Data” → “Palantir Foundry”, you may notice that certain tables you have access to in Foundry are not showing up under the folder navigator. This occurs when you have access to the table but not the parent folder structure.
 
@@ -171,6 +171,6 @@ If your table import is failing or slow due to table size, review [How do I opti
 
 If you select a dataset through the table navigator in Power BI®, your data source will rely on the dataset existing at this location. If the dataset is renamed or moved in Foundry this can lead to issues with data refresh, as Power BI® will no longer be able to locate the dataset.
 
-If you anticipate a dataset to move it is advised to configure the data source using the dataset RID. See [Why don’t I see my table in the table navigator?](#why-dont-i-see-my-table-in-the-table-navigator) for more detail on configuring a data source via RID.
+If you anticipate a dataset to move it is advised to configure the data source using the dataset RID. See [Why is my table not visible in the table navigator?](#why-is-my-table-not-visible-in-the-table-navigator) for more detail on configuring a data source via RID.
 
 *Power BI® and the Power BI® logo are trademarks of the Microsoft group of companies.*

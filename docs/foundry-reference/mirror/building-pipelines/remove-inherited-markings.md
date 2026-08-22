@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-inherited-markings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-inherited-markings/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Remove inherited Markings and Organizations
 
@@ -216,7 +216,7 @@ Given the above setup, the following will happen:
 
 *Transform 2: Above is a transform with one Marking, `USA`, that does **NOT** require re-approval.*
 
-Given the above setup, here's what will happen:
+Given the above setup, here is what will happen:
 
 * When the user creates their first pull request in Transform 1, they will be required to get approval from a user with `Remove marking` role on the `PII` Marking **AND** a user with `Expand access` role on the `PALANTIR` Organization.
 * If the user later modifies Transform 1 in their next pull request, they will be asked to get approval from **ONLY** a user with `Remove marking` role.

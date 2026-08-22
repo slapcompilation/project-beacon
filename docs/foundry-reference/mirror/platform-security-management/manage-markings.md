@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-markings/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-markings/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Manage markings
 
@@ -60,7 +60,7 @@ A Marking category can be restricted to a single Organization to ensure that it 
 Once created, markings cannot be deleted or moved to a different category.
 :::
 
-If you are an administrative users with the necessary permissions, you can create new Markings in the Marking section of Platform Settings by clicking the **New marking** button. You can then assign Marking Administrators and Marking Removers.
+If you are an administrative user with the necessary permissions, you can create new Markings in the Marking section of Platform Settings by clicking the **New marking** button. You can then assign Marking Administrators and Marking Removers.
 
 ![marking-creation](./images/create_marking.png)
 
@@ -113,7 +113,7 @@ Applying a Marking is a sensitive operation and can restrict downstream users. B
 9. **Apply the Marking:** The steps above should establish that applying the Marking will protect datasets containing sensitive data and that the Marking will not propagate beyond what is necessary. At this point, you can apply the marking.
 
 :::callout{theme="neutral"}
-If you notice a mistake after applying the Marking (for example, a large group of users can’t see data they should be able to see), you can remove the Marking and it will immediately stop propagating. Then, you should review simulated changes again to identify the cause of the issue.
+If you notice a mistake after applying the Marking (for example, a large group of users cannot see data they should be able to see), you can remove the Marking and it will immediately stop propagating. Then, you should review simulated changes again to identify the cause of the issue.
 :::
 
 In the example below, the DOB column was removed and the `stop_propagating` syntax was applied on the ontology `passengers` dataset. The PII marking was applied on the raw `passenger` dataset and only propagated to the clean `passenger` dataset.
@@ -143,9 +143,9 @@ To remove an inherited Marking from a Restricted View, edit the Restricted Views
 To remove an inherited Marking from a dataset, use the `stop_propagating` syntax in your transformation code. To safely remove an inherited Marking, follow these steps:
 
 1. **Determine where to remove sensitive data:** Review your full pipeline and decide where you want to remove the sensitive data.
-2. **Create a branch:** The `stop_propagating` syntax will only take effect on branches that are both protected and have the setting `Require security approvals before merging` enabled. You won’t be able to `stop_propagating` an inherited Marking until your branch is merged into the protected branch.
+2. **Create a branch:** The `stop_propagating` syntax will only take effect on branches that are both protected and have the setting `Require security approvals before merging` enabled. You will not be able to `stop_propagating` an inherited Marking until your branch is merged into the protected branch.
 3. **Make necessary transform changes:** In your selected datasets, remove the sensitive data and add the `stop_propagating` syntax to the transforms.
-4. **Build your branch:** Build your branch and confirm that the sensitive data is removed in the output dataset. The `stop_propagating` syntax won’t stop the Marking from being inherited at this point since you are on a non-protected branch.
+4. **Build your branch:** Build your branch and confirm that the sensitive data is removed in the output dataset. The `stop_propagating` syntax will not stop the Marking from being inherited at this point since you are on a non-protected branch.
 5. **Merge your branch:** After confirming that your sensitive data is removed, you can safely merge your transform changes into the main branch. Merging your branch will apply the `stop_propagating` syntax.
 6. **Build your main branch and downstream dependencies:** The `stop-propagating` change must propagate along the latest transactions in your pipeline, which requires you to rebuild the datasets that have the `stop_propagating` syntax and all the datasets downstream of the `stop_propagating` transforms. Once all the datasets are built, confirm that the inherited Marking was removed. If there are downstream APPEND or UPDATE transactions, review [additional documentation.](/docs/foundry/building-pipelines/remove-markings/#scenario-3-applying-a-new-marking-followed-by-marking-removal-at-the-dataset-level)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/audit-logs-overview/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/audit-logs-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Audit logs
 
@@ -13,7 +13,7 @@ Audit logs in Foundry contain enough information to answer the critical question
 * **When** the action happened (precise timestamps for temporal analysis).
 * **Where** the action occurred (which resources and systems were involved).
 
-Sometimes, audit logs will contain contextual information about users including Personal Identifiable Information (PII), such as names and email addresses, as well as other potentially sensitive usage data. As such, audit log contents should be considered sensitive and viewed only by persons with the necessary security qualifications.
+Sometimes, audit logs will contain contextual information about users including Personally Identifiable Information (PII), such as names and email addresses, as well as other potentially sensitive usage data. As such, audit log contents should be considered sensitive and viewed only by persons with the necessary security qualifications.
 
 Audit logs (and associated detail) should generally be consumed and analyzed in a separate purpose-built system for security monitoring (a "security information and event management", or **SIEM** solution) owned by the customer if one is available. If no such system has been provisioned, Foundry itself is flexible enough for some light SIEM-native workflows to be performed directly in the platform instead.
 

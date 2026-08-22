@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/navigation/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/navigation/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Navigation
 
@@ -22,7 +22,7 @@ Object types whose backing datasources are unregistered or have failed to reinde
 
 ## Navigation back from a selection
 
-Once you’ve opened an object type, link type, or action type, you have the option to select **Back home** from the top left corner of the view’s sidebar.
+Once you have opened an object type, link type, or action type, you have the option to select **Back home** from the top left corner of the view’s sidebar.
 
 ![Back home](./images/oma-user-interface-navigation-back-home.png)
 

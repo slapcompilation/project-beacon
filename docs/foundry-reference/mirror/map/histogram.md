@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/histogram/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/histogram/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Histogram
 
@@ -46,4 +46,4 @@ Selecting **Filter out** will filter your map to only objects that do not match 
 
 ![Map application with objects filtered out](./images/histogram-filtered-out.png)
 
-In addition to the **Filter to** and \**Filter out* buttons, you can also filter to an individual histogram row by double-clicking on it. To filter to all currently selected objects, you can use the **Filter to selected objects** menu item from the right click menu on your map.
+In addition to the **Filter to** and **Filter out** buttons, you can also filter to an individual histogram row by double-clicking on it. To filter to all currently selected objects, you can use the **Filter to selected objects** menu item from the right click menu on your map.

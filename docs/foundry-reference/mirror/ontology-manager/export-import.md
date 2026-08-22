@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-manager/export-import/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-manager/export-import/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Export, edit, and import an Ontology
 
@@ -9,7 +9,7 @@ You should not depend on the exported JSON schema as it may change over time.
 Ontology schema definitions are stored in a [JSON file ↗](https://en.wikipedia.org/wiki/JSON). An Ontology JSON file can be exported and edited with a code editor or text editor before being imported back into Foundry. This import/export functionality enables two workflows for advanced users:
 
 * If you prefer to make Ontology edits in code, you can bypass the Ontology Manager interface by exporting the Ontology JSON file, editing the JSON file directly in a code editor or text editor, and then importing the modified Ontology JSON file back into the platform.
-* If you’d like to copy the working state of one Ontology to another Ontology, you can export the Ontology’s current state as a JSON file and then import the copied JSON back into the platform (making any desired changes to the JSON in a code editor).
+* If you would like to copy the working state of one Ontology to another Ontology, you can export the Ontology’s current state as a JSON file and then import the copied JSON back into the platform (making any desired changes to the JSON in a code editor).
 
 ![Edit ontology JSON](./images/import-export-edit-ontology-json.png)
 

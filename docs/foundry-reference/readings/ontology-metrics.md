@@ -88,7 +88,7 @@ a **See more** into the tab, and the prose matches: the Overview graph is a
 
 > "Usage on the **Overview** tab and detailed usage metrics in the **Usage** tab are configured from the **Ontology settings** tab in Control Panel using the **Ontology metrics** toggle. This toggle can only be enabled or disabled by Ontology administrators and changes may take up to 60 minutes to take effect in Ontology Manager."
 
-> "If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it’s possible that internal tables may not have been configured. Contact your Palantir representative for more information."
+> "If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it is possible that internal tables may not have been configured. Contact your Palantir representative for more information."
 
 That warning is the whole reason F2 could not guess at this. **When metrics are
 off, every object type looks unused.** A cleanup flag reading "no registered

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/permitted-and-default-output-values/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/permitted-and-default-output-values/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Permitted and default output values
 
@@ -16,7 +16,7 @@ Each output field can have its own configuration. This is best illustrated by th
 
 If an `equipment failure alert` should link back to a specific equipment item, the field should be restricted to allow no static values (`None`) and only column values that are derived from the object property `Serial Num`.
 
-Alerts are at the core of operational workflows, so they usually tie into a process. An equipment failure will require some kind of repair, so the alert can be in one of many possible states. The workflow output will have a field `Repair Status` (1), which is a required field (2) of type `String`. Let's assume some equipment failures have an automated service routine that is triggered together with the alert, but others require manual intervention. This information is something only the rule author can determine, so column values from the input data are disabled (3, `None`). The status needs to be set to one of multiple possible states (4) and should be `Not started` by default. The rule output logic block that the rule author will see reflects this configuration. The switch between static and column values is disabled, and a selection menu with all possible status options is shown.
+Alerts are at the core of operational workflows, so they usually tie into a process. An equipment failure will require some kind of repair, so the alert can be in one of many possible states. The workflow output will have a field `Repair Status` (1), which is a required field (2) of type `String`. Suppose some equipment failures have an automated service routine that is triggered together with the alert, but others require manual intervention. This information is something only the rule author can determine, so column values from the input data are disabled (3, `None`). The status needs to be set to one of multiple possible states (4) and should be `Not started` by default. The rule output logic block that the rule author will see reflects this configuration. The switch between static and column values is disabled, and a selection menu with all possible status options is shown.
 
 ![Permitted values example configuration and rule output block](./images/permitted_and_default_values_example.png)
 

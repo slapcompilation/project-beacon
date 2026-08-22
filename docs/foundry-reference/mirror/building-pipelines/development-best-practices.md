@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/development-best-practices/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/development-best-practices/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Development best practices
 
@@ -14,7 +14,7 @@ Many of the best practices from general software development apply equally to de
 * **Be nice to future you:** Pipelines are the foundation of your data enterprise. Think long-term and high vision while planning and implementing.
 * **Don't Repeat Yourself (DRY):** Duplicated code or concepts require more maintenance and lead to subtle errors. Instead, refactor frequently at all levels, including building and publishing your own libraries or packages for cross-repository use, to ensure minimum duplication.
 * **Avoid tech debt:** A corollary to long-term thinking, tech debt is easy to accrue in the face of deadlines of project-specific demands, but always comes back to bite.
-* **Conventions matter:** Set a precedent and stick with it; this reduces cognitive load and helps legibility between Code Repositories. For instance, column and dataset names are conventionally written in `snake_case` - following this convention means anyone else who wants to reference your awesome dataset knows that it's `awesome_dataset`, not `AwesomeDataset` or `Awesome_Dataset`.
+* **Conventions matter:** Set a precedent and stick with it; this reduces cognitive load and helps legibility between Code Repositories. For instance, column and dataset names are conventionally written in `snake_case` - following this convention means anyone else who wants to reference your awesome dataset knows that it is `awesome_dataset`, not `AwesomeDataset` or `Awesome_Dataset`.
 * **Less is more:** Systems with many smaller units are easier to maintain and reason about than systems with few large units; therefore bias towards:
   * Tightly-scoped Foundry Projects
   * Smaller transforms chained together
@@ -22,8 +22,8 @@ Many of the best practices from general software development apply equally to de
 
 ### Anti-patterns
 
-* **Overwrite vs. Delete:** Unlike other file systems, Foundry resources and datasets are connected to other artifacts rather than just the file itself. Hence, if you are iterating on a pipeline or data, deletion should occur only if you fundamentally want that type of data gone. For example, if you've written a transaction with incorrect data to a dataset, don't delete the dataset; instead, write a new `SNAPSHOT` transaction to overwrite the previous one. More challenges are likely to arise from trying to delete a dataset than from creating a new dataset in the same location.
-* **Don't introduce circular dependencies:** If you are looking to use the dataset output of your transform as an input into other transforms, you should ensure you are not introducing any circular dependencies in your code. Foundry's build orchestration layer will attempt to prevent you from configuring any loops on the branch you are currently on and your Code Repository branch will fail checks if a loop is detected
+* **Overwrite vs. Delete:** Unlike other file systems, Foundry resources and datasets are connected to other artifacts rather than just the file itself. Hence, if you are iterating on a pipeline or data, deletion should occur only if you fundamentally want that type of data gone. For example, if you have written a transaction with incorrect data to a dataset, do not delete the dataset; instead, write a new `SNAPSHOT` transaction to overwrite the previous one. More challenges are likely to arise from trying to delete a dataset than from creating a new dataset in the same location.
+* **Do not introduce circular dependencies:** If you are looking to use the dataset output of your transform as an input into other transforms, you should ensure you are not introducing any circular dependencies in your code. Foundry's build orchestration layer will attempt to prevent you from configuring any loops on the branch you are currently on and your Code Repository branch will fail checks if a loop is detected
 
 :::callout
 Foundry will check for circular dependencies on the branch being developed on, but will not run the check across all branches while writing code, such as if there are ontology writeback datasets that only exist on the master branch. Foundry will still fail checks if circular dependencies are detected on other branches when attempting to merge the feature branch with the branch that contains the circular dependencies.
@@ -37,7 +37,7 @@ See [Recommended Project structure](/docs/foundry/building-pipelines/recommended
 
 * **Manage permissions at the Project level:** If you anticipate needing to further partition permissions within a project, consider if the project should be further decomposed into smaller pieces. [Learn more about the concepts and practices of applying and managing permissions.](/docs/foundry/security/securing-a-data-foundation/)
 * **Keep Projects tightly scoped:** Avoid “feature creep” and adding tangentially-related resources or use-case specific logic within your Project
-* **Use meaningful folder names:** Remember that you're designing a Project for consumption outside your team as well as for daily iteration and development. Consider that at minimum you should have a `/Documentation` folder and a `/Output` folder. Different use-case or workflow Projects will have needs for more specific names, but always consider that your Project structure and naming scheme are signposts for visitors.
+* **Use meaningful folder names:** Remember that you are designing a Project for consumption outside your team as well as for daily iteration and development. Consider that at minimum you should have a `/Documentation` folder and a `/Output` folder. Different use-case or workflow Projects will have needs for more specific names, but always consider that your Project structure and naming scheme are signposts for visitors.
 
 ### Anti-patterns
 
@@ -53,7 +53,7 @@ See [Recommended Project structure](/docs/foundry/building-pipelines/recommended
 ### Anti-patterns
 
 * **Cryptic names:** Choosing names that simply increment a number (i.e. `dataset1`, `dataset2`, and so on) or names that are a single letter will make it more difficult to read and refactor your code and much more difficult for a new developer to approach your work.
-* **Names distinguished only by path:** In some cases this is acceptable, for instance when you have `/raw/my_important_dataset` and then `/clean/my_important_dataset`, however in many cases this naming pattern can create confusion in views where only the dataset name itself is prominently displayed. Remember, provenance is tracked and easily visible, so you don't need to embed this kind of "state" into the names of your datasets.
+* **Names distinguished only by path:** In some cases this is acceptable, for instance when you have `/raw/my_important_dataset` and then `/clean/my_important_dataset`, however in many cases this naming pattern can create confusion in views where only the dataset name itself is prominently displayed. Remember, provenance is tracked and easily visible, so you do not need to embed this kind of "state" into the names of your datasets.
 
 ## Data types
 
@@ -63,7 +63,7 @@ See [Recommended Project structure](/docs/foundry/building-pipelines/recommended
 
 ### Patterns
 
-**Use Timestamps for 'Time Only' data types:** Spark doesn't have a time-only data type for fields with values like “10:59:00”. In order to leverage the time functions that come with Spark's timestamp type, cast the values to seconds and then add `-2208988800` to it before casting it to a timestamp in order to put it in year 0. Alternatively, leave it as a string and let the users parse it as they need to.
+**Use Timestamps for 'Time Only' data types:** Spark does not have a time-only data type for fields with values like “10:59:00”. In order to leverage the time functions that come with Spark's timestamp type, cast the values to seconds and then add `-2208988800` to it before casting it to a timestamp in order to put it in year 0. Alternatively, leave it as a string and let the users parse it as they need to.
 
 ### Anti-patterns
 
@@ -71,7 +71,7 @@ See [Recommended Project structure](/docs/foundry/building-pipelines/recommended
   * If leading zeros are meaningful, e.g. 123 and 0123 are both legal IDs that should be differentiated, this will result in errors.
   * The IDs may be formatted in an undesirable way in the UI (e.g. `545.0`, `1,234`, right justified).
   * If the IDs are too long, you can run into MAX\_INT issues.
-  * Numeric functions won't ever be applied to these values (e.g. you won't ever add two aircraft IDs together).  *The rule of thumb should be to only cast numeric fields to numeric datatypes if it would be appropriate to perform arithmetic on them, otherwise cast them as strings.*
+  * Numeric functions will never be applied to these values (e.g. you will never add two aircraft IDs together).  *The rule of thumb should be to only cast numeric fields to numeric datatypes if it would be appropriate to perform arithmetic on them, otherwise cast them as strings.*
 
 * **Storing timestamps in different timezones:** — Spark timestamps are timezone agnostic.  They are stored internally in UTC (aka Zulu, GMT); displaying a timezone is expected to be done by the front end.
   * If you need a particular timezone for display purposes, use [PySpark's `from_unixtime()` function ↗](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.functions.from_unixtime.html) to store a string in the appropriate timezone.
@@ -91,18 +91,18 @@ See [Recommended Project structure](/docs/foundry/building-pipelines/recommended
 
 ### Best practices
 
-* **Protect the `master` branch:** If you're developing with a team, or even just working on a long-lived individual project, protect the master branch and practice [GitFlow ↗](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) or your preferred development workflow. The key concepts are simply to ensure that code moving to master is reviewed and tested.
+* **Protect the `master` branch:** If you are developing with a team, or even just working on a long-lived individual project, protect the master branch and practice [GitFlow ↗](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) or your preferred development workflow. The key concepts are simply to ensure that code moving to master is reviewed and tested.
 
 * **Write commit messages:** Commit messages are the log of all activity in the repository. Take the time to write a useful description of your change:
   * Code reviewers can look at your commits to get a sense of your workflow and what changes were made.
-  * If you want to revert a change, it's much easier if you can find the commit you were looking for at a glance.
+  * If you want to revert a change, it is much easier if you can find the commit you were looking for at a glance.
   * Note that clicking the build button will autogenerate a commit message with a timestamp; avoid using this. Click commit first, write a commit message, and then click build.
 
 * **Prune your branches:** In long-lived repositories, branches can accumulate. If development of a branch is abandoned, especially if a branch is merged into another, keep things tidy by *deleting the branch*. This helps with legibility of which branches are actively developed.
 
 * **Upgrade your Repository:** When prompted, follow the steps to upgrade the language bundles in your repository. This process will open a pull request to the active branch containing the upgrades. You should feel free to run a build of your pipeline on the upgrade branch to ensure that none of the version bumps impact your code. However, staying up-to-date with these upgrades often ensures you do not encounter edge cases seen elsewhere, which are patched in the upgraded versions.
 
-* **Practice Code Reviews:** As you collaborate with teammates to develop transformations, implement some practice of code reviews during the pull request process. We've shared our thoughts on [Code Review Best Practices ↗](https://blog.palantir.com/code-review-best-practices-19e02780015f) and many of the concepts will apply equally to reviewing data transformation code.
+* **Practice Code Reviews:** As you collaborate with teammates to develop transformations, implement some practice of code reviews during the pull request process. Palantir's [Code Review Best Practices ↗](https://blog.palantir.com/code-review-best-practices-19e02780015f) blog post covers many concepts that apply equally to reviewing data transformation code.
 
 ### Patterns
 

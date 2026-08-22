@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/monitor-audit-logs/ · mirrored 2026-08-12 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/monitor-audit-logs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Monitor audit logs
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/logic-flows-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/logic-flows-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Logic Flows \[Sunset]
 
@@ -17,7 +17,7 @@ Logic Flows is in the [sunset](/docs/foundry/platform-overview/development-life-
 
 ## Core concepts
 
-An **automation** is a script interacting with Foundry service APIs using Builds intended to replace manual repeatable actions in the platform. It acts like other jobs in Foundry, except it doesn't use datasets as inputs or outputs. Palantir maintains a curated library of automations.
+An **automation** is a script interacting with Foundry service APIs using Builds intended to replace manual repeatable actions in the platform. It acts like other jobs in Foundry, except it does not use datasets as inputs or outputs. Palantir maintains a curated library of automations.
 
 Automations take resources as *parameters* and a JSON *configuration*.
 

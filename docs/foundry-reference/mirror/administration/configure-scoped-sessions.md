@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-scoped-sessions/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-scoped-sessions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Configure scoped sessions
 
 Scoped sessions enable a user to pick a subset of pre-defined [Markings](/docs/foundry/security/markings/) to access during their Foundry session to create a visual separation between different types of work. Scoped sessions function across both the Foundry file system and ontology workspaces.
 
-Scoped sessions improve platform security by reducing the chances of accidental cross-pollination of work across different purposes in Foundry. For example, a user working on a particular healthcare research project may be prohibited from using information in another healthcare research project (even though they may have access), since the intermingling of data could compromise the validity of their research. By siloing a user’s session to the purpose they’re currently working on, the risk of cross-pollination is reduced and the user can work with greater confidence.
+Scoped sessions improve platform security by reducing the chances of accidental cross-pollination of work across different purposes in Foundry. For example, a user working on a particular healthcare research project may be prohibited from using information in another healthcare research project (even though they may have access), since the intermingling of data could compromise the validity of their research. By siloing a user’s session to the purpose they are currently working on, the risk of cross-pollination is reduced and the user can work with greater confidence.
 
 ![scoped session example](./images/change_scoped_session_example.png)
 

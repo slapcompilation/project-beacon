@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/infer-schema/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/infer-schema/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Infer a schema for CSV or JSON files
 
-It's easiest to work with datasets in Foundry if they have a schema. Foundry allows you to manually add a schema to datasets containing CSV or JSON files by selecting the  **Apply a schema** button in the dataset. The **Apply a schema** button will automatically infer the schema based on a subset of the data. Once a schema is applied, select **Edit schema** in the dataset view to modify column types or apply additional parsing options to drop jagged rows, change encoding, or add additional columns like file path, byte offset for row, import timestamp, or row number.
+It is easiest to work with datasets in Foundry if they have a schema. Foundry allows you to manually add a schema to datasets containing CSV or JSON files by selecting the  **Apply a schema** button in the dataset. The **Apply a schema** button will automatically infer the schema based on a subset of the data. Once a schema is applied, select **Edit schema** in the dataset view to modify column types or apply additional parsing options to drop jagged rows, change encoding, or add additional columns like file path, byte offset for row, import timestamp, or row number.
 
 Schemas applied statically based on the initial dataset's files can become out of date if data changes. Thus, it can be helpful to have Spark dynamically infer a schema as the first step of a transforms pipeline on semi-structured data.
 
