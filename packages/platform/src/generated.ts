@@ -414,7 +414,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (197) ───────────────────────────────────────────────────
+// ── FUNCTIONS (200) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -649,6 +649,15 @@ export const buildFieldOf = { apiName: 'build_field_of', kind: 'function' } as F
 
 export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
+  boolean
+>
+
+/**
+ *  Who may edit a struct property's fields: the object type's authors.
+ *  Contains the read predicate, so a writer can always read what it writes.
+ */
+export const canAuthorStructField = { apiName: 'can_author_struct_field', kind: 'function' } as FunctionType<
+  { p_property: string },
   boolean
 >
 
@@ -1788,6 +1797,27 @@ export const simulateMarkingChanges = { apiName: 'simulate_marking_changes', kin
 export const spaceWorkflows = { apiName: 'space_workflows', kind: 'function' } as FunctionType<
   { p_space: string },
   string[]
+>
+
+/**
+ *  The twelve field types a struct may use
+ *  (object-link-types/structs-overview). A subset of property_base_types(),
+ *  and `struct` is deliberately absent: "Structs have a depth of one and
+ *  cannot be nested".
+ */
+export const structFieldTypes = { apiName: 'struct_field_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  "Structs must have at least 1 field" (object-link-types/structs-overview).
+ *  A violation rather than a refusal: create-struct-type picks the base type
+ *  at step 3 and adds the first field at step 5.
+ */
+export const structPropertyProblems = { apiName: 'struct_property_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
 >
 
 /**
