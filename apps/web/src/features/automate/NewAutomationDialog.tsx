@@ -23,7 +23,7 @@ import { useProjects } from '@/features/projects/api'
 import { useEffectKinds } from '@/features/automate/api'
 import {
   CONDITION_CARDS, EMPTY_SCHEDULE, automateCronLooksValid, conditionOf,
-  scheduleToCron, useCreateAutomation,
+  EXPOSES_INPUT, scheduleToCron, useCreateAutomation,
   type EffectDraft, type Frequency, type ScheduleDraft,
 } from '@/features/automate/authoring'
 
@@ -166,8 +166,44 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
                       onClick={() => { setEffects(effects.filter((_, xi) => xi !== i)) }} />
                   </div>
                 ))}
+                {/* "To use condition effect inputs, the type of the action
+                    parameter needs to align with the type of the exposed
+                    condition effect input" — so the list is that action's
+                    object parameters of the type the condition watches, and
+                    nothing else. Absent entirely when the condition exposes
+                    no input. */}
+                {kind !== null && EXPOSES_INPUT.includes(kind) && effects.map((e, i) => {
+                  const act = actions.find((a) => a.id === e.actionTypeId)
+                  const subject = sets.find((x) => x.id === objectSetId)?.subject_type_id ?? null
+                  const fits = (act?.action_type_parameters ?? []).filter(
+                    (pm) => pm.data_kind === 'object' && pm.object_type_id === subject)
+                  if (!act) return null
+                  return (
+                    <label key={`in-${i}`} className="flex flex-col gap-1 mt-2">
+                      <span className="text-xs font-semibold">
+                        {i + 1}. Hand each object to
+                      </span>
+                      <HTMLSelect value={e.objectInputParameterId ?? ''}
+                        onChange={(ev) => {
+                          setEffects(effects.map((x, xi) => xi === i
+                            ? { ...x, objectInputParameterId: ev.currentTarget.value || null } : x))
+                        }}>
+                        <option value="">Nothing — run the action once</option>
+                        {fits.map((pm) => (
+                          <option key={pm.id} value={pm.id}>{pm.display_name}</option>
+                        ))}
+                      </HTMLSelect>
+                      {fits.length === 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          This action takes no object parameter of the type the condition watches,
+                          so it can only run once for the whole firing.
+                        </span>
+                      )}
+                    </label>
+                  )
+                })}
                 <Button variant="minimal" size="small" icon="add"
-                  onClick={() => { setEffects([...effects, { kind: 'action', actionTypeId: null }]) }}>
+                  onClick={() => { setEffects([...effects, { kind: 'action', actionTypeId: null, objectInputParameterId: null }]) }}>
                   Add action effect
                 </Button>
                 <div className="mt-3 space-y-1">

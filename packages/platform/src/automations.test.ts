@@ -564,6 +564,117 @@ describe.skipIf(noDb)('automations', () => {
     })
   })
 
+  // 630. automation_fires has returned the triggering object keys since 517 and
+  // run_automations discarded them. Now an effect can bind one action parameter
+  // to receive each object, which IS per-object execution: "each action is
+  // executed once for each object from the condition".
+  describe('effect inputs', () => {
+    let ot = ''; let other = ''; let set = ''; let at = ''
+    let pObj = ''; let pStr = ''
+
+    const bind = async (automation: string, param: string | null) => db.query(
+      `insert into public.automation_effects
+         (automation_id, position, kind, action_type_id, object_input_parameter_id)
+       values ($1, 0, 'action', $2, $3)`, [automation, at, param])
+
+    const withCondition = async (cond: object) => (await one(
+      `insert into public.automations (project_id, display_name, owner_id, condition)
+       values ($1,'bound',$2,$3::jsonb) returning id`,
+      [f.projectId, owner, JSON.stringify(cond)])).id
+
+    beforeAll(async () => {
+      const ont = (await one(
+        `select ontology_id from public.action_types where id = $1`, [action])).ontology_id
+      ot = (await one(
+        `insert into public.object_types (ontology_id, api_name, label)
+         values ($1,'Bound630','Bound') returning id`, [ont])).id
+      other = (await one(
+        `insert into public.object_types (ontology_id, api_name, label)
+         values ($1,'Unbound630','Unbound') returning id`, [ont])).id
+      set = (await one(
+        `insert into public.object_sets (name, api_name, subject_type_id, project_id, ontology_id)
+         values ('bound','bound630',$1,$2,$3) returning id`, [ot, f.projectId, ont])).id
+      at = (await one(
+        `insert into public.action_types (ontology_id, api_name, label)
+         values ($1,'bound-630','Bound 630') returning id`, [ont])).id
+      pObj = (await one(
+        `insert into public.action_type_parameters
+           (action_type_id, api_name, display_name, data_kind, object_type_id)
+         values ($1,'theObject','The object','object',$2) returning id`, [at, ot])).id
+      pStr = (await one(
+        `insert into public.action_type_parameters
+           (action_type_id, api_name, display_name, data_kind, base_type)
+         values ($1,'aString','A string','base_type','string') returning id`, [at])).id
+    }, 60_000)
+
+    // effect-actions ENUMERATES three conditions that expose an input, and
+    // Run on all objects is not one — whatever its picker chip says.
+    it('refuses a binding on a condition that exposes no input', async () => {
+      for (const cond of [
+        { type: 'time', cron: '0 3 * * *' },
+        { type: 'run_on_all', object_set_id: set, schedule: { cron: '0 3 * * *' } },
+      ]) {
+        const a = await withCondition(cond)
+        expect(await refused(db, () => bind(a, pObj)))
+          .toContain('Automate:ConditionExposesNoInput')
+      }
+    })
+
+    it('refuses a parameter that cannot hold an object, or holds the wrong one', async () => {
+      const a = await withCondition(
+        { type: 'objects_added', object_set_id: set, schedule: { cron: '0 3 * * *' } })
+      expect(await refused(db, () => bind(a, pStr)))
+        .toContain('Automate:InputTypeMismatch')
+      const wrong = (await one(
+        `insert into public.action_type_parameters
+           (action_type_id, api_name, display_name, data_kind, object_type_id)
+         values ($1,'wrongType','Wrong','object',$2) returning id`, [at, other])).id
+      expect(await refused(db, () => bind(a, wrong)))
+        .toContain('Automate:InputTypeMismatch')
+    })
+
+    it('accepts the aligned parameter, and locks the condition behind it', async () => {
+      const a = await withCondition(
+        { type: 'objects_added', object_set_id: set, schedule: { cron: '0 3 * * *' } })
+      await bind(a, pObj)                       // not blanket: this one is fine
+      expect(await refused(db, () => db.query(
+        `update public.automations set condition = '{"type":"time","cron":"0 3 * * *"}'::jsonb
+          where id = $1`, [a])))
+        .toContain('Automate:ConditionExposesNoInput')
+    })
+
+    // The point of the whole change: one run row per object, each naming its
+    // own, and a failure on one not stopping the next.
+    it('runs once per object, and isolates their failures', async () => {
+      const a = await withCondition(
+        { type: 'objects_added', object_set_id: set, schedule: { cron: '0 3 * * *' } })
+      await bind(a, pObj)
+      const e = (await one(
+        `select id from public.automation_effects where automation_id = $1`, [a])).id
+      await db.query(
+        `select public.run_effect_per_object($1,$2,null,array['k1','k2','k3'])`, [a, e])
+      expect(await count(
+        `select count(*) n from public.automation_runs
+          where effect_id = $1 and object_key in ('k1','k2','k3')`, [e])).toBe(3)
+      // every one settled rather than one aborting the loop
+      expect(await count(
+        `select count(*) n from public.automation_runs
+          where effect_id = $1 and object_key is not null and outcome = 'started'`, [e])).toBe(0)
+    })
+
+    // "Max number of objects per automation evaluation ... when per-object
+    // execution is enabled | 10,000 | ... before any effects are executed"
+    it('caps per-object execution at the published ten thousand', async () => {
+      expect(await count(`select public.automation_per_object_limit() n`)).toBe(10000)
+      const d = (await one(
+        `select pg_get_functiondef('public.run_automations(timestamptz)'::regprocedure) as d`)).d
+      // the cap is checked where the page puts it: at evaluation, ahead of the
+      // effects loop, so nothing is processed rather than 10,000 things.
+      expect(d.indexOf('automation_per_object_limit'))
+        .toBeLessThan(d.indexOf('run_effect_per_object'))
+    })
+  })
+
   it('withholds a fallback only when a retry is actually due', async () => {
     // The rule is a disjunction — "failed non-retryably, OR the maximum number
     // of retries has been reached" — so with no retry config the maximum is

@@ -104,7 +104,16 @@ export const automateCronLooksValid = (cron: string): boolean => {
 export interface EffectDraft {
   kind: 'action' | 'function'
   actionTypeId: string | null
+  /** The action parameter each fired object is handed to. Non-null means
+   *  per-object execution: "each action is executed once for each object from
+   *  the condition" (630). */
+  objectInputParameterId: string | null
 }
+
+/** The three conditions that expose an effect input. `Run on all objects` is
+ *  deliberately absent — effect-actions enumerates three and it is not one,
+ *  whatever its picker chip says. */
+export const EXPOSES_INPUT = ['objects_added', 'objects_removed', 'objects_modified']
 
 export interface AutomationDraft {
   displayName: string
@@ -143,7 +152,8 @@ export function useCreateAutomation() {
       const rows = d.effects
         .filter((e) => e.kind === 'action' && e.actionTypeId)
         .map((e, i) => ({ automation_id: id, position: i, kind: e.kind,
-          action_type_id: e.actionTypeId }))
+          action_type_id: e.actionTypeId,
+          object_input_parameter_id: e.objectInputParameterId }))
       if (rows.length > 0) {
         const { error: ee } = await supabase.from('automation_effects').insert(rows)
         if (ee) throw new Error(ee.message)

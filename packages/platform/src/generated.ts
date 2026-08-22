@@ -414,7 +414,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (193) ───────────────────────────────────────────────────
+// ── FUNCTIONS (194) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -603,6 +603,16 @@ export const automationErrorRetryable = { apiName: 'automation_error_retryable',
  */
 export const automationInputLimit = { apiName: 'automation_input_limit', kind: 'function' } as FunctionType<
   { p_condition_type: string },
+  number
+>
+
+/**
+ *  Max objects per evaluation when per-object execution is enabled
+ *  (automate/limits). Exceeding it is an error BEFORE any effects execute; no
+ *  objects are processed.
+ */
+export const automationPerObjectLimit = { apiName: 'automation_per_object_limit', kind: 'function' } as FunctionType<
+  Record<string, never>,
   number
 >
 

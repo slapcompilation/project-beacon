@@ -29,6 +29,9 @@ export interface ActionParameterRow {
   api_name: string
   display_name: string
   description: string
+  /** Which payload the parameter carries. Only `object` can receive Automate's
+   *  Single object effect input (630) — there is no set-shaped kind. */
+  data_kind: 'base_type' | 'object' | 'interfaceObject' | 'objectType'
   base_type: PropertyType | null
   object_type_id: string | null
   required: boolean
