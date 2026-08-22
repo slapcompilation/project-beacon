@@ -10,8 +10,19 @@ import type { ActionType, FunctionType, Json } from './client'
 //   public.object_type_nearest
 //   public.rid_of
 
-// ── ACTION TYPES (48) ────────────────────────────────────────────────
+// ── ACTION TYPES (51) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
+
+/**
+ *  "Aborts an open Transaction. File modifications made on this Transaction
+ *  are not preserved and the Branch is not updated." Not preserved is the
+ *  read side's doing — dataset_history_from filters COMMITTED — and not
+ *  updated is the retargeted head trigger's.
+ */
+export const abortTransaction = { apiName: 'abort_transaction', kind: 'action' } as ActionType<
+  { p_transaction: string },
+  void
+>
 
 /**
  *  Apply an action: evaluate the submission criteria tree, validate required
@@ -97,6 +108,16 @@ export const buildMaterialization = { apiName: 'build_materialization', kind: 'a
 >
 
 /**
+ *  "Commits an open Transaction. File modifications made on this Transaction
+ *  are preserved and the Branch is updated to point to the Transaction" — the
+ *  head moves via advance_branch_head on this UPDATE.
+ */
+export const commitTransaction = { apiName: 'commit_transaction', kind: 'action' } as ActionType<
+  { p_transaction: string },
+  void
+>
+
+/**
  *  Opens a proposal and snapshots one task per resource the branch changed.
  */
 export const createProposal = { apiName: 'create_proposal', kind: 'action' } as ActionType<
@@ -113,6 +134,18 @@ export const createProposal = { apiName: 'create_proposal', kind: 'action' } as 
  */
 export const createSpace = { apiName: 'create_space', kind: 'action' } as ActionType<
   { p_name: string; p_description?: string },
+  string
+>
+
+/**
+ *  "Creates a Transaction on a Branch of a Dataset" (api create-transaction).
+ *  The branch name defaults to master, the parent is the branch's current
+ *  head, and one open transaction per branch is enforced. InvalidBranchName
+ *  has no producer here: we resolve branches, never create them, so a
+ *  malformed name reads as BranchNotFound.
+ */
+export const createTransaction = { apiName: 'create_transaction', kind: 'action' } as ActionType<
+  { p_dataset: string; p_txn_type: string; p_branch_name?: string },
   string
 >
 

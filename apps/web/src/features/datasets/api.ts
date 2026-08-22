@@ -17,7 +17,7 @@ import type {
   TransactionStatus, TransactionType,
 } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { datasetMarkings, datasetView } from '@beacon/platform'
+import { abortTransaction, commitTransaction, datasetMarkings, datasetView } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
 export interface Dataset {
@@ -147,6 +147,26 @@ export function useTransactions(datasetId: string | null) {
       return (data as { id: string; rid: string; txn_type: TransactionType; status: TransactionStatus; started_at: string; committed_at: string | null }[])
         .map((r) => ({ id: r.id, rid: r.rid, txnType: r.txn_type, status: r.status, startedAt: r.started_at, committedAt: r.committed_at }))
     },
+  })
+}
+
+/** Settle an open transaction. Commit "is preserved and the Branch is updated
+ *  to point to the Transaction"; abort "not preserved and the Branch is not
+ *  updated" — the head trigger and the COMMITTED filter do the two halves. */
+export function useSettleTransaction(datasetId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, to }: { id: string; to: 'commit' | 'abort' }) => {
+      await client(to === 'commit' ? commitTransaction : abortTransaction)
+        .applyAction({ p_transaction: id })
+      return to
+    },
+    onSuccess: (to) => {
+      void qc.invalidateQueries({ queryKey: keys.transactions(datasetId ?? '') })
+      void qc.invalidateQueries({ queryKey: ['datasets'] })
+      toast.success(to === 'commit' ? 'Committed — the branch now points here' : 'Aborted')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
   })
 }
 

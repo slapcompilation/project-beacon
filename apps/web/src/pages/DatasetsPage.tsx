@@ -25,7 +25,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useProjects } from '@/features/projects/api'
 import {
   datasetLocation, useBranches, useCreateDataset, useDatasetMarkings, useDatasets,
-  useSchema, useTransactions, useView, type Branch, type Dataset,
+  useSchema, useSettleTransaction, useTransactions, useView, type Branch, type Dataset,
 } from '@/features/datasets/api'
 import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
 import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
@@ -151,6 +151,7 @@ function CreatePane({ onDone }: { onDone: () => void }) {
 function DatasetDetails({ dataset }: { dataset: Dataset }) {
   const { data: branches = [] } = useBranches(dataset.id)
   const { data: transactions = [] } = useTransactions(dataset.id)
+  const settle = useSettleTransaction(dataset.id)
   const { data: schema } = useSchema(dataset.id)
   const [branchId, setBranchId] = useState<string | null>(null)
   // "Users with an Owner role or the necessary permissions can create
@@ -258,6 +259,19 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
                   {new Date(t.committedAt ?? t.startedAt).toLocaleString()}
                 </span>
                 <span className="font-mono text-[10px] text-muted-foreground/70 truncate ml-auto">{t.rid}</span>
+                {t.status === 'OPEN' && (
+                  // The two ways an open transaction ends, per the api: commit
+                  // preserves and moves the branch head; abort discards and
+                  // leaves it. Absent on settled rows — settling twice refuses.
+                  <>
+                    <Button variant="minimal" size="small" icon="tick" title="Commit"
+                      disabled={settle.isPending}
+                      onClick={() => { settle.mutate({ id: t.id, to: 'commit' }) }} />
+                    <Button variant="minimal" size="small" icon="cross" title="Abort"
+                      disabled={settle.isPending}
+                      onClick={() => { settle.mutate({ id: t.id, to: 'abort' }) }} />
+                  </>
+                )}
               </li>
             ))}
           </ul>
