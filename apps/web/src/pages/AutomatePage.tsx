@@ -361,6 +361,12 @@ function AutomationDetail({ id }: { id: string }) {
               <h3 className="text-sm font-semibold">Summary</h3>
               <Card compact className="text-xs space-y-1">
                 <div><span className="text-muted-foreground">Scope</span> · {a.scope} scoped</div>
+                {/* Not a status: an automation with auto-mute on is not muted,
+                    it is one that will mute itself. statusOf reads `muted`. */}
+                <div>
+                  <span className="text-muted-foreground">Auto-mute</span> ·{' '}
+                  {a.auto_mute ? 'after 80% of 30 events fail' : 'off'}
+                </div>
                 <div><span className="text-muted-foreground">Last run</span> · {when(a.last_run_at)}</div>
                 {/* "configured to have an expiration date or to run
                     indefinitely" — the second is what NULL means. */}

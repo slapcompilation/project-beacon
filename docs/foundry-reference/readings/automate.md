@@ -1986,3 +1986,47 @@ holds.
   prerequisite, not the mechanism.
 - **Retention** is untouched. "retained for six months, then permanently
   deleted" is a cron that deletes history, which is its own decision.
+
+
+## Auto-mute, BUILT — 624
+
+The event log's first dividend, and the reason it was worth building first.
+
+> "When the **Auto-mute this automation** setting is enabled, the automation will automatically mute when all effects fail for at least 80% of the past 30 events."
+
+— `automate/muting-pausing-expiration.md`
+
+A metric, a window and a threshold, and it was uncountable until an *event* was
+a thing: `automation_runs` holds one row per effect per firing, so thirty runs
+is not thirty events and any ratio over them answers a different question.
+
+**The screenshot carries the placement**, and the heading it shows appears in no
+prose on any page: the toggle sits under **"Configure global effect settings"**
+(`automate/images/auto-mute.png`), so it is an effect setting rather than a
+condition one — which is where the wizard puts it, beside sequential execution.
+The same capture words the rule a second way and that is where "on this
+automation" comes from.
+
+**Three inferences, each marked in 624 rather than smuggled**: the default is
+off; a full window of thirty is required before anything mutes; and only events
+that produced runs are in the window. The second is the one that could be wrong,
+and it is chosen in the direction that mutes LESS, because muting is the
+disruptive outcome.
+
+The automatic mute is recorded by 622's `AFTER UPDATE` trigger rather than by a
+second write path, so it appears in the event log by exactly the route a
+person's mute takes.
+
+### A defect 622 shipped, found by writing the probe
+
+`automation_events.occurred_at` defaulted to `now()`, which is the
+**transaction's** start time and frozen for its duration. The runner processes
+up to fifty automations in one transaction, so every event of a pass carried the
+identical timestamp and "the past 30 events" ordered by it was an arbitrary
+thirty. 624 moves it to `clock_timestamp()`. This is 496's lesson a second time,
+and it only surfaced because the probe needed thirty ordered events in one
+transaction.
+
+**Auto-PAUSE is still not built and still for the right reason.** Its trigger is
+"excessive activity" with no threshold, metric or window anywhere — the contrast
+with this page is what makes the difference visible.
