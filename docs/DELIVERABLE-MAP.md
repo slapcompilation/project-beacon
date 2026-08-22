@@ -132,6 +132,25 @@ Building the log itself is a phase, not a tail: an event table, a writer on
 every path that changes a resource, and a retention job that DELETES — which
 this repository has never run unattended.
 
+**Platform branding.** "The platform logo can be configured per Enrollment and
+Organization, replacing any occurrences of the default Palantir logo with an
+image of your choice. You can provide up to four different logo sizes: favicon,
+small, medium, and large" — with per-size fallback, except "The favicon does not
+have any fallback behavior" (`administration/configure-platform-experience`).
+A pre-teardown `organizations.logo_url` column pretended at this in one nullable
+text field; 640 dropped it, because one URL is not four sizes with fallback and
+it also missed the Enrollment half. Building it means the four-size structure on
+both scopes plus the shell actually rendering it — the page's point is
+"replacing any occurrences", not storing an address.
+
+**Group realms.** `manage-groups` lists a `Realm` attribute beside the group
+type — "The authentication source, external or internal. For external groups,
+the realm identifies the provider that manages the group." 639 widened
+`group_type` to the published three (internal/external/rule_based) but added no
+realm column: external and rule_based groups need an identity-provider model
+(`authentication/` — providers, login-time rule evaluation) before either has a
+producer, and the realm belongs to that phase.
+
 **Replacement pipelines.** A schema change should build a second index in the
 background and swap it, "without impacting the live data being served to users".
 Ours rebuilds in place, so the type is unavailable while it runs. Worth doing
