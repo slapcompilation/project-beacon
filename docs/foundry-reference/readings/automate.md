@@ -2088,3 +2088,70 @@ every metadata event looking like pending work forever.
 migrations caught something this phase shipped** — the ledger writer reachable
 by `authenticated`, the table with no COMMENT, and this index — all written long
 before the phase existed.
+
+
+## Effect inputs, BUILT — 630/631
+
+The absence several published settings sat behind, and the purest case of this
+repository's dominant defect: **`automation_fires` has returned the triggering
+object keys since 517, and `run_automations` threw them away on every tick** —
+it read `fired IS NOT NULL` and discarded the array. The engine computed the
+answer and dropped it.
+
+> "Some object set conditions expose effect inputs. These can be used in the action effect. To use condition effect inputs, the type of the action parameter needs to align with the type of the exposed condition effect input."
+
+— `automate/effect-actions.md`
+
+### An open question, answered by an enumeration
+
+The page LISTS the conditions that expose an input — Objects added, Objects
+removed, Objects modified — and **`Run on all objects` is not among them.** That
+settles the question this reading has carried since #756: the picker labels
+`Run on all objects` with an `(x) Objects from set` chip, and the chip is wrong,
+for the same reason a description loses to an enumeration. 630 refuses it by
+name.
+
+### One of four input kinds, and the reason is arithmetic
+
+Object set, Object list, Single object, Property reference are published. Only
+**Single object** is expressible: `action_type_parameters.data_kind` admits
+`base_type`, `object`, `interfaceObject`, `objectType`, and none of those holds
+a set. An action here cannot declare a parameter that takes many objects, so
+there is nothing for an object-set input to bind to.
+
+That also settles the execution modes without choosing between them —
+
+> "The use of single object and property reference inputs means that each action is executed once for each object from the condition."
+
+— `automate/effect-actions.md`
+
+so a Single object input **is** per-object execution, and the three grouping
+modes (once for all, per batch, per group) are the multi-object branch. Not a
+decision, a consequence, which is why 630 adds no mode column.
+
+### The cap, with the half that is easy to miss
+
+> "Max number of objects per automation evaluation for scheduled automations when per-object execution is enabled | 10,000 | Runtime error during evaluation before any effects are executed; no objects are processed"
+
+— `automate/limits.md`
+
+Both halves are built. The check sits at EVALUATION, ahead of the effects loop,
+so 10,001 objects execute nothing at all rather than 10,000 things and then a
+failure. The suite asserts the ordering by position in the function body, which
+is the only way to assert "before" without 10,001 objects.
+
+### One run row per object
+
+`automation_runs.object_key` exists because `history` shows per-object detail —
+"you can also choose the object that triggered the effect to view it in Object
+Explorer" — and because a single row per effect makes a partial failure
+unreadable. `run_effect_per_object` settles each object's run independently, so
+one object failing does not stop the next; the probe asserts exactly that.
+
+### 631, and it is the same lesson one day later
+
+630 added a foreign key with no index on its leading column. 626 exists because
+625 did the identical thing, **the day before**. I had read that guard's failure
+output less than twenty-four hours earlier. Reciting a lesson does not install
+it; the guard did, three times now. The practical form: when a migration writes
+`REFERENCES`, it writes `CREATE INDEX` in the same file.
