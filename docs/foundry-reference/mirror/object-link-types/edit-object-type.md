@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-object-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-object-type/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Edit object types
 
@@ -126,7 +126,7 @@ See the section above on [potential breaking changes](#potential-breaking-change
 
 #### Error: `OntologyMetadata:IncompatibleFoundryFieldSchemaForPropertyType`
 
-If you receive the error `OntologyMetadata:IncompatibleFoundryFieldSchemaForPropertyType`, you are trying to save a property with a base type that is incompatible with the column type that is backing it. For example, the type of column X may been changed to “string”, but is mapped to property X of base type “integer”.
+If you receive the error `OntologyMetadata:IncompatibleFoundryFieldSchemaForPropertyType`, you are trying to save a property with a base type that is incompatible with the column type that is backing it. For example, the type of column X may have been changed to “string”, but is mapped to property X of base type “integer”.
 
 #### Error: `Phonograph2:SchemaMismatch`
 

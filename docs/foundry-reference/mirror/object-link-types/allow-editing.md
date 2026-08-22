@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/allow-editing/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/allow-editing/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Allow users to edit objects and links
 
@@ -25,7 +25,7 @@ Note that edits are written to the writeback dataset and not the dataset backing
 To set up a writeback dataset:
 
 1. Navigate to the **Datasources** page of the object type or link type you want to enable edits on.
-2. Select **Generate** in the **Writeback dataset** portion of the page to create a new writeback dataset. A dialog will open asking you to choose a Project where you’d like to place the dataset. Select a location.
+2. Select **Generate** in the **Writeback dataset** portion of the page to create a new writeback dataset. A dialog will open asking you to choose a Project where you would like to place the dataset. Select a location.
 3. Make sure the users who you want to be able to edit the object type or link type have edit permissions on the writeback dataset.
 4. Ensure that the users who you want to be able to view changes made to the object type or link type have view permissions on the writeback dataset.
    * The ability to view objects and links is controlled by an object type and link type’s backing datasources.

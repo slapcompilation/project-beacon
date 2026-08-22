@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/property-reducers/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/property-reducers/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Property reducers \[Beta]
 
@@ -202,4 +202,4 @@ Yes, you can configure reducers for [edit-only properties](/docs/foundry/object-
 
 ### Do reducers function across all applications?
 
-Applications are progressively rolling out support for reduced properties. If you configure a reducer on a property and use an application that doesn't yet support reducers, it should not break any existing functionality, the property will simply continue to be displayed as an array. Only applications that support reducers will have the ability to display the reduced value.
+Applications are progressively rolling out support for reduced properties. If you configure a reducer on a property and use an application that does not yet support reducers, it should not break any existing functionality, the property will simply continue to be displayed as an array. Only applications that support reducers will have the ability to display the reduced value.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-link-types/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-link-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Edit link types
 

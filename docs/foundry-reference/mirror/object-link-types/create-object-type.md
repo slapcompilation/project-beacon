@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-object-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-object-type/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Create an object type
 
@@ -211,7 +211,7 @@ Next to the datasource name in the datasource pane, you will find an **Add all u
 
 ### Configure the primary key and title key
 
-Now that you've created your new object type, added a backing datasource, and mapped it to new properties, you still need to configure the primary key and title key before being able to save your object type. You can navigate to the property metadata pane in the property editor (see image below) to set a property as the primary key and title key:
+Now that you have created your new object type, added a backing datasource, and mapped it to new properties, you still need to configure the primary key and title key before being able to save your object type. You can navigate to the property metadata pane in the property editor (see image below) to set a property as the primary key and title key:
 
 <img src="./images/create-object-type-configure-keys-manual.png" alt="Configure primary key and title key" width="500" />
 

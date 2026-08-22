@@ -49,7 +49,7 @@ The property-to-link coupling is three bullets:
 
 And the one asymmetry is stated in prose, with its reason:
 
-> In contrast, when marking a property `active`, the application won't change a link type referencing the property as its foreign key to `active`, as it is valid for a foreign key property to be in production, while the link type and its backing datasource are still in development.
+> In contrast, when marking a property `active`, the application will not change a link type referencing the property as its foreign key to `active`, as it is valid for a foreign key property to be in production, while the link type and its backing datasource are still in development.
 
 — `object-link-types/metadata-statuses.md`
 

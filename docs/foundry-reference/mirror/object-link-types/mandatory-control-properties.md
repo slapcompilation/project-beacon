@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/mandatory-control-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/mandatory-control-properties/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Mandatory control properties
 
@@ -79,7 +79,7 @@ Note that mandatory control properties are set to `Hidden` by default. This is b
 
 ## Mandatory controls in actions
 
-You can add a mandatory control parameter to your action type. This can be a marking parameter, or a classificaton parameter if CBAC is enabled. Organization parameters are currently not supported.
+You can add a mandatory control parameter to your action type. This can be a marking parameter, or a classification parameter if CBAC is enabled. Organization parameters are currently not supported.
 
 Mandatory control parameters are commonly used to set a mandatory control property on an object that the action creates. In this case, the values provided must adhere to the property's allowed values, if an invalid value is provided, action submission will fail.
 

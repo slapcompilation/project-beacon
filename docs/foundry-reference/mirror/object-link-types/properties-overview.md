@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/properties-overview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/properties-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Properties
 
@@ -8,7 +8,7 @@ For example, in the Ontology Manager, an `Employee` object type may have propert
 
 Similarly, in the Ontology Manager, a `Flight` object type may have properties `departure date`, `arrival date`, and `passenger count`. The object “JFK → SFO 24-02-2021” may have property values “24-02-2021” for `departure date`, “25-02-2021” for `arrival date`, and “150” for `passenger count`.
 
-The concepts underpinning the Ontology have analogous concepts in the structure of a dataset. The definition of a property in the Ontology is analogous to that of a column in a dataset, while the definition of a property value is analogous to that of a field in the dataset. For example, an `Employee` dataset may have columns for `departure date`, `arrival date`, and `passenger count`. In this case, a single field will have the value “11502” for the `employee number` column of the row for employee “Melissa Chang.”
+The concepts underpinning the Ontology have analogous concepts in the structure of a dataset. The definition of a property in the Ontology is analogous to that of a column in a dataset, while the definition of a property value is analogous to that of a field in the dataset. For example, an `Employee` dataset may have columns for `employee number`, `start date`, and `role`. In this case, a single field will have the value “11502” for the `employee number` column of the row for employee “Melissa Chang.”
 
 Rather than being an abstract data model, the Foundry Ontology maps each ontological concept to an organization's actual data, enabling this data asset to power real-world applications. Property values are created and displayed in user applications by adding backing datasources to an object type in the Ontology Manager. To create property values for properties `employee number`, `start date`, and `role` on objects of type `Employee`, an organization will add backing datasources to the `Employee` object type and feed their employee directory and other enterprise data into the Ontology.
 

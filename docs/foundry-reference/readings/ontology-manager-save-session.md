@@ -312,7 +312,7 @@ Neither string appears anywhere in the mirrored prose — I grepped the whole
 corpus for both. But the **first one has a documented coded twin**, in the page
 `save-changes.md` itself points at:
 
-> If you receive the error `OntologyMetadata:IncompatibleFoundryFieldSchemaForPropertyType`, you are trying to save a property with a base type that is incompatible with the column type that is backing it. For example, the type of column X may been changed to "string", but is mapped to property X of base type "integer".
+> If you receive the error `OntologyMetadata:IncompatibleFoundryFieldSchemaForPropertyType`, you are trying to save a property with a base type that is incompatible with the column type that is backing it. For example, the type of column X may have been changed to “string”, but is mapped to property X of base type "integer".
 
 So the pattern is: **the dialog shows a human sentence; the coded error name is
 documented on the page that owns the kind of change.** Grepping the corpus for

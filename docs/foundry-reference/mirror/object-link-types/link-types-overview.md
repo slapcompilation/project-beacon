@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/link-types-overview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/link-types-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Link types
 
@@ -10,7 +10,7 @@ Similarly, in the Ontology Manager, you may create a link type between the `Flig
 
 Links can also exist between two objects of the same type. A link type `Direct Report ↔ Manager` can be defined between the `Employee` object type and itself.
 
-Note that links between object types across different Ontologies is not supported. In this case, you may prefer to leverage a shared Ontology.
+Note that links between object types across different Ontologies are not supported. In this case, you may prefer to leverage a shared Ontology.
 
 ## Directionality
 

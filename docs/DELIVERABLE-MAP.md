@@ -590,6 +590,42 @@ needs the isolate to marshal it, and a token the runtime cannot carry is worse
 than a missing one** — the signature would pass and the call would fail. So the
 list grows one type at a time, when something needs to pass one.
 
+### The drift sweep (2026-08-22) — 58 pages moved, and one rule was RELAXED
+
+`check:doc-drift` reported **58 pages changed upstream**. `object-link-types`
+re-mirrored first, because two of its pages carry more weight than the rest:
+`create-object-type` is cited by five readings, and `properties-overview` is the
+page `vocabulary.test.ts` PARSES for the twenty-two base types — if that table
+had moved, our vocabulary would be stale and **nothing would have noticed**,
+because the test parses the mirror rather than upstream.
+
+**It had not moved.** Of 47 pages re-fetched, 14 changed content at all and
+almost all of it was copy-editing: contractions expanded, smart quotes fixed,
+and one genuinely incoherent example repaired (`properties-overview` had an
+`Employee` dataset with columns for `departure date`, `arrival date` and
+`passenger count`, obviously stranded from a flight example; it is now
+`employee number`, `start date`, `role`).
+
+**One substantive change: Palantir DELETED the `decimal` restrictions** from
+`property-metadata` — that decimal properties "cannot be used within action
+types as the precision cannot be guaranteed", and that the type "is also not
+supported in Object Storage v2". Both sentences are gone.
+
+We never encoded either, checked rather than assumed: `pg_proc` has nine
+functions mentioning decimal and all nine are "decimal is a base type / a column
+type / an aggregatable type" — none refuses it anywhere. So the relaxation
+creates no divergence, and this entry exists so a future reader does not
+re-introduce the restriction from a stale memory of the page.
+
+Two citations broke and were repaired to the current wording: a typo upstream
+FIXED that a reading had quoted verbatim ("the type of column X may been
+changed"), and a `won't` that became `will not`.
+
+**The remaining sections of the 58 are not swept.** Named so the debt is
+recorded: `security/`, `platform-security-management/`, `functions/`,
+`building-pipelines/`, `administration/`, `data-integration/`, `map/`,
+`ai-fde/`, `foundry-rules/`, `action-types/`, `osdk/`. Drift will keep saying so.
+
 ### The drift sweep (2026-08-18/19) — the corpus moved under fourteen readings
 
 `check:doc-drift` had been failing with **36 pages changed upstream across 14
