@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react'
 import {
   Button, Card, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
-  InputGroup, Intent, Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
+  InputGroup, Intent, NumericInput, Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useSearchParams } from 'react-router-dom'
@@ -29,6 +29,7 @@ import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { StructFieldsCard } from '@/features/objectTypes/StructFieldsCard'
+import { VectorEmbeddingCard } from '@/features/objectTypes/VectorEmbeddingCard'
 import { useEditsConfig } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
 import { DependentsTab } from '@/features/objectTypes/DependentsTab'
@@ -173,6 +174,16 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
                 {PROPERTY_TYPES.filter((t) => !['array', 'vector', 'time_series'].includes(t.value))
                   .map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </HTMLSelect>
+            )}
+            {p.type === 'vector' && !def && (
+              // "a query vector must be the same size as the one used for
+              // indexing", so the size is declared rather than inferred. The
+              // CHECK caps it at the published 2048.
+              <NumericInput size="small" min={1} max={2048} placeholder="Dimension"
+                value={p.vectorDimension ?? ''} style={{ width: 96 }}
+                onValueChange={(v) => {
+                  setProp(i, { vectorDimension: Number.isFinite(v) ? v : undefined })
+                }} />
             )}
             {/* The three sources have published definitions and per-source
                 configuration, so the row shows which one and opens the rest. */}
@@ -472,6 +483,10 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
                 rows are written immediately (633). Absent when the type has no
                 struct property. */}
             <StructFieldsCard properties={type.properties} />
+            {/* The embeddingModel union, guarded since 583/584 and never
+                writable from a screen until now. Absent unless the type has
+                a vector property. */}
+            <VectorEmbeddingCard properties={type.properties} />
             {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
             <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
           </div>

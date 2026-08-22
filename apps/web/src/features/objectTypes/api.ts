@@ -28,6 +28,7 @@ export interface PropertyRow {
   description: string
   base_type: PropertyDef['type']
   array_element_type: PropertyDef['type'] | null
+  vector_dimension: number | null
   source: 'column' | 'user_input' | 'linked_objects'
   datasource_id: string | null
   backing_column: string | null
@@ -60,6 +61,7 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
   return {
     id: r.id, key: r.property_id, label: r.display_name, apiName: r.api_name,
     type: r.base_type, arrayElementType: r.array_element_type ?? undefined,
+    vectorDimension: r.vector_dimension ?? undefined,
     description: r.description, required: r.required,
     source: r.source, backingColumn: r.backing_column,
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
@@ -80,6 +82,9 @@ export function propertyToRow(p: PropertyDef, position: number) {
     property_id: p.key, display_name: p.label, api_name: p.apiName,
     description: p.description ?? '', base_type: p.type,
     array_element_type: p.type === 'array' ? p.arrayElementType ?? null : null,
+    // An equality in the CHECK: a vector has a dimension and nothing else
+    // does, so a stale value on a retyped property refuses the row.
+    vector_dimension: p.type === 'vector' ? p.vectorDimension ?? null : null,
     source: p.source ?? 'column',
     // The CHECK admits exactly three shapes: a column names one, user input
     // names a datasource and no column, and a derived property names neither —

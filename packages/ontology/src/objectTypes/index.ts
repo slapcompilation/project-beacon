@@ -162,6 +162,11 @@ export interface PropertyDef {
    *  the media page: "Media reference lists are not supported as a property
    *  type on an object." Required exactly when type is array; never nested. */
   arrayElementType?: PropertyType
+  /** Required exactly when the type is vector: "a query vector must be the same
+   *  size as the one used for indexing", so there has to be a declared size to
+   *  match. Capped at the published 2048. Nothing could save a vector property
+   *  at all until 635 carried this through the writer. */
+  vectorDimension?: number
   required: boolean
   /** A column in a backing datasource, or `user_input` — an edit-only property,
    *  "not directly mapped to a column in the backing dataset". It still names a
