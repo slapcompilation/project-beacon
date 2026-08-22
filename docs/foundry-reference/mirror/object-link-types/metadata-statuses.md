@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-statuses/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-statuses/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Statuses
 
@@ -81,7 +81,7 @@ The same requirements are true of foreign keys of a link type. The application w
 * If a foreign key property is changed to `example`, its link type will be changed to `example`.
 * If a foreign key property is changed to `deprecated`, its link type will be changed to `deprecated`.
 
-The application changes statuses in order to prevent invalid states. If a foreign key property is `experimental` and still being developed, its link type shouldn't be marked `active` and be relied on in production. In contrast, when marking a property `active`, the application won't change a link type referencing the property as its foreign key to `active`, as it is valid for a foreign key property to be in production, while the link type and its backing datasource are still in development.
+The application changes statuses in order to prevent invalid states. If a foreign key property is `experimental` and still being developed, its link type should not be marked `active` and be relied on in production. In contrast, when marking a property `active`, the application will not change a link type referencing the property as its foreign key to `active`, as it is valid for a foreign key property to be in production, while the link type and its backing datasource are still in development.
 
 ## Bulk edit statuses
 

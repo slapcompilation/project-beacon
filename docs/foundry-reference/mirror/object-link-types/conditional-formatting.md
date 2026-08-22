@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 **Conditional formatting** enables the configuration of rules for any property and dictates how that property’s values will be rendered (e.g. coloring, alignment, etc.) in user facing applications. When you configure conditional formatting in the Ontology Manager, the formatting rules will apply in Object Explorer, Object Views, Quiver, and Workshop.
 
 <img src="./images/conditional-formatting-cond-form-example.png" alt="Example" width="600"/>
 
-For the example `Aircraft` object type in Object Explorer, pictured above, the `type` and `wifi` properties have their values in colored boxes that are applied based on certain conditions. The main benefit of adding these is to make information easier to understand quickly. If an analyst was looking for all “A320” planes without wifi in “JFK”, just by glancing at the results above, we could tell that “Q-AAY” is the plane we’re after.
+For the example `Aircraft` object type in Object Explorer, pictured above, the `type` and `wifi` properties have their values in colored boxes that are applied based on certain conditions. The main benefit of adding these is to make information easier to understand quickly. If an analyst was looking for all “A320” planes without wifi in “JFK”, just by glancing at the results above, they could tell that “Q-AAY” is the plane they need.
 
-Let’s take a look at how these conditions are applied.
+Take a look at how these conditions are applied.
 
-* For property `wifi`, we assign green if the value of the property is “true” for each object in the table, and red if it is “false."
+* For property `wifi`, we assign green if the value of the property is “true” for each object in the table, and red if it is “false.”
 
 <img src="./images/conditional-formatting-wifi-rules.png" alt="Example rules" width="250"/>
 
@@ -36,7 +36,7 @@ In the property editor:
 
 |Label   |Description    |Usage  |
 |---    |---    |---    |
-|A  |Switch between a **Standard** rule, an **Always true** rule, or a **Math** rule.    |Use **Always true** as a fallback in case your other rules don't match. In the example above, we could have grey as the fallback case when neither of the `type` values match.<br><br>Use a **Math** rule when you want to run math operators on some of your properties.  |
+|A  |Switch between a **Standard** rule, an **Always true** rule, or a **Math** rule.    |Use **Always true** as a fallback in case your other rules do not match. In the example above, we could have grey as the fallback case when neither of the `type` values match.<br><br>Use a **Math** rule when you want to run math operators on some of your properties.  |
 |B  |The rule will always be applied to the property from which you selected **Add a rule**; however, this dropdown allows you to choose to apply the rule based on the value of another property.   |In the case above, assume we want to color the value for `Type` in red when the value of `Performance factor` drops underneath a certain threshold. We would choose `Performance factor` in our logic instead of `Type`; however, the color would still show on `Type`. |
 |C  |Types of comparisons available are based on the type of the property. For example, for strings **String comparison** and **Is null** are available. For numeric types, **Numeric range** or **Exact numeric match** are available.     |To color the `type` in grey if the value is null, select this dropdown and choose **Is null** instead of **String comparison**. |
 |D  |Subtypes of comparisons, **String comparison** has **Is exactly**, **Contains**, **Starts with**, etc. |Use this to color all plane `type` values that **Start with** "A32".    |

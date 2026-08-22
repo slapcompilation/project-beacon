@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/property-metadata/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/property-metadata/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Metadata reference
 
@@ -17,7 +17,7 @@ A property is represented in the Ontology by the following metadata:
 * **Value formatting:** Depending on the base type of the property, numeric formatting, date and time formatting, user ID and resource ID formatting are available to apply to the property, transforming its raw values into more readable versions in user applications. Read more about [value formatting](/docs/foundry/object-link-types/value-formatting/).
 * **Conditional formatting:** Rules set on a property that dictate how that property value will render (e.g coloring, alignment, etc.) in user facing applications. For example, you may set a rule on the `full name` property that colors its values green if the value of the `start date` property was less than 2 weeks ago, in order to indicate a new hire in user applications. Read more about [conditional formatting](/docs/foundry/object-link-types/conditional-formatting/).
 * **Type classes:** Additional metadata that are interpreted by user applications. Read more about [type classes](/docs/foundry/object-link-types/metadata-typeclasses/).
-* **Render hints:** Indications to user applications about how to render the property that may be different than most properties of the same base type. Many render hints can be used to impact the performance of reindexes of the object type the property is defined on. For example, if you don’t expect any users to search or sort on the `start date` property in user applications, you can deselect the `searchable` and `sortable` render hints and improve the reindex performance of the `Employee` object type. Read more about [render hints](/docs/foundry/object-link-types/metadata-render-hints/).
+* **Render hints:** Indications to user applications about how to render the property that may be different than most properties of the same base type. Many render hints can be used to impact the performance of reindexes of the object type the property is defined on. For example, if you do not expect any users to search or sort on the `start date` property in user applications, you can deselect the `searchable` and `sortable` render hints and improve the reindex performance of the `Employee` object type. Read more about [render hints](/docs/foundry/object-link-types/metadata-render-hints/).
 * **Visibility:** An indication to user applications for how prominently to display the property. A `prominent` property will lead applications to show this property first to users. A `hidden` property will not appear in user applications. By default, the `start date` property will have visibility `normal`.
 
 [Learn more about creating and configuring properties in the Ontology and about validation requirements for property metadata.](/docs/foundry/object-link-types/create-object-type/)
@@ -28,9 +28,6 @@ Some property base types have limited support. These types are indicated with th
 
 * `byte`:
   * Properties of this type cannot be used within action types.
-* `decimal`:
-  * Properties of this type cannot be used within action types as the precision cannot be guaranteed when updating this data type due to the conversion between JSON and Java.
-  * This type is also not supported in Object Storage v2.
 * `float`:
   * Properties of this type cannot be used within action types.
 * `short`:

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-render-hints/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-render-hints/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Render hints
 
@@ -24,7 +24,7 @@ The following table shares the **Name** and **Description** for each of the avai
 |Name   |Description    |Adds raw index?    |Requires reindex?  |
 |---    |---    |---    |---    |
 |Disable formatting |- **Enable** if property values should not be formatted in Object Views according to a browser location’s local numerical formatting standards.   |   |   |
-|Identifier |- **Enable** to improve reindex performance and specify primary keys and foreign keys that have a numerical base type and don’t need to be formatted or treated as numbers. <br>    - For example, Object Views won’t format the property values as numbers and Object Explorer won’t enable filtering the keys by a range.    |   |   |
+|Identifier |- **Enable** to improve reindex performance and specify primary keys and foreign keys that have a numerical base type and do not need to be formatted or treated as numbers. <br>    - For example, Object Views will not format the property values as numbers and Object Explorer will not enable filtering the keys by a range.    |   |   |
 |Keywords   |- **Enable** to highlight this property in its own section when displaying properties in Object Views.     |   |   |
 |Long text  |- **Enable** if property values contains a large amount of text. <br>    - For example, Object Views will display this property’s values in a more readable format.    |   |   |
 |Low cardinality    |- **Enable** to indicate to applications that there are not many possible values for this property. <br>    - For example, some Object View widgets will only allow filtering on properties with not many possible values. <br>- The Searchable render hint **must also be selected** along with Low cardinality.     |yes    |yes    |

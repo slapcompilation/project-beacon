@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/object-types-overview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/object-types-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Object types
 
@@ -10,7 +10,7 @@ For example, in the Ontology Manager, you may create an `Employee` object type t
 
 Similarly, in the Ontology Manager, you may create a `Flight` object type that defines characteristics for “All flights” or all objects of that type. An object refers to a single instance of the `Flight` object type, like “JFK → SFO 2021-02-24” or “TLV → LHR 2020-04-16.” A group of objects like “All arrived flights” represents an object set.
 
-The concepts underpinning the Ontology have analogous concepts in the structure of a dataset. The definition of an object type in the Ontology is analogous to that of a dataset, while the definition of an object is analogous to that of a row in the dataset. The definition of an object set is analogous to a filtered set of rows in a dataset. For example, an `Employee` dataset may define the schema for “All employee rows.” In this case, a single row refers to a single employee, like “Melissa Chang,” “Akriti Patel,” or “Diego Rodriguez." If you filter the dataset based on tenure, you will have a set of rows that represent “All tenured employees.”
+The concepts underpinning the Ontology have analogous concepts in the structure of a dataset. The definition of an object type in the Ontology is analogous to that of a dataset, while the definition of an object is analogous to that of a row in the dataset. The definition of an object set is analogous to a filtered set of rows in a dataset. For example, an `Employee` dataset may define the schema for “All employee rows.” In this case, a single row refers to a single employee, like “Melissa Chang,” “Akriti Patel,” or “Diego Rodriguez.” If you filter the dataset based on tenure, you will have a set of rows that represent “All tenured employees.”
 
 Rather than being an abstract data model, the Foundry Ontology maps each ontological concept to an organization's actual data, enabling this data asset to power real-world applications. Objects are created and displayed in user applications by adding backing datasources to an object type in the Ontology Manager. To create objects of type `Employee`, an organization will add backing datasources to the `Employee` object type and connect their employee directory and other enterprise data into the Ontology.
 

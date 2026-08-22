@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-08-22 from Palantir Foundry docs -->
 
 # Add value formatting
 
@@ -44,7 +44,7 @@ In the property editor:
 | **Minimum fraction digits** | The fewest digits to show after the decimal point. Shorter values are padded with trailing zeros. | Set to `2` to display `3.5` as `3.50`. |
 | **Maximum/Minimum significant digits** | The most and fewest significant digits to display, counted from the first non-zero digit. | Set maximum significant digits to `3` to display `3.14159` as `3.14`. |
 | **Minimum integer digits** | The fewest digits to show before the decimal point, padded with leading zeros. | Set to `2` to display `5` as `05`. |
-| **Preview result**     | View and test numeric formatting. | Add any number in the input that is similar to what you'd expect to see in your property's values for a preview of the formatting. |
+| **Preview result**     | View and test numeric formatting. | Add any number in the input that is similar to what you would expect to see in your property's values for a preview of the formatting. |
 
 ### Date and time formatting options
 
