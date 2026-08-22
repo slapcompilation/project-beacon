@@ -58,7 +58,7 @@ export const CONDITION_CARDS: ConditionCard[] = [
     blurb: 'Evaluates when a linked automation completes.' },
   { kind: 'time_series', label: 'Time series', icon: 'timeline-line-chart',
     exposes: null, supported: false,
-    why: 'time_series_properties is an orphan of the deleted product: zero rows, no surface, and no datasource kind backs a series.',
+    why: 'Time series is not one of the twenty-two base types here, so no property can be one. Foundry has 42 pages on it; none is read.',
     blurb: 'Triggers when a time series threshold is crossed.' },
   { kind: 'stream', label: 'Stream', icon: 'flow-linear',
     exposes: null, supported: false,
