@@ -26,6 +26,7 @@ const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage
 const MainBranchUpdatesPage = lazyWithRetry(() => import('@/pages/ontology/MainBranchUpdatesPage'))
 const CleanupPage = lazyWithRetry(() => import('@/pages/ontology/CleanupPage'))
 const CleanupFlagsPage = lazyWithRetry(() => import('@/pages/ontology/CleanupFlagsPage'))
+const AdvancedPage = lazyWithRetry(() => import('@/pages/ontology/AdvancedPage'))
 const HealthIssuesPage = lazyWithRetry(() => import('@/pages/ontology/HealthIssuesPage'))
 const FunctionsPage = lazyWithRetry(() => import('@/pages/ontology/FunctionsPage'))
 const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
@@ -92,6 +93,7 @@ function AppRoutes() {
               <Route path="health"            element={<HealthIssuesPage />} />
               <Route path="cleanup"           element={<CleanupPage />} />
               <Route path="cleanup/flags"     element={<CleanupFlagsPage />} />
+              <Route path="advanced"          element={<AdvancedPage />} />
             </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />

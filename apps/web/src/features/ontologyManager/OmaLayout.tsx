@@ -115,6 +115,9 @@ export default function OmaLayout() {
               <HealthIssuesRow />
               <CleanupRow />
               <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
+              {/* "the Advanced settings page from the application's home page" —
+                  where Export and Import live. */}
+              <NavRow icon="cog" label="Advanced" path="/ontology/advanced" />
             </div>
           </nav>
         </aside>

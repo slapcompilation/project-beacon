@@ -10,7 +10,7 @@ import type { ActionType, FunctionType, Json } from './client'
 //   public.object_type_nearest
 //   public.rid_of
 
-// ── ACTION TYPES (47) ────────────────────────────────────────────────
+// ── ACTION TYPES (48) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -185,6 +185,16 @@ export const generateInterfaceParameters = { apiName: 'generate_interface_parame
 export const implementInterface = { apiName: 'implement_interface', kind: 'action' } as ActionType<
   { p_object_type: string; p_interface: string; p_mappings?: Json },
   string
+>
+
+/**
+ *  Recreates the caller's entire working state from an exported file,
+ *  replacing whatever is there. Returns the number of changes, which is what
+ *  the page says the header then shows.
+ */
+export const importWorkingState = { apiName: 'import_working_state', kind: 'action' } as ActionType<
+  { p_file: Json },
+  number
 >
 
 export const indexJobSpec = { apiName: 'index_job_spec', kind: 'action' } as ActionType<
@@ -414,7 +424,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (200) ───────────────────────────────────────────────────
+// ── FUNCTIONS (201) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1030,6 +1040,16 @@ export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'functi
 export const evaluateObjectSetByApiName = { apiName: 'evaluate_object_set_by_api_name', kind: 'function' } as FunctionType<
   { p_ontology: string; p_api_name: string; p_filters?: Json; p_limit?: number },
   Json[]
+>
+
+/**
+ *  The caller's working state as JSON. "Any changes you have in your working
+ *  state will be included in the export" (ontology-manager/export-import).
+ *  The schema is deliberately ours: the page says not to depend on it.
+ */
+export const exportWorkingState = { apiName: 'export_working_state', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_branch?: string },
+  Json
 >
 
 /**
