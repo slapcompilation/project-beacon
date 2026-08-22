@@ -109,28 +109,14 @@ scrapped. What genuinely remains:
   triggered a condition to reach the effects. Nothing carries them today, and it
   is the one absence several published settings sit behind.
 
-**The Compass Activity log.** "The Activity log provides a running view of
-changes made throughout the Project and is only visible at the Project level"
-(`compass/use-project-details-panel`), with a stated one-month retention. It is
-what Compass tells you to consult to confirm a resource's state — "review the
-Activity log for the Project, or open the item or folder directly and verify
-that it shows as In trash" (`compass/use-project-navigation-panel`).
-
-**This is the coherent surface fourteen provenance columns are waiting for.**
-The 2026-08-22 unread-column sweep found 34 columns reached from nowhere; 21
-were provenance, and they split cleanly. Fourteen already populate themselves —
-`added_at`/`stopped_at` default `now()`, and four `*_by` default `auth.uid()` —
-so their gap is display only. Nine had no writer at all, and 636 closed eight of
-them: four `*_by` columns took the `auth.uid()` default their own siblings
-already had, and `trashed_by` got a trigger on all four trashable tables,
-because the web mutation set `trashed_at` and nothing ever set the other half.
-
-The ninth, `dataset_transactions.aborted_at`, belongs to the transaction
-lifecycle and wants stamping at the call site that sets ABORTED.
-
-Building the log itself is a phase, not a tail: an event table, a writer on
-every path that changes a resource, and a retention job that DELETES — which
-this repository has never run unattended.
+**The enrollment audit log.** Distinct from the Project Activity log, which
+shipped in 641 the day after its entry was written here (and this entry replaces
+it, deleted rather than annotated). `security/audit-log-categories` describes a
+security-monitoring product: the `audit.3` schema, standardized categories with
+request and result parameters, an analyst audience, org-wide scope. Building the
+Activity log as that — or that as the Activity log — would be the
+two-vocabularies trap; neither borrows the other's grammar. Wants its own
+reading before anything is built.
 
 **Platform branding.** "The platform logo can be configured per Enrollment and
 Organization, replacing any occurrences of the default Palantir logo with an
