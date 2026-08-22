@@ -69,6 +69,12 @@ look finished too.
 
 ## Written so far
 
+- `compass-activity-log.md` — the whole prose spec is one paragraph, and no
+  capture anywhere shows the feed's rows, so the row grammar is ours and marked.
+  Decisions: trigger-written `project_activity`, an emit-only action vocabulary
+  (639's event-log side of the distinction), and the repository's **first
+  unattended destructive job** — the published one-month retention as a pg_cron
+  deletion. Gated on a human reading that block.
 - `ontology-best-practices-and-anti-patterns.md` — the three pages the queue
   above listed and nobody opened. Eight anti-patterns, four principles in a
   stated priority order, and exactly **one countable indicator**: more than ten
