@@ -31,7 +31,11 @@ const HELPERS = ['schedule_candidates', 'record_schedule_state', 'record_schedul
   // 622's new ledger writer. It shipped reachable by `authenticated` and
   // nothing failed, because it was not on this list — the more dangerous of
   // the two holes 623 closed. A ledger writer belongs here the day it exists.
-  'record_automation_event']
+  'record_automation_event',
+  // The two retention deleters (641/642). Ledger-helper shape: DEFINER, the
+  // runner holds EXECUTE, no table grant anywhere else — so each function is
+  // the only door to its deletion.
+  'expire_project_activity', 'expire_automation_history']
 
 describe.skipIf(noDb)('the scheduled path and RLS', () => {
   let db: pg.Client

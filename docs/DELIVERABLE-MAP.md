@@ -96,11 +96,6 @@ scrapped. What genuinely remains:
   effects run inside one transaction on one tick, so there is no long-running
   execution to time out. It becomes real the moment an effect leaves the
   transaction.
-- **History retention.** "Automation history is retained for six months, then
-  permanently deleted" (`automate/history`). `automation_events` now grows
-  without bound and nothing expires it. A cron that DELETES data is its own
-  decision with its own probe, and this repository has never run a destructive
-  timer.
 - **Auto-pause.** Its trigger is "excessive activity", with no threshold, metric
   or window on any page — the contrast with auto-mute's exact 80%-of-30 is what
   makes the difference visible. Not buildable without inventing a number.
