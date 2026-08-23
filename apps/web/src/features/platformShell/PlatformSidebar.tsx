@@ -18,6 +18,7 @@ import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { ALL_APPS, titleForPath } from './apps'
 import { ApplicationsPortal } from './ApplicationsPortal'
+import { usePlatformExperience } from './branding'
 import { Quicksearch, MOD } from './Quicksearch'
 
 export function PlatformSidebar() {
@@ -28,6 +29,7 @@ export function PlatformSidebar() {
   const recents = useAppStore((s) => s.recents)
   const favorites = useAppStore((s) => s.favoriteApps)
   const email = useAuthStore((s) => s.session?.user.email ?? '')
+  const smallLogo = usePlatformExperience().data?.logos?.small
   const [portalOpen, setPortalOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -68,7 +70,11 @@ export function PlatformSidebar() {
   return (
     <aside className={cn('platform-sidebar', collapsed && 'is-collapsed')}>
       <div className="platform-head">
-        <span className="platform-mark"><Icon icon="layers" size={13} color="#fff" /></span>
+        <span className="platform-mark">
+          {smallLogo
+            ? <img src={smallLogo} alt="" className="platform-mark-img" />
+            : <Icon icon="layers" size={13} color="#fff" />}
+        </span>
         <button type="button" className="platform-collapse" onClick={toggle} title="Ctrl+O"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
           <Icon icon={collapsed ? 'menu-open' : 'menu-closed'} size={16} />

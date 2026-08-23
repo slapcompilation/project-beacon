@@ -467,7 +467,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (207) ───────────────────────────────────────────────────
+// ── FUNCTIONS (210) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1666,6 +1666,38 @@ export const orgWorkflows = { apiName: 'org_workflows', kind: 'function' } as Fu
 export const passesScopedSession = { apiName: 'passes_scoped_session', kind: 'function' } as FunctionType<
   { p_markings: string[] },
   boolean
+>
+
+/**
+ *  The shell's one branding call: resolved title (org, enrollment, then
+ *  Beacon), the four logos through the fallback table as data URLs, and the
+ *  enabled banner if any. Invoker rights — RLS decides what each caller's
+ *  scope shows.
+ */
+export const platformExperience = { apiName: 'platform_experience', kind: 'function' } as FunctionType<
+  { p_org: string },
+  Json
+>
+
+/**
+ *  The published fallback table, executable: exact size (org row, then
+ *  enrollment row), then the size's own preference order. "The favicon does
+ *  not have any fallback behavior" — its list is itself alone.
+ */
+export const platformLogo = { apiName: 'platform_logo', kind: 'function' } as FunctionType<
+  { p_org: string; p_size: string },
+  { content_type: string; image: unknown }[]
+>
+
+/**
+ *  The four formats the logo upload accepts, from the capture
+ *  (administration/images/configure-platform-logo.png): SVG and PNG
+ *  recommended, JPEG and GIF also supported. A function because the set's
+ *  source is a screenshot, not a page the declared-set suite could grep.
+ */
+export const platformLogoContentTypes = { apiName: 'platform_logo_content_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**
