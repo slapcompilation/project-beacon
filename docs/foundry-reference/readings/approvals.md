@@ -15,14 +15,15 @@ whoever could have made the change themselves, and an approved request is
 `approvals/overview` (86 lines, whole), `approvals/review-a-request` (45
 lines, whole). `approvals/_index` is **byte-identical to `approvals/overview`
 past the source line** — the fifth double-mirrored slug found, verified by
-diff. **Images: seven of fifteen parsed** — `approvals_inbox.png`,
-`request_example.png`, `request_actions.png`, `partially_approved_request.png`,
-`tasks_eligible_to_review.png`, `task_checkpoints.png`, and administration's
-`control-panel-approvals-inbox.png`. The eight I did not parse:
-`requests_to_review2.png`, `reviewer_tasks2.png`, `adding_a_reviewer.png`,
-`approving_a_task.png`, `approval_all_tasks.png`, `all_comments.png`,
-`marking_access_request_comment.png` (flow variants of the parsed screens),
-and `notifications.png` (a settings panel for a subsystem §6 rules out).
+diff. **Images: all fifteen parsed** — seven at the first reading
+(`approvals_inbox.png`, `request_example.png`, `request_actions.png`,
+`partially_approved_request.png`, `tasks_eligible_to_review.png`,
+`task_checkpoints.png`, administration's `control-panel-approvals-inbox.png`)
+and the remaining eight in the 2026-08-24 accuracy pass, which I had named
+unparsed: `requests_to_review2.png`, `reviewer_tasks2.png`,
+`adding_a_reviewer.png`, `approving_a_task.png`, `approval_all_tasks.png`,
+`all_comments.png`, `marking_access_request_comment.png`,
+`notifications.png`. §7 records what the eight added.
 
 ## 1. The loop: request → approve → invoke
 
@@ -134,6 +135,34 @@ progress pills. One product, two windows.
 - **Add reference request** invokes a Project-references mechanism we have
   no table for.
 - **File upload on comments** needs object storage we do not use.
+
+
+## 7. What the eight later-parsed captures added (2026-08-24)
+
+- **The inbox has two label generations.** `requests_to_review2.png` says
+  Requests to review / My requests where `approvals_inbox.png` says Your
+  inbox / Created by you — and each page's PROSE matches its own capture.
+  Ours follows the overview's labels; noted as an era split, not an error.
+- **Inbox rows carry the request's target path** and the list header a Type
+  filter (`requests_to_review2.png`) — enrichment not built, recorded.
+- **A group-membership task displays the group's role on the project**
+  ("Group role on project — Viewer",
+  `approvals/images/reviewer_tasks2.png`) — display enrichment, recorded.
+- **+ Review opens a per-task Approve/Reject menu** and the Actions dropdown
+  holds Approve all / Reject all (`approving_a_task.png`,
+  `approval_all_tasks.png`). Ours renders the same two verbs inline and its
+  Approve button is approve-all-eligible; no Reject all — recorded.
+- **Comments are author-attributed bubbles**, threaded back-and-forth, with
+  @-mentions, per-task comment counts on task heads, and a per-task filter
+  dropdown replacing All (`all_comments.png`,
+  `marking_access_request_comment.png`). The author display was a real gap in
+  our stream, fixed in the accuracy-pass PR; attachments render inline (a
+  training certificate) — files still wait for storage, as Decision 6 said.
+- **The invite popover** is a user-and-group search with Save
+  (`adding_a_reviewer.png`); invitation stays out (no notification system to
+  make it mean anything).
+- **`notifications.png`** confirms the five Approvals notification kinds as
+  account-settings toggles (Email/Web per kind) — the §6 ruling stands.
 
 ## Decisions
 
