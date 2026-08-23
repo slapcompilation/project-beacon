@@ -38,6 +38,26 @@ export function usePlatformExperience() {
   })
 }
 
+// "The default home page when users open Foundry" — the configured home URL,
+// per user: the first group override that matches, else the org default,
+// else null and the shell keeps its own home.
+export function useHomePageUrl() {
+  const orgId = useAuthStore((s) => s.organizationId)
+  return useQuery({
+    queryKey: ['home-page-url', orgId],
+    enabled: orgId !== null,
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<string | null> => {
+      const res = (await supabase.rpc('home_page_url')) as {
+        data: string | null
+        error: { message: string } | null
+      }
+      if (res.error) throw new Error(res.error.message)
+      return res.data
+    },
+  })
+}
+
 // "The Banner text field supports basic Markdown syntax" — links are the use
 // the capture names, so links are what renders; everything else stays text.
 export function BannerText({ text }: { text: string }) {
