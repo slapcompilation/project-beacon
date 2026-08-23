@@ -56,7 +56,8 @@ function valueSets(rows: { t: string; n: string; d: string; cm: string | null }[
 
 /** `one_to_one` is written "one-to-one" on its page and `media_reference` as
  *  "Media Reference". Try each separator rather than guessing which. */
-const forms = (v: string): string[] => [v.replace(/_/g, ' '), v.replace(/_/g, '-'), v]
+const forms = (v: string): string[] =>
+  [v.replace(/_/g, ' '), v.replace(/_/g, '-'), v].map((f) => f.toLowerCase())
 const flatten = (s: string): string => s.toLowerCase().replace(/[`*_]/g, '').replace(/\s+/g, ' ')
 
 describe.skipIf(noDb)('a value set names the page it came from', () => {

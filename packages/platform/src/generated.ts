@@ -456,7 +456,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (205) ───────────────────────────────────────────────────
+// ── FUNCTIONS (207) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -516,6 +516,26 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
   { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
   { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
+>
+
+/**
+ *  The audit.3 categories a producer in this repository emits. Spelling from
+ *  security/audit-log-categories; the set grows one category per producer, in
+ *  the migration that adds the producer, never ahead of one.
+ */
+export const auditCategories = { apiName: 'audit_categories', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  The audit.3 field guarantee, per admitted category: groupPatches,
+ *  resourcesWithPermissionsChanges and markingPatches are each "type:
+ *  required" on security/audit-log-categories.
+ */
+export const auditRequiredFieldsPresent = { apiName: 'audit_required_fields_present', kind: 'function' } as FunctionType<
+  { p_categories: string[]; p_request: Json },
+  boolean
 >
 
 export const authGroupIds = { apiName: 'auth_group_ids', kind: 'function' } as FunctionType<
