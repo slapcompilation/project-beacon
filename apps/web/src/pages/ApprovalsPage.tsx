@@ -235,6 +235,9 @@ function RequestView({ id, requests, isLoading }:
             {(comments ?? []).map((c) => (
               <div key={c.id} className={cn('approvals-comment', c.is_system && 'is-system')}>
                 {c.is_system && <Icon icon="automatic-updates" size={12} />}
+                {!c.is_system && c.author_email !== null && (
+                  <span className="approvals-comment-author">{c.author_email}</span>
+                )}
                 <span>{c.body}</span>
                 <span className="approvals-comment-when">
                   {new Date(c.created_at).toLocaleString()}

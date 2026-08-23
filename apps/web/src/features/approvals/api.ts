@@ -41,6 +41,7 @@ export interface ApprovalComment {
   id: string
   task_id: string | null
   author: string | null
+  author_email: string | null
   body: string
   is_system: boolean
   created_at: string
@@ -67,12 +68,22 @@ export function useApprovalComments(requestId: string | null) {
     queryKey: ['approvals', 'comments', requestId],
     enabled: requestId !== null,
     queryFn: async (): Promise<ApprovalComment[]> => {
+      // the capture renders comments as author-attributed bubbles; the
+      // embed resolves the author through the same-org users policy
       const { data, error } = await supabase.from('approval_request_comments')
-        .select('id, task_id, author, body, is_system, created_at')
+        .select('id, task_id, author, body, is_system, created_at, author_user:users(email)')
         .eq('request_id', requestId ?? '')
         .order('created_at', { ascending: true })
       if (error) throw new Error(error.message)
-      return data as ApprovalComment[]
+      const rows = data as unknown as (Omit<ApprovalComment, 'author_email'> & {
+        author_user: { email: string } | { email: string }[] | null
+      })[]
+      return rows.map(({ author_user, ...c }) => ({
+        ...c,
+        author_email: Array.isArray(author_user)
+          ? author_user[0]?.email ?? null
+          : author_user?.email ?? null,
+      }))
     },
   })
 }

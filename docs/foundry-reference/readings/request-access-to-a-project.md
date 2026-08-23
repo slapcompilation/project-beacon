@@ -9,14 +9,16 @@ request. The page that closes it also settles an older open finding — whether
 our org-scoped project listing is a leak or a feature.
 
 **What I read, counted rather than asserted.**
-`security/projects-and-roles` whole (117 lines). **Images: two parsed** —
+`security/projects-and-roles` whole (117 lines). **Images: six parsed** —
 `project_access_request.gif` (a GIF; only its first frame parses, which shows
-the wizard's first step whole) and `success_message.png`. Nine named and not
-parsed, all illustrating sections outside this chunk:
-`project-containment.png`, `resource_access_request_request.png`,
-`access-panel.gif`, `references.png`, `reference_to_flights.png`,
-`create-projects.png`, `flight-delay-project.png`,
-`advanced_settings_roles.png`, `space-settings-role-grants.png`.
+the wizard's first step whole) and `success_message.png` at the first
+reading; `resource_access_request_request.png`, `advanced_settings_roles.png`,
+`space-settings-role-grants.png` and `create-projects.png` in the 2026-08-24
+accuracy pass (§5 records what they added). Four remain named and not
+parsed — `project-containment.png`, `references.png`,
+`reference_to_flights.png`, `flight-delay-project.png` are diagrams
+illustrating the References prose read in full, and `access-panel.gif` is an
+animation of the access panel, a surface this chunk does not touch.
 
 ## 1. The finding resolves: discoverability is the flow's precondition
 
@@ -88,6 +90,24 @@ request." (`security/images/success_message.png`) with View details.
   the Project itself") — our entry point is already the project.
 - The page's References, Roles and role-grant-toggle sections were read and
   touch nothing this chunk changes.
+
+
+## 5. What the later-parsed captures added (2026-08-24)
+
+- **A file-level request records its context on the request**: Request
+  details carries "Requested file: aircraft" beside the target project
+  (`security/images/resource_access_request_request.png`) — the prose's
+  "shown to provide additional context", as a field. Ours has no per-file
+  entry point yet, so no field; recorded.
+- **The role-grant toggle confirms our default posture.** The Project
+  Settings panel shows Allow resource level role grants OFF
+  (`security/images/advanced_settings_roles.png`) and the space-level default
+  likewise (`security/images/space-settings-role-grants.png`) — so our
+  project-level-only grants ARE the documented default ("Role grants on
+  folders and files are disabled by default"), not a missing feature. The
+  toggle itself is the recorded residual.
+- `create-projects.png` adds only chrome (the New project button beside
+  Manage spaces), matching our Projects page.
 
 ## Decisions
 
