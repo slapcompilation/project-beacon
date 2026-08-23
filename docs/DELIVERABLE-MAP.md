@@ -117,16 +117,14 @@ realm column: external and rule_based groups need an identity-provider model
 (`authentication/` — providers, login-time rule evaluation) before either has a
 producer, and the realm belongs to that phase.
 
-**The Approvals inbox surface.** The engine shipped in 651 (reading
-`approvals.md`): requests, tasks, derived eligibility, automatic invocation,
-and the three request audit categories with their producers. What remains is
-the surface — the inbox with Your inbox / Created by you / All requests and
-the status sub-filters, and the request page with the eligible/ineligible
-split, typed payload rows, the n/m footer and the comment stream, per the
-seven parsed captures. Residuals recorded in the reading: checkpoints (and
-with them the action_required state), notifications, the add-reference kind,
-file upload on comments, and Control Panel's own ingress/egress/web-hosting
-workflows.
+**Approvals residuals.** Engine (651) and inbox surface (652 + /approvals)
+shipped; the reading `approvals.md` records what stays out and why:
+checkpoints (and with them the action_required state), notifications, the
+add-reference kind, file upload on comments, and Control Panel's own
+ingress/egress/web-hosting workflows. One consumer gap worth its own small
+chunk: nothing in the web yet FILES a request — the entry points live in
+other apps in Foundry (a project page's request-access button, OMA's
+proposals), so each arrives with its surface.
 
 **~~`authorized_group_ids` compiles fail-closed~~ — it did not, in one shape
 (FIXED 568).** Foundry declines to define the attribute ("Contact your Palantir

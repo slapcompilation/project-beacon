@@ -502,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (215) ───────────────────────────────────────────────────
+// ── FUNCTIONS (216) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -562,6 +562,16 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
   { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
   { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
+>
+
+/**
+ *  The inbox in one call: every request the caller may see (651's own
+ *  predicate), tasks with the caller's computed eligibility, and the display
+ *  names the captures render. Newest first, the inbox's own sort.
+ */
+export const approvalRequestsListing = { apiName: 'approval_requests_listing', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  Json
 >
 
 /**
