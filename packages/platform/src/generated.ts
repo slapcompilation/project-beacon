@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (51) ────────────────────────────────────────────────
+// ── ACTION TYPES (52) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -114,6 +114,17 @@ export const buildMaterialization = { apiName: 'build_materialization', kind: 'a
 export const commitTransaction = { apiName: 'commit_transaction', kind: 'action' } as ActionType<
   { p_transaction: string },
   void
+>
+
+/**
+ *  Create export dataset (security/audit-logs-overview): an empty
+ *  audit.3-schema dataset in the chosen location, registered for the
+ *  fifteen-minute append. Gate is the organization administrator; the
+ *  start-date filter becomes the watermark's starting value.
+ */
+export const createAuditExport = { apiName: 'create_audit_export', kind: 'action' } as ActionType<
+  { p_organization: string; p_project: string; p_api_name: string; p_name: string; p_start_date?: string; p_retention_days?: number; p_log_type?: string },
+  string
 >
 
 /**
