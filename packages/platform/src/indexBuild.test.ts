@@ -193,4 +193,82 @@ describe.skipIf(noDb)('the index is a build', () => {
       'select public.index_object_type($1, gen_random_uuid())', [type]))
     expect(err).toContain('Builds:IndexNeedsAJob')
   })
+
+  // 644: the rebuild writes objects.<tbl>__next and swaps only after the last
+  // row lands — "without impacting the live data being served to users".
+  it('a rebuild is a replacement: a broken build leaves the old index serving', async () => {
+    let build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    expect((await one('select state from public.build_jobs where build_id=$1', [build])).state).toBe('COMPLETED')
+    const tbl = (await one(
+      'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t
+    const before = await count(`select count(*) n from objects.${tbl}`)
+    expect(await count(
+      `select count(*) n from pg_tables where schemaname='objects' and tablename=$1`, [tbl + '__next'])).toBe(0)
+
+    // an appended file that repeats a primary key fails the merge mid-loop
+    head = await commit(db, f.datasetId, f.branchId, 'APPEND', ['dup.parquet'], head)
+    const dupFile = (await one(
+      'select id from public.dataset_files where transaction_id=$1', [head])).id
+    const phys = (await one('select physical_table as t from public.datasets where id=$1', [f.datasetId])).t
+    await db.query(`insert into datasets.${phys} (_file, pk, city) values ($1,'A','DUP')`, [dupFile])
+
+    build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    const job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state).toBe('FAILED')
+    expect(job.error).toContain('non-unique primary keys')
+
+    // the failure never touched the live table: same name, same rows, still serving
+    expect((await one(
+      'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t).toBe(tbl)
+    expect(await count(`select count(*) n from objects.${tbl}`)).toBe(before)
+
+    // repair with a snapshot, and the replacement swaps in under the same name
+    head = await commit(db, f.datasetId, f.branchId, 'SNAPSHOT', ['fixed.parquet'], head)
+    const fixedFile = (await one(
+      'select id from public.dataset_files where transaction_id=$1', [head])).id
+    await db.query(
+      `insert into datasets.${phys} (_file, pk, city) values ($1,'A','ATH'),($1,'B','SKG')`, [fixedFile])
+    build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    expect((await one('select state from public.build_jobs where build_id=$1', [build])).state).toBe('COMPLETED')
+    expect((await one(
+      'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t).toBe(tbl)
+    expect(await count(`select count(*) n from objects.${tbl}`)).toBe(2)
+    expect(await count(
+      `select count(*) n from pg_tables where schemaname='objects' and tablename=$1`, [tbl + '__next'])).toBe(0)
+  })
+
+  // 643 executed the KNN query for the first time and found its helpers
+  // missing; the suite asks the same question on every run, not once at
+  // landing. "KNN is only supported on object types indexed into OSv2".
+  it('the KNN query reads what the build wrote', async () => {
+    const dsid = (await one('select id from public.object_type_datasources where object_type_id=$1', [type])).id
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source, datasource_id,
+          vector_dimension, vector_distance_function, vector_embedding_kind, vector_embedding_model,
+          searchable, sortable, selectable)
+       values ($1,'embedding','embedding','Embedding','vector','user_input',$2,
+               2,'cosine_similarity','lms','openai_text_embedding_ada_002',false,false,false)`,
+      [type, dsid])
+    await db.query(
+      `insert into public.object_type_vector_searches (property_id, similarity_function)
+       select id, 'cosine_similarity' from public.object_type_properties
+        where object_type_id=$1 and property_id='embedding'`, [type])
+    await db.query('update public.object_types set only_edits_via_actions=false where id=$1', [type])
+    await db.query(
+      `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
+       values ($1,'A','modify','{"embedding": [1, 0]}'), ($1,'B','modify','{"embedding": [0, 1]}')`, [type])
+
+    const build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    const job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
+
+    // the four-argument arity 581 left ambiguous resolves through the default
+    const rows = (await db.query(
+      `select object_key, distance from public.object_type_nearest($1,'embedding',array[1,0]::real[],2)`,
+      [type])).rows as { object_key: string; distance: number }[]
+    expect(rows.map((r) => r.object_key)).toEqual(['A', 'B'])
+    expect(Number(rows[0].distance)).toBeLessThan(0.001)
+    expect(Number(rows[1].distance)).toBeGreaterThan(0.9)
+  })
 })
