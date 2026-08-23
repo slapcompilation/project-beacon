@@ -400,6 +400,16 @@
 
 @media all {
   .platform-shell { display:flex; height:100vh; overflow:hidden; }
+  /* The static banner wraps the shell: bars keep their height, the shell
+     takes the rest. */
+  .platform-shell-column { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+  .platform-shell-column .platform-shell { height:auto; flex:1 1 0%; min-height:0; }
+  .platform-banner {
+    flex-shrink:0; padding:3px 12px; font-size:11px; font-weight:600;
+    letter-spacing:.06em; text-transform:uppercase; text-align:center;
+  }
+  .platform-banner a { color:inherit; text-decoration:underline; }
+  .platform-mark-img { width:16px; height:16px; object-fit:contain; }
   .platform-main  { display:flex; flex-direction:column; flex:1 1 0%; min-width:0; overflow:hidden; }
 
   .platform-sidebar {
@@ -1401,3 +1411,6 @@
 .grid-cols-\[220px_1fr\] { grid-template-columns:220px 1fr; }
 .grid-cols-\[7rem_1fr\] { grid-template-columns:7rem 1fr; }
 @media (min-width:1024px) { .lg\:grid-cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+/* "Show when printing" off hides the banner on paper only. */
+@media print { .platform-banner-no-print { display:none; } }

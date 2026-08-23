@@ -104,16 +104,15 @@ scrapped. What genuinely remains:
   triggered a condition to reach the effects. Nothing carries them today, and it
   is the one absence several published settings sit behind.
 
-**Platform branding.** "The platform logo can be configured per Enrollment and
-Organization, replacing any occurrences of the default Palantir logo with an
-image of your choice. You can provide up to four different logo sizes: favicon,
-small, medium, and large" — with per-size fallback, except "The favicon does not
-have any fallback behavior" (`administration/configure-platform-experience`).
-A pre-teardown `organizations.logo_url` column pretended at this in one nullable
-text field; 640 dropped it, because one URL is not four sizes with fallback and
-it also missed the Enrollment half. Building it means the four-size structure on
-both scopes plus the shell actually rendering it — the page's point is
-"replacing any occurrences", not storing an address.
+**The organization home page URL.** The Platform-experience tab the branding
+arc (649, reading `platform-experience.md`) deliberately deferred: an
+Organization default plus group overrides where "the first matching group
+setting is used, falling back to the organization default if none match"
+(`administration/images/configure-homepage-url.png`), consumed by the
+post-login redirect. Small, expressible today, its own chunk. Languages and
+Platform version stay out with reasons recorded in the reading; the
+enrollment-scope WRITER for logos and titles waits on enrollment-level
+permissions (the rows exist and resolve, nothing may write them).
 
 **Group realms.** `manage-groups` lists a `Realm` attribute beside the group
 type — "The authentication source, external or internal. For external groups,
