@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (52) ────────────────────────────────────────────────
+// ── ACTION TYPES (58) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -106,6 +106,16 @@ export const buildMaterialization = { apiName: 'build_materialization', kind: 'a
   number
 >
 
+export const closeApprovalRequest = { apiName: 'close_approval_request', kind: 'action' } as ActionType<
+  { p_request: string; p_rejected?: boolean },
+  void
+>
+
+export const commentOnApprovalRequest = { apiName: 'comment_on_approval_request', kind: 'action' } as ActionType<
+  { p_request: string; p_task: string; p_body: string },
+  string
+>
+
 /**
  *  "Commits an open Transaction. File modifications made on this Transaction
  *  are preserved and the Branch is updated to point to the Transaction" — the
@@ -114,6 +124,16 @@ export const buildMaterialization = { apiName: 'build_materialization', kind: 'a
 export const commitTransaction = { apiName: 'commit_transaction', kind: 'action' } as ActionType<
   { p_transaction: string },
   void
+>
+
+/**
+ *  Files a request with its tasks. "Requests represent an action that has not
+ *  yet been taken and may require approval" is the audit category's own
+ *  gloss; the requestCreate line carries the affected resources.
+ */
+export const createApprovalRequest = { apiName: 'create_approval_request', kind: 'action' } as ActionType<
+  { p_title: string; p_justification: string; p_tasks: Json },
+  string
 >
 
 /**
@@ -191,6 +211,11 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
   { p_kind?: string; p_id?: string; p_branch?: string },
   number
+>
+
+export const editApprovalRequest = { apiName: 'edit_approval_request', kind: 'action' } as ActionType<
+  { p_request: string; p_title: string; p_justification: string },
+  void
 >
 
 /**
@@ -304,8 +329,18 @@ export const recordOntologyUsage = { apiName: 'record_ontology_usage', kind: 'ac
   void
 >
 
+export const requestApprovalChanges = { apiName: 'request_approval_changes', kind: 'action' } as ActionType<
+  { p_request: string },
+  void
+>
+
 export const resetCleanupResults = { apiName: 'reset_cleanup_results', kind: 'action' } as ActionType<
   { p_config: string },
+  void
+>
+
+export const reviewApprovalTask = { apiName: 'review_approval_task', kind: 'action' } as ActionType<
+  { p_task: string; p_decision: string },
   void
 >
 
@@ -467,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (211) ───────────────────────────────────────────────────
+// ── FUNCTIONS (215) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -527,6 +562,22 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
   { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
   { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
+>
+
+/**
+ *  The task kinds an invoker here can execute, of the five approvals/overview
+ *  publishes: Group membership, Project access request, Marking access
+ *  request, Ontology proposal. Add reference request waits for a references
+ *  mechanism. A kind arrives with its invoker, never before.
+ */
+export const approvalTaskKinds = { apiName: 'approval_task_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const approvalTaskPayloadValid = { apiName: 'approval_task_payload_valid', kind: 'function' } as FunctionType<
+  { p_kind: string; p: Json },
+  boolean
 >
 
 /**
@@ -800,6 +851,28 @@ export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'fun
 
 export const canRemoveMarking = { apiName: 'can_remove_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
+  boolean
+>
+
+/**
+ *  Derived, never stored: "users who have the permission to perform an action
+ *  themselves are eligible to review the corresponding task"
+ *  (approvals/review-a-request). One arm per kind, each composing the
+ *  predicate that guards the real write path. DEFINER because the visibility
+ *  policies call it.
+ */
+export const canReviewApprovalTask = { apiName: 'can_review_approval_task', kind: 'function' } as FunctionType<
+  { p_task: string },
+  boolean
+>
+
+/**
+ *  Requester or an eligible reviewer of at least one task — the set the page
+ *  implies when it says inviting a reviewer "does not grant permissions to
+ *  view a request".
+ */
+export const canSeeApprovalRequest = { apiName: 'can_see_approval_request', kind: 'function' } as FunctionType<
+  { p_request: string },
   boolean
 >
 

@@ -117,12 +117,16 @@ realm column: external and rule_based groups need an identity-provider model
 (`authentication/` — providers, login-time rule evaluation) before either has a
 producer, and the realm belongs to that phase.
 
-**Control Panel's Approvals integration.** "a dedicated Approvals integration
-designed to facilitate the process of requesting, approving, and maintaining a
-history of sensitive workflows within Control Panel"
-(`administration/control-panel-approvals`), covering network ingress, egress and
-SDK web hosting. We have `ontology_proposals` for ontology changes and nothing
-for administrative ones.
+**The Approvals inbox surface.** The engine shipped in 651 (reading
+`approvals.md`): requests, tasks, derived eligibility, automatic invocation,
+and the three request audit categories with their producers. What remains is
+the surface — the inbox with Your inbox / Created by you / All requests and
+the status sub-filters, and the request page with the eligible/ineligible
+split, typed payload rows, the n/m footer and the comment stream, per the
+seven parsed captures. Residuals recorded in the reading: checkpoints (and
+with them the action_required state), notifications, the add-reference kind,
+file upload on comments, and Control Panel's own ingress/egress/web-hosting
+workflows.
 
 **~~`authorized_group_ids` compiles fail-closed~~ — it did not, in one shape
 (FIXED 568).** Foundry declines to define the attribute ("Contact your Palantir
