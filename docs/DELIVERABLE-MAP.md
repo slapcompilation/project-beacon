@@ -132,11 +132,6 @@ realm column: external and rule_based groups need an identity-provider model
 (`authentication/` — providers, login-time rule evaluation) before either has a
 producer, and the realm belongs to that phase.
 
-**Replacement pipelines.** A schema change should build a second index in the
-background and swap it, "without impacting the live data being served to users".
-Ours rebuilds in place, so the type is unavailable while it runs. Worth doing
-when it hurts.
-
 **Control Panel's Approvals integration.** "a dedicated Approvals integration
 designed to facilitate the process of requesting, approving, and maintaining a
 history of sensitive workflows within Control Panel"

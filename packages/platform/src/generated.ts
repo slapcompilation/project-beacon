@@ -7,7 +7,6 @@
 import type { ActionType, FunctionType, Json } from './client'
 
 // NOT GENERATED — overloaded, and an entity has one API name:
-//   public.object_type_nearest
 //   public.rid_of
 
 // ── ACTION TYPES (51) ────────────────────────────────────────────────
@@ -457,7 +456,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (202) ───────────────────────────────────────────────────
+// ── FUNCTIONS (205) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1386,6 +1385,16 @@ export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 
 >
 
 /**
+ *  The property_id of the primary key — which is the physical column name in
+ *  the index table, because index_object_type names every column by
+ *  property_id.
+ */
+export const objectPrimaryKeyColumn = { apiName: 'object_primary_key_column', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string
+>
+
+/**
  *  The filter grammar generate-urls.md prints: propertyFilter with seven
  *  value kinds, at most one linkFilter carrying a presenceFilter.
  */
@@ -1435,6 +1444,16 @@ export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid'
 export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
   { properties: Json; deleted: boolean }[]
+>
+
+/**
+ *  The physical index table, read from the object_type_indexes.index_table
+ *  pointer — the one source every index reader resolves through, never a
+ *  second encoding of the naming rule.
+ */
+export const objectTableName = { apiName: 'object_table_name', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string
 >
 
 export const objectTypeCleanupFlags = { apiName: 'object_type_cleanup_flags', kind: 'function' } as FunctionType<
@@ -1501,6 +1520,11 @@ export const objectTypeIndexState = { apiName: 'object_type_index_state', kind: 
 export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', kind: 'function' } as FunctionType<
   { p_type: string },
   string[]
+>
+
+export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_property: string; p_query: number[]; p_k: number; p_function?: string },
+  { object_key: string; distance: number }[]
 >
 
 /**
