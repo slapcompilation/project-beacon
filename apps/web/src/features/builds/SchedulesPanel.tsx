@@ -100,6 +100,7 @@ function CreateSchedule({ onDone }: { onDone: () => void }) {
   const [cron, setCron] = useState('0 9 * * *')
   const [timezone, setTimezone] = useState('UTC')
   const [useEvent, setUseEvent] = useState(false)
+  const [allowOverlap, setAllowOverlap] = useState(false)
   const [eventDataset, setEventDataset] = useState('')
   const [combine, setCombine] = useState<'and' | 'or'>('or')
 
@@ -109,7 +110,8 @@ function CreateSchedule({ onDone }: { onDone: () => void }) {
     if (useEvent && eventDataset) parts.push({ type: 'event', event: 'data_updated', dataset_id: eventDataset })
     const trigger = parts.length === 1 ? parts[0] : { type: combine, triggers: parts }
     create.mutate(
-      { name: name.trim(), targetDatasetIds: [target], buildType, trigger },
+      { name: name.trim(), targetDatasetIds: [target], buildType, trigger,
+        allowOverlappingRuns: allowOverlap },
       { onSuccess: onDone })
   }
 
@@ -153,6 +155,11 @@ function CreateSchedule({ onDone }: { onDone: () => void }) {
           </HTMLSelect>
         )}
       </div>
+      {/* One of create-schedule's six Advanced options, the only one with a
+          schedule column behind it. Unchecked by default — the sentence and
+          the screenshot agree (572). */}
+      <Checkbox checked={allowOverlap} className="!m-0 text-xs" label="Allow overlapping runs"
+        onChange={(e) => { setAllowOverlap(e.currentTarget.checked) }} />
       <div className="flex items-center gap-2">
         <Button size="small" intent={Intent.PRIMARY} icon="tick" loading={create.isPending}
           disabled={!name.trim() || !target || (!useTime && !(useEvent && eventDataset))}

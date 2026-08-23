@@ -264,10 +264,15 @@ export function useCreateSchedule() {
     mutationFn: async (i: {
       name: string; targetDatasetIds: string[]
       buildType: 'single' | 'full'; trigger: ScheduleTrigger
+      /** "By default, a schedule does not start a new run while another run of
+       *  the same schedule is in progress. Enable this setting to allow runs to
+       *  overlap." — off unless asked, which 572 attests twice. */
+      allowOverlappingRuns: boolean
     }) => {
       const { error } = await supabase.from('schedules').insert({
         name: i.name, target_dataset_ids: i.targetDatasetIds,
         build_type: i.buildType, trigger: i.trigger as unknown as Json,
+        allow_overlapping_runs: i.allowOverlappingRuns,
       })
       if (error) throw new Error(error.message)
     },
