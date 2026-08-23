@@ -92,6 +92,14 @@ export const AUDIENCES: AppAudience[] = [
     title: 'Applications for Operations',
     apps: [
       {
+        name: 'Approvals',
+        tagline: 'Request, review, invoke',
+        blurb: 'File a request for a change you cannot make yourself; whoever could make it directly reviews, and an approved request applies itself.',
+        path: '/approvals',
+        icon: 'inbox',
+        tint: '#7961db',
+      },
+      {
         name: 'Ontology Manager',
         tagline: 'Define object types backed by datasources',
         blurb: 'Author object types, their properties and keys, link types, shared properties and interfaces.',
