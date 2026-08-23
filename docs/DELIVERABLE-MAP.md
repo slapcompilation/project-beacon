@@ -104,14 +104,16 @@ scrapped. What genuinely remains:
   triggered a condition to reach the effects. Nothing carries them today, and it
   is the one absence several published settings sit behind.
 
-**The enrollment audit log.** Distinct from the Project Activity log, which
-shipped in 641 the day after its entry was written here (and this entry replaces
-it, deleted rather than annotated). `security/audit-log-categories` describes a
-security-monitoring product: the `audit.3` schema, standardized categories with
-request and result parameters, an analyst audience, org-wide scope. Building the
-Activity log as that — or that as the Activity log — would be the
-two-vocabularies trap; neither borrows the other's grammar. Wants its own
-reading before anything is built.
+**The audit-log export dataset.** The audit.3 line and its first three
+producers shipped in 645 (reading: `enrollment-audit-log.md`, Decisions 2-4);
+what remains is Decision 5, the delivery half: a per-organization export into a
+real dataset — marked with the organization's marking by default, an optional
+start-date filter, a per-dataset retention bound of at most 730 days — which is
+also where read access arrives (the raw table is deliberately unreadable). The
+`list-log-files`/`get-log-file-content` file API is recorded as not-built: we
+have no log-file archive, the table is the store. The two gating operations
+(`audit-export:view`, `audit-export:orchestrate-v3`) wait with the workflow
+catalogue.
 
 **Platform branding.** "The platform logo can be configured per Enrollment and
 Organization, replacing any occurrences of the default Palantir logo with an
