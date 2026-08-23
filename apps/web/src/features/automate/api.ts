@@ -37,6 +37,9 @@ export interface AutomationRun {
   ran_at: string
   attempt: number
   next_attempt_at: string | null
+  /** Which object a per-object execution was for (630); null when the
+   *  effect ran once for the whole event. */
+  object_key: string | null
 }
 
 export interface AutomationEffect {

@@ -450,7 +450,7 @@ function AutomationDetail({ id }: { id: string }) {
                   <p className="text-xs text-muted-foreground p-3">Nothing has run yet.</p>
                 ) : (
                   <HTMLTable compact className="w-full text-xs">
-                    <thead><tr><th>Outcome</th><th>Time</th><th>Attempt</th><th>Errors</th></tr></thead>
+                    <thead><tr><th>Outcome</th><th>Object</th><th>Time</th><th>Attempt</th><th>Errors</th></tr></thead>
                     <tbody>{mine.map((r) => <RunRow key={r.id} run={r} />)}</tbody>
                   </HTMLTable>
                 )}
@@ -486,6 +486,9 @@ function RunRow({ run }: { run: AutomationRun }) {
   return (
     <tr>
       <td><Tag minimal intent={tone}>{run.outcome.replace(/_/g, ' ')}</Tag></td>
+      {/* "you can also choose the object that triggered the effect" — the
+          per-object half of a run, blank when the effect ran once for all. */}
+      <td className="font-mono text-[10px]">{run.object_key ?? '—'}</td>
       <td className="truncate">{when(run.ran_at)}</td>
       <td className="tabular-nums">
         {run.attempt}
