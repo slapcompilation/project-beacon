@@ -1482,3 +1482,10 @@
     .approvals-comments { width:100%; }
   }
 }
+
+/* Request access dialog */
+@media all {
+  .request-access-body { display:flex; flex-direction:column; gap:8px; }
+  .request-access-label { font-size:12px; font-weight:600; margin-top:6px; }
+  .request-access-markings { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:6px 0 0; font-size:12px; }
+}

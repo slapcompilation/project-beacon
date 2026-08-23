@@ -145,3 +145,49 @@ export const TASK_FIELD_ROWS: Record<ApprovalTaskKind, { key: string; label: str
     { key: 'proposal', label: 'Proposal' },
   ],
 }
+
+// ── The Request-access flow (security/projects-and-roles) ────────────────────
+
+export interface AccessOptionGroup { id: string; name: string; role: string }
+export interface AccessOptionMarking { id: string; name: string; member: boolean }
+export interface ProjectAccessOptions {
+  project: string
+  my_role: string | null
+  groups: AccessOptionGroup[]
+  markings: AccessOptionMarking[]
+}
+
+export function useProjectAccessOptions(projectId: string | null) {
+  return useQuery({
+    queryKey: ['approvals', 'access-options', projectId],
+    enabled: projectId !== null,
+    queryFn: async (): Promise<ProjectAccessOptions> => {
+      const res = (await supabase.rpc('project_access_options', { p_project: projectId })) as {
+        data: ProjectAccessOptions | null
+        error: { message: string } | null
+      }
+      if (res.error) throw new Error(res.error.message)
+      if (res.data === null) throw new Error('no options returned')
+      return res.data
+    },
+  })
+}
+
+export interface AccessRequestTask { kind: ApprovalTaskKind; payload: Record<string, string> }
+
+/** Files the composed request and hands back its id for View details. */
+export function useFileAccessRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (a: { title: string; justification: string; tasks: AccessRequestTask[] }) => {
+      const res = (await supabase.rpc('create_approval_request', {
+        p_title: a.title, p_justification: a.justification, p_tasks: a.tasks,
+      })) as { data: string | null; error: { message: string } | null }
+      if (res.error) throw new Error(res.error.message)
+      if (res.data === null) throw new Error('no request id returned')
+      return res.data
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['approvals'] }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
