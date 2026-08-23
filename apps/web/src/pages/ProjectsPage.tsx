@@ -28,6 +28,7 @@ import {
 } from '@blueprintjs/core'
 import { toSlug, grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES, type ProjectRole } from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
+import { RequestAccessDialog } from '@/features/approvals/RequestAccessDialog'
 import { PolicyPanel } from '@/features/projects/PolicyPanel'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,
@@ -140,6 +141,7 @@ function CreatePane({ onDone }: { onDone: () => void }) {
 
 function ProjectDetails({ project }: { project: Project }) {
   const { data: myRole } = useMyProjectRole(project.id)
+  const [requesting, setRequesting] = useState(false)
   const { data: members = [] } = useProjectMembers(project.id)
   const { data: resources = [] } = useProjectResources(project.id)
   const role = useAuthStore((s) => s.role)
@@ -153,6 +155,13 @@ function ProjectDetails({ project }: { project: Project }) {
         <Icon icon="folder-open" size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{project.name}</h2>
         {myRole && <Tag minimal intent={Intent.PRIMARY} className="!text-[9px] uppercase">{ROLE_META[myRole].label}</Tag>}
+        {/* "Users can submit access requests for Projects they are not
+            authorized to access" — and additional access when they are. */}
+        <Button size="small" variant="minimal" icon="unlock" className="ml-auto"
+          text={myRole ? 'Request additional access' : 'Request access'}
+          onClick={() => { setRequesting(true) }} />
+        <RequestAccessDialog projectId={project.id} projectName={project.name}
+          isOpen={requesting} onClose={() => { setRequesting(false) }} />
       </div>
 
       <Card compact className="!p-0">

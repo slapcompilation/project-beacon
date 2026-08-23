@@ -502,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (216) ───────────────────────────────────────────────────
+// ── FUNCTIONS (217) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1816,6 +1816,18 @@ export const primaryKeyAdvice = { apiName: 'primary_key_advice', kind: 'function
 export const primaryKeyEligibility = { apiName: 'primary_key_eligibility', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
+>
+
+/**
+ *  What the Request-access dialog composes from
+ *  (security/projects-and-roles): the groups holding roles on the project,
+ *  the project's markings with the caller's membership, and the caller's
+ *  current role. Organization-gated — the discovery surface the request flow
+ *  requires.
+ */
+export const projectAccessOptions = { apiName: 'project_access_options', kind: 'function' } as FunctionType<
+  { p_project: string },
+  Json
 >
 
 /**
