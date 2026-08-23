@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { PlatformSidebar } from '@/features/platformShell/PlatformSidebar'
 import { titleForPath } from '@/features/platformShell/apps'
-import { usePlatformExperience, BannerText } from '@/features/platformShell/branding'
+import { usePlatformExperience, useHomePageUrl, BannerText } from '@/features/platformShell/branding'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { useAppStore } from '@/stores/app.store'
@@ -10,13 +10,26 @@ import { cn } from '@/lib/utils'
 
 export function AppLayout() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const pushRecent = useAppStore((s) => s.pushRecent)
   const { data: branding } = usePlatformExperience()
+  const { data: homeUrl } = useHomePageUrl()
+  const redirected = useRef(false)
 
   // Recent is client-side: nothing on the server records a visit yet.
   useEffect(() => {
     if (titleForPath(pathname)) pushRecent(pathname)
   }, [pathname, pushRecent])
+
+  // The configured home page applies to opening the platform, once: only a
+  // root entry redirects, and only the first time the answer arrives.
+  useEffect(() => {
+    if (redirected.current || homeUrl === undefined) return
+    redirected.current = true
+    if (homeUrl === null || homeUrl === '/' || pathname !== '/') return
+    if (homeUrl.startsWith('/')) void navigate(homeUrl, { replace: true })
+    else window.location.replace(homeUrl)
+  }, [homeUrl, pathname, navigate])
 
   // The platform title replaces references to the platform, and the favicon
   // "represents a web application throughout your web browser".

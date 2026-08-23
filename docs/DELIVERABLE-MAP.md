@@ -104,15 +104,10 @@ scrapped. What genuinely remains:
   triggered a condition to reach the effects. Nothing carries them today, and it
   is the one absence several published settings sit behind.
 
-**The organization home page URL.** The Platform-experience tab the branding
-arc (649, reading `platform-experience.md`) deliberately deferred: an
-Organization default plus group overrides where "the first matching group
-setting is used, falling back to the organization default if none match"
-(`administration/images/configure-homepage-url.png`), consumed by the
-post-login redirect. Small, expressible today, its own chunk. Languages and
-Platform version stay out with reasons recorded in the reading; the
-enrollment-scope WRITER for logos and titles waits on enrollment-level
-permissions (the rows exist and resolve, nothing may write them).
+**Platform-experience residuals.** Languages and Platform version stay out
+with reasons recorded in `platform-experience.md`; the enrollment-scope
+WRITER for logos and titles waits on enrollment-level permissions (the rows
+exist and resolve, nothing may write them). The home page URL shipped in 650.
 
 **Group realms.** `manage-groups` lists a `Realm` attribute beside the group
 type — "The authentication source, external or internal. For external groups,

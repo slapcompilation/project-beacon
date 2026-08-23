@@ -467,7 +467,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (210) ───────────────────────────────────────────────────
+// ── FUNCTIONS (211) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1291,6 +1291,17 @@ export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'func
 export const holdsMarkingPermission = { apiName: 'holds_marking_permission', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string; p_permission: string },
   boolean
+>
+
+/**
+ *  The caller's home page: the first override (by position) listing any of
+ *  their groups, falling back to the organization default, then NULL. Invoker
+ *  rights, answered from claims — the same organization sends different
+ *  groups to different homes.
+ */
+export const homePageUrl = { apiName: 'home_page_url', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string
 >
 
 /**
