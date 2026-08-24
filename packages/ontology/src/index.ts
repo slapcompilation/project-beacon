@@ -93,15 +93,13 @@ export type { InterfaceDef, InterfacePropertyDef } from './interfaces/index'
 
 export {
   PROPERTY_TYPES, RESERVED_API_NAMES, parseGeopoint, formatGeopoint,
-  canBeTitleKey, titleKeyOf, primaryKeyOf, primaryKeyEligibility, primaryKeyAdvice, acceptsInput,
-  objectTitle, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug, toCamel, toPascal,
-  validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
-  evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig, pluralise,
+  canBeTitleKey, titleKeyOf, primaryKeyOf, primaryKeyEligibility, primaryKeyAdvice,
+  objectTitle, toSlug, toCamel, toPascal,
+  validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft, pluralise,
 } from './objectTypes/index'
 export type {
   PropertyType, PropertyDef, ObjectTypeDef, ObjectTypeDraft, RecordDraft,
-  LinkTypeDef, LinkTypeDraft, ComputedFn, ComputedFnDef, ComputedPropertyDef,
-  ViewSection, ViewConfigDef, Validation as ObjectTypeValidation,
+  LinkTypeDef, LinkTypeDraft, Validation as ObjectTypeValidation,
 } from './objectTypes/index'
 
 // Developmental state — Foundry's status + visibility, one definition.

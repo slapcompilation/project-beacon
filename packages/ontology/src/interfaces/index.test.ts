@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { conformanceErrors, implementsInterface, typesConforming, validateInterfaceDraft, interfaceProperties, type InterfaceDef } from './index'
-import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
+import { type ObjectTypeDef } from '../objectTypes/index'
 
 const iface: InterfaceDef = {
   id: 'i1', apiName: 'serviceable', label: 'Serviceable', description: '',
@@ -14,7 +14,7 @@ function type(label: string, props: ObjectTypeDef['properties']): ObjectTypeDef 
   return {
     id: label, apiName: label.toLowerCase(),
     label, icon: 'cube', description: '', properties: props,
-    computedProperties: [], viewConfig: EMPTY_VIEW_CONFIG, enabled: true, version: 1,
+    version: 1,
   }
 }
 

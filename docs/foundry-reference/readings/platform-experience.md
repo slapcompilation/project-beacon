@@ -132,7 +132,14 @@ banner color with centered, uppercased, bold text.
    markdown links, print visibility via CSS). The
    show-with-classification-banner toggle is NOT built: no CBAC banner exists
    here for it to interact with, and a column nothing reaches is the defect
-   this repo keeps finding. Recorded with the CBAC material.
+   this repo keeps finding. Recorded with the CBAC material. **Premise update
+   (2026-08-24 gap sweep): the api now publishes the CBAC banner shape**
+   (`api/admin-v2-resources-cbac-banners-get-cbac-banner.md` — a
+   classification string with text and background colors derived from a set
+   of marking IDs, `displayType` BANNER_LINE or PORTION_MARKING), so the
+   refusal's no-shape-to-build-against premise no longer holds; the toggle waits
+   only on a CBAC-banner build, which DELIVERABLE-MAP now records as
+   buildable from markings we hold.
 7. **Our defaults are ours, marked**: the default title here is `Beacon`, not
    `Palantir` — the mechanism is what is copied, not the trademark — and the
    image bytes are capped at 1 MiB per size (no published cap; favicon

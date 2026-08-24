@@ -2,19 +2,17 @@
 // previously reimplemented inside each one.
 
 import { describe, it, expect } from 'vitest'
-import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
+import { type ObjectTypeDef } from '../objectTypes/index'
 import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } from './index'
 
 const batchType: ObjectTypeDef = {
   id: 't1', 
-  apiName: 'batch', label: 'Batch', icon: 'box', description: '', viewConfig: EMPTY_VIEW_CONFIG,
-  enabled: true, version: 1,
+  apiName: 'batch', label: 'Batch', icon: 'box', description: '', version: 1,
   properties: [
     { key: 'lot', apiName: 'lot',    label: 'Lot',    type: 'string',   required: true },
     { key: 'units', apiName: 'units',  label: 'Units',  type: 'integer', required: false },
     { key: 'expiry', apiName: 'expiry', label: 'Expiry', type: 'string',   required: false },
   ],
-  computedProperties: [],
 }
 
 const records = [
@@ -52,25 +50,13 @@ describe('selectObjectSet', () => {
     expect(s.byType.map((b) => [b.label, b.matched, b.scanned])).toEqual([['Batch', 2, 3], ['Crate', 1, 1]])
   })
 
-  it('resolves computed properties before filtering, so a set can select on one', () => {
-    const withComputed = {
-      ...batchType,
-      computedProperties: [{ key: 'days_left', label: 'Days left', fn: 'days_until', inputs: ['expiry'] }],
-    } as unknown as ObjectTypeDef
-    // Every expiry above is in the past relative to no fixed clock, so assert the
-    // ORDER the computed value implies rather than an absolute day count.
-    const s = selectObjectSet({ filters: [] }, [{ type: withComputed, records }])
-    const byLot = new Map(s.records.map((r) => [r.lot, r.days_left as number]))
-    expect(byLot.get('C')).toBeLessThan(byLot.get('A') as number)
-    expect(byLot.get('A')).toBeLessThan(byLot.get('B') as number)
-  })
 })
 
 describe('isMember', () => {
   it('answers for a single record the way the set answers for many', () => {
     const filters = [{ property: 'units', op: 'lt' as const, value: 20 }]
-    // Selection returns copies (computed values are merged in), so compare by
-    // identity property rather than reference.
+    // Selection returns copies, so compare by identity property rather than
+    // reference.
     const selected = new Set(selectObjectSet({ filters }, [{ type: batchType, records }]).records.map((r) => r.lot))
     for (const r of records) {
       expect(isMember(r, filters)).toBe(selected.has(r.lot))
