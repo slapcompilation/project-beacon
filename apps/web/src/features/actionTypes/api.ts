@@ -14,7 +14,7 @@ import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import type { ObjectTypeStatus, PropertyType } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { saveActionType, applyAction, actionRuleKinds, type Json } from '@beacon/platform'
+import { saveActionType, applyAction, actionRuleKinds, actionFormEffective, type Json } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import { useReindex } from '@/features/objectTypes/indexing'
 
@@ -179,5 +179,67 @@ export function useApplyAction() {
     // Actions:MissingParameter, Actions:ModifyNeedsTarget, Actions:EditsDisabled…
     // the name is the useful half; re-deriving the rule here is how they drift.
     onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+// ── The form's effective configuration (666) ─────────────────────────────────
+
+export interface EffectiveDefault {
+  source: 'static' | 'object_property'
+  value?: unknown
+  parameter?: string
+  property?: string
+}
+
+export interface EffectiveParameter {
+  visible: boolean
+  disabled: boolean
+  required: boolean
+  default: EffectiveDefault | null
+  type_classes: string[]
+  section: string | null
+}
+
+export interface EffectiveSection {
+  visible: boolean
+  title: string
+  description: string
+  columns: 1 | 2
+  show_title_bar: boolean
+  collapsible: boolean
+}
+
+export interface EffectiveForm {
+  parameters: Record<string, EffectiveParameter | undefined>
+  sections: Record<string, EffectiveSection | undefined>
+}
+
+/** The one place first-true-wins lives — the server resolves overrides, the
+ *  form only renders. Re-resolved as values change, because conditions read
+ *  them ("A section can be hidden at first and only shown based on a prior
+ *  parameter"). */
+export function useActionFormEffective(actionId: string | null, values: Record<string, string>) {
+  return useQuery({
+    queryKey: ['action-form-effective', actionId, values],
+    enabled: actionId !== null,
+    placeholderData: (prev) => prev,
+    queryFn: async (): Promise<EffectiveForm> =>
+      await client(actionFormEffective).executeFunction({
+        p_action: actionId as string, p_parameters: values,
+      }) as unknown as EffectiveForm,
+  })
+}
+
+/** Section order — the resolver carries the grammar, this carries the list. */
+export function useFormSections(actionId: string | null) {
+  return useQuery({
+    queryKey: ['action-form-sections', actionId],
+    enabled: actionId !== null,
+    queryFn: async (): Promise<{ api_name: string; position: number }[]> => {
+      const { data, error } = await supabase.from('action_type_form_sections')
+        .select('api_name, position').eq('action_type_id', actionId ?? '').order('position')
+      if (error) throw new Error(error.message)
+      return data as { api_name: string; position: number }[]
+    },
   })
 }

@@ -169,10 +169,14 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   action_form_effective resolver consumed by apply_action for requiredness;
   the equal-to-base warning in ontology_warnings. 667 made the Studio save
   path upsert parameters by api_name so form config survives a save.
-  Residuals: the form-surface consumption (sections, prefills with the
-  Edited chip, override-driven show/hide — own PR); the Studio editor for
-  defaults/overrides/sections; constraints storage (and with it constraints
-  overrides); section conditional-override authoring UI.
+  The surface followed (own
+  PR): RunActionDialog renders from action_form_effective — sections with
+  columns/collapse/always-shown descriptions, static and object-property
+  prefills with the Edited chip (single-selection row supplies the object),
+  override-driven show/hide/disable/require, values re-resolved as they
+  change. Residuals: the Studio editor for defaults/overrides/sections;
+  constraints storage (and with it constraints overrides); section
+  conditional-override authoring UI.
 - **The action Schedule rule** — "trigger a build of that schedule whenever
   the action is applied" (`action-types/trigger-schedule-build`); every
   ingredient exists (schedules, run_build, project scope). Notification and
