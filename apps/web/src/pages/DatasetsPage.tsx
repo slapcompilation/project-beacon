@@ -7,8 +7,9 @@
 // column with its type underneath, and **History** listing the transactions.
 //
 // Two things are deliberately absent because the pages that define them are
-// unread: upload (`compass/manually-upload-data`) and the Health, Compare and
-// Details tabs. A tab that renders an empty shell reads as a built feature.
+// unread: upload (`compass/manually-upload-data`) and the Compare and Details
+// tabs. A tab that renders an empty shell reads as a built feature. Health is
+// no longer among them — readings/data-health.md, engine 659, panel below.
 
 import { useState } from 'react'
 import {
@@ -30,6 +31,7 @@ import {
 import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
 import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
 import { TransformCard } from '@/features/builds/TransformCard'
+import { HealthPanel } from '@/features/dataHealth/HealthPanel'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
 const STATUS_META = new Map(TRANSACTION_STATUSES.map((t) => [t.value, t]))
@@ -210,6 +212,10 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
       <AccessRequirements datasetId={dataset.id} />
       {/* "On a Project, folder, or file … select Access > Check access." */}
       <CheckAccessPanel kind="dataset" resourceId={dataset.id} />
+
+      {/* The Health tab's grammar as a panel — data-health/overview: checks on
+          status, time, size, content and schema, with the history strip. */}
+      <HealthPanel datasetId={dataset.id} columns={(schema ?? []).map((f) => f.name).filter((n): n is string => n !== undefined)} />
 
       {creatingRv && (
         <CreateRestrictedViewDialog datasetId={dataset.id} datasetName={dataset.name}

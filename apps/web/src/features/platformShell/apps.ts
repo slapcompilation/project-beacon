@@ -40,6 +40,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
       {
+        name: 'Data Health',
+        tagline: 'Monitor datasets for issues',
+        blurb: 'Health checks watch datasets for stale data, shrunken row counts and schema drift, with a result history and per-user watching.',
+        path: '/data-health',
+        icon: 'pulse',
+        tint: '#2d72d2',
+      },
+      {
         name: 'Builds',
         tagline: 'Compute datasets from their inputs',
         blurb: 'JobSpecs pair declared inputs with one SQL SELECT; a build runs the jobs, locks each output with a transaction, and skips what is fresh.',
