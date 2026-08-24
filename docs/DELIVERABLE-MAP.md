@@ -189,9 +189,18 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   capture's Unique Identifier mapping type, parameterized schedules, the
   status-link value formatting. Notification and webhook side effects stay
   recorded-out (no machinery).
-- **`required` properties are unenforced** — the flag exists (408) and
-  neither the indexer nor apply_action checks it; the page puts the check at
-  index time and on action writes (`object-link-types/required-properties`).
+- **`required` properties are unenforced** — CLOSED (670/671, reading
+  `readings/required-properties.md` #818): allow_empty_arrays joins the flag
+  (the capture's two-switch gear); the index-time arm fails the build job by
+  name, scoped by presence in the property's own datasource; the apply-time
+  arm refuses a blank required value and binds a datasource's required
+  properties when an edit touches it — the worked example's Budget/Genre
+  case probed verbatim. Three latent defects surfaced and fixed on the way:
+  the gather selected every backed column from every physical table (multi-
+  datasource types could not index; scoped in 670, unassigned properties
+  restored in 671 after the suite caught the collateral), and object_state's
+  create path lost the primary key (edit-created objects reindexed into a
+  null pk). Residual: the OMA Require-values toggle + gear surface.
 - **Ontology history and restore** — the reading already exists
   (`ontology-manager-save-session.md` §7); `save_working_state` destroys the
   session rows it would need. Build never happened.
