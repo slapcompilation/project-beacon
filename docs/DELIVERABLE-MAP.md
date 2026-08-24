@@ -159,11 +159,20 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   reauthentication; object-set condition variants; per-item redaction; the
   space-admin and `checkpoints:review-records` review doors; requester
   completes-at-request-time in Approvals.
-- **Action form trio** — parameter default values (three sources, an ordering
-  rule), parameter overrides (first-true-wins if/then blocks reusing
-  submission-criteria conditions), and form sections
-  (`action-types/parameters-default-value`, `parameters-override`,
-  `configure-sections`). Phase C closed without them.
+- **Action form trio** — ENGINE SHIPPED (666/667, reading
+  `readings/action-form.md` #813): defaults as parameter columns (static and
+  object-property with the above-in-the-list guard) + type-class prefills
+  honoured server-side in apply_action (generate_uuid, prefill_current_user);
+  override blocks with first-true-wins ordering whose conditions ARE the
+  criteria tree (nullable override_block_id — one grammar); sections with
+  columns/derived collapsibility and their own overrides; the
+  action_form_effective resolver consumed by apply_action for requiredness;
+  the equal-to-base warning in ontology_warnings. 667 made the Studio save
+  path upsert parameters by api_name so form config survives a save.
+  Residuals: the form-surface consumption (sections, prefills with the
+  Edited chip, override-driven show/hide — own PR); the Studio editor for
+  defaults/overrides/sections; constraints storage (and with it constraints
+  overrides); section conditional-override authoring UI.
 - **The action Schedule rule** — "trigger a build of that schedule whenever
   the action is applied" (`action-types/trigger-schedule-build`); every
   ingredient exists (schedules, run_build, project scope). Notification and

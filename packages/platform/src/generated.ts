@@ -538,7 +538,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (244) ───────────────────────────────────────────────────
+// ── FUNCTIONS (247) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -561,9 +561,42 @@ export const actionEditableProperties = { apiName: 'action_editable_properties',
   { object_type: string; property: string; rule_kind: string }[]
 >
 
+/**
+ *  The one place first-true-wins lives: per parameter the effective
+ *  visible/disabled/required and default (a static value or an
+ *  object-property descriptor the surface resolves), per section the
+ *  effective visibility and derived collapsibility. The form surface renders
+ *  from it; apply_action consults it for requiredness. SECURITY DEFINER
+ *  because evaluation must see conditions 607 hides from non-editors.
+ */
+export const actionFormEffective = { apiName: 'action_form_effective', kind: 'function' } as FunctionType<
+  { p_action: string; p_parameters?: Json },
+  Json
+>
+
 export const actionFunctionToRun = { apiName: 'action_function_to_run', kind: 'function' } as FunctionType<
   { p_action_type: string },
   Json
+>
+
+/**
+ *  The Then half's admitted effects (parameters-override): visibility,
+ *  requiredness, disabled, and the static default. Constraints effects arrive
+ *  with constraints storage, which does not exist yet.
+ */
+export const actionOverrideEffectsValid = { apiName: 'action_override_effects_valid', kind: 'function' } as FunctionType<
+  { e: Json },
+  boolean
+>
+
+/**
+ *  The actions namespace's published type classes
+ *  (object-link-types/metadata-typeclasses): two server-honoured prefills and
+ *  one toast hint. Emit-only — a class arrives with the code that honours it.
+ */
+export const actionParameterTypeClasses = { apiName: 'action_parameter_type_classes', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**
