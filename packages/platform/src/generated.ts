@@ -502,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (228) ───────────────────────────────────────────────────
+// ── FUNCTIONS (235) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -810,6 +810,16 @@ export const canEditHealthCheckTarget = { apiName: 'can_edit_health_check_target
   boolean
 >
 
+export const canEditMonitoringRule = { apiName: 'can_edit_monitoring_rule', kind: 'function' } as FunctionType<
+  { p_rule: string },
+  boolean
+>
+
+export const canEditMonitoringView = { apiName: 'can_edit_monitoring_view', kind: 'function' } as FunctionType<
+  { p_view: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -903,6 +913,16 @@ export const canSeeHealthCheck = { apiName: 'can_see_health_check', kind: 'funct
 
 export const canSeeMarkingCategory = { apiName: 'can_see_marking_category', kind: 'function' } as FunctionType<
   { p_category: string },
+  boolean
+>
+
+export const canSeeMonitoringRule = { apiName: 'can_see_monitoring_rule', kind: 'function' } as FunctionType<
+  { p_rule: string },
+  boolean
+>
+
+export const canSeeMonitoringView = { apiName: 'can_see_monitoring_view', kind: 'function' } as FunctionType<
+  { p_view: string },
   boolean
 >
 
@@ -1570,6 +1590,32 @@ export const mediaPropertyProblems = { apiName: 'media_property_problems', kind:
 export const mediaReferenceValid = { apiName: 'media_reference_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
+>
+
+/**
+ *  The one comparator each rules-reference table prints for its type ("If
+ *  value is greater than [or equal to]") — a property of the metric, never of
+ *  a condition row.
+ */
+export const monitoringRuleComparator = { apiName: 'monitoring_rule_comparator', kind: 'function' } as FunctionType<
+  { p_type: string },
+  string
+>
+
+export const monitoringRuleFamily = { apiName: 'monitoring_rule_family', kind: 'function' } as FunctionType<
+  { p_type: string },
+  string
+>
+
+/**
+ *  The rule types the evaluator executes — each snake_case of its
+ *  monitoring-views/rules-reference heading. Emit-only: the reference's
+ *  eleven families are the ceiling and the spelling authority; a type arrives
+ *  here with its evaluator arm, never before.
+ */
+export const monitoringRuleTypes = { apiName: 'monitoring_rule_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 'function' } as FunctionType<
