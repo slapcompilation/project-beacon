@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (61) ────────────────────────────────────────────────
+// ── ACTION TYPES (62) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -426,6 +426,18 @@ export const runObjectDatasetBuild = { apiName: 'run_object_dataset_build', kind
 >
 
 /**
+ *  The delegated runner behind the schedule rule: the single-schedule core of
+ *  run_schedules — claims swapped to the schedule's scoping identity,
+ *  run_build, an outcome row whose RID the action captures. Refuses outside
+ *  the applying-action window; a failure to start still yields a run row,
+ *  because the edits never wait.
+ */
+export const runScheduleNow = { apiName: 'run_schedule_now', kind: 'action' } as ActionType<
+  { p_schedule: string },
+  string
+>
+
+/**
  *  The Actions sub-tab's writer: the satisfaction and its
  *  Configure-parameters mappings in one transaction, so 467's commit-time
  *  completeness judges the whole. Re-satisfying replaces the mappings
@@ -538,7 +550,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (247) ───────────────────────────────────────────────────
+// ── FUNCTIONS (248) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -607,6 +619,18 @@ export const actionParameterTypeClasses = { apiName: 'action_parameter_type_clas
 export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
   { kind: string; targets: string; executable: boolean; runtime: string; note: string }[]
+>
+
+/**
+ *  Where a rule property's value comes from: the 418 set plus
+ *  schedule_run_rid — the contextual source trigger-schedule-build exposes
+ *  ("allowing you to write it into a string property of an edited object").
+ *  The capture's Unique Identifier mapping type is a recorded residual, not a
+ *  member.
+ */
+export const actionRuleValueSources = { apiName: 'action_rule_value_sources', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**

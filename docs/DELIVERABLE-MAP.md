@@ -177,10 +177,18 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   change. Residuals: the Studio editor for defaults/overrides/sections;
   constraints storage (and with it constraints overrides); section
   conditional-override authoring UI.
-- **The action Schedule rule** — "trigger a build of that schedule whenever
-  the action is applied" (`action-types/trigger-schedule-build`); every
-  ingredient exists (schedules, run_build, project scope). Notification and
-  webhook side effects stay recorded-out (no machinery).
+- **The action Schedule rule** — SHIPPED (668/669, reading
+  `readings/trigger-schedule-build.md` #816): kind `schedule` with its FK and
+  project-scope + edit-time-permission guard; run_schedule_now gated by the
+  applying-action window; schedule rules run first in apply_action;
+  schedule_runs.rid (grammar inference) + value source `schedule_run_rid`
+  (the set went function-valued); the save path carries schedule_id. 669
+  corrected 668's double-registration (a live-patch anchor that appears
+  twice replaced both — assert occurrence counts before splitting on one).
+  Residuals: the builder surface (rules editor kind + run-RID mapping), the
+  capture's Unique Identifier mapping type, parameterized schedules, the
+  status-link value formatting. Notification and webhook side effects stay
+  recorded-out (no machinery).
 - **`required` properties are unenforced** — the flag exists (408) and
   neither the indexer nor apply_action checks it; the page puts the check at
   index time and on action writes (`object-link-types/required-properties`).

@@ -132,9 +132,9 @@ describe.skipIf(noDb)('actions', () => {
     // read. The two interface LINK rules did not, and still need a link
     // instance store — registering a kind does not make it run.
     expect(await count(
-      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(6)
-    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(7)
-    expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(12)
+      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(7)
+    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(8)
+    expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(13)
     // The ones still waiting, by name, so this fails loudly if one quietly flips.
     expect((await db.query(
       `select kind from public.action_rule_kinds() where not executable order by kind`)).rows
