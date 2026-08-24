@@ -1575,3 +1575,7 @@
 .aform-section-title:disabled { cursor:default; }
 .aform-two-col { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 0.75rem; }
 .aform-edited { text-transform:none; letter-spacing:normal; }
+
+/* A home section whose capture-named applications are not built here says so
+   instead of standing silently short. */
+.home-section-missing { font-size:11px; color:hsl(var(--muted-foreground)); margin-top:0.5rem; }

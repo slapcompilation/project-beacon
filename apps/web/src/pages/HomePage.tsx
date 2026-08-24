@@ -98,6 +98,7 @@ export default function HomePage() {
                   </Link>
                 ))}
               </div>
+              {a.missing !== undefined && <p className="home-section-missing">{a.missing}</p>}
             </section>
           ))}
         </div>

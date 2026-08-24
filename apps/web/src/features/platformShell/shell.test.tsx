@@ -49,9 +49,13 @@ describe('platform shell', () => {
   it('lands on the welcome banner and the app cards', () => {
     renderShell()
     expect(screen.getByText(/Welcome to Beacon/)).toBeDefined()
-    expect(screen.getByRole('link', { name: /Ontology Manager/ }).getAttribute('href')).toBe('/ontology')
+    // Home carries only the captured Foundry home's cards: Ontology Manager
+    // is a platform tool (portal-only), and Object Explorer leads Operations.
+    expect(screen.queryByRole('link', { name: /Ontology Manager/ })).toBeNull()
+    expect(screen.getByRole('link', { name: /Object Explorer/ }).getAttribute('href')).toBe('/explorer')
     expect(screen.getByRole('link', { name: /Dataset/ }).getAttribute('href')).toBe('/datasets')
     expect(screen.getByRole('heading', { name: 'Applications for Data Ops' })).toBeDefined()
+    expect(screen.getByRole('heading', { name: 'Applications for Operations' })).toBeDefined()
   })
 
   it('lists visited pages under Recent, by title', async () => {

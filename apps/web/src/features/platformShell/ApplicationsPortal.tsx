@@ -13,15 +13,21 @@ import { Dialog, DialogBody, Icon } from '@blueprintjs/core'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { AUDIENCES } from './apps'
+import { AUDIENCES, PLATFORM_TOOLS } from './apps'
+
+// The portal lists everything; Home lists only what the Foundry home shows.
+const GROUPS = [
+  ...AUDIENCES.filter((a) => a.apps.length > 0),
+  { id: 'tools', title: 'Platform tools', apps: PLATFORM_TOOLS },
+]
 
 export function ApplicationsPortal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const navigate = useNavigate()
   const [category, setCategory] = useState('all')
   const favorites = useAppStore((s) => s.favoriteApps)
   const toggleFavorite = useAppStore((s) => s.toggleFavoriteApp)
-  const shown = category === 'all' ? AUDIENCES : AUDIENCES.filter((a) => a.id === category)
-  const total = AUDIENCES.reduce((n, a) => n + a.apps.length, 0)
+  const shown = category === 'all' ? GROUPS : GROUPS.filter((a) => a.id === category)
+  const total = GROUPS.reduce((n, a) => n + a.apps.length, 0)
 
   const open = (path: string) => () => { onClose(); void navigate(path) }
 
@@ -35,7 +41,7 @@ export function ApplicationsPortal({ isOpen, onClose }: { isOpen: boolean; onClo
               All apps <span className="portal-count">{total}</span>
             </button>
           </li>
-          {AUDIENCES.map((a) => (
+          {GROUPS.map((a) => (
             <li key={a.id}>
               <button type="button" onClick={() => { setCategory(a.id) }}
                 className={cn('portal-rail-row', category === a.id && 'is-active')}>
