@@ -73,9 +73,9 @@ describe.skipIf(noDb)('action rules on interfaces', () => {
   })
   afterAll(async () => { await rollback(db) })
 
-  it('registers the published twelve, of which five target an interface', async () => {
+  it('registers the published twelve plus the schedule kind, five targeting an interface', async () => {
     const { rows } = await db.query(`select kind, targets, executable, note from public.action_rule_kinds()`)
-    expect(rows.length).toBe(12)
+    expect(rows.length).toBe(13)
     const iface = rows.filter((r) => (r as { targets: string }).targets === 'interface')
     expect(iface.map((r) => (r as { kind: string }).kind).sort()).toEqual([...INTERFACE_KINDS].sort())
   })
