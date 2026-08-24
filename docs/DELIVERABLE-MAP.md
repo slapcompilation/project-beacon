@@ -139,10 +139,21 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   (Spark storage heuristic), transaction file size (we store no sizes),
   approximate column relation (cross-dataset), row-count-vs-last-result;
   notifications/emails and the Issues integration wait on those products.
-- **Checkpoints** — upgraded from an Approvals footnote to a phase: 7 prose
-  pages + 6 api pages; four justification types, seven condition kinds,
-  AND/NOT matchers, per-type frequency, org-or-space scope. Brings the
-  approvals `action_required` state with it.
+- **Checkpoints** — ENGINE SHIPPED (664/665, reading
+  `readings/checkpoints.md` #810): configurations (org XOR space scope,
+  three justification types, reviewer-only name/description behind a column
+  grant), conditions (AND/NOT, one matcher per kind), static-snapshot
+  records + items, `submit_checkpoint`, and the operator-approved
+  server-side `checkpoint_gate` wired by BEFORE triggers into eleven
+  producing paths (group/marking members, role grants, schedules, builds) —
+  claims-less system paths exempt. 665 returned `action_required` to
+  approvals exactly as 651 scoped, with `retry_approval_request` as the
+  reviewer's path. Residuals: the Checkpoints app surface (Review +
+  Configuration wizard, own PR); the prompt component + submit_action via
+  apply_action patch; login (needs a prompt-capable login path);
+  reauthentication; object-set condition variants; per-item redaction; the
+  space-admin and `checkpoints:review-records` review doors; requester
+  completes-at-request-time in Approvals.
 - **Action form trio** — parameter default values (three sources, an ordering
   rule), parameter overrides (first-true-wins if/then blocks reusing
   submission-criteria conditions), and form sections
