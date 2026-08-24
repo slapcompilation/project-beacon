@@ -109,13 +109,16 @@ with reasons recorded in `platform-experience.md`; the enrollment-scope
 WRITER for logos and titles waits on enrollment-level permissions (the rows
 exist and resolve, nothing may write them). The home page URL shipped in 650.
 
-**Group realms.** `manage-groups` lists a `Realm` attribute beside the group
-type — "The authentication source, external or internal. For external groups,
-the realm identifies the provider that manages the group." 639 widened
-`group_type` to the published three (internal/external/rule_based) but added no
-realm column: external and rule_based groups need an identity-provider model
-(`authentication/` — providers, login-time rule evaluation) before either has a
-producer, and the realm belongs to that phase.
+**Realms residuals.** The identity-provider engine shipped in 654/655
+(reading `authentication-and-realms.md`): providers as config-as-data with
+GoTrue seeded as the internal realm, `groups.realm`, rule_based groups with
+their login-time producer synced in `custom_access_token_hook`, ordered
+first-match organization assignment with the blocked-login refusal, and the
+Test-rules contract as a function. What stays out, with reasons in the
+reading: external providers (SAML/OIDC arrive with machinery — the fourteen
+how-to pages are their corpus), provider groups as a condition target,
+org-assignment GROUP rules, the user-directory/passkeys surface (GoTrue''s
+own), and a rules-editor surface as its own chunk.
 
 **Approvals residuals.** Engine (651), inbox surface (652 + /approvals) and
 the first filer (653 + Request access on Projects, reading

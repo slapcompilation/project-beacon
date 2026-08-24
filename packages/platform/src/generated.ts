@@ -502,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (217) ───────────────────────────────────────────────────
+// ── FUNCTIONS (220) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1484,6 +1484,16 @@ export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as F
   string
 >
 
+export const loginAttribute = { apiName: 'login_attribute', kind: 'function' } as FunctionType<
+  { p_user: string; p_attribute: string },
+  string
+>
+
+export const loginConditionMatches = { apiName: 'login_condition_matches', kind: 'function' } as FunctionType<
+  { p_user: string; p_attribute: string; p_match_kind: string; p_pattern: string },
+  boolean
+>
+
 export const markingMember = { apiName: 'marking_member', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string },
   boolean
@@ -2107,6 +2117,16 @@ export const submissionOperators = { apiName: 'submission_operators', kind: 'fun
 export const taskApprovalStatus = { apiName: 'task_approval_status', kind: 'function' } as FunctionType<
   { p_task: string },
   string
+>
+
+/**
+ *  The Test rules panel's contract
+ *  (authentication/images/rule-based-group-testing.png): simulate a user
+ *  against the configured rules and answer with matches, writing nothing.
+ */
+export const testGroupAssignment = { apiName: 'test_group_assignment', kind: 'function' } as FunctionType<
+  { p_user: string },
+  Json
 >
 
 /**
