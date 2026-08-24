@@ -118,7 +118,8 @@ Test-rules contract as a function. What stays out, with reasons in the
 reading: external providers (SAML/OIDC arrive with machinery — the fourteen
 how-to pages are their corpus), provider groups as a condition target,
 org-assignment GROUP rules, the user-directory/passkeys surface (GoTrue''s
-own), and a rules-editor surface as its own chunk. The api audit pass (656)
+own), (the rules editor shipped as Control Panel > Authentication, 657 +
+/control-panel). The api audit pass (656)
 added three more records: the user/group attributes map (name to list,
 multipass:-reserved, provider-populated at login), the Group wire shape's
 multi-organization visibility list, and the User status enum.

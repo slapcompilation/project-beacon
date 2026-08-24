@@ -21,6 +21,7 @@ const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
+const ControlPanelPage = lazyWithRetry(() => import('@/pages/ControlPanelPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
 const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage'))
@@ -111,6 +112,7 @@ function AppRoutes() {
             <Route path="/lineage/:kind/:id" element={<LineagePage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/approvals/:id" element={<ApprovalsPage />} />
+            <Route path="/control-panel" element={<ControlPanelPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
