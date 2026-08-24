@@ -92,6 +92,14 @@ export const AUDIENCES: AppAudience[] = [
     title: 'Applications for Operations',
     apps: [
       {
+        name: 'Control Panel',
+        tagline: 'Administer the platform',
+        blurb: 'Authentication: rule-based group assignment and organization assignment, evaluated at every login.',
+        path: '/control-panel',
+        icon: 'settings',
+        tint: '#7961db',
+      },
+      {
         name: 'Approvals',
         tagline: 'Request, review, invoke',
         blurb: 'File a request for a change you cannot make yourself; whoever could make it directly reviews, and an approved request applies itself.',
