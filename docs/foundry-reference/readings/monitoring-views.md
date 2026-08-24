@@ -139,10 +139,13 @@ run ledger**, actions with **no execution ledger**):
   freshness *check*: "The job succeeded, but the transaction was aborted" and
   "The job succeeded, but no new data was added"
   (`monitoring-views/rules-reference.md`).
-- **Object and link rules** — sync-jobs-failing over consecutive index-build
+- ~~**Object and link rules** — sync-jobs-failing over consecutive index-build
   failures; our 643/644 repair and replacement pipelines are the analogue of
-  the active/replacement pipeline pair the page names. The changelog/merge/
-  scroll split is Funnel's internal job taxonomy, ours has one job kind.
+  the active/replacement pipeline pair the page names.~~ **Corrected while
+  building 661**: I called this answerable without probing the ledger.
+  `object_type_indexes` (442) is a current-status scalar — one row per type,
+  no run history — so consecutive failures cannot be counted. Object and link
+  rules join the blocked tranche until an index-run ledger exists.
 - **Automation rules** — no new evaluations, no new triggers, repeated
   execution/evaluation failures in a window, and
 
@@ -257,12 +260,12 @@ Visibility composes two permissions — the view's location and the resources:
    overview.md — distinct from the checks' moderate/critical, both stay.
 3. **First tranche of rule families**: schedule (consecutive failures
    excluding cancelled, duration), dataset (time since job last succeeded
-   with the two always-pass conditions), object/link (consecutive index-build
-   failures over our repair/replacement pipelines), automation (no new
-   evaluations, no new triggers, windowed execution/evaluation failures,
-   disabled-by-system non-configurable at high). Function and action rules
-   wait for a run ledger — a rule before its ledger is an engine nothing
-   feeds.
+   with the two always-pass conditions), automation (no new triggers and
+   windowed evaluation failures — 661's probe corrected the rest: successful
+   evaluations and effect executions are not events `automation_events`
+   records, and no system-disable mechanism exists). Object/link, function
+   and action rules wait for a run ledger — a rule before its ledger is an
+   engine nothing feeds.
 4. **Alerts are stateful per (rule, target)**: `monitoring_alerts` fire and
    resolve as the condition starts and stops holding, with a transition
    history (the debug page's 30-day timeline) and the firing severity.

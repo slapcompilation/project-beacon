@@ -121,8 +121,17 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   levels, pause. The surface followed (660 + the
   Health panel on the dataset page and the platform-wide /data-health
   listing — measured value, history dot-strip, watch menu, the check RID).
-  Residuals: **monitoring-views/** (7 pages) is the successor to sunset check groups and
-  the next reading; second tranche = the four sync checks, dataset partition
+  The monitoring engine
+  followed (reading #807, engine 661/662): monitoring views as filesystem
+  resources, rules with one condition per severity over single/folder/project
+  scopes, stateful (rule, target) alerts with transitions and platform-wide
+  snooze, subscribers, a per-minute heartbeat. Monitoring residuals: the
+  Monitoring View tab surface on /data-health; schedule rules are single-scope
+  (published Single/Project — our schedules carry no location, 495); object/
+  link, function and action rules blocked on run ledgers that do not exist
+  (object_type_indexes is a status scalar); email/PagerDuty/Slack/webhooks
+  (no notification system); the alert debug page (waits on function/action
+  rules). Health-check second tranche = the four sync checks, dataset partition
   (Spark storage heuristic), transaction file size (we store no sizes),
   approximate column relation (cross-dataset), row-count-vs-last-result;
   notifications/emails and the Issues integration wait on those products.
