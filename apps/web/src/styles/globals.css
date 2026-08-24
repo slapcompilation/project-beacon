@@ -1530,3 +1530,12 @@
     .cpanel-test { width:100%; }
   }
 }
+
+/* Data Health — the history dot-strip and the rule form's narrow inputs. */
+.health-strip { display:flex; align-items:center; gap:3px; }
+.health-dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+.health-dot-passed { background:hsl(var(--success)); }
+.health-dot-failed { background:hsl(var(--destructive)); }
+.health-dot-error  { background:hsl(var(--warning)); }
+.health-num { width:7rem; }
+.\!mb-0 { margin-bottom:0 !important; }

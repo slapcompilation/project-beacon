@@ -118,9 +118,10 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   families, config CHECKed per type, evaluation on transaction commit + a
   per-minute heartbeat for thresholds and manual intervals, MAD × 1.4826
   deviation, escalate-on-consecutive-failure, watchers with the page's three
-  levels, pause. Residuals: the **Health tab surface** (its own PR — the
-  capture's grammar: measured value, history dot-strip, watch menu);
-  **monitoring-views/** (7 pages) is the successor to sunset check groups and
+  levels, pause. The surface followed (660 + the
+  Health panel on the dataset page and the platform-wide /data-health
+  listing — measured value, history dot-strip, watch menu, the check RID).
+  Residuals: **monitoring-views/** (7 pages) is the successor to sunset check groups and
   the next reading; second tranche = the four sync checks, dataset partition
   (Spark storage heuristic), transaction file size (we store no sizes),
   approximate column relation (cross-dataset), row-count-vs-last-result;

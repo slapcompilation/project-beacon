@@ -23,6 +23,7 @@ const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
 const ControlPanelPage = lazyWithRetry(() => import('@/pages/ControlPanelPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
+const DataHealthPage = lazyWithRetry(() => import('@/pages/DataHealthPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
 const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage'))
 const MainBranchUpdatesPage = lazyWithRetry(() => import('@/pages/ontology/MainBranchUpdatesPage'))
@@ -99,6 +100,7 @@ function AppRoutes() {
             </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />
+            <Route path="/data-health" element={<DataHealthPage />} />
             <Route path="/value-types" element={<ValueTypesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/builds" element={<BuildsPage />} />
