@@ -137,6 +137,35 @@ closes for rule_based. The audit line's ContextualizedUser.realm and the
 request-access external-group redirect both wait on the realm column this
 phase adds.
 
+
+## 6. The api settles the wire shapes (2026-08-24 audit pass)
+
+Read after the engine shipped, correcting forward (656):
+
+- **The realm has a published identifier.** "The `palantir-internal-realm`
+  is used for Users or Groups that are created in Foundry by administrators
+  and not associated with any SSO provider"
+  (`api/admin-v2-resources-authentication-providers-get-authentication-provider.md`)
+  — Decision 1 named our provider 'internal' where a wire constant exists;
+  providers now carry `realm` text holding it, verbatim as wire vocabulary.
+- **Users carry a realm too**, required on the User shape, and "The Foundry
+  username of the User. This is unique within the realm"
+  (`api/admin-v2-resources-users-get-user.md`). users.realm added, and the
+  audit ContextualizedUser now populates its realm — a scoped divergence
+  from Foundry's pipeline, whose emptiness is a stated latency artifact
+  that does not apply when the identity provider is the same database.
+- **The provider wire shape** also carries `enabled`, `supportedHosts`,
+  `supportedUsernamePatterns` and a `protocol` union (saml with full
+  service-provider metadata) — recorded; they arrive with external
+  providers.
+- **Recorded, not built**: the user/group `attributes` map (name → LIST of
+  values, `multipass:`-prefixed names reserved, "populated by the User's
+  SSO provider upon login" — the general store Question 2 foreshadowed, and
+  the reason group-assignment speaks of array-type attributes); the Group
+  shape's `organizations` LIST ("At least one Organization RID must be
+  listed" — multi-organization group visibility, a policy refactor of its
+  own); the User `status` enum (ACTIVE, DELETED).
+
 ## Decisions
 
 1. **`authentication_providers`, config-as-data, internal-only at first.**
