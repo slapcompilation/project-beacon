@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ProjectRole } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
+import { runWithCheckpoint } from '@/features/checkpoints/gate'
 import { projectRole } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
@@ -172,14 +173,16 @@ export function useGrantRole(projectId: string) {
       // The database refuses a grant above the granter's own role
       // (Projects:GrantExceedsRole). The picker only offers what is grantable,
       // so this is the belt to that braces.
-      const { error } = i.groupId
-        ? await supabase.from('project_role_grants')
-            .upsert({ project_id: projectId, group_id: i.groupId, role: i.role },
-                    { onConflict: 'project_id,group_id' })
-        : await supabase.from('project_role_grants')
-            .upsert({ project_id: projectId, user_id: i.userId, role: i.role },
-                    { onConflict: 'project_id,user_id' })
-      if (error) throw new Error(error.message)
+      await runWithCheckpoint(async () => {
+        const { error } = i.groupId
+          ? await supabase.from('project_role_grants')
+              .upsert({ project_id: projectId, group_id: i.groupId, role: i.role },
+                      { onConflict: 'project_id,group_id' })
+          : await supabase.from('project_role_grants')
+              .upsert({ project_id: projectId, user_id: i.userId, role: i.role },
+                      { onConflict: 'project_id,user_id' })
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'project', ref_id: projectId, name: '' }])
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Role granted') },
     onError: (e: Error) => { toast.error(e.message) },
@@ -230,10 +233,12 @@ export function useRevokeRole(projectId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (principal: { userId?: string; groupId?: string }) => {
-      let q = supabase.from('project_role_grants').delete().eq('project_id', projectId)
-      q = principal.groupId ? q.eq('group_id', principal.groupId) : q.eq('user_id', principal.userId ?? '')
-      const { error } = await q
-      if (error) throw new Error(error.message)
+      await runWithCheckpoint(async () => {
+        let q = supabase.from('project_role_grants').delete().eq('project_id', projectId)
+        q = principal.groupId ? q.eq('group_id', principal.groupId) : q.eq('user_id', principal.userId ?? '')
+        const { error } = await q
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'project', ref_id: projectId, name: '' }])
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Access removed') },
     onError: (e: Error) => { toast.error(e.message) },

@@ -5,6 +5,7 @@ import { BlueprintProvider, FocusStyleManager, Spinner, SpinnerSize, Intent } fr
 import { Toaster } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { AuthGuard } from '@/components/AuthGuard'
+import { CheckpointHost } from '@/features/checkpoints/CheckpointDialog'
 import { AuthProvider } from '@/components/AuthProvider'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt'
@@ -22,6 +23,7 @@ const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
 const ControlPanelPage = lazyWithRetry(() => import('@/pages/ControlPanelPage'))
+const CheckpointsPage = lazyWithRetry(() => import('@/pages/CheckpointsPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 const DataHealthPage = lazyWithRetry(() => import('@/pages/DataHealthPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
@@ -115,9 +117,11 @@ function AppRoutes() {
             <Route path="/approvals" element={<ApprovalsPage />} />
             <Route path="/approvals/:id" element={<ApprovalsPage />} />
             <Route path="/control-panel" element={<ControlPanelPage />} />
+            <Route path="/checkpoints" element={<CheckpointsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <CheckpointHost />
       </Suspense>
     </BrowserRouter>
   )

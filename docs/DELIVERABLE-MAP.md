@@ -148,8 +148,13 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   producing paths (group/marking members, role grants, schedules, builds) —
   claims-less system paths exempt. 665 returned `action_required` to
   approvals exactly as 651 scoped, with `retry_approval_request` as the
-  reviewer's path. Residuals: the Checkpoints app surface (Review +
-  Configuration wizard, own PR); the prompt component + submit_action via
+  reviewer's path. The surface followed (own PR):
+  the /checkpoints app (Review with filters and the details panel;
+  Configuration with the four-step wizard — Frequency omitted, login-only),
+  the CheckpointHost prompt dialog (all three justification types, recent
+  justifications, the capture's footer), and runWithCheckpoint wired into the
+  group-member, role-grant, schedule and build mutations (the retry loop
+  handles the multiple-checkpoints case). Residuals: submit_action via
   apply_action patch; login (needs a prompt-capable login path);
   reauthentication; object-set condition variants; per-item redaction; the
   space-admin and `checkpoints:review-records` review doors; requester

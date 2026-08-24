@@ -108,6 +108,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#7961db',
       },
       {
+        name: 'Checkpoints',
+        tagline: 'Justify sensitive interactions',
+        blurb: 'Checkpoint configurations interrupt sensitive interactions with a justification prompt; every submitted justification is a reviewable record.',
+        path: '/checkpoints',
+        icon: 'flag',
+        tint: '#7961db',
+      },
+      {
         name: 'Approvals',
         tagline: 'Request, review, invoke',
         blurb: 'File a request for a change you cannot make yourself; whoever could make it directly reviews, and an approved request applies itself.',

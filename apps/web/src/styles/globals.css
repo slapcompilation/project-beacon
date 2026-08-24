@@ -1550,3 +1550,18 @@
   gap:0.5rem; align-items:center; padding:0.375rem 0.75rem; }
 .mv-alert-head { font-size:10px; font-weight:600; letter-spacing:0.05em;
   color:hsl(var(--muted-foreground)); border-bottom:1px solid hsl(var(--border)); }
+
+/* Checkpoints — the review table grid, details panel, and the response box's
+   history button. */
+.ckpt-columns { display:grid; grid-template-columns: minmax(0,1fr) 20rem; gap:1rem; align-items:start; }
+.ckpt-details { position:sticky; top:1rem; }
+.ckpt-row { display:grid; grid-template-columns: 9rem 1fr 1fr 1fr 1fr; gap:0.5rem;
+  align-items:center; padding:0.375rem 0.75rem; }
+.ckpt-head { font-size:10px; font-weight:600; letter-spacing:0.05em;
+  color:hsl(var(--muted-foreground)); border-bottom:1px solid hsl(var(--border)); }
+.ckpt-selected { background:hsl(var(--primary) / 0.08); }
+.ckpt-response { position:relative; }
+.ckpt-history { position:absolute; top:4px; right:4px; }
+.ckpt-type-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr)); }
+.max-w-5xl { max-width:64rem; }
+.pl-3 { padding-left:0.75rem; }
