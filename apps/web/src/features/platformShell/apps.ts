@@ -10,7 +10,8 @@
 //
 // Everything else we run (builders, governance, admin) is a platform tool:
 // reachable from the portal, the sidebar and search, never a home card —
-// PLATFORM_TOOLS below.
+// PLATFORM_TOOLS below, filed in the portal under the CAPTURED category
+// names via APP_CATEGORY.
 //
 // Two descriptions per app, on purpose: "the same app carries different
 // one-liners on different surfaces" (§7.5), so the card and the portal each
@@ -107,6 +108,44 @@ export const AUDIENCES: AppAudience[] = [
     missing: 'Fusion, Forms, Slate and Workshop are not built here.',
   },
 ]
+
+/** The portal's category rail uses the CAPTURED names — "All apps 75 …
+ *  Platform apps 40 … Analyze data 7 … Build & monitor pipelines 10 … Data
+ *  Governance 4 … Manage & deploy models 1 … Operational applications 13 …
+ *  Support 5" (getting-started/images/apps-portal.png) — in that order.
+ *  Empty categories are simply not rendered. */
+export const PORTAL_CATEGORIES = [
+  'Analyze data',
+  'Build & monitor pipelines',
+  'Data Governance',
+  'Manage & deploy models',
+  'Operational applications',
+  'Support',
+] as const
+
+export type PortalCategory = typeof PORTAL_CATEGORIES[number]
+
+/** Which captured category each app files under. Exactly ONE placement is
+ *  documented — Checkpoints: "The Checkpoints application can be accessed in
+ *  the navigation panel in the **Data Governance** category."
+ *  (checkpoints/overview.md). Every other row is inference from the app's
+ *  own register; the capture never lists its 40 platform apps by name. */
+export const APP_CATEGORY: Record<string, PortalCategory> = {
+  '/catalog': 'Analyze data',
+  '/datasets': 'Build & monitor pipelines',
+  '/lineage': 'Build & monitor pipelines',
+  '/builds': 'Build & monitor pipelines',
+  '/data-health': 'Build & monitor pipelines',
+  '/checkpoints': 'Data Governance',            // the one documented placement
+  '/approvals': 'Data Governance',
+  '/projects': 'Data Governance',
+  '/control-panel': 'Data Governance',
+  '/explorer': 'Operational applications',
+  '/ontology': 'Operational applications',
+  '/branches': 'Operational applications',
+  '/automate': 'Operational applications',
+  '/value-types': 'Operational applications',
+}
 
 /** What we run that the Foundry home never shows: builders, governance and
  *  administration. Portal, sidebar and search surface them; Home does not. */
