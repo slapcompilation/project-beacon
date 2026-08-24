@@ -550,7 +550,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (248) ───────────────────────────────────────────────────
+// ── FUNCTIONS (249) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1785,6 +1785,11 @@ export const monitoringRuleFamily = { apiName: 'monitoring_rule_family', kind: '
 export const monitoringRuleTypes = { apiName: 'monitoring_rule_types', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+export const objectCurrentValue = { apiName: 'object_current_value', kind: 'function' } as FunctionType<
+  { p_type: string; p_pk: string; p_property: string },
+  Json
 >
 
 export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 'function' } as FunctionType<
