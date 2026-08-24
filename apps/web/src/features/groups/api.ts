@@ -9,6 +9,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { runWithCheckpoint } from '@/features/checkpoints/gate'
 
 export interface Group {
   id: string
@@ -170,13 +171,16 @@ export function useAddGroupMember(groupId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (i: { userId?: string; memberGroupId?: string; expiresAt?: string | null }) => {
-      const { error } = await supabase.from('group_members').insert({
-        group_id: groupId,
-        member_user_id: i.userId ?? null,
-        member_group_id: i.memberGroupId ?? null,
-        expires_at: i.expiresAt ?? null,
-      })
-      if (error) throw new Error(error.message)
+      // a Group member addition checkpoint may interrupt; the gate retries
+      await runWithCheckpoint(async () => {
+        const { error } = await supabase.from('group_members').insert({
+          group_id: groupId,
+          member_user_id: i.userId ?? null,
+          member_group_id: i.memberGroupId ?? null,
+          expires_at: i.expiresAt ?? null,
+        })
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'group', ref_id: groupId, name: '' }])
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.members(groupId) })
@@ -191,10 +195,12 @@ export function useRemoveGroupMember(groupId: string) {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (i: { userId?: string; memberGroupId?: string }) => {
-      let q = supabase.from('group_members').delete().eq('group_id', groupId)
-      q = i.userId ? q.eq('member_user_id', i.userId) : q.eq('member_group_id', i.memberGroupId ?? '')
-      const { error } = await q
-      if (error) throw new Error(error.message)
+      await runWithCheckpoint(async () => {
+        let q = supabase.from('group_members').delete().eq('group_id', groupId)
+        q = i.userId ? q.eq('member_user_id', i.userId) : q.eq('member_group_id', i.memberGroupId ?? '')
+        const { error } = await q
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'group', ref_id: groupId, name: '' }])
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.members(groupId) })

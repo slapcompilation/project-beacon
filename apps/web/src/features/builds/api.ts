@@ -5,6 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { runWithCheckpoint } from '@/features/checkpoints/gate'
 import { client } from '@/lib/supabase/ontologyClient'
 import { jobSpecFresh, runBuild } from '@beacon/platform'
 import type { Json } from '@beacon/platform'
@@ -137,9 +138,10 @@ export function useRunBuild() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (i: { targets: string[]; force?: boolean; buildType?: 'single' | 'full' }) =>
-      await client(runBuild).applyAction({
-        p_targets: i.targets, p_force: i.force ?? false, p_build_type: i.buildType ?? 'single',
-      }) as string | null,
+      await runWithCheckpoint(async () =>
+        await client(runBuild).applyAction({
+          p_targets: i.targets, p_force: i.force ?? false, p_build_type: i.buildType ?? 'single',
+        }) as string | null),
     onSuccess: (buildId) => {
       void qc.invalidateQueries()
       if (buildId === null) toast.info('Everything is fresh — no build was created')
@@ -269,12 +271,14 @@ export function useCreateSchedule() {
        *  overlap." — off unless asked, which 572 attests twice. */
       allowOverlappingRuns: boolean
     }) => {
-      const { error } = await supabase.from('schedules').insert({
-        name: i.name, target_dataset_ids: i.targetDatasetIds,
-        build_type: i.buildType, trigger: i.trigger as unknown as Json,
-        allow_overlapping_runs: i.allowOverlappingRuns,
+      await runWithCheckpoint(async () => {
+        const { error } = await supabase.from('schedules').insert({
+          name: i.name, target_dataset_ids: i.targetDatasetIds,
+          build_type: i.buildType, trigger: i.trigger as unknown as Json,
+          allow_overlapping_runs: i.allowOverlappingRuns,
+        })
+        if (error) throw new Error(error.message)
       })
-      if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: scheduleKeys.all }); toast.success('Schedule saved') },
     onError: (e: Error) => { toast.error(e.message) },
@@ -285,8 +289,10 @@ export function useSetSchedulePaused() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (i: { id: string; paused: boolean }) => {
-      const { error } = await supabase.from('schedules').update({ paused: i.paused }).eq('id', i.id)
-      if (error) throw new Error(error.message)
+      await runWithCheckpoint(async () => {
+        const { error } = await supabase.from('schedules').update({ paused: i.paused }).eq('id', i.id)
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'schedule', ref_id: i.id, name: '' }])
     },
     onSuccess: (_d, i) => {
       void qc.invalidateQueries({ queryKey: scheduleKeys.all })
@@ -300,8 +306,10 @@ export function useDeleteSchedule() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('schedules').delete().eq('id', id)
-      if (error) throw new Error(error.message)
+      await runWithCheckpoint(async () => {
+        const { error } = await supabase.from('schedules').delete().eq('id', id)
+        if (error) throw new Error(error.message)
+      }, [{ kind: 'schedule', ref_id: id, name: '' }])
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: scheduleKeys.all }); toast.success('Schedule deleted') },
     onError: (e: Error) => { toast.error(e.message) },
