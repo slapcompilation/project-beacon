@@ -1539,3 +1539,14 @@
 .health-dot-error  { background:hsl(var(--warning)); }
 .health-num { width:7rem; }
 .\!mb-0 { margin-bottom:0 !important; }
+
+/* Monitoring views — the severity dots (red/orange/blue = high/medium/low,
+   the Alert summary's own colors) and the troubleshoot table grid. */
+.msev-dot { width:9px; height:9px; border-radius:50%; display:inline-block; flex:none; }
+.msev-high   { background:hsl(var(--destructive)); }
+.msev-medium { background:hsl(var(--warning)); }
+.msev-low    { background:hsl(var(--primary)); }
+.mv-alert-row { display:grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr auto;
+  gap:0.5rem; align-items:center; padding:0.375rem 0.75rem; }
+.mv-alert-head { font-size:10px; font-weight:600; letter-spacing:0.05em;
+  color:hsl(var(--muted-foreground)); border-bottom:1px solid hsl(var(--border)); }

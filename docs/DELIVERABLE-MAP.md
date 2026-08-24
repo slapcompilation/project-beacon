@@ -125,8 +125,12 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   followed (reading #807, engine 661/662): monitoring views as filesystem
   resources, rules with one condition per severity over single/folder/project
   scopes, stateful (rule, target) alerts with transitions and platform-wide
-  snooze, subscribers, a per-minute heartbeat. Monitoring residuals: the
-  Monitoring View tab surface on /data-health; schedule rules are single-scope
+  snooze, subscribers, a per-minute heartbeat. The Monitoring View tab
+  followed (663 + surface): checks join views (health_checks.monitoring_view_id),
+  the view list, Troubleshoot alerts with the Monitor/Check merge and
+  alert-summary dots, snooze dialogs at alert and rule level, Manage monitors
+  with the published scope availability, Manage subscriptions. Monitoring
+  residuals: schedule rules are single-scope
   (published Single/Project — our schedules carry no location, 495); object/
   link, function and action rules blocked on run ledgers that do not exist
   (object_type_indexes is a status scalar); email/PagerDuty/Slack/webhooks

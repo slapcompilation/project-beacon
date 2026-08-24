@@ -3,10 +3,11 @@
 // datasets that you are watching" (data-health/overview.md). Rows group by
 // dataset, worst status first, each carrying the same grammar as the panel.
 import { useState } from 'react'
-import { Card, Icon, InputGroup, Intent, NonIdealState, Spinner, Switch, Tag } from '@blueprintjs/core'
+import { Card, Icon, InputGroup, Intent, NonIdealState, Spinner, Switch, Tab, Tabs, Tag } from '@blueprintjs/core'
 import {
   checkTypeLabel, useDataHealthListing, type ListedCheck, type ResultStatus,
 } from '@/features/dataHealth/api'
+import { MonitoringPanel } from '@/features/monitoring/MonitoringPanel'
 
 const STATUS_INTENT: Record<ResultStatus, Intent> = {
   passed: Intent.SUCCESS, failed: Intent.DANGER, error: Intent.WARNING,
@@ -17,7 +18,35 @@ const STATUS_LABEL: Record<ResultStatus, string> = {
 // Worst first: a failure outranks an evaluator error outranks a pass.
 const STATUS_RANK: Record<ResultStatus, number> = { failed: 0, error: 1, passed: 2 }
 
+// "navigate to the Monitoring View tab in the top right corner of the Data
+// Health application" — the app has two faces: the checks listing and the
+// monitoring views.
 export default function DataHealthPage() {
+  const [tab, setTab] = useState<string | number>('checks')
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="px-8 py-6 max-w-4xl space-y-6">
+        <header className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-xl font-semibold">Data Health</h1>
+            <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
+              Every health check you can see, by dataset — and monitoring views: rules over
+              scopes of resources, with alerts routed by severity.
+            </p>
+          </div>
+          <Tabs id="dhealth" selectedTabId={tab} onChange={setTab}>
+            <Tab id="checks" title="Health checks" />
+            <Tab id="monitoring" title="Monitoring View" />
+          </Tabs>
+        </header>
+        {tab === 'checks' ? <ChecksListing /> : <MonitoringPanel />}
+      </div>
+    </div>
+  )
+}
+
+function ChecksListing() {
   const { data: checks = [], isLoading } = useDataHealthListing()
   const [watchingOnly, setWatchingOnly] = useState(false)
   const [filter, setFilter] = useState('')
@@ -36,16 +65,7 @@ export default function DataHealthPage() {
     worstRank(a) - worstRank(b) || an.localeCompare(bn))
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="px-8 py-6 max-w-4xl space-y-6">
-        <header>
-          <h1 className="text-xl font-semibold">Data Health</h1>
-          <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-            Every health check you can see, by dataset — stale data, shrunken row counts and
-            schema drift surface here before a consumer notices them.
-          </p>
-        </header>
-
+    <div className="space-y-6">
         <div className="flex items-center gap-4 flex-wrap">
           <InputGroup leftIcon="search" placeholder="Filter datasets…" value={filter}
             onChange={(e) => { setFilter(e.currentTarget.value) }} />
@@ -102,7 +122,6 @@ export default function DataHealthPage() {
             </Card>
           ))
         )}
-      </div>
     </div>
   )
 }
