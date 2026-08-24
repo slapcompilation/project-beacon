@@ -20,7 +20,6 @@ import type { InterfaceDef } from '../interfaces/index'
 import { interfaceProperties } from '../interfaces/index'
 import type { ObjectTypeDef, PropertyDef, PropertyType } from '../objectTypes/index'
 import { validateTraversals, type SetTraversal } from './traversal'
-import { evaluateComputed } from '../objectTypes/index'
 
 /** What a set is drawn from. A `type` subject runs over one type's records; an
  *  `interface` subject runs over EVERY type implementing it — including types
@@ -40,14 +39,9 @@ export function subjectLabel(s: SetSubject): string {
   return s.kind === 'type' ? s.type.label : s.iface.label
 }
 
-/** Schema properties plus computed ones — a set can filter on a computed value
- *  exactly like a stored one. */
+/** A set filters on the type's schema properties. */
 export function allProperties(type: ObjectTypeDef): PropertyDef[] {
-  // A computed value is derived at read time, so it has no column and no row.
-  const computed: PropertyDef[] = type.computedProperties.map((c) => ({
-    key: c.key, label: c.label, apiName: c.key, type: 'integer', required: false,
-  }))
-  return [...type.properties, ...computed]
+  return [...type.properties]
 }
 
 /** One filter. Numeric properties compare with the shared ComparisonOp
@@ -269,9 +263,7 @@ export function selectObjectSet(
   groups: ReadonlyArray<RecordGroup>,
 ): ObjectSetSelection {
   const per = groups.map((g) => {
-    const resolved = g.type
-      ? g.records.map((r) => ({ ...r, ...computedValues(g.type as ObjectTypeDef, r) }))
-      : g.records.slice()
+    const resolved = g.records.slice()
     return { type: g.type, scanned: resolved.length, matched: resolved.filter((r) => isMember(r, def.filters)) }
   })
 
@@ -292,17 +284,6 @@ export function selectObjectSet(
  *  the comparison rules. */
 export function isMember(record: SetRecord, filters: ReadonlyArray<SetFilter>): boolean {
   return filters.every((f) => passes(record[f.property], f))
-}
-
-/** Computed properties as a flat patch, so filters read them like stored ones.
- *  A computed value that can't resolve is simply absent. */
-function computedValues(type: ObjectTypeDef, data: SetRecord): Record<string, number> {
-  const out: Record<string, number> = {}
-  for (const c of type.computedProperties) {
-    const v = evaluateComputed(c, data)
-    if (v !== null) out[c.key] = v
-  }
-  return out
 }
 
 function passes(actual: unknown, f: SetFilter): boolean {

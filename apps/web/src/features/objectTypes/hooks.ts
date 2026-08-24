@@ -39,14 +39,6 @@ export function useObjectTypes() {
   return useQuery({ queryKey: keys.types, queryFn: fetchObjectTypes, staleTime: 30_000 })
 }
 
-/** One computed property's definition, straight from the ontology — so the value
- *  and the sentence explaining it travel together as data. */
-export function useOntologyComputed(apiName: string, key: string) {
-  const { data: rows = [] } = useObjectTypes()
-  const row = rows.find((r) => r.api_name === apiName)
-  return row?.computed_properties?.find((c) => c.key === key)
-}
-
 export function useCreateObjectType() {
   const qc = useQueryClient()
   return useMutation({

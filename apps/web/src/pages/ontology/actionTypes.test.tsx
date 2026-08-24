@@ -30,7 +30,7 @@ const db = vi.hoisted(() => {
         shared_property_id: null, required: true, visibility: 'normal', position: 0,
         is_primary_key: true, is_title_key: true,
       }],
-      computed_properties: null, view_config: null, enabled: true, version: 1,
+      version: 1,
       status: 'experimental', visibility: 'normal', deprecation_reason: null,
       deprecation_deadline: null, replaced_by: null, created_by_user_id: null,
       created_at: '', updated_at: '',

@@ -6,14 +6,9 @@ import {
   coerceValue,
   toSlug,
   validateLinkTypeDraft,
-  evaluateComputed,
-  validateComputedProperty,
-  resolveViewConfig,
-  validateViewConfig,
   type PropertyDef,
   type ObjectTypeDraft,
   type LinkTypeDraft,
-  type ComputedPropertyDef,
 } from './index'
 
 const props: PropertyDef[] = [
@@ -146,85 +141,6 @@ describe('validateLinkTypeDraft', () => {
   })
   it('rejects a non-slug api name', () => {
     expect(validateLinkTypeDraft({ ...draft, apiName: 'Belongs To' }).ok).toBe(false)
-  })
-})
-
-describe('evaluateComputed', () => {
-  const now = new Date('2026-07-24T00:00:00Z')
-  it('sums and multiplies number inputs', () => {
-    expect(evaluateComputed({ key: 'total', label: 'Total', fn: 'sum', inputs: ['a', 'b'] }, { a: 3, b: 4 })).toBe(7)
-    expect(evaluateComputed({ key: 'p', label: 'P', fn: 'product', inputs: ['a', 'b'] }, { a: 3, b: 4 })).toBe(12)
-  })
-  it('computes a difference and returns null on missing inputs', () => {
-    expect(evaluateComputed({ key: 'd', label: 'D', fn: 'difference', inputs: ['a', 'b'] }, { a: 10, b: 4 })).toBe(6)
-    expect(evaluateComputed({ key: 'd', label: 'D', fn: 'difference', inputs: ['a', 'b'] }, { a: 10 })).toBeNull()
-  })
-  it('computes days since / until a date', () => {
-    expect(evaluateComputed({ key: 's', label: 'S', fn: 'days_since', inputs: ['when'] }, { when: '2026-07-20' }, now)).toBe(4)
-    expect(evaluateComputed({ key: 'u', label: 'U', fn: 'days_until', inputs: ['when'] }, { when: '2026-07-27' }, now)).toBe(3)
-    expect(evaluateComputed({ key: 's', label: 'S', fn: 'days_since', inputs: ['when'] }, { when: 'nope' }, now)).toBeNull()
-  })
-})
-
-describe('validateComputedProperty', () => {
-  const props: PropertyDef[] = [
-    { key: 'a', apiName: 'a', label: 'A', type: 'integer', required: false },
-    { key: 'b', apiName: 'b', label: 'B', type: 'integer', required: false },
-    { key: 'when', apiName: 'when', label: 'When', type: 'date', required: false },
-  ]
-  const ok: ComputedPropertyDef = { key: 'total', label: 'Total', fn: 'sum', inputs: ['a', 'b'] }
-  it('accepts a valid computed property', () => {
-    expect(validateComputedProperty(ok, props).ok).toBe(true)
-  })
-  it('rejects a difference without exactly two inputs', () => {
-    expect(validateComputedProperty({ ...ok, fn: 'difference', inputs: ['a'] }, props).ok).toBe(false)
-  })
-  it('rejects a number fn fed a date input', () => {
-    const r = validateComputedProperty({ ...ok, inputs: ['when'] }, props)
-    expect(r.ok).toBe(false)
-    expect(r.errors.join(' ')).toContain('number inputs')
-  })
-  it('rejects an input that is not a property', () => {
-    expect(validateComputedProperty({ ...ok, inputs: ['nope'] }, props).ok).toBe(false)
-  })
-})
-
-describe('resolveViewConfig', () => {
-  const type = {
-    properties: props,   // room, urgent, reported_on, cost
-    computedProperties: [{ key: 'days_open', label: 'Days open', fn: 'days_since', inputs: ['reported_on'] }] as ComputedPropertyDef[],
-  }
-  it('derives a standard view when no config: everything in one section', () => {
-    const v = resolveViewConfig(type, null)
-    expect(v.prominent).toEqual([])
-    expect(v.sections).toHaveLength(1)
-    expect(v.sections[0].title).toBe('Properties')
-    expect(new Set(v.sections[0].keys)).toEqual(new Set(['room', 'urgent', 'reported_on', 'cost', 'days_open']))
-  })
-  it('keeps configured placement and sweeps the rest into Details', () => {
-    const v = resolveViewConfig(type, { prominent: ['days_open', 'cost'], sections: [{ title: 'Where', keys: ['room'] }] })
-    expect(v.prominent).toEqual(['days_open', 'cost'])
-    expect(v.sections[0]).toEqual({ title: 'Where', keys: ['room'] })
-    expect(v.sections[1].title).toBe('Details')
-    expect(new Set(v.sections[1].keys)).toEqual(new Set(['urgent', 'reported_on', 'cost', 'days_open']))
-  })
-  it('drops keys that no longer exist on the type', () => {
-    const v = resolveViewConfig(type, { prominent: ['ghost'], sections: [{ title: 'X', keys: ['ghost'] }] })
-    expect(v.prominent).toEqual([])
-    expect(v.sections).toHaveLength(1) // only the sweep section
-  })
-})
-
-describe('validateViewConfig', () => {
-  const type = { properties: props, computedProperties: [] as ComputedPropertyDef[] }
-  it('accepts valid config', () => {
-    expect(validateViewConfig({ prominent: ['cost'], sections: [{ title: 'Where', keys: ['room'] }] }, type).ok).toBe(true)
-  })
-  it('rejects unknown keys and duplicate placement', () => {
-    const r = validateViewConfig({ prominent: ['nope'], sections: [{ title: 'A', keys: ['room'] }, { title: 'B', keys: ['room'] }] }, type)
-    expect(r.ok).toBe(false)
-    expect(r.errors.join(' ')).toContain('nope')
-    expect(r.errors.join(' ')).toContain('more than one section')
   })
 })
 

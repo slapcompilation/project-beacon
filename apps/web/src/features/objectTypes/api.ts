@@ -10,12 +10,11 @@ import {
 import { client } from '@/lib/supabase/ontologyClient'
 import { useAppStore } from '@/stores/app.store'
 import type {
-  ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
+  ObjectTypeDef, PropertyDef, LinkTypeDef,
   OntologyStatus, ObjectTypeStatus, OntologyVisibility, Deprecation,
   LinkBackingKind, LinkCardinality,
 } from '@beacon/ontology'
 
-import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
 
 /** One row of `object_type_properties` (migration 408). Properties left the
  *  object type's jsonb because Foundry gives each its own ID, API name, base
@@ -129,9 +128,6 @@ export interface ObjectTypeRow {
    *  "Search by name, RID, aliases…". */
   aliases: string[] | null
   object_type_properties: PropertyRow[]
-  computed_properties: ComputedPropertyDef[] | null
-  view_config: ViewConfigDef | null
-  enabled: boolean
   version: number
   /** Developmental state (migration 321). Anything new starts experimental. */
   status: OntologyStatus
@@ -154,9 +150,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     description: r.description,
     properties: [...r.object_type_properties]
       .sort((a, b) => a.position - b.position).map(rowToProperty),
-    computedProperties: r.computed_properties ?? [],
-    viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
-    enabled: r.enabled, version: r.version,
+    version: r.version,
     status: r.status, visibility: r.visibility,
     deprecation: r.deprecation_reason && r.deprecation_deadline
       ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
@@ -233,15 +227,9 @@ export interface UpdateObjectTypeInput {
   icon: string
   description: string
   properties: PropertyDef[]
-  computedProperties: ComputedPropertyDef[]
-  viewConfig: ViewConfigDef
 }
 
 export async function updateObjectType(i: UpdateObjectTypeInput): Promise<string> {
-  const { error } = await supabase.from('object_types')
-    .update({ computed_properties: i.computedProperties, view_config: i.viewConfig })
-    .eq('id', i.id)
-  if (error) throw new Error(error.message)
   return saveObjectType(i)
 }
 

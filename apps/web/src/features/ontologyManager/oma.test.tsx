@@ -16,8 +16,7 @@ const db = vi.hoisted(() => {
   const type = (id: string, label: string, description: string, aliases: string[]) => ({
     id, ontology_id: 'ont1', api_name: label, label, icon: 'cube', description,
     rid: `ri.ontology.main.object-type.${id}`, aliases,
-    object_type_properties: [], computed_properties: null, view_config: null,
-    enabled: true, version: 1, status: 'experimental', visibility: 'normal',
+    object_type_properties: [], version: 1, status: 'experimental', visibility: 'normal',
     deprecation_reason: null, deprecation_deadline: null, replaced_by: null,
     created_by_user_id: null, created_at: '', updated_at: '',
   })

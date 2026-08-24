@@ -10,12 +10,12 @@ import {
 import type { IconName } from '@blueprintjs/icons'
 import { useSearchParams } from 'react-router-dom'
 import {
-  PROPERTY_TYPES, COMPUTED_FNS, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
-  validateComputedProperty, validateViewConfig, attachProblem,
-  acceptsInput, primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
+  PROPERTY_TYPES, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
+  attachProblem,
+  primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
   STATUS_META, OBJECT_TYPE_STATUSES, ONTOLOGY_STATUSES, pluralise,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
-  type ComputedFn, type ComputedPropertyDef, type ViewConfigDef, type SharedPropertyDef,
+  type SharedPropertyDef,
   type ObjectTypeStatus, type OntologyStatus,
 } from '@beacon/ontology'
 import { useAppStore } from '@/stores/app.store'
@@ -52,7 +52,6 @@ const SOURCE_ICON: Record<string, IconName> = {
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
-interface ComputedRow { label: string; fn: ComputedFn; inputs: string[] }
 
 /** A draft property. `key` is the property ID; it is stable once saved, so only
  *  new rows derive one from the label. */
@@ -326,18 +325,13 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const [icon, setIcon] = useState<IconName>('cube')
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<PropertyDraft[]>([newProperty()])
-  const [computed, setComputed] = useState<ComputedRow[]>([])
   const [backing, setBacking] = useState<Backing>({ kind: 'generate', name: '', folderId: null })
   const applyBacking = useApplyBacking()
 
   const apiName = toPascal(label)
   const properties = draftsToProperties(props)
-  const computedProperties: ComputedPropertyDef[] = computed
-    .filter((c) => c.label.trim())
-    .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
   const validation = validateObjectTypeDraft({ apiName, label, properties })
-  const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
-  const canSave = validation.ok && computedErrors.length === 0
+  const canSave = validation.ok
 
   const submit = () => {
     if (!canSave) return
@@ -352,7 +346,7 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
           // the form resets either way — the type is created regardless.
           void applyBacking(id, backing)
           setLabel(''); setPlural(''); setPluralEdited(false)
-          setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube')
+          setDescription(''); setProps([newProperty()]); setIcon('cube')
           setBacking({ kind: 'generate', name: '', folderId: null })
         },
       },
@@ -388,58 +382,14 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
       <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap}
         objectTypeId={null} />
 
-      <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
       {label.trim() !== '' && !canSave && (
-        <ul className="text-xs text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+        <ul className="text-xs text-red-600 list-disc pl-4">{validation.errors.map((e) => <li key={e}>{e}</li>)}</ul>
       )}
       <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave || !ontologyId}
         title={ontologyId ? undefined : 'Create an ontology first — every object type belongs to one'}
         loading={create.isPending} onClick={submit}>Create object type</Button>
     </Card>
-  )
-}
-
-function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyDef[]; rows: ComputedRow[]; onChange: (r: ComputedRow[]) => void }) {
-  const set = (i: number, patch: Partial<ComputedRow>) => { onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r))) }
-  const setFn = (i: number, fn: ComputedFn) => { set(i, { fn, inputs: [] }) } // input type changes → reset inputs
-
-  return (
-    <div className="space-y-1.5">
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Computed properties</span>
-      {rows.map((row, i) => {
-        const fnDef = COMPUTED_FNS.find((f) => f.value === row.fn)
-        const eligible = fnDef ? properties.filter((p) => acceptsInput(fnDef.inputType, p.type)) : []
-        return (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <InputGroup size="small" placeholder="Computed label (e.g. Days open)" value={row.label} onChange={(e) => { set(i, { label: e.currentTarget.value }) }} className="min-w-[150px]" />
-            <HTMLSelect value={row.fn} onChange={(e) => { setFn(i, e.currentTarget.value as ComputedFn) }}>
-              {COMPUTED_FNS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
-            </HTMLSelect>
-            {fnDef?.arity === 'many' ? (
-              <div className="flex flex-wrap items-center gap-2">
-                {eligible.map((p) => (
-                  <Checkbox key={p.key} checked={row.inputs.includes(p.key)} label={p.label} className="mb-0"
-                    onChange={() => { set(i, { inputs: row.inputs.includes(p.key) ? row.inputs.filter((k) => k !== p.key) : [...row.inputs, p.key] }) }} />
-                ))}
-              </div>
-            ) : (
-              Array.from({ length: fnDef?.arity === 'two' ? 2 : 1 }).map((_, si) => (
-                <HTMLSelect key={si} value={row.inputs[si] ?? ''} onChange={(e) => { const next = [...row.inputs]; next[si] = e.currentTarget.value; set(i, { inputs: next }) }}>
-                  <option value="">Select…</option>
-                  {eligible.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
-                </HTMLSelect>
-              ))
-            )}
-            <Button variant="minimal" size="small" icon="cross" onClick={() => { onChange(rows.filter((_, idx) => idx !== i)) }} />
-          </div>
-        )
-      })}
-      <Button variant="minimal" size="small" icon="add" disabled={properties.length === 0}
-        onClick={() => { onChange([...rows, { label: '', fn: 'sum', inputs: [] }]) }}>
-        Add computed property
-      </Button>
-    </div>
   )
 }
 
@@ -582,35 +532,15 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
   const [description, setDescription] = useState(type.description)
   const sharedMap = useSharedPropertyMap()
   const [props, setProps] = useState<PropertyDraft[]>(type.properties)
-  const [computed, setComputed] = useState<ComputedRow[]>(
-    type.computedProperties.map((c) => ({ label: c.label, fn: c.fn, inputs: c.inputs })),
-  )
-  const [viewConfig, setViewConfig] = useState<ViewConfigDef>(type.viewConfig)
 
   const properties = draftsToProperties(props)
-  const computedProperties: ComputedPropertyDef[] = computed
-    .filter((c) => c.label.trim())
-    .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
   const validation = validateObjectTypeDraft({ apiName: type.apiName, label, properties })
-  const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
-  // resolveViewConfig on save drops keys that were removed; only structural errors block.
-  const viewErrors = validateViewConfig(viewConfig, { properties, computedProperties }).errors
-    .filter((e) => e.includes('title') || e.includes('more than one'))
-  const canSave = validation.ok && computedErrors.length === 0 && viewErrors.length === 0
+  const canSave = validation.ok
 
   const save = () => {
     if (!canSave) return
-    // Persist only the authored config, filtered to keys that still exist — the
-    // render-time resolver sweeps unplaced keys, so nothing is ever hidden.
-    const all = new Set([...properties.map((p) => p.key), ...computedProperties.map((c) => c.key)])
-    const cleaned: ViewConfigDef = {
-      prominent: viewConfig.prominent.filter((k) => all.has(k)),
-      sections: viewConfig.sections
-        .map((s) => ({ title: s.title, keys: s.keys.filter((k) => all.has(k)) }))
-        .filter((s) => s.title.trim() !== '' && s.keys.length > 0),
-    }
     update.mutate(
-      { id: type.id, label: label.trim(), icon, description: description.trim(), properties, computedProperties, viewConfig: cleaned },
+      { id: type.id, label: label.trim(), icon, description: description.trim(), properties },
       { onSuccess: onDone },
     )
   }
@@ -633,73 +563,16 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
       <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap}
         objectTypeId={type.id} />
 
-      <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
-      <ViewBuilder properties={properties} computedProperties={computedProperties} config={viewConfig} onChange={setViewConfig} />
 
       {!canSave && (
-        <ul className="text-xs text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors, ...viewErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+        <ul className="text-xs text-red-600 list-disc pl-4">{validation.errors.map((e) => <li key={e}>{e}</li>)}</ul>
       )}
       <div className="flex items-center gap-2">
         <Button intent={Intent.PRIMARY} icon="floppy-disk" disabled={!canSave} loading={update.isPending} onClick={save}>Save as v{type.version + 1}</Button>
         <Button variant="minimal" onClick={onDone}>Cancel</Button>
       </div>
     </Card>
-  )
-}
-
-// Configure how records of this type PRESENT: prominent keys (metric strip) +
-// grouped sections. Unplaced keys are swept into a Details section at render
-// time, so config never hides data.
-function ViewBuilder({ properties, computedProperties, config, onChange }: {
-  properties: PropertyDef[]
-  computedProperties: ComputedPropertyDef[]
-  config: ViewConfigDef
-  onChange: (c: ViewConfigDef) => void
-}) {
-  const all = [
-    ...properties.map((p) => ({ key: p.key, label: p.label })),
-    ...computedProperties.map((c) => ({ key: c.key, label: c.label })),
-  ]
-  const toggleProminent = (key: string) => {
-    onChange({
-      ...config,
-      prominent: config.prominent.includes(key) ? config.prominent.filter((k) => k !== key) : [...config.prominent, key],
-    })
-  }
-  const setSection = (i: number, patch: Partial<{ title: string; keys: string[] }>) =>
-    { onChange({ ...config, sections: config.sections.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }) }
-  const toggleSectionKey = (i: number, key: string) => {
-    const s = config.sections[i]
-    setSection(i, { keys: s.keys.includes(key) ? s.keys.filter((k) => k !== key) : [...s.keys, key] })
-  }
-
-  return (
-    <div className="space-y-1.5">
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Object view</span>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">Metric strip:</span>
-        {all.map((k) => (
-          <Checkbox key={k.key} checked={config.prominent.includes(k.key)} label={k.label} className="mb-0"
-            onChange={() => { toggleProminent(k.key) }} />
-        ))}
-        {all.length === 0 && <span className="text-xs text-muted-foreground">add properties first</span>}
-      </div>
-      {config.sections.map((s, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2">
-          <InputGroup size="small" placeholder="Section title" value={s.title} onChange={(e) => { setSection(i, { title: e.currentTarget.value }) }} className="min-w-[140px]" />
-          {all.map((k) => (
-            <Checkbox key={k.key} checked={s.keys.includes(k.key)} label={k.label} className="mb-0"
-              onChange={() => { toggleSectionKey(i, k.key) }} />
-          ))}
-          <Button variant="minimal" size="small" icon="cross" onClick={() => { onChange({ ...config, sections: config.sections.filter((_, idx) => idx !== i) }) }} />
-        </div>
-      ))}
-      <Button variant="minimal" size="small" icon="add" disabled={all.length === 0}
-        onClick={() => { onChange({ ...config, sections: [...config.sections, { title: '', keys: [] }] }) }}>
-        Add section
-      </Button>
-    </div>
   )
 }
 

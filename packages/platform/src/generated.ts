@@ -656,8 +656,8 @@ export const authMemberOfOntology = { apiName: 'auth_member_of_ontology', kind: 
 >
 
 /**
- *  Current user's organization scope. Mirrors auth_hotel_id(). JWT claim
- *  takes precedence; falls back to parent org of hotel.
+ *  The caller's organization from the JWT app_metadata.org_id claim, stamped
+ *  at token issuance by custom_access_token_hook. NULL when unauthenticated.
  */
 export const authOrgId = { apiName: 'auth_org_id', kind: 'function' } as FunctionType<
   Record<string, never>,

@@ -228,8 +228,18 @@ and the ordering, which matters if we ever build them:
 
 — `action-types/permissions.md`
 
-`action_rule_kinds()` already marks the side-effect kinds not executable, so
-this confirms the position rather than changing it.
+~~`action_rule_kinds()` already marks the side-effect kinds not executable, so
+this confirms the position rather than changing it.~~ **FALSE — corrected by
+the 2026-08-24 gap sweep, which executed the claim**: the kinds marked
+`executable = false` are `create_or_modify_object`, `create_link`,
+`delete_link` and the two interface link kinds — all Ontology rules. No
+side-effect kind (notification, webhook, schedule) is registered at all;
+they arrive with their machinery, per the emit-only rule. The sweep also
+found the third "Other rule" unrecorded anywhere: the **Schedule rule**
+("By configuring a **schedule rule** on an action type, you can trigger a
+build of that schedule whenever the action is applied" —
+`action-types/trigger-schedule-build.md`) is buildable today with the
+schedules engine we hold; DELIVERABLE-MAP now carries it.
 
 ## Decisions
 

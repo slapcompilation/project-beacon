@@ -109,6 +109,57 @@ with reasons recorded in `platform-experience.md`; the enrollment-scope
 WRITER for logos and titles waits on enrollment-level permissions (the rows
 exist and resolve, nothing may write them). The home page URL shipped in 650.
 
+**The 2026-08-24 gap sweep's queue.** Measured against the live catalog, both
+directions; the leftovers it found were deleted in 658 and the census widened
+to every commentable catalog. What it recorded as build gaps, ranked:
+
+- **Health checks** — a whole product: 26 check types in 5 families over
+  datasets (`data-health/checks-reference`), evaluation on commit/threshold or
+  scheduled. Mirrored twice (`data-health/` and `health-checks/`,
+  byte-identical), cited by nothing. Wants its own reading; distinct from
+  `ontology_violations()`, which lints definitions where this monitors data.
+- **Checkpoints** — upgraded from an Approvals footnote to a phase: 7 prose
+  pages + 6 api pages; four justification types, seven condition kinds,
+  AND/NOT matchers, per-type frequency, org-or-space scope. Brings the
+  approvals `action_required` state with it.
+- **Action form trio** — parameter default values (three sources, an ordering
+  rule), parameter overrides (first-true-wins if/then blocks reusing
+  submission-criteria conditions), and form sections
+  (`action-types/parameters-default-value`, `parameters-override`,
+  `configure-sections`). Phase C closed without them.
+- **The action Schedule rule** — "trigger a build of that schedule whenever
+  the action is applied" (`action-types/trigger-schedule-build`); every
+  ingredient exists (schedules, run_build, project scope). Notification and
+  webhook side effects stay recorded-out (no machinery).
+- **`required` properties are unenforced** — the flag exists (408) and
+  neither the indexer nor apply_action checks it; the page puts the check at
+  index time and on action writes (`object-link-types/required-properties`).
+- **Ontology history and restore** — the reading already exists
+  (`ontology-manager-save-session.md` §7); `save_working_state` destroys the
+  session rows it would need. Build never happened.
+- **Property formatting** — conditional formatting and value formatting
+  (`object-link-types/conditional-formatting`, `value-formatting`); 634's
+  import caveat references rule sets our property model cannot hold.
+- **CBAC banner** — now buildable: the api publishes the shape
+  (`cbac-banners-get-cbac-banner`) derived from markings we hold; unblocks
+  649's show-with-classification-banner toggle.
+- **Folder documentation** — a description/README on folders
+  (`projects/add-documentation`, the one genuinely new page in a section
+  otherwise byte-identical to compass/).
+- **Users, four fields short** — `username` (unique within the realm),
+  `givenName`, `familyName` unrecorded until now; `status` and `attributes`
+  already in 656's record. Provider-info external IDs
+  (`group-provider-infos`) and preregistration belong to the external
+  provider day.
+- **`proposal_reviewers`** — measured reachable by nothing, both sides. Needs
+  either its surface or a reasoned divergence note against 651's
+  computed-eligibility choice.
+- **Action reverts** (`action-types/action-reverts`) — `object_edits` is the
+  log a revert would compensate against.
+- **Corpus fact**: the mirror holds 2,597 DISTINCT page bodies, not 4,123 —
+  every api page exists under three paths; `data-health`/`health-checks` and
+  `projects`/`compass` are section-level duplicates.
+
 **Realms residuals.** The identity-provider engine shipped in 654/655
 (reading `authentication-and-realms.md`): providers as config-as-data with
 GoTrue seeded as the internal realm, `groups.realm`, rule_based groups with
