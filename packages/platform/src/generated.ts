@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (58) ────────────────────────────────────────────────
+// ── ACTION TYPES (61) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -104,6 +104,19 @@ export const automationFires = { apiName: 'automation_fires', kind: 'action' } a
 export const buildMaterialization = { apiName: 'build_materialization', kind: 'action' } as ActionType<
   { p_materialization: string },
   number
+>
+
+/**
+ *  The enforcement point: for each applicable configuration (type + scope +
+ *  conditions with exemptions) the caller must have an unconsumed record,
+ *  which the gate spends — stamping interaction_ref, the wire's
+ *  interactionRid. No record: the write refuses with the configured language.
+ *  Multiple applicable configurations each demand their own record, the
+ *  documented multiple-checkpoints case.
+ */
+export const checkpointGate = { apiName: 'checkpoint_gate', kind: 'action' } as ActionType<
+  { p_type: string; p_interaction: string; p_project?: string; p_sel_user?: string; p_sel_group?: string; p_marking?: string },
+  void
 >
 
 export const closeApprovalRequest = { apiName: 'close_approval_request', kind: 'action' } as ActionType<
@@ -339,6 +352,17 @@ export const resetCleanupResults = { apiName: 'reset_cleanup_results', kind: 'ac
   void
 >
 
+/**
+ *  Re-invokes a request parked in action_required, after the eligible
+ *  reviewer has submitted the missing checkpoint (approvals/overview:
+ *  reviewers complete checkpoints on behalf of the requesting user). The gate
+ *  consumes the caller's record; success completes the request.
+ */
+export const retryApprovalRequest = { apiName: 'retry_approval_request', kind: 'action' } as ActionType<
+  { p_request: string },
+  void
+>
+
 export const reviewApprovalTask = { apiName: 'review_approval_task', kind: 'action' } as ActionType<
   { p_task: string; p_decision: string },
   void
@@ -491,6 +515,18 @@ export const stageChange = { apiName: 'stage_change', kind: 'action' } as Action
 >
 
 /**
+ *  Writes one checkpoint record as the caller: validates the justification
+ *  against the configuration (type, response regex, dropdown option
+ *  membership, mandatory extras, single-vs-multiple), snapshots the language,
+ *  and attaches the items. The record waits unconsumed until the gate spends
+ *  it on an interaction.
+ */
+export const submitCheckpoint = { apiName: 'submit_checkpoint', kind: 'action' } as ActionType<
+  { p_config: string; p_justification: Json; p_items?: Json },
+  string
+>
+
+/**
  *  Pull the latest ontology into my working state. Re-bases every staged
  *  field to what the ontology holds now; a resolution of latest drops my
  *  value for the fields we both moved, mine keeps it as an override. One
@@ -502,7 +538,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (235) ───────────────────────────────────────────────────
+// ── FUNCTIONS (244) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -906,6 +942,16 @@ export const canSeeBranch = { apiName: 'can_see_branch', kind: 'function' } as F
   boolean
 >
 
+export const canSeeCheckpointConfiguration = { apiName: 'can_see_checkpoint_configuration', kind: 'function' } as FunctionType<
+  { p_config: string },
+  boolean
+>
+
+export const canSeeCheckpointRecord = { apiName: 'can_see_checkpoint_record', kind: 'function' } as FunctionType<
+  { p_record: string },
+  boolean
+>
+
 export const canSeeHealthCheck = { apiName: 'can_see_health_check', kind: 'function' } as FunctionType<
   { p_check: string },
   boolean
@@ -975,6 +1021,72 @@ export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' }
 export const checkAccess = { apiName: 'check_access', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_user: string },
   { section: string; requirement: string; detail: string; satisfied: boolean }[]
+>
+
+/**
+ *  The condition kinds the gate evaluates, of configure-checkpoints' seven:
+ *  Locations, User submitting checkpoint, Selected user or group, Markings.
+ *  Action type arrives with submit_action; the six object-set variants wait
+ *  for their artifacts.
+ */
+export const checkpointConditionKinds = { apiName: 'checkpoint_condition_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  The reviewer-only name and description, withheld from the base column
+ *  grant because users who satisfy a checkpoint must not see them
+ *  (configure-checkpoints). Empty for non-admins by the same predicate the
+ *  write policies use.
+ */
+export const checkpointConfigurationAdminListing = { apiName: 'checkpoint_configuration_admin_listing', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { id: string; name: string; description: string }[]
+>
+
+/**
+ *  The checkpointed-item kinds this tranche records, of the api's ~20-member
+ *  CheckpointedItem union — the entities the eleven wired types involve.
+ */
+export const checkpointItemKinds = { apiName: 'checkpoint_item_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  Per-type required rule components (configure-checkpoints): acknowledgment
+ *  carries its Checkbox Text; response optionally carries regex (Response
+ *  Validation), placeholder and display_recent; dropdown carries a non-empty
+ *  options list, each with a label and a free_response of
+ *  disabled/optional/mandatory, plus a multiple flag.
+ */
+export const checkpointJustificationConfigValid = { apiName: 'checkpoint_justification_config_valid', kind: 'function' } as FunctionType<
+  { p_type: string; c: Json },
+  boolean
+>
+
+/**
+ *  The record's justification union, api/checkpoints-v2-resources shapes
+ *  flattened to a kind discriminator: an acknowledgment is a checked box, a
+ *  response is non-empty text, a dropdown is at least one selection.
+ *  Config-dependent validation (regex, option membership, mandatory extras)
+ *  lives in submit_checkpoint.
+ */
+export const checkpointJustificationValid = { apiName: 'checkpoint_justification_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
+>
+
+/**
+ *  The checkpoint types whose producing path is intercepted here — each
+ *  snake_case of its checkpoints/checkpoint-types table row. Emit-only: the
+ *  catalogue's ~100 are the ceiling and the spelling authority; a type
+ *  arrives WITH its producer trigger, never before.
+ */
+export const checkpointTypes = { apiName: 'checkpoint_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 export const cleanupEffectiveFlags = { apiName: 'cleanup_effective_flags', kind: 'function' } as FunctionType<
@@ -2157,6 +2269,17 @@ export const signatureBreaks = { apiName: 'signature_breaks', kind: 'function' }
 export const simulateMarkingChanges = { apiName: 'simulate_marking_changes', kind: 'function' } as FunctionType<
   { p_dataset: string; p_add?: string[]; p_remove?: string[] },
   Json
+>
+
+/**
+ *  Types whose interaction involves a located resource, so a space scope can
+ *  resolve — this tranche, the role-grant pair (a grant's project names its
+ *  space). Group, marking, schedule and build interactions carry no
+ *  filesystem location here.
+ */
+export const spaceScopableCheckpointTypes = { apiName: 'space_scopable_checkpoint_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**

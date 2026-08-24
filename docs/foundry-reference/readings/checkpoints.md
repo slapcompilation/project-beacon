@@ -341,7 +341,8 @@ products.
 1. **Where does Foundry enforce?** No page states whether the server refuses
    an unjustified interaction or the client merely mediates. Decision 3
    builds the gate server-side because a client-only prompt is not a guard.
-   `blocks: the build shape — flagged for the operator gate.`
+   `blocks: the build shape — flagged for the operator gate.` **Answered
+   2026-08-24**: the operator chose the server-side gate; 664 built it.
 2. **What is an interaction identifier?** `interactionRid` appears with no
    grammar page. Ours: the produced row's id (the group_members row, the
    build id…), recorded on the record. `blocks: nothing.`
