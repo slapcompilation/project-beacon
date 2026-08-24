@@ -13,13 +13,21 @@ import { Dialog, DialogBody, Icon } from '@blueprintjs/core'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { AUDIENCES, PLATFORM_TOOLS } from './apps'
+import { ALL_APPS, APP_CATEGORY, PORTAL_CATEGORIES } from './apps'
 
-// The portal lists everything; Home lists only what the Foundry home shows.
-const GROUPS = [
-  ...AUDIENCES.filter((a) => a.apps.length > 0),
-  { id: 'tools', title: 'Platform tools', apps: PLATFORM_TOOLS },
-]
+// The portal lists everything, under the CAPTURED category names — "All
+// applications are grouped by category and lifecycle stage, and sorted
+// alphabetically" — so each group sorts its apps by name and an empty
+// category never renders.
+const GROUPS = PORTAL_CATEGORIES
+  .map((title) => ({
+    id: title,
+    title,
+    apps: ALL_APPS
+      .filter((app) => APP_CATEGORY[app.path] === title)
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  }))
+  .filter((g) => g.apps.length > 0)
 
 export function ApplicationsPortal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const navigate = useNavigate()
