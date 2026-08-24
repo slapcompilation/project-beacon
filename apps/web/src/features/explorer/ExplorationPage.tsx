@@ -84,6 +84,10 @@ export default function ExplorationPage() {
   const { data: loadedRows = [] } = useObjectSetRows(type?.id ?? null, filters, [], 1001)
   const loadedPks = loadedRows.map((r) => cell(r[pkProp])).filter((k) => k !== '—')
   const actionTargets = selected.size > 0 ? [...selected] : loadedPks
+  // the one selected row, for object-property default prefills
+  const selectedRow = actionTargets.length === 1
+    ? loadedRows.find((r) => cell(r[pkProp]) === actionTargets[0]) ?? null
+    : null
 
   if (!type) return <NonIdealState icon="search" title="No such object type" />
 
@@ -106,7 +110,8 @@ export default function ExplorationPage() {
           <Button icon="th" active={perspective === 'results'}
             onClick={() => { setPerspective('results') }}>Results</Button>
         </ButtonGroup>
-        <ActionsMenu ontologyId={type.ontology_id} objectTypeId={type.id} targets={actionTargets} />
+        <ActionsMenu ontologyId={type.ontology_id} objectTypeId={type.id} targets={actionTargets}
+          selectedRow={selectedRow} />
         <ExportMenu rows={loadedRows} pks={actionTargets} typeLabel={type.label} props={props} />
         <Button intent="primary" icon="floppy-disk" onClick={() => { setSaving(true) }}>Save</Button>
       </div>

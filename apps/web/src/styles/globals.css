@@ -1565,3 +1565,13 @@
 .ckpt-type-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr)); }
 .max-w-5xl { max-width:64rem; }
 .pl-3 { padding-left:0.75rem; }
+
+/* The action form's sections — bordered groups, an optional title bar, and
+   the two-column layout the section grammar admits. */
+.aform-section { border:1px solid hsl(var(--border)); border-radius:4px; padding:0.5rem 0.75rem; }
+.aform-section-title { display:flex; align-items:center; justify-content:space-between; width:100%;
+  background:none; border:none; padding:0 0 0.25rem 0; cursor:pointer;
+  font-size:12px; font-weight:600; color:hsl(var(--foreground)); }
+.aform-section-title:disabled { cursor:default; }
+.aform-two-col { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 0.75rem; }
+.aform-edited { text-transform:none; letter-spacing:normal; }

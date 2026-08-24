@@ -5,24 +5,30 @@
 // objects exceeds 1000." Relevance is the rules: an action belongs here when
 // one of its rules touches this object type.
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  Button, Callout, Dialog, DialogBody, DialogFooter, InputGroup, Intent,
-  Menu, MenuDivider, MenuItem, Popover, Tag,
+  Button, Callout, Collapse, Dialog, DialogBody, DialogFooter, Icon, InputGroup,
+  Intent, Menu, MenuDivider, MenuItem, Popover, Tag,
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
-import { useActionTypes, useApplyAction, type ActionTypeRow } from '@/features/actionTypes/api'
+import {
+  useActionFormEffective, useActionTypes, useApplyAction, useFormSections,
+  type ActionParameterRow, type ActionTypeRow,
+} from '@/features/actionTypes/api'
 
 const ACTION_CAP = 1000
 
 const needsTarget = (a: ActionTypeRow) =>
   a.action_type_rules.some((r) => r.kind === 'modify_object' || r.kind === 'delete_object')
 
-export function ActionsMenu({ ontologyId, objectTypeId, targets }: {
+export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: {
   ontologyId: string
   objectTypeId: string
   /** Selected primary keys — or every loaded one when nothing is selected. */
   targets: string[]
+  /** The one selected row's data, when exactly one is selected — what an
+   *  object-property default prefills from. */
+  selectedRow?: Record<string, unknown> | null
 }) {
   const { data: actions } = useActionTypes(ontologyId)
   const [running, setRunning] = useState<ActionTypeRow | null>(null)
@@ -51,26 +57,75 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets }: {
         <Button icon="take-action" endIcon="caret-down">Actions</Button>
       </Popover>
       {running && (
-        <RunActionDialog action={running} targets={targets}
+        <RunActionDialog action={running} targets={targets} selectedRow={selectedRow ?? null}
           onClose={() => { setRunning(null) }} />
       )}
     </>
   )
 }
 
-function RunActionDialog({ action, targets, onClose }: {
+function RunActionDialog({ action, targets, selectedRow, onClose }: {
   action: ActionTypeRow
   targets: string[]
+  selectedRow: Record<string, unknown> | null
   onClose: () => void
 }) {
   const apply = useApplyAction()
   const [values, setValues] = useState<Record<string, string>>({})
+  const [prefills, setPrefills] = useState<Record<string, string> | null>(null)
+  const [debounced, setDebounced] = useState<Record<string, string>>({})
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
-  const exposed = action.action_type_parameters
-    .filter((p) => p.exposed).sort((a, b) => a.position - b.position)
+
+  // conditions read the values, so the resolver follows them — debounced,
+  // because it is a round trip per change
+  useEffect(() => {
+    const t = setTimeout(() => { setDebounced(values) }, 350)
+    return () => { clearTimeout(t) }
+  }, [values])
+  const { data: form } = useActionFormEffective(action.id, debounced)
+  const { data: sectionOrder = [] } = useFormSections(action.id)
+
+  // prefill once, when the effective form first arrives: static values
+  // directly, object-property values from the one selected row
+  useEffect(() => {
+    if (form === undefined || prefills !== null) return
+    const next: Record<string, string> = {}
+    for (const p of action.action_type_parameters) {
+      const d = form.parameters[p.api_name]?.default
+      if (d === null || d === undefined) continue
+      if (d.source === 'static' && d.value !== null && d.value !== undefined) {
+        const dv = d.value
+        next[p.api_name] = typeof dv === 'object' ? JSON.stringify(dv) : String(dv as string | number | boolean)
+      } else if (d.source === 'object_property' && selectedRow !== null
+                 && targets.length === 1 && d.property !== undefined) {
+        const v = selectedRow[d.property]
+        if (v !== null && v !== undefined) {
+          next[p.api_name] = typeof v === 'object' ? JSON.stringify(v) : String(v as string | number | boolean)
+        }
+      }
+    }
+    setPrefills(next)
+    if (Object.keys(next).length > 0) setValues((prev) => ({ ...next, ...prev }))
+  }, [form, action, selectedRow, targets, prefills])
+
   const targeted = needsTarget(action)
   const touched = action.action_type_rules
     .map((r) => r.object_type_id).filter((id): id is string => id !== null)
+
+  // one ordered list of sections and loose parameters — the Form Content order
+  const parameters = useMemo(() =>
+    [...action.action_type_parameters].sort((a, b) => a.position - b.position),
+  [action])
+  const bySection = useMemo(() => {
+    const map = new Map<string, ActionParameterRow[]>()
+    for (const p of parameters) {
+      const sec = form?.parameters[p.api_name]?.section ?? null
+      if (sec !== null) map.set(sec, [...(map.get(sec) ?? []), p])
+    }
+    return map
+  }, [parameters, form])
+  const loose = parameters.filter((p) => (form?.parameters[p.api_name]?.section ?? null) === null)
 
   const run = async () => {
     setBusy(true)
@@ -99,6 +154,27 @@ function RunActionDialog({ action, targets, onClose }: {
     }
   }
 
+  const field = (p: ActionParameterRow) => {
+    const eff = form?.parameters[p.api_name]
+    if (eff !== undefined && !eff.visible) return null
+    const required = eff?.required ?? p.required
+    const disabled = eff !== undefined ? eff.disabled : !p.editable
+    const prefilled = prefills?.[p.api_name]
+    const edited = prefilled !== undefined && (values[p.api_name] ?? '') !== prefilled
+    return (
+      <label key={p.id} className="flex flex-col gap-1">
+        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {p.display_name}{required && <span className="text-red-600"> *</span>}
+          {/* "the `Lifetime Hours` value shows as edited once this default
+              value is updated by the action user" */}
+          {edited && <Tag minimal className="!text-[9px] aform-edited">Edited</Tag>}
+        </span>
+        <InputGroup size="small" value={values[p.api_name] ?? ''} disabled={disabled}
+          onChange={(e) => { setValues({ ...values, [p.api_name]: e.currentTarget.value }) }} />
+      </label>
+    )
+  }
+
   return (
     <Dialog isOpen title={action.label} icon="take-action" onClose={onClose}>
       <DialogBody>
@@ -109,15 +185,36 @@ function RunActionDialog({ action, targets, onClose }: {
               Applies to {targets.length} object{targets.length === 1 ? '' : 's'}
             </Tag>
           )}
-          {exposed.map((p) => (
-            <label key={p.id} className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                {p.display_name}{p.required && <span className="text-red-600"> *</span>}
-              </span>
-              <InputGroup size="small" value={values[p.api_name] ?? ''} disabled={!p.editable}
-                onChange={(e) => { setValues({ ...values, [p.api_name]: e.currentTarget.value }) }} />
-            </label>
-          ))}
+          {loose.map(field)}
+          {sectionOrder.map(({ api_name }) => {
+            const sec = form?.sections[api_name]
+            if (sec === undefined || !sec.visible) return null
+            const members = bySection.get(api_name) ?? []
+            if (members.length === 0) return null
+            const isCollapsed = collapsed[api_name] ?? false
+            return (
+              <div key={api_name} className="aform-section">
+                {sec.show_title_bar && sec.title !== '' && (
+                  <button type="button" className="aform-section-title"
+                    disabled={!sec.collapsible}
+                    onClick={() => { setCollapsed({ ...collapsed, [api_name]: !isCollapsed }) }}>
+                    <span>{sec.title}</span>
+                    {sec.collapsible && <Icon icon={isCollapsed ? 'chevron-right' : 'chevron-down'} size={12} />}
+                  </button>
+                )}
+                <Collapse isOpen={!isCollapsed}>
+                  {/* "The description is not stylized and ... will always be
+                      shown in the section itself, not in a tooltip." */}
+                  {sec.description !== '' && (
+                    <p className="text-[11px] text-muted-foreground mb-1">{sec.description}</p>
+                  )}
+                  <div className={sec.columns === 2 ? 'aform-two-col' : 'space-y-2'}>
+                    {members.map(field)}
+                  </div>
+                </Collapse>
+              </div>
+            )
+          })}
           {targeted && targets.length === 0 && (
             <Callout intent={Intent.WARNING} className="!text-[11px]">
               This action modifies objects — select rows in Results, or clear filters that leave nothing.
