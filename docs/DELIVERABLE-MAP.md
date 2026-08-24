@@ -113,11 +113,18 @@ exist and resolve, nothing may write them). The home page URL shipped in 650.
 directions; the leftovers it found were deleted in 658 and the census widened
 to every commentable catalog. What it recorded as build gaps, ranked:
 
-- **Health checks** — a whole product: 26 check types in 5 families over
-  datasets (`data-health/checks-reference`), evaluation on commit/threshold or
-  scheduled. Mirrored twice (`data-health/` and `health-checks/`,
-  byte-identical), cited by nothing. Wants its own reading; distinct from
-  `ontology_violations()`, which lints definitions where this monitors data.
+- **Health checks** — ENGINE SHIPPED (659, reading
+  `readings/data-health.md`): 21 of the 27 published types across all five
+  families, config CHECKed per type, evaluation on transaction commit + a
+  per-minute heartbeat for thresholds and manual intervals, MAD × 1.4826
+  deviation, escalate-on-consecutive-failure, watchers with the page's three
+  levels, pause. Residuals: the **Health tab surface** (its own PR — the
+  capture's grammar: measured value, history dot-strip, watch menu);
+  **monitoring-views/** (7 pages) is the successor to sunset check groups and
+  the next reading; second tranche = the four sync checks, dataset partition
+  (Spark storage heuristic), transaction file size (we store no sizes),
+  approximate column relation (cross-dataset), row-count-vs-last-result;
+  notifications/emails and the Issues integration wait on those products.
 - **Checkpoints** — upgraded from an Approvals footnote to a phase: 7 prose
   pages + 6 api pages; four justification types, seven condition kinds,
   AND/NOT matchers, per-type frequency, org-or-space scope. Brings the

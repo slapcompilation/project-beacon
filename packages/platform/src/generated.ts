@@ -502,7 +502,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (220) ───────────────────────────────────────────────────
+// ── FUNCTIONS (228) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -805,6 +805,11 @@ export const canCuratePortfolio = { apiName: 'can_curate_portfolio', kind: 'func
   boolean
 >
 
+export const canEditHealthCheckTarget = { apiName: 'can_edit_health_check_target', kind: 'function' } as FunctionType<
+  { p_dataset: string; p_schedule: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -888,6 +893,11 @@ export const canSeeApprovalRequest = { apiName: 'can_see_approval_request', kind
 
 export const canSeeBranch = { apiName: 'can_see_branch', kind: 'function' } as FunctionType<
   { p_branch: string },
+  boolean
+>
+
+export const canSeeHealthCheck = { apiName: 'can_see_health_check', kind: 'function' } as FunctionType<
+  { p_check: string },
   boolean
 >
 
@@ -1360,6 +1370,54 @@ export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' 
 export const hasSpaceWorkflow = { apiName: 'has_space_workflow', kind: 'function' } as FunctionType<
   { p_space: string; p_workflow: string },
   boolean
+>
+
+/**
+ *  Each type's required rule components, from its own table on
+ *  data-health/checks-reference; the schema check's four comparison tokens
+ *  are that page's published enumeration. A threshold is {"op":
+ *  between|gte|lte|eq, "value", ["value2"], ["unit": minutes|hours|days]}; a
+ *  median_deviation is {"deviations", "recent"}.
+ */
+export const healthCheckConfigValid = { apiName: 'health_check_config_valid', kind: 'function' } as FunctionType<
+  { p_type: string; c: Json },
+  boolean
+>
+
+/**
+ *  Passed and Failed are the pages'; Error is the third state the Health-tab
+ *  capture shows (data-health/images/health-checks-overview.png) — the
+ *  evaluator could not evaluate, distinct from the check failing.
+ */
+export const healthCheckResultStatuses = { apiName: 'health_check_result_statuses', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  The 21 check types the evaluator executes, snake_case of
+ *  data-health/checks-reference's enumeration — its 27 are the ceiling and
+ *  the spelling authority; a type arrives with its evaluator arm, never
+ *  before.
+ */
+export const healthCheckTypes = { apiName: 'health_check_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const healthMadPass = { apiName: 'health_mad_pass', kind: 'function' } as FunctionType<
+  { p_measured: number; p_recent: number[]; d: Json },
+  boolean
+>
+
+export const healthThresholdPass = { apiName: 'health_threshold_pass', kind: 'function' } as FunctionType<
+  { p_measured: number; t: Json },
+  boolean
+>
+
+export const healthThresholdSeconds = { apiName: 'health_threshold_seconds', kind: 'function' } as FunctionType<
+  { t: Json },
+  number
 >
 
 /**

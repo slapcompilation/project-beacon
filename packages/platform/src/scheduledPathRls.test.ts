@@ -35,7 +35,8 @@ const HELPERS = ['schedule_candidates', 'record_schedule_state', 'record_schedul
   // The two retention deleters (641/642). Ledger-helper shape: DEFINER, the
   // runner holds EXECUTE, no table grant anywhere else — so each function is
   // the only door to its deletion.
-  'expire_project_activity', 'expire_automation_history', 'run_audit_exports']
+  'expire_project_activity', 'expire_automation_history', 'run_audit_exports',
+  'run_health_checks']
 
 describe.skipIf(noDb)('the scheduled path and RLS', () => {
   let db: pg.Client
