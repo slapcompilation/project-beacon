@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (62) ────────────────────────────────────────────────
+// ── ACTION TYPES (64) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -337,6 +337,17 @@ export const rebaseBranch = { apiName: 'rebase_branch', kind: 'action' } as Acti
   number
 >
 
+/**
+ *  Copies the session's change rows into history — called by
+ *  save_working_state and merge_proposal AFTER the version bump and BEFORE
+ *  their deletes, snapshotting each surviving resource's full definition for
+ *  restore. The one writer of the history tables.
+ */
+export const recordOntologySave = { apiName: 'record_ontology_save', kind: 'action' } as ActionType<
+  { p_ontology: string; p_via: string; p_branch?: string; p_proposal?: string },
+  string
+>
+
 export const recordOntologyUsage = { apiName: 'record_ontology_usage', kind: 'action' } as ActionType<
   { p_object_type: string; p_link_type: string; p_application: string; p_reads?: number; p_writes?: number },
   void
@@ -349,6 +360,19 @@ export const requestApprovalChanges = { apiName: 'request_approval_changes', kin
 
 export const resetCleanupResults = { apiName: 'reset_cleanup_results', kind: 'action' } as ActionType<
   { p_config: string },
+  void
+>
+
+/**
+ *  Stages the object type's definition as it stood at the chosen history
+ *  entry into the caller's working state — reviewable, discardable, and saved
+ *  through the same session as any hand edit
+ *  (ontology-manager/restore-changes). Documented for object types only,
+ *  scoped exactly that way. A type created after the entry stages a delete;
+ *  one deleted after it stages a recreate.
+ */
+export const restoreObjectType = { apiName: 'restore_object_type', kind: 'action' } as ActionType<
+  { p_object_type: string; p_save: string },
   void
 >
 

@@ -201,9 +201,18 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   restored in 671 after the suite caught the collateral), and object_state's
   create path lost the primary key (edit-created objects reindexed into a
   null pk). Residual: the OMA Require-values toggle + gear surface.
-- **Ontology history and restore** — the reading already exists
-  (`ontology-manager-save-session.md` §7); `save_working_state` destroys the
-  session rows it would need. Build never happened.
+- **Ontology history and restore** — ENGINE SHIPPED (672, reading
+  `ontology-manager-save-session.md` §7): ontology_saves +
+  ontology_save_changes recorded by BOTH landing paths (the working-state
+  save and merge_proposal) before their deletes — per-field diffs for the
+  history view plus a full post-save definition snapshot per resource;
+  restore_object_type stages the entry''s definition into the working state
+  (created-after stages a delete, deleted-after a recreate), reviewable and
+  discardable, exactly the documented semantics. saved_at is
+  clock_timestamp (the 495 intra-transaction ordering lesson). Residuals:
+  the OMA History tab + per-resource restore button surface;
+  hide-inaccessible and merge-by-author as view options; restore for the
+  other five kinds is undocumented and stays unbuilt.
 - **Property formatting** — conditional formatting and value formatting
   (`object-link-types/conditional-formatting`, `value-formatting`); 634's
   import caveat references rule sets our property model cannot hold.
