@@ -1809,6 +1809,11 @@ export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as F
   string
 >
 
+/**
+ *  Resolves one attribute of a user for the group-assignment conditions
+ *  engine: the stored user_attributes map first, then the wire shape's own
+ *  fields. An unknown name resolves NULL and matches nothing, fail-closed.
+ */
 export const loginAttribute = { apiName: 'login_attribute', kind: 'function' } as FunctionType<
   { p_user: string; p_attribute: string },
   string

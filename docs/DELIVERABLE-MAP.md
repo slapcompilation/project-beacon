@@ -293,11 +293,23 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   button; Foundry's editor is rich-text over markdown, ours edits raw
   markdown; the create pane still lacks the space picker (pre-existing,
   re-confirmed).
-- **Users, four fields short** — `username` (unique within the realm),
-  `givenName`, `familyName` unrecorded until now; `status` and `attributes`
-  already in 656's record. Provider-info external IDs
-  (`group-provider-infos`) and preregistration belong to the external
-  provider day.
+- **The User wire shape** — SHIPPED (678/679, readings/users-wire-shape.md):
+  `username` NOT NULL unique WITHIN the realm (stamped from the email the
+  way 656 stamps realm — 678 shipped the column and every fixture broke on
+  the not-null, 679 added the stamp), `given_name`, `family_name`,
+  `status` (ACTIVE/DELETED, the wire's own tokens, declared), and
+  `user_attributes` as the map-of-lists table with the reserved
+  `multipass:` prefix enforced and `multipass:realm-name` stamped per the
+  capture. `login_attribute` now reads the store first, then the wire
+  fields, email arm unchanged (the conditions engine calls it at every
+  login). Deletion is soft: three grant paths — project roles, group
+  members, marking members — refuse a DELETED user by the published
+  `UserDeleted` name, and undelete is the same UPDATE. NOT built, with
+  reasons: profile pictures (binary store), revoke-all-tokens and the
+  30-day inactivity clock (Supabase owns sessions), preregistration and
+  provider-info external IDs (the external-provider day). Residual: the
+  User administration surface to the capture's own columns (Username |
+  Given name | Family name | Organization | Realm) and details panel.
 - **`proposal_reviewers`** — measured reachable by nothing, both sides. Needs
   either its surface or a reasoned divergence note against 651's
   computed-eligibility choice.
