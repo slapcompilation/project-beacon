@@ -574,7 +574,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (252) ───────────────────────────────────────────────────
+// ── FUNCTIONS (254) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1092,6 +1092,29 @@ export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'f
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,
   { capability: string; slot: string; accepts: string[]; note: string }[]
+>
+
+/**
+ *  The classification banner for a set of markings
+ *  (api/admin-v2-resources-cbac-banners-get-cbac-banner): names joined // in
+ *  category-then-name order, the markings' own colors as the background
+ *  stripe. Both display types return the same string — no short form is
+ *  stored to shorten to (readings/cbac.md, Decision 1).
+ */
+export const cbacBanner = { apiName: 'cbac_banner', kind: 'function' } as FunctionType<
+  { p_marking_ids: string[]; p_display_type?: string },
+  { classification_string: string; markings: string[]; text_color: string; background_colors: string[] }[]
+>
+
+/**
+ *  Disallowed, implied and required markings for a set, with the two verdicts
+ *  (api/admin-v2-resources-cbac-marking-restrictions-objects-get-cbac-marking-restrictions).
+ *  userSatisfiesMarkings is answered BY satisfies_markings — composed, never
+ *  restated.
+ */
+export const cbacMarkingRestrictions = { apiName: 'cbac_marking_restrictions', kind: 'function' } as FunctionType<
+  { p_marking_ids: string[] },
+  { disallowed_markings: string[]; implied_markings: string[]; required_markings: Json; user_satisfies_markings: boolean; is_valid: boolean }[]
 >
 
 /**

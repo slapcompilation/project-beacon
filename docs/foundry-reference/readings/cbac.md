@@ -88,7 +88,9 @@ this arc builds the banner.
 
 ## 4. What our substrate holds, probed
 
-`markings` carry `name` and a per-marking `color` (399); `marking_categories`
+`markings` carry `name` — and NO color: 399 invented a color column and 463
+dropped it (no markings page says colour; my first probe here read 399 and
+missed 463 — the dry-run caught it). `marking_categories`
 carry `category_type` (conjunctive-only today) and per-category visibility;
 `marking_members` plus group grants (489) feed `satisfies_markings`, which
 runs inside `resource_file_access` — i.e., inside nearly every RLS policy we
