@@ -79,7 +79,7 @@ export function UsersSection() {
                   <td className="px-3 py-1.5">{u.givenName ?? ''}</td>
                   <td className="px-3 py-1.5">{u.familyName ?? ''}</td>
                   <td className="px-3 py-1.5">{u.organizationName ?? ''}</td>
-                  <td className="px-3 py-1.5 truncate">{u.realmName ?? ''}</td>
+                  <td className="px-3 py-1.5 truncate">{u.realm ?? ''}</td>
                 </tr>
               ))}
             </tbody>

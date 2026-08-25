@@ -16,7 +16,10 @@ export interface PlatformUser {
   familyName: string | null
   email: string
   organizationName: string | null
-  realmName: string | null
+  /** The realm IDENTIFIER, which is what the wire's `realm` field is and
+   *  what the capture's Realm column draws (`palantir-intern…`). The
+   *  provider's display name lives in multipass:realm-name instead. */
+  realm: string | null
   status: UserStatus
 }
 
@@ -39,19 +42,19 @@ export function useUsers() {
     queryFn: async (): Promise<PlatformUser[]> => {
       const { data, error } = await supabase.from('users')
         .select(`id, username, given_name, family_name, email, status,
-                 organizations(name), authentication_providers!users_realm_fkey(name)`)
+                 organizations(name), authentication_providers!users_realm_fkey(realm)`)
         .order('username').limit(500)
       if (error) throw new Error(error.message)
       return (data as unknown as {
         id: string; username: string; given_name: string | null; family_name: string | null
         email: string; status: UserStatus
         organizations: { name: string } | null
-        authentication_providers: { name: string } | null
+        authentication_providers: { realm: string } | null
       }[]).map((r) => ({
         id: r.id, username: r.username, givenName: r.given_name, familyName: r.family_name,
         email: r.email, status: r.status,
         organizationName: r.organizations?.name ?? null,
-        realmName: r.authentication_providers?.name ?? null,
+        realm: r.authentication_providers?.realm ?? null,
       }))
     },
   })
