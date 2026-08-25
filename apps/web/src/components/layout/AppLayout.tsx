@@ -48,7 +48,33 @@ export function AppLayout() {
     }
   }, [branding])
 
-  const banner = branding?.banner ?? null
+  // When a CBAC banner exists for the viewer, the static banner hides
+  // beneath it unless its show_with_classification_banner toggle says
+  // otherwise (674/675; administration's configure-static-banner.png).
+  const cbac = branding?.cbac ?? null
+  const banner =
+    branding?.banner && (!cbac || branding.banner.show_with_classification_banner)
+      ? branding.banner
+      : null
+  const cbacBar = cbac && (
+    <div
+      className="platform-cbac-banner"
+      style={{
+        color: cbac.text_color,
+        background:
+          cbac.background_colors.length > 1
+            ? `linear-gradient(to right, ${cbac.background_colors
+                .map((c, i) => {
+                  const w = 100 / cbac.background_colors.length
+                  return `${c} ${i * w}%, ${c} ${(i + 1) * w}%`
+                })
+                .join(', ')})`
+            : (cbac.background_colors.at(0) ?? '#394B59'),
+      }}
+    >
+      {cbac.classification_string}
+    </div>
+  )
   const bar = banner && (
     <div
       className={cn('platform-banner', !banner.show_when_printing && 'platform-banner-no-print')}
@@ -60,6 +86,7 @@ export function AppLayout() {
 
   return (
     <div className="platform-shell-column">
+      {cbacBar}
       {banner && banner.position !== 'bottom' && bar}
       <div className="platform-shell">
         <PlatformSidebar />
