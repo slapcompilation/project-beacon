@@ -209,10 +209,23 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   restore_object_type stages the entry''s definition into the working state
   (created-after stages a delete, deleted-after a recreate), reviewable and
   discardable, exactly the documented semantics. saved_at is
-  clock_timestamp (the 495 intra-transaction ordering lesson). Residuals:
-  the OMA History tab + per-resource restore button surface;
-  hide-inaccessible and merge-by-author as view options; restore for the
-  other five kinds is undocumented and stays unbuilt.
+  clock_timestamp (the 495 intra-transaction ordering lesson). Post-build
+  reconciliation against restore-changes.md and its four captures
+  (2026-08-25): the engine holds every stated behaviour; every delta is
+  surface-shaped, and the captures fix the structure for that PR — GLOBAL
+  history is an OMA sidebar History entry between Proposals and Resources,
+  titled "Ontology history", time-bucketed (THIS YEAR / LAST YEAR), one
+  author+date group per save with per-resource rows ([kind icon] name |
+  Edited/Created pill | open | chevron, collapsed by default); PER-RESOURCE
+  history is a History tab in the resource rail with an Unsaved section on
+  top ("not yet been saved or published"), section-grouped field diffs
+  (GENERAL INFORMATION / PROPERTIES / DATASOURCES, strike-through old →
+  new), and the anti-clockwise restore button ON EACH ENTRY; a footer
+  bottom-left says last-edited when/by (derivable from the latest
+  save_changes row). Pill vocabulary: our operation ''modified'' renders as
+  the capture''s Edited. Residuals: that surface; hide-inaccessible and
+  merge-by-author as view options; restore for the other five kinds is
+  undocumented and stays unbuilt.
 - **Property formatting** — conditional formatting and value formatting
   (`object-link-types/conditional-formatting`, `value-formatting`); 634's
   import caveat references rule sets our property model cannot hold.
