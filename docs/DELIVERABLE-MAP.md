@@ -307,9 +307,18 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   `UserDeleted` name, and undelete is the same UPDATE. NOT built, with
   reasons: profile pictures (binary store), revoke-all-tokens and the
   30-day inactivity clock (Supabase owns sessions), preregistration and
-  provider-info external IDs (the external-provider day). Residual: the
-  User administration surface to the capture's own columns (Username |
-  Given name | Family name | Organization | Realm) and details panel.
+  provider-info external IDs (the external-provider day). Surface shipped:
+  UsersSection in Platform Settings to the CAPTURE's columns (Username |
+  Given name | Family name | Organization | Realm — the prose lists a
+  different set and the capture is the drawn thing), the details panel in
+  its captured order (initials disc + name + username, User ID,
+  Organization, Groups, Attributes as name-over-values), prefix search over
+  the three name fields per the search endpoint's own spec, Show deleted
+  as a separate switch because that endpoint excludes them, and soft
+  delete/undelete. Residuals: no Create user or Pre-register user button
+  (provisioning is Supabase auth's, and preregistration is the
+  external-provider day), and attribute editing has no list-of-values
+  editor beyond comma entry.
 - **`proposal_reviewers`** — measured reachable by nothing, both sides. Needs
   either its surface or a reasoned divergence note against 651's
   computed-eligibility choice.

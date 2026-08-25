@@ -1606,3 +1606,11 @@
 .doc-toc { flex-shrink:0; width:170px; border:1px solid hsl(var(--border)); border-radius:3px; padding:8px 10px; align-self:flex-start; }
 .doc-toc ul { list-style:none; font-size:11px; line-height:1.7; color:hsl(var(--muted-foreground)); }
 .doc-folder-description { border-left:2px solid hsl(var(--border)); padding-left:8px; }
+
+/* The user details panel's initials disc, as the administration capture
+   draws it beside the full name (678). */
+.user-avatar {
+  flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:700;
+  letter-spacing:.02em; background:hsl(var(--muted)); color:hsl(var(--muted-foreground));
+}

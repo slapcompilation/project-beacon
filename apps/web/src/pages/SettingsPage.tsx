@@ -1,7 +1,8 @@
 // Platform Settings — the admin console Foundry reaches from Account >
-// Settings. Groups (platform-security-management/manage-groups.md) and now
-// Roles lead somewhere real; Users and Organizations arrive when something
-// backs them, because an empty entry renders its empty state forever.
+// Settings. Groups (platform-security-management/manage-groups.md), Roles
+// and now Users lead somewhere real — 678 gave the user row the wire shape
+// its administration page draws. Organizations still waits for something to
+// back it, because an empty entry renders its empty state forever.
 //
 // The Group details layout follows the manage-groups dashboard: metadata with
 // the permanent ID, Members ("individual users or groups"), Group permissions
@@ -30,6 +31,7 @@ import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
 } from '@/features/compass/catalogApi'
 import { ScopedSessionsSection } from '@/features/security/ScopedSessionsSection'
+import { UsersSection } from '@/features/users/UsersSection'
 
 const PERMISSION_META: Record<GroupPermission, { label: string; help: string }> = {
   manage_permissions: {
@@ -55,6 +57,7 @@ export default function SettingsPage() {
         <OrganizationSection />
         <RolesSection />
         <ScopedSessionsSection />
+        <UsersSection />
         <GroupsSection />
         <TagsSection />
       </div>
