@@ -10,6 +10,9 @@ export interface Folder {
   id: string
   parentFolderId: string | null
   name: string
+  /** "You can add documentation to any folder" — markdown, the
+   *  Add-description route (migration 676). NULL = none. */
+  documentation: string | null
   trashedAt: string | null
 }
 
@@ -32,11 +35,11 @@ export function useFolders(projectId: string | null) {
     enabled: !!projectId,
     queryFn: async (): Promise<Folder[]> => {
       const { data, error } = await supabase.from('folders')
-        .select('id, parent_folder_id, name, trashed_at')
+        .select('id, parent_folder_id, name, documentation, trashed_at')
         .eq('project_id', projectId ?? '').order('name')
       if (error) throw new Error(error.message)
-      return (data as { id: string; parent_folder_id: string | null; name: string; trashed_at: string | null }[])
-        .map((r) => ({ id: r.id, parentFolderId: r.parent_folder_id, name: r.name, trashedAt: r.trashed_at }))
+      return (data as { id: string; parent_folder_id: string | null; name: string; documentation: string | null; trashed_at: string | null }[])
+        .map((r) => ({ id: r.id, parentFolderId: r.parent_folder_id, name: r.name, documentation: r.documentation, trashedAt: r.trashed_at }))
     },
     staleTime: 15_000,
   })
@@ -95,6 +98,20 @@ export function useSetTrashed(projectId: string) {
       if (error) throw new Error(error.message)
     },
     onSuccess: (_d, i) => { invalidate(qc, projectId); toast.success(i.trashed ? 'Moved to trash' : 'Restored in place') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The Add-description route: folder documentation is one markdown column. */
+export function useSetFolderDocumentation(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { id: string; documentation: string | null }) => {
+      const { error } = await supabase.from('folders')
+        .update({ documentation: i.documentation }).eq('id', i.id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { invalidate(qc, projectId); toast.success('Description saved') },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
