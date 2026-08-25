@@ -283,8 +283,16 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   sits first in project details (edit, ToC card, the capture's two
   discoverability radios + None); a Discoverable strip on the Projects
   page shows carve-out cover pages with Request access; folders get
-  Add-description in FilesCard. Remaining residual: no drag-drop README
-  (no file resources), no per-heading ToC anchors.
+  Add-description in FilesCard. Post-build reconciliation (all five pages
+  re-read whole) — remaining residuals by name: no drag-drop README (no
+  file resources); DocMarkdown is a SUBSET of Standard Markdown (no
+  blockquotes, hr, nested lists, no per-heading ToC anchors); the
+  capture's "Last updated on" line has no backing column (the Activity
+  log records the update, the panel does not show a date); Foundry's
+  Add-description sits in a folder Actions MENU, ours is an inline
+  button; Foundry's editor is rich-text over markdown, ours edits raw
+  markdown; the create pane still lacks the space picker (pre-existing,
+  re-confirmed).
 - **Users, four fields short** — `username` (unique within the realm),
   `givenName`, `familyName` unrecorded until now; `status` and `attributes`
   already in 656's record. Provider-info external IDs
