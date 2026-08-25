@@ -241,9 +241,20 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   (no artifacts), Fixed Values numeric base (named, never specified).
   Residuals: the property-pane cards + rule editor + copy-rules dialog +
   Explorer chip/formatter rendering, built to the captures (own PR).
-- **CBAC banner** — now buildable: the api publishes the shape
-  (`cbac-banners-get-cbac-banner`) derived from markings we hold; unblocks
-  649's show-with-classification-banner toggle.
+- **CBAC** — SHIPPED (674, readings/cbac.md): cbac_banner (names joined //
+  in category-then-name order, backgroundColors from the cbac_marking_colors
+  side table — 463's markings.color deletion stands, the api attests color
+  only in banner composition), cbac_marking_restrictions (disallowed /
+  implied / required + both verdicts, userSatisfiesMarkings composing
+  satisfies_markings), and the algebra upgrade the restrictions page
+  attests: 'disjunctive' joined 399's category_type CHECK exactly where its
+  comment planned, and satisfies_markings learned one-per-disjunctive-group
+  + single-level implication (probe holds conjunctive behaviour unchanged).
+  649's show-with-classification-banner toggle landed. Inference recorded:
+  segment ordering, white text color, no transitive implication; both
+  display types return one string (no short form stored). Residual: the
+  shell surface — CBAC banner above the static banner, toggle honored (own
+  PR).
 - **Folder documentation** — a description/README on folders
   (`projects/add-documentation`, the one genuinely new page in a section
   otherwise byte-identical to compass/).

@@ -103,8 +103,10 @@ have. No abbreviation or short-name storage exists on markings.
    the current user's memberships): classificationString as the marking
    names joined with `//` in category-then-name order (the separator is the
    basics page's own example; the ordering is inference),
-   `background_colors` as the named markings' colors in the same order,
-   `text_color` white (inference — no page sources it). `BANNER_LINE` and
+   `background_colors` from `cbac_marking_colors` — a side table, because
+   463 dropped `markings.color` as uncited and this api attests color only
+   in banner composition, so an unconfigured marking contributes no stripe —
+   and `text_color` white (inference — no page sources it). `BANNER_LINE` and
    `PORTION_MARKING` return the same string today: markings have no short
    form to shorten to, a recorded divergence rather than invented initials.
    `CbacUnavailable` is the empty case: no markings, no banner.
