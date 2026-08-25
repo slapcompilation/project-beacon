@@ -315,10 +315,18 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   Organization, Groups, Attributes as name-over-values), prefix search over
   the three name fields per the search endpoint's own spec, Show deleted
   as a separate switch because that endpoint excludes them, and soft
-  delete/undelete. Residuals: no Create user or Pre-register user button
-  (provisioning is Supabase auth's, and preregistration is the
-  external-provider day), and attribute editing has no list-of-values
-  editor beyond comma entry.
+  delete/undelete. Post-build reconciliation (all eleven api pages + the
+  prose page + the capture re-read) caught one defect and recorded two
+  divergences: the Realm column was drawing the provider's DISPLAY NAME
+  where the capture and the wire field both mean the realm IDENTIFIER
+  (`palantir-intern…`) — fixed; the display name belongs to
+  `multipass:realm-name`, where it already sat. Divergences: `list-users`
+  takes `include` as a single status (ACTIVE **or** DELETED) while our
+  Show-deleted switch widens to both, and the `organization` field is an
+  Organization RID on the wire where we render its name. Residuals: no
+  Create user or Pre-register user button (provisioning is Supabase
+  auth's, preregistration is the external-provider day), and attribute
+  editing has no list-of-values editor beyond comma entry.
 - **`proposal_reviewers`** — measured reachable by nothing, both sides. Needs
   either its surface or a reasoned divergence note against 651's
   computed-eligibility choice.
