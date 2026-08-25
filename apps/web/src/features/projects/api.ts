@@ -37,7 +37,23 @@ export interface Project {
   policyApprovalsRequired: number | null
   policyReviewerIds: string[]
   policyContributorApproval: boolean
+  /** "a Markdown-based rich-text editor for writing comprehensive
+   *  documentation about the Project" (security/cover-pages). NULL = none. */
+  coverPage: string | null
+  /** The capture's two radio labels; NULL = the cover page follows project
+   *  access (migration 676). */
+  coverPageDiscoverability: 'all_can_discover' | 'require_marking_access' | null
   createdAt: string
+}
+
+/** The discovery tuple — everything discoverable_cover_pages() returns, which
+ *  is deliberately all a non-member may see of a marked project. */
+export interface DiscoverableProject {
+  projectId: string
+  rid: string
+  name: string
+  description: string
+  coverPage: string
 }
 
 /** One grant row: a user or a group, never both (migration 481). */
@@ -69,13 +85,16 @@ export function useProjects() {
       const { data, error } = await supabase.from('projects')
         .select(`id, api_name, name, description, created_at, default_role,
                  auto_protect_new, policy_approvals_required, policy_reviewer_ids,
-                 policy_contributor_approval, spaces(path)`).order('name')
+                 policy_contributor_approval, cover_page, cover_page_discoverability,
+                 spaces(path)`).order('name')
       if (error) throw new Error(error.message)
       return (data as unknown as {
         id: string; api_name: string; name: string; description: string; created_at: string
         default_role: ProjectRole | null; spaces: { path: string } | null
         auto_protect_new: boolean; policy_approvals_required: number | null
         policy_reviewer_ids: string[]; policy_contributor_approval: boolean
+        cover_page: string | null
+        cover_page_discoverability: 'all_can_discover' | 'require_marking_access' | null
       }[]).map((r) => ({
         id: r.id, apiName: r.api_name, name: r.name, description: r.description,
         spacePath: r.spaces?.path ?? '', defaultRole: r.default_role,
@@ -83,6 +102,8 @@ export function useProjects() {
         policyApprovalsRequired: r.policy_approvals_required,
         policyReviewerIds: r.policy_reviewer_ids,
         policyContributorApproval: r.policy_contributor_approval,
+        coverPage: r.cover_page,
+        coverPageDiscoverability: r.cover_page_discoverability,
         createdAt: r.created_at,
       }))
     },
@@ -110,6 +131,44 @@ export function useCreateProject() {
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Project created') },
     onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The cover page and its discoverability, in one save (migration 676). */
+export function useSetCoverPage(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: {
+      coverPage: string | null
+      discoverability: 'all_can_discover' | 'require_marking_access' | null
+    }) => {
+      const { error } = await supabase.from('projects')
+        .update({ cover_page: i.coverPage, cover_page_discoverability: i.discoverability })
+        .eq('id', projectId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Cover page saved') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** "Users without access to the Project or its files can still discover and
+ *  view the Project's cover page" — the 676 carve-out, tuple only. */
+export function useDiscoverableCoverPages() {
+  return useQuery({
+    queryKey: ['discoverable-cover-pages'],
+    staleTime: 60_000,
+    queryFn: async (): Promise<DiscoverableProject[]> => {
+      const res = (await supabase.rpc('discoverable_cover_pages')) as {
+        data: { project_id: string; rid: string; name: string; description: string; cover_page: string }[] | null
+        error: { message: string } | null
+      }
+      if (res.error) throw new Error(res.error.message)
+      return (res.data ?? []).map((r) => ({
+        projectId: r.project_id, rid: r.rid, name: r.name,
+        description: r.description, coverPage: r.cover_page,
+      }))
+    },
   })
 }
 

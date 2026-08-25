@@ -5,11 +5,51 @@
 // one flows down in the database.
 
 import { useState } from 'react'
-import { Button, Card, HTMLSelect, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
+import { Button, Card, HTMLSelect, Icon, InputGroup, Intent, Tag, TextArea } from '@blueprintjs/core'
 import {
   useCreateFolder, useFiledResources, useFolders, useMoveToFolder,
-  usePermanentDelete, useSetTrashed, type FiledResource, type Folder,
+  usePermanentDelete, useSetFolderDocumentation, useSetTrashed,
+  type FiledResource, type Folder,
 } from './api'
+import { DocMarkdown } from './DocMarkdown'
+
+// "You can add documentation to any folder … selecting **Add description**
+// from the folder's Actions menu" — the README.md drop is not built (no
+// file resources exist), so the action is the one route.
+function FolderDescription({ f, projectId }: { f: Folder; projectId: string }) {
+  const setDoc = useSetFolderDocumentation(projectId)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+  if (editing) {
+    return (
+      <div className="ml-5 my-1 space-y-1">
+        <TextArea fill rows={4} value={draft} className="font-mono !text-xs"
+          onChange={(e) => { setDraft(e.currentTarget.value) }} />
+        <div className="flex gap-1">
+          <Button size="small" intent={Intent.PRIMARY} icon="tick" loading={setDoc.isPending}
+            onClick={() => {
+              setDoc.mutate({ id: f.id, documentation: draft.trim() === '' ? null : draft },
+                { onSuccess: () => { setEditing(false) } })
+            }}>Save</Button>
+          <Button size="small" variant="minimal" onClick={() => { setEditing(false) }}>Cancel</Button>
+        </div>
+      </div>
+    )
+  }
+  if (f.documentation) {
+    return (
+      <div className="ml-5 my-1 doc-folder-description">
+        <DocMarkdown text={f.documentation} />
+        <Button size="small" variant="minimal" icon="edit" text="Edit description"
+          onClick={() => { setDraft(f.documentation ?? ''); setEditing(true) }} />
+      </div>
+    )
+  }
+  return (
+    <Button className="ml-5" size="small" variant="minimal" icon="manually-entered-data" text="Add description"
+      onClick={() => { setDraft(''); setEditing(true) }} />
+  )
+}
 
 export function FilesCard({ projectId }: { projectId: string }) {
   const { data: folders = [] } = useFolders(projectId)
@@ -60,6 +100,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
         <Button variant="minimal" size="small" icon="trash" title="Move to trash (contents follow by the chain)"
           onClick={() => { setTrashed.mutate({ table: 'folders', id: f.id, trashed: true }) }} />
       </div>
+      <FolderDescription f={f} projectId={projectId} />
       <ul className="ml-5 divide-y divide-border/30">
         {filed(f.id).map((r) => <ResourceRow key={`${r.kind}:${r.id}`} r={r} />)}
       </ul>

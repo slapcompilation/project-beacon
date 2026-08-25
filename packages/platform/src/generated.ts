@@ -574,7 +574,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (255) ───────────────────────────────────────────────────
+// ── FUNCTIONS (256) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2296,6 +2296,17 @@ export const restrictedViewMarkings = { apiName: 'restricted_view_markings', kin
 export const restrictedViewPredicate = { apiName: 'restricted_view_predicate', kind: 'function' } as FunctionType<
   { p_object_type: string },
   string
+>
+
+/**
+ *  Resolves a RID to (kind, name) for the documentation renderer's inferred
+ *  links (projects/add-documentation). Invoker rights: RLS decides what
+ *  resolves; an invisible or unknown RID resolves to nothing and the renderer
+ *  keeps plain text.
+ */
+export const ridDisplay = { apiName: 'rid_display', kind: 'function' } as FunctionType<
+  { p_rid: string },
+  { kind: string; name: string }[]
 >
 
 /**

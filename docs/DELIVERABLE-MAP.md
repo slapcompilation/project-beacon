@@ -276,9 +276,15 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   the space "Project default roles" setting (absent from
   manage-orgs-and-spaces' own enumeration). Recorded: Point of contact,
   Views, Pinned strip, cross-org discoverability (Foundry: under
-  development). Residual: the surface — cover page render/edit with ToC,
-  folder Add-description, restricted markdown renderer with rid_locator
-  links, owners' discoverability radio (own PR).
+  development). Surface shipped (677 + web): rid_display resolves a RID to
+  (kind, name) under INVOKER rights so an invisible link stays plain text;
+  DocMarkdown renders the restricted markdown (text nodes only — inline
+  HTML disabled by construction — rid links to icon+name); CoverPagePanel
+  sits first in project details (edit, ToC card, the capture's two
+  discoverability radios + None); a Discoverable strip on the Projects
+  page shows carve-out cover pages with Request access; folders get
+  Add-description in FilesCard. Remaining residual: no drag-drop README
+  (no file resources), no per-heading ToC anchors.
 - **Users, four fields short** — `username` (unique within the realm),
   `givenName`, `familyName` unrecorded until now; `status` and `attributes`
   already in 656's record. Provider-info external IDs

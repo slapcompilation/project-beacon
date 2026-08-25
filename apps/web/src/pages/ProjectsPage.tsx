@@ -33,8 +33,11 @@ import { PolicyPanel } from '@/features/projects/PolicyPanel'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,
   useGrantRole, useRevokeRole, useSetDefaultRole, useProjectResources, useOrgMembers,
-  type Project,
+  useDiscoverableCoverPages,
+  type Project, type DiscoverableProject,
 } from '@/features/projects/api'
+import { CoverPagePanel } from '@/features/projects/CoverPagePanel'
+import { DocMarkdown } from '@/features/compass/DocMarkdown'
 import { useGroups } from '@/features/groups/api'
 import { FilesCard } from '@/features/compass/FilesCard'
 
@@ -87,8 +90,59 @@ export default function ProjectsPage() {
         )}
 
         {selected && <ProjectDetails project={selected} />}
+
+        <DiscoverableStrip visibleIds={projects.map((p) => p.id)} />
       </div>
     </div>
+  )
+}
+
+/** Projects the caller cannot open whose cover page reaches them anyway —
+ *  "Users without access to the Project or its files can still discover and
+ *  view the Project's cover page", so they can find it and request access. */
+function DiscoverableStrip({ visibleIds }: { visibleIds: string[] }) {
+  const { data: discoverable = [] } = useDiscoverableCoverPages()
+  const [open, setOpen] = useState<DiscoverableProject | null>(null)
+  const [requesting, setRequesting] = useState(false)
+  const rows = discoverable.filter((d) => !visibleIds.includes(d.projectId))
+  if (rows.length === 0) return null
+  return (
+    <section className="space-y-2 border-t pt-5">
+      <div className="flex items-center gap-2">
+        <Icon icon="book" size={13} className="text-muted-foreground" />
+        <h2 className="text-sm font-semibold">Discoverable</h2>
+        <span className="text-[11px] text-muted-foreground/70">
+          Cover pages shared beyond their project&apos;s access, so you can find the work and ask in.
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {rows.map((d) => (
+          <Card key={d.projectId} interactive compact
+            className={open?.projectId === d.projectId ? '!border-primary' : ''}
+            onClick={() => { setOpen(open?.projectId === d.projectId ? null : d) }}>
+            <div className="flex items-center gap-2">
+              <Icon icon="book" size={14} className="text-muted-foreground" />
+              <span className="text-sm font-semibold truncate">{d.name}</span>
+              <Tag minimal className="!text-[9px] ml-auto">discoverable</Tag>
+            </div>
+            {d.description && <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{d.description}</p>}
+          </Card>
+        ))}
+      </div>
+      {open && (
+        <Card compact className="!p-0">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+            <Icon icon="book" size={12} className="text-muted-foreground" />
+            <span className="text-sm font-semibold">{open.name}</span>
+            <Button size="small" variant="minimal" icon="unlock" className="ml-auto" text="Request access"
+              onClick={() => { setRequesting(true) }} />
+            <RequestAccessDialog projectId={open.projectId} projectName={open.name}
+              isOpen={requesting} onClose={() => { setRequesting(false) }} />
+          </div>
+          <div className="px-3 py-3"><DocMarkdown text={open.coverPage} /></div>
+        </Card>
+      )}
+    </section>
   )
 }
 
@@ -163,6 +217,9 @@ function ProjectDetails({ project }: { project: Project }) {
         <RequestAccessDialog projectId={project.id} projectName={project.name}
           isOpen={requesting} onClose={() => { setRequesting(false) }} />
       </div>
+
+      {/* Foundry's rail draws Cover page first, above the workspace. */}
+      <CoverPagePanel project={project} canEdit={canGrant} />
 
       <Card compact className="!p-0">
         <div className="flex items-center gap-2 px-3 py-2 border-b border-border">

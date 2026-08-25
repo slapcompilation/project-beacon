@@ -1248,6 +1248,7 @@
 .ml-auto { margin-left:auto; }
 .mt-0\.5 { margin-top:0.125rem; }
 .mt-1 { margin-top:0.25rem; }
+.my-1 { margin-top:0.25rem; margin-bottom:0.25rem; }
 .mt-2 { margin-top:0.5rem; }
 .mt-4 { margin-top:1rem; }
 .mt-5 { margin-top:1.25rem; }
@@ -1585,3 +1586,23 @@
 /* A home section whose capture-named applications are not built here says so
    instead of standing silently short. */
 .home-section-missing { font-size:11px; color:hsl(var(--muted-foreground)); margin-top:0.5rem; }
+
+/* ── Documentation rendering — cover pages and folder descriptions (676/677).
+   Restricted markdown: text nodes only, rid links resolved to icon + name. ── */
+.doc-markdown { font-size:12px; line-height:1.55; }
+.doc-markdown h1 { font-size:16px; font-weight:600; margin:0.4rem 0; }
+.doc-markdown h2 { font-size:14px; font-weight:600; margin:0.6rem 0 0.3rem; }
+.doc-markdown h3 { font-size:12px; font-weight:600; margin:0.5rem 0 0.25rem; }
+.doc-markdown h4 { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; margin:0.5rem 0 0.25rem; color:hsl(var(--muted-foreground)); }
+.doc-markdown p { margin:0.25rem 0; }
+.doc-markdown ul, .doc-markdown ol { margin:0.25rem 0 0.25rem 1.1rem; }
+.doc-markdown ul { list-style:disc; }
+.doc-markdown ol { list-style:decimal; }
+.doc-markdown code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px; background:hsl(var(--muted)); padding:0 3px; border-radius:2px; }
+.doc-markdown pre { background:hsl(var(--muted)); padding:6px 8px; border-radius:3px; overflow-x:auto; margin:0.35rem 0; }
+.doc-markdown a { color:hsl(var(--primary)); text-decoration:none; }
+.doc-markdown a:hover { text-decoration:underline; }
+.doc-rid-link { display:inline-flex; align-items:center; gap:3px; }
+.doc-toc { flex-shrink:0; width:170px; border:1px solid hsl(var(--border)); border-radius:3px; padding:8px 10px; align-self:flex-start; }
+.doc-toc ul { list-style:none; font-size:11px; line-height:1.7; color:hsl(var(--muted-foreground)); }
+.doc-folder-description { border-left:2px solid hsl(var(--border)); padding-left:8px; }
