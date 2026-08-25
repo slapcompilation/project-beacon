@@ -409,6 +409,12 @@
     letter-spacing:.06em; text-transform:uppercase; text-align:center;
   }
   .platform-banner a { color:inherit; text-decoration:underline; }
+  /* The viewer's classification banner sits above everything, static banner
+     below it only when its toggle says so (674/675). */
+  .platform-cbac-banner {
+    flex-shrink:0; padding:3px 12px; font-size:11px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; text-align:center;
+  }
   .platform-mark-img { width:16px; height:16px; object-fit:contain; }
   .platform-main  { display:flex; flex-direction:column; flex:1 1 0%; min-width:0; overflow:hidden; }
 

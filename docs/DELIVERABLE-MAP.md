@@ -252,9 +252,15 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   + single-level implication (probe holds conjunctive behaviour unchanged).
   649's show-with-classification-banner toggle landed. Inference recorded:
   segment ordering, white text color, no transitive implication; both
-  display types return one string (no short form stored). Residual: the
-  shell surface — CBAC banner above the static banner, toggle honored (own
-  PR).
+  display types return one string (no short form stored). Surface shipped
+  (675): platform_experience carries the caller's CBAC banner (composed
+  over their CBAC-configured memberships, NULL when none), AppLayout wears
+  it above everything, static banner hidden beneath unless the toggle says
+  otherwise. Residuals: no authoring surface — the toggle's switch, the
+  restriction relations and the colors table are SQL-only (649 has no
+  banner form either); and the restrictions basics stub documents a
+  marking-selection dialog consumer ("valid and sufficient for a
+  classification") for whenever a marking picker gets built.
 - **Folder documentation** — a description/README on folders
   (`projects/add-documentation`, the one genuinely new page in a section
   otherwise byte-identical to compass/).

@@ -2117,9 +2117,10 @@ export const passesScopedSession = { apiName: 'passes_scoped_session', kind: 'fu
 
 /**
  *  The shell's one branding call: resolved title (org, enrollment, then
- *  Beacon), the four logos through the fallback table as data URLs, and the
- *  enabled banner if any. Invoker rights — RLS decides what each caller's
- *  scope shows.
+ *  Beacon), the four logos through the fallback table as data URLs, the
+ *  enabled banner if any, and since 675 the caller's CBAC banner — composed
+ *  over the caller's CBAC-configured marking memberships, NULL when none.
+ *  Invoker rights — RLS decides what each caller's scope shows.
  */
 export const platformExperience = { apiName: 'platform_experience', kind: 'function' } as FunctionType<
   { p_org: string },

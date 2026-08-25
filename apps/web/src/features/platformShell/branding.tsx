@@ -12,12 +12,23 @@ export interface PlatformBanner {
   banner_color: string
   position: 'top' | 'bottom' | 'top_and_bottom'
   show_when_printing: boolean
+  show_with_classification_banner: boolean
+}
+
+// The viewer's classification banner, composed server-side from their
+// CBAC-configured marking memberships (674/675). Null when none.
+export interface CbacBanner {
+  classification_string: string
+  markings: string[]
+  text_color: string
+  background_colors: string[]
 }
 
 export interface PlatformExperience {
   title: string
   logos: Partial<Record<'favicon' | 'small' | 'medium' | 'large', string>> | null
   banner: PlatformBanner | null
+  cbac: CbacBanner | null
 }
 
 export function usePlatformExperience() {
