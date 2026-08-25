@@ -88,7 +88,9 @@ this arc builds the banner.
 
 ## 4. What our substrate holds, probed
 
-`markings` carry `name` and a per-marking `color` (399); `marking_categories`
+`markings` carry `name` — and NO color: 399 invented a color column and 463
+dropped it (no markings page says colour; my first probe here read 399 and
+missed 463 — the dry-run caught it). `marking_categories`
 carry `category_type` (conjunctive-only today) and per-category visibility;
 `marking_members` plus group grants (489) feed `satisfies_markings`, which
 runs inside `resource_file_access` — i.e., inside nearly every RLS policy we
@@ -101,8 +103,10 @@ have. No abbreviation or short-name storage exists on markings.
    the current user's memberships): classificationString as the marking
    names joined with `//` in category-then-name order (the separator is the
    basics page's own example; the ordering is inference),
-   `background_colors` as the named markings' colors in the same order,
-   `text_color` white (inference — no page sources it). `BANNER_LINE` and
+   `background_colors` from `cbac_marking_colors` — a side table, because
+   463 dropped `markings.color` as uncited and this api attests color only
+   in banner composition, so an unconfigured marking contributes no stripe —
+   and `text_color` white (inference — no page sources it). `BANNER_LINE` and
    `PORTION_MARKING` return the same string today: markings have no short
    form to shorten to, a recorded divergence rather than invented initials.
    `CbacUnavailable` is the empty case: no markings, no banner.
