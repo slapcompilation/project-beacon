@@ -226,9 +226,21 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   the capture''s Edited. Residuals: that surface; hide-inaccessible and
   merge-by-author as view options; restore for the other five kinds is
   undocumented and stays unbuilt.
-- **Property formatting** — conditional formatting and value formatting
-  (`object-link-types/conditional-formatting`, `value-formatting`); 634's
-  import caveat references rule sets our property model cannot hold.
+- **Property formatting** — ENGINE SHIPPED (673, reading
+  `readings/property-formatting.md` #824): format_rules (ordered array,
+  first match wins; conditions reference siblings by property_id text so
+  copy-rules semantics are free) + value_formatting (numeric/datetime/user/
+  resource_rid, typed by base type) as validated jsonb columns; the save
+  path carries both; import_working_state refuses dangling rule references
+  by the documented name OntologyMetadata:UnreferencedRuleSets — 634's
+  caveat closed. Post-build reconciliation (both pages re-walked): engine
+  holds every stated behaviour; deltas are surface-shaped plus one model
+  note — Add-reference comparison values are representable in the values
+  array but unvalidated (the rule editor implements them). Excluded with
+  reasons: the Math rule kind (one sentence, no grammar), artifact GID
+  (no artifacts), Fixed Values numeric base (named, never specified).
+  Residuals: the property-pane cards + rule editor + copy-rules dialog +
+  Explorer chip/formatter rendering, built to the captures (own PR).
 - **CBAC banner** — now buildable: the api publishes the shape
   (`cbac-banners-get-cbac-banner`) derived from markings we hold; unblocks
   649's show-with-classification-banner toggle.

@@ -574,7 +574,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (249) ───────────────────────────────────────────────────
+// ── FUNCTIONS (252) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1433,6 +1433,24 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
   { p_folder: string },
+  boolean
+>
+
+/**
+ *  One conditional formatting rule
+ *  (object-link-types/conditional-formatting): standard or always_true (Math
+ *  is excluded — one sentence, no grammar); a condition watching a sibling
+ *  property by its property_id, with the stated comparisons and the stated
+ *  string operators only; formatting as a Blueprint intent or a custom
+ *  colour, optionally aligned.
+ */
+export const formatRuleValid = { apiName: 'format_rule_valid', kind: 'function' } as FunctionType<
+  { r: Json },
+  boolean
+>
+
+export const formatRulesValid = { apiName: 'format_rules_valid', kind: 'function' } as FunctionType<
+  { j: Json },
   boolean
 >
 
@@ -2484,6 +2502,19 @@ export const userToolParamsValid = { apiName: 'user_tool_params_valid', kind: 'f
  */
 export const valueConforms = { apiName: 'value_conforms', kind: 'function' } as FunctionType<
   { p_value: Json; p_value_type: string; p_depth?: number },
+  boolean
+>
+
+/**
+ *  One value formatter, typed by the property's base type
+ *  (object-link-types/value-formatting): numeric
+ *  (currency/unit/percentage/prefix-suffix, notation, digit options and the
+ *  capture's negative-to-parenthesis ride free-form keys), datetime (the
+ *  published six styles, timezone static or the user's), Multipass username,
+ *  resource RID. Artifact GID excluded — no artifacts here.
+ */
+export const valueFormattingValid = { apiName: 'value_formatting_valid', kind: 'function' } as FunctionType<
+  { p_base: string; j: Json },
   boolean
 >
 
