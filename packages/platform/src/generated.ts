@@ -574,7 +574,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (254) ───────────────────────────────────────────────────
+// ── FUNCTIONS (255) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1384,6 +1384,19 @@ export const derivedChain = { apiName: 'derived_chain', kind: 'function' } as Fu
 export const derivedPropertyProblems = { apiName: 'derived_property_problems', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  The discovery carve-out (security/cover-pages): projects in the caller's
+ *  organization whose cover page admits the caller — all_can_discover needs
+ *  the organization alone, require_marking_access composes
+ *  resource_file_access, the same org-and-markings predicate the read policy
+ *  uses. Returns only the discovery tuple; the row policy stays untouched.
+ *  NULL discoverability discovers nothing.
+ */
+export const discoverableCoverPages = { apiName: 'discoverable_cover_pages', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { project_id: string; rid: string; name: string; description: string; cover_page: string }[]
 >
 
 /**

@@ -261,9 +261,24 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   banner form either); and the restrictions basics stub documents a
   marking-selection dialog consumer ("valid and sufficient for a
   classification") for whenever a marking picker gets built.
-- **Folder documentation** — a description/README on folders
-  (`projects/add-documentation`, the one genuinely new page in a section
-  otherwise byte-identical to compass/).
+- **Documentation on projects and folders** — SHIPPED (676,
+  readings/project-documentation.md): folders.documentation (the
+  Add-description route), projects.cover_page +
+  cover_page_discoverability (the capture's two radio labels; the set is
+  deliberately UNDECLARED in the vocabulary suite — the prose page never
+  prints the tokens, the reading carries the trace), and
+  discoverable_cover_pages() — the security/cover-pages carve-out as a
+  fail-closed SECDEF function composing resource_file_access, probed
+  against a genuinely closed marked project. The queue's
+  add-documentation page turned out to be a section I skipped inside
+  compass/create-a-project when reading for the Compass phase. NOT built,
+  with reasons: the README.md file route (no file-resource kind exists),
+  the space "Project default roles" setting (absent from
+  manage-orgs-and-spaces' own enumeration). Recorded: Point of contact,
+  Views, Pinned strip, cross-org discoverability (Foundry: under
+  development). Residual: the surface — cover page render/edit with ToC,
+  folder Add-description, restricted markdown renderer with rid_locator
+  links, owners' discoverability radio (own PR).
 - **Users, four fields short** — `username` (unique within the realm),
   `givenName`, `familyName` unrecorded until now; `status` and `attributes`
   already in 656's record. Provider-info external IDs
