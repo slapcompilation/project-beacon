@@ -4141,6 +4141,7 @@ https://palantir.com/docs/foundry/quiver/cards-formulas/
 https://palantir.com/docs/foundry/quiver/cards-index-array/
 https://palantir.com/docs/foundry/quiver/cards-index-boolean/
 https://palantir.com/docs/foundry/quiver/cards-index-charts/
+https://palantir.com/docs/foundry/quiver/cards-index-datasets/
 https://palantir.com/docs/foundry/quiver/cards-index-datetime/
 https://palantir.com/docs/foundry/quiver/cards-index-display/
 https://palantir.com/docs/foundry/quiver/cards-index-event-sets/
