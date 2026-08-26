@@ -8,7 +8,8 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import {
   saveToNewBranch, createProposal, mergeProposal, proposalBlockers,
-  taskApprovalStatus, canApproveProposalTask, branchConflicts, rebaseBranch, type Json,
+  taskApprovalStatus, canApproveProposalTask, ontologyResourceLabel, reviewProposal,
+  branchConflicts, rebaseBranch, type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import { useAppStore } from '@/stores/app.store'
@@ -191,6 +192,32 @@ export function useEligibleTasks(proposalId: string | null, taskIds: string[]) {
         [id, await client(canApproveProposalTask).executeFunction({ p_task: id })] as const))
       return new Set(answers.filter(([, yes]) => yes).map(([id]) => id))
     },
+  })
+}
+
+/** "The status tag next to the resource name" — a task row names what it
+ *  changed. NULL where the caller cannot see the resource (681). */
+export function useResourceLabel(kind: string, resourceId: string) {
+  return useQuery({
+    queryKey: ['resource-label', kind, resourceId],
+    staleTime: 5 * 60_000,
+    queryFn: () => client(ontologyResourceLabel).executeFunction({
+      p_kind: kind, p_id: resourceId }),
+  })
+}
+
+/** One decision across every task — "approve or reject changes to all
+ *  modified resources or to specific ontology resources" (681). */
+export function useReviewProposal(proposalId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (decision: 'approved' | 'rejected') =>
+      client(reviewProposal).applyAction({ p_proposal: proposalId, p_decision: decision }),
+    onSuccess: (n, decision) => {
+      void qc.invalidateQueries()
+      toast.success(`${decision === 'approved' ? 'Approved' : 'Rejected'} ${String(n)} task${n === 1 ? '' : 's'}`)
+    },
+    onError: (e: Error) => { toast.error(e.message) },
   })
 }
 

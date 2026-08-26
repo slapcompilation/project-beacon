@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (64) ────────────────────────────────────────────────
+// ── ACTION TYPES (65) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -393,6 +393,18 @@ export const reviewApprovalTask = { apiName: 'review_approval_task', kind: 'acti
 >
 
 /**
+ *  One decision across every task of a proposal — "approve or reject changes
+ *  to all modified resources or to specific ontology resources"
+ *  (ontologies/branching-ontology). INVOKER rights and the same per-task
+ *  upsert a single review makes, so proposal_reviews' policy stays the only
+ *  rule about who may review what.
+ */
+export const reviewProposal = { apiName: 'review_proposal', kind: 'action' } as ActionType<
+  { p_proposal: string; p_decision: string },
+  number
+>
+
+/**
  *  Every RLS-guarded table that the role PostgREST connects as cannot read.
  *  Derived from pg_class, never enumerated. Found the recursion in migration
  *  403 that no other guard could see.
@@ -574,7 +586,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (257) ───────────────────────────────────────────────────
+// ── FUNCTIONS (258) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2054,6 +2066,17 @@ export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'func
  */
 export const ontologyColumnType = { apiName: 'ontology_column_type', kind: 'function' } as FunctionType<
   { p_table: string; p_column: string },
+  string
+>
+
+/**
+ *  The display label of one ontology resource, for the proposal task rows the
+ *  page describes as showing a status tag next to the resource name
+ *  (ontologies/branching-ontology). Invoker rights: a resource the caller
+ *  cannot see resolves to NULL and the row keeps its identifier.
+ */
+export const ontologyResourceLabel = { apiName: 'ontology_resource_label', kind: 'function' } as FunctionType<
+  { p_kind: string; p_id: string },
   string
 >
 

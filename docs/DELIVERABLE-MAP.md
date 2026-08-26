@@ -348,7 +348,20 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   per-task before/after edit diff (`branch_resource_changes` holds
   authorship, not field-level history), per-task comments (no store), and
   the branch-taskbar and Global-Branching invite entry points (neither
-  surface exists).
+  surface exists). Post-build reconciliation (both pages re-read whole)
+  found TWO gaps the 680 build had missed, both stated in PROSE rather than
+  only drawn, and 681 closed them: the page says the status tag sits "next
+  to the resource name" while our rows drew a uuid slice
+  (`ontology_resource_label` resolves all six kinds — five carry `label`,
+  `type_groups` carries `name` — under invoker rights so an unreadable
+  resource keeps its identifier instead of leaking a name); and reviewers
+  may decide "all modified resources OR specific ontology resources", two
+  grains where 680 built only the second (`review_proposal` applies one
+  decision across every task as the same per-task upsert, INVOKER, so
+  proposal_reviews' policy stays the only rule). A wrong first attempt is
+  recorded in 681's header: 651's `review_approval_task` belongs to the
+  Approvals engine's own tables, not to proposal tasks — the probe caught
+  it by raising `Approvals:NoSuchTask`.
 - **Action reverts** (`action-types/action-reverts`) — `object_edits` is the
   log a revert would compensate against.
 - **Corpus fact**: the mirror holds 2,597 DISTINCT page bodies, not 4,123 —
