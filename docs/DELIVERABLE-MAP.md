@@ -88,19 +88,30 @@ Measured before starting, because seven of the eleven have no pages on disk:
 | Quiver | `quiver` | 291 | 295 |
 | Slate | `slate` | 47 | 47 |
 | Code repositories | `code-repositories` | 36 | 36 |
-| Code workbook | `code-workbook` | 0 | 43 |
-| Contour | `contour` | 0 | 33 |
-| Vertex | `vertex` | 0 | 28 |
-| Reports | `reports` | 0 | 22 |
-| Fusion | `fusion` | 0 | 22 |
-| Forms | `forms` | 0 | 19 |
-| Machine Learning | `model-studio` + `model-integration` | 0 | 32 |
-| Data prep | `preparation` | 0 | 8 |
+| Code workbook | `code-workbook` | 43 | 43 |
+| Contour | `contour` | 33 | 33 |
+| Vertex | `vertex` | 28 | 28 |
+| Reports | `reports` | 22 | 22 |
+| Fusion | `fusion` | 22 | 22 |
+| Forms | `forms` | 19 | 19 |
+| Machine Learning | `model-studio` + `model-integration` | 31 | 32 |
+| Data prep | `preparation` | 8 | 8 |
 
-The last eight need `node scripts/mirror-foundry-docs.mjs <section>` first.
+**All eleven now have their pages on disk** (#847): the eight absent
+sections were mirrored on 2026-08-26 — 206 pages and 753 images, no
+failures — after refreshing the URL index, which turned up one new page.
+MAP.md went from 4,131 pages across 108 sections to 4,329 across 116.
 Two slugs had to be found rather than guessed: Data prep is `preparation`,
 and Machine Learning is the model-studio/model-integration family beside
-the 17 pages of `manage-models` we already hold.
+the 17 pages of `manage-models` we already hold. Three sections read one
+short of their URL count and all three are counting artifacts, verified
+rather than assumed: `questions-answers/contour`,
+`questions-answers/vertex` and `model-integration/model-studio` live in
+other sections and were already mirrored.
+
+**So no arc is blocked on fetching any more** — each remaining card needs
+only the loop: read the section whole, reading PR, recite, build,
+reconcile.
 
 - **Workshop** — FOUNDATION SHIPPED (685/686,
   readings/workshop-foundation.md). A module is a Compass resource in a
