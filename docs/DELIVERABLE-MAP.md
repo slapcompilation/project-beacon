@@ -329,6 +329,22 @@ reconcile.
   card itself, so Slate was reachable only by URL. Both Fusion and Slate
   now appear under Operations, which is four of the capture's five.
 
+  **Post-build reconciliation caught 694 being STRICTER THAN FOUNDRY** —
+  the second time this session, after 691. 694 read "You may only use one
+  type of sync within a Fusion sheet" and enforced one synced REGION per
+  sheet; two sections later the same page says "you can use table range
+  syncs to create multiple datasets from within one Fusion sheet". The
+  exclusivity is between the two KINDS, not between regions. 695 adds
+  sync_kind, allows many table syncs, permits exactly one sheet sync, and
+  refuses the two kinds together — plus refuses two regions targeting one
+  dataset, which is the overlap the page actually warns about. Recorded
+  from the same re-read: "Stop syncing" in the table details window, and
+  that a Fusion sync is backed by a JOB SPEC on the dataset ("delete the
+  job spec by navigating through Details tab > Job spec > Edit > Delete")
+  — the same job_specs our transforms publish into, which is the
+  connection to make when a Fusion sync becomes rebuildable rather than
+  one-shot.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
