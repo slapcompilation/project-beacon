@@ -158,3 +158,32 @@ export function useSetAutomateCanSubmit(actionTypeId: string) {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+/** The Form tab's Allow-revert toggle (682). "New actions are revertible by
+ *  default" — and turning it off clears revertibility on submissions that
+ *  already happened, which the database does, not this. */
+export function useAllowRevert(actionTypeId: string | null) {
+  return useQuery({
+    queryKey: ['allow-revert', actionTypeId],
+    enabled: actionTypeId !== null,
+    queryFn: async (): Promise<boolean> => {
+      const { data, error } = await supabase.from('action_types')
+        .select('allow_revert').eq('id', actionTypeId ?? '').single()
+      if (error) throw new Error(error.message)
+      return (data as { allow_revert: boolean }).allow_revert
+    },
+  })
+}
+
+export function useSetAllowRevert(actionTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (allowed: boolean) => {
+      const { error } = await supabase.from('action_types')
+        .update({ allow_revert: allowed }).eq('id', actionTypeId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['allow-revert', actionTypeId] }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}

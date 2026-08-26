@@ -362,8 +362,38 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   recorded in 681's header: 651's `review_approval_task` belongs to the
   Approvals engine's own tables, not to proposal tasks — the probe caught
   it by raising `Approvals:NoSuchTask`.
-- **Action reverts** (`action-types/action-reverts`) — `object_edits` is the
-  log a revert would compensate against.
+- **Action reverts** — SHIPPED (682-684, readings/action-reverts.md). A
+  revert is a compensating APPEND, never an undo: 422's table comment
+  already said "There is no mechanism to directly undo a single user edit",
+  so create is answered by delete, modify by a modify back to its
+  before-image, delete by a create from it. The missing piece was
+  identity — apply_action stamped action_type_id but nothing naming ONE
+  submission — so `action_applications` is that row and
+  `object_edits.application_id` points at it, with `before` captured at
+  apply time rather than replayed. `action_types.allow_revert` defaults
+  true ("New actions are revertible by default"), and turning it off
+  CLEARS revertible on existing unreverted applications by trigger,
+  because the page says turning it back on does not restore them — which
+  is why the flag is stored per application instead of joined live.
+  `revert_action` refuses four ways by name: not the applier, already
+  reverted, not revertible, and any object edited since (the page's
+  most-recent-edit rule, any property). Side effects are deliberately NOT
+  reverted — Foundry's own divergence, stated on the page. Surface: the
+  Form tab's Submission options card with the toggle, and the apply toast
+  now reading "Edits successfully applied." with a **Revert** action (the
+  drawn button's word; the prose says Undo). **Two corrections the local
+  suite caught, both mine**: 682 gave action_applications RLS with only a
+  SELECT policy while apply_action is INVOKER, so every authenticated
+  apply was refused and fourteen unrelated action tests failed with the
+  wrong error (683 adds the applier-writes-their-own policies — 682's
+  probe ran as owner, which is exactly why it missed it); and
+  reverted_by_user_id had no index (684). Not built, recorded: the
+  capture's other two Submission-options rows, Customize submit button and
+  Customize success message, because nothing stores a custom label or
+  message and a switch over a thing that does not exist is inert. Known
+  race, recorded: the toast reads the application back from the table, so
+  two concurrent applies of one action by one user would name the wrong
+  submission.
 - **Corpus fact**: the mirror holds 2,597 DISTINCT page bodies, not 4,123 —
   every api page exists under three paths; `data-health`/`health-checks` and
   `projects`/`compass` are section-level duplicates.
