@@ -1828,3 +1828,38 @@
 }
 .cr-hint { font-size:11px; color:hsl(var(--muted-foreground)); }
 .cr-requirements { list-style:disc; margin-left:1.1rem; color:hsl(var(--muted-foreground)); }
+
+/* ── Fusion: the grid, its sheet tabs, and the Data dialog (694). ── */
+.fu-header {
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+  padding:5px 10px; border-bottom:1px solid hsl(var(--border));
+  background:hsl(var(--card));
+}
+.fu-title { font-size:13px; font-weight:600; }
+.fu-grid { border-collapse:collapse; font-size:12px; }
+.fu-grid th, .fu-grid td {
+  border:1px solid hsl(var(--border)); padding:1px 5px;
+  min-width:88px; height:22px; vertical-align:middle;
+}
+.fu-grid thead th, .fu-rowhead {
+  background:hsl(var(--muted)); color:hsl(var(--muted-foreground));
+  font-weight:600; font-size:11px; text-align:center; min-width:34px;
+}
+.fu-corner { min-width:34px; }
+.fu-grid td { cursor:cell; }
+/* decimals right-align, as the page notes they do */
+.fu-num { text-align:right; font-variant-numeric:tabular-nums; }
+.fu-in-region { background:hsl(var(--muted) / 0.35); }
+.fu-formula { color:hsl(var(--primary)); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+.fu-input { width:100%; border:0; outline:0; background:transparent; font:inherit; }
+.fu-sheettabs {
+  display:flex; align-items:center; gap:2px; flex-shrink:0;
+  padding:3px 8px; border-top:1px solid hsl(var(--border));
+  background:hsl(var(--card));
+}
+.fu-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground));
+}
+.fu-hint { font-size:11px; color:hsl(var(--muted-foreground)); }
+.fu-dialog { width:min(620px, 92vw); }

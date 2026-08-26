@@ -101,7 +101,7 @@ export const AUDIENCES: AppAudience[] = [
     id: 'operations',
     title: 'Applications for Operations',
     // The capture's five: Object Explorer, Fusion, Forms, Slate, Workshop.
-    // Object Explorer leads the grid; the other four are not built here.
+    // Four are built; Forms is sunset in Foundry and deliberately is not.
     apps: [
       {
         name: 'Object Explorer',
@@ -119,8 +119,24 @@ export const AUDIENCES: AppAudience[] = [
         icon: 'applications',
         tint: '#5c7080',
       },
+      {
+        name: 'Fusion',
+        tagline: 'Use familiar spreadsheet interface',
+        blurb: 'A spreadsheet whose table regions sync to datasets, so a sheet of numbers becomes something the rest of the platform can build on.',
+        path: '/fusion',
+        icon: 'th',
+        tint: '#0f9960',
+      },
+      {
+        name: 'Slate',
+        tagline: 'Create an application',
+        blurb: 'Widgets on a canvas wired to each other by name, drawing data from queries rather than the object layer alone.',
+        path: '/slate',
+        icon: 'control',
+        tint: '#7961db',
+      },
     ],
-    missing: 'Fusion is not built here yet. Forms is sunset in Foundry, which recommends Actions and Functions instead — both of which this platform already has — so it is deliberately not built.',
+    missing: 'Forms is sunset in Foundry, which recommends Actions and Functions instead — both of which this platform already has — so it is deliberately not built.',
   },
 ]
 
@@ -158,6 +174,7 @@ export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/control-panel': 'Data Governance',
   '/explorer': 'Operational applications',
   '/workshop': 'Operational applications',
+  '/fusion': 'Operational applications',
   '/slate': 'Operational applications',
   '/ontology': 'Operational applications',
   '/branches': 'Operational applications',
