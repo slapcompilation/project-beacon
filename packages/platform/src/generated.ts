@@ -2427,11 +2427,12 @@ export const proposalBlockers = { apiName: 'proposal_blockers', kind: 'function'
 >
 
 /**
- *  Every reason a pull request cannot merge; empty means it can. The four
- *  requirements a protected branch may set
- *  (code-repositories/branch-settings) plus a standing rejection. Security
- *  approval always blocks: the requirement is storable and nothing here can
- *  satisfy it, which is said rather than silently passed.
+ *  Every reason a pull request cannot merge; empty means it can. The
+ *  protection requirements code-repositories/branch-settings enumerates, with
+ *  rejections blocking ONLY when require_no_rejections is set — without it
+ *  "the approval will supersede the rejection". Restrict-stable-version-tags
+ *  is the fifth requirement, recorded and not built. Security approval always
+ *  blocks: storable, and nothing here can satisfy it.
  */
 export const pullRequestBlockers = { apiName: 'pull_request_blockers', kind: 'function' } as FunctionType<
   { p_pr: string },

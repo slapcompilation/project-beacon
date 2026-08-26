@@ -200,6 +200,39 @@ reconcile.
   (action bar, widget list tree, canvas, widget editor with its four
   tabs), and 39 unread pages.
 
+- **Code Repositories** — SHIPPED (690/691,
+  readings/code-repositories-foundation.md). Repositories typed transforms
+  or functions, branches, files, commits, pull requests with reviews,
+  checks and tags — plus all five tabs (Code, Branches, Pull requests,
+  Checks, Settings). **The spine is enforced, not documented**: a commit or
+  file write to a protected branch is refused by trigger, and the only way
+  in is merge_pull_request, which opens a narrow window and closes it —
+  the probe asserts master is protected again the moment the merge
+  returns. The surface agrees with the guard rather than inviting a
+  refusal: on a protected branch the editor is read-only and Commit is
+  disabled.
+
+  **Stated divergences**: not a git object store (commits are rows with a
+  message and parent, files are current content per branch), and the IDE is
+  not built — Code Assist, IntelliSense, the nine helper panels, the
+  debugger, Clone, artifact repositories; Preview/Test/Build are drawn
+  disabled saying so. Model development refuses by name (no model engine).
+  ontology_branches are deliberately NOT reused: a code branch is git's.
+
+  **691 is the correction reconciliation found, and it is the important
+  kind — I had made us STRICTER than Foundry.** 690 blocked a merge on any
+  rejection; the page makes that one of two separately-chosen review
+  policies and says that otherwise "the approval will supersede the
+  rejection". require_no_rejections is now a column, off by default. The
+  same walk found a FIFTH protection requirement I had missed — Restrict
+  stable version tags (Functions repositories only) — recorded rather than
+  invented, since its semantics live on a section not yet read. Also
+  recorded: advanced approval policies (ALL/ANY rules conditional on a file
+  regex, with a YAML view). Residual: the transforms connection — a file
+  declaring Output(...)/Input(...) IS a job spec, and generating one from a
+  committed file is what makes this application load-bearing rather than
+  adjacent. 31 of 35 pages unread.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
