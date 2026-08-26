@@ -345,6 +345,63 @@ reconcile.
   connection to make when a Fusion sync becomes rebuildable rather than
   one-shot.
 
+- **Quiver** — SHIPPED (696/697/698). The first of the capture's six
+  Analytics applications, and the one whose design is a type system:
+  analyses, canvases, cards, type-checked input edges, dashboards and saved
+  versions. "A card can only be added as an input to another card if that
+  card's output type is equal to the downstream card's input type", over the
+  twenty-eight types `analysis-data-model` enumerates. The acceptance test is
+  that page's own worked example — a filter object set may not feed an object
+  property, and an object selector between them makes it legal.
+
+  **The catalogue is parsed, not described.** All 203 `card-*` pages declare
+  their own `## Input type` / `## Output type`; `quiver_card_kinds()` is those
+  declarations normalised to the enumeration, because where a card page spells
+  a type `Object`, `Date` or `None`, the page that LISTS the set wins. Four
+  tokens map to nothing in it and three pages declare no signature; all seven
+  sit in a `note` column rather than being guessed, and all are unbuilt.
+  Twelve kinds are built — those reaching the worked example without a time
+  series store, which this platform does not have. The other 191 refuse by
+  name. Fourth instance of the pattern after Workshop's 62 widgets, Slate's
+  widget kinds and Fusion's 202 functions.
+
+  **The canvas is not the graph**, which the page says outright, so membership
+  is geometry, a card on no canvas is legal, deletion takes a mode, and
+  "unused" is the page's three-part test. Permissions are the project's: no
+  Quiver grant table, because `analysis-save-share` says the analysis inherits
+  them.
+
+  **Post-build reconciliation caught 696 being STRICTER THAN FOUNDRY** — the
+  third instance of this class after 691 and 695, and again nothing else found
+  it. 696 refused to create a card whose kind emits several types until it said
+  which; Foundry adds the card first and configures it in place. The rule that
+  holds is about CHAINING, and 696 already had it — `Quiver:NoOutputType` —
+  behind a check that made it unreachable. 698 removes the insert-time arm,
+  fixing the divergence and making an existing guard fire for the first time.
+
+  **And the reading itself was not being checked.** `quiver-foundation.md`
+  shipped in #864 with no frontmatter, so `check:readings` filed it as
+  predating the guard and verified nothing; falsifying a quote left the gate
+  green. With `verify: strict` and the attributions moved out of their
+  blockquotes it found two real defects — a sentence filed under
+  `analysis-canvas` that is worded that way on `core-concepts`, and our own
+  CLAUDE.md rule read as a citation. **A new reading must carry
+  `verify: strict` or it is decorative.**
+
+  NOT built, recorded by name: four of the five side panels (Parameters,
+  Visual Functions, Dashboards, Settings); the contents panel's mode-dependent
+  grouping (by canvas in canvas mode, by colour group in graph mode); four of
+  the seven card actions (Configure, Duplicate, Rename, Open in new analysis);
+  Undo/Redo, Share and the Details panel; the seven next-action categories as
+  a grouping of the search list; link sharing; the AIP query bar; the preview
+  panel and focus mode; time series of any kind. 267 of 291 pages unread, but
+  242 of those are the card catalogue.
+
+  **One divergence, scoped:** 696 refuses a cycle in the card graph. No page
+  states that rule; it is inferred from the graph's left-to-right data flow.
+  Bounded to `quiver_card_inputs`, and it refuses nothing a documented
+  workflow asks for.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
