@@ -393,7 +393,19 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   message and a switch over a thing that does not exist is inert. Known
   race, recorded: the toast reads the application back from the table, so
   two concurrent applies of one action by one user would name the wrong
-  submission.
+  submission. Post-build reconciliation (the page re-read whole against the
+  build) found no missed behaviour and two things to record. **The
+  before-May-2024 rule has no analogue here**: Foundry leaves the toggle
+  OFF by default for actions that predate the cutoff, while our ADD COLUMN
+  DEFAULT true turned it on for every existing action type — immaterial
+  rather than wrong, because every edit written before 682 carries a NULL
+  application_id and so cannot be reverted at all; the flag only reaches
+  future submissions, and ours are all OSv2, which is the cutoff's actual
+  reason. **The lost-toast remediation is not built**: when the toast is
+  gone the page offers migrating to a new object type and copying edits
+  with functions, or dropping all edits on the object type — we have
+  neither operation, and inventing a drop-all-edits button is not
+  something the page specifies.
 - **Corpus fact**: the mirror holds 2,597 DISTINCT page bodies, not 4,123 —
   every api page exists under three paths; `data-health`/`health-checks` and
   `projects`/`compass` are section-level duplicates.
