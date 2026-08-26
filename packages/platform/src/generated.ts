@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (67) ────────────────────────────────────────────────
+// ── ACTION TYPES (68) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -165,6 +165,17 @@ export const createAuditExport = { apiName: 'create_audit_export', kind: 'action
  */
 export const createProposal = { apiName: 'create_proposal', kind: 'action' } as ActionType<
   { p_branch: string; p_name: string; p_description?: string },
+  string
+>
+
+/**
+ *  Creates a Slate application with the document a new one starts from: one
+ *  page rooted at a w_document container, as the widget list draws it
+ *  (slate/images/slate-ui-annotated.png). INVOKER, so the application's own
+ *  policy decides who may.
+ */
+export const createSlateApp = { apiName: 'create_slate_app', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string; p_folder?: string },
   string
 >
 
@@ -611,7 +622,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (262) ───────────────────────────────────────────────────
+// ── FUNCTIONS (266) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -997,6 +1008,14 @@ export const canEditMonitoringView = { apiName: 'can_edit_monitoring_view', kind
   boolean
 >
 
+/**
+ *  Editor edits a Slate application, the same floor a Workshop module uses.
+ */
+export const canEditSlateApp = { apiName: 'can_edit_slate_app', kind: 'function' } as FunctionType<
+  { p_app: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -1023,6 +1042,17 @@ export const canManagePortfolio = { apiName: 'can_manage_portfolio', kind: 'func
  */
 export const canOpenModule = { apiName: 'can_open_module', kind: 'function' } as FunctionType<
   { p_module: string },
+  boolean
+>
+
+/**
+ *  Integrated applications "are published to Foundry users within your
+ *  Organization and can be viewed or edited based on user permissions"
+ *  (slate/applications-types) — so a project role opens one, composed by
+ *  every child table.
+ */
+export const canOpenSlateApp = { apiName: 'can_open_slate_app', kind: 'function' } as FunctionType<
+  { p_app: string },
   boolean
 >
 
@@ -2506,6 +2536,28 @@ export const signatureBreaks = { apiName: 'signature_breaks', kind: 'function' }
 export const simulateMarkingChanges = { apiName: 'simulate_marking_changes', kind: 'function' } as FunctionType<
   { p_dataset: string; p_add?: string[]; p_remove?: string[] },
   Json
+>
+
+/**
+ *  The four identifier kinds an event can name, with the prefixes the docs
+ *  use throughout (w_button.click, q_query.run, v_doubleSelection.set).
+ *  Shared names compete in one namespace across all four, which is why
+ *  slate_identifiers holds them together.
+ */
+export const slateIdentifierPrefixes = { apiName: 'slate_identifier_prefixes', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; prefix: string; note: string }[]
+>
+
+/**
+ *  The Slate widget catalogue as an index rather than an allowlist: six
+ *  built, the rest recorded against the widget page that documents each. The
+ *  section carries roughly forty widgets across eight category pages; this
+ *  names the ones an arc has reached.
+ */
+export const slateWidgetKinds = { apiName: 'slate_widget_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; label: string; category: string; built: boolean; note: string }[]
 >
 
 /**

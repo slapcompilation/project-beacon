@@ -152,6 +152,38 @@ reconcile.
   sections and widgets with its two variable modes ("Paste with same input
   variable" / "Paste with duplicate input variables").
 
+- **Slate** — FOUNDATION SHIPPED (688/689,
+  readings/slate-foundation.md). An application in a project, with pages
+  as scope boundaries, a widget tree with the dropdown's five container
+  types (split carrying its axis), variables in the six published types,
+  event/action pairs, and one local stylesheet. **Slate is NOT Workshop**,
+  and the migration says why: Workshop's data is the object layer by
+  principle, Slate's is queries against anything; Workshop lays out
+  nesting sections, Slate positions widgets on a canvas. Sharing 685's
+  tables would force one shape onto both.
+
+  **`slate_identifiers` is the load-bearing table**: every widget, query,
+  variable and function shares ONE namespace, because "Shared variable
+  names must be unique across all pages, widgets, events, queries, and
+  functions" — one unique index rather than four each saying half of it,
+  with page-local variables the documented exception. The probe found the
+  sharper version: once the prefix guard holds, a query cannot take a
+  widget's name at all, so the convention IS the separation and the index
+  catches what remains.
+
+  NOT built, with reasons: **public applications** (their whole definition
+  is an isolation boundary — no objects, datasets, actions or files — plus
+  an org permission we lack; the kind is stored and a guard refuses it,
+  because half-built isolation is worse than none), LESS compilation, and
+  the ~40-widget catalogue, indexed by `slate_widget_kinds()` with six
+  built. **689 is a correction the suite caught**: 688 opened a comment
+  with "Values from the CONTAINER TYPE dropdown", and `Values from <slug>`
+  is a promise the guard checks — it read `the` as a page. That set comes
+  from a capture, so it now declares nothing and joins the printed
+  undeclared count, as 682's did. Residual: the four-area editor surface
+  (action bar, widget list tree, canvas, widget editor with its four
+  tabs), and 39 unread pages.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
