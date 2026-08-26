@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import {
   createCodeRepository, mergePullRequest, pullRequestBlockers,
-  codeRepositoryKinds, mergeModes, publishTransformBranch,
+  codeRepositoryKinds, mergeModes, publishTransformBranch, buildTransformFile,
 } from '@beacon/platform'
 
 export interface CodeRepository {
@@ -324,6 +324,30 @@ export function usePublishBranch(repoId: string) {
       void qc.invalidateQueries({ queryKey: ['pr-blockers'] })
       toast.success(`Published ${String(n)} transform${n === 1 ? '' : 's'} — see the Checks tab`)
     },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** What the Build button does: run the checks, then build every output
+ *  dataset of the file. A file that generates none triggers no build, which
+ *  the page states as ordinary behaviour rather than an error. */
+export function useBuildFile(repoId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (fileId: string) =>
+      client(buildTransformFile).applyAction({ p_file: fileId }),
+    onSuccess: (buildId) => {
+      void qc.invalidateQueries({ queryKey: keys.repo(repoId) })
+      // gen:client types every scalar return as non-nullable because
+      // Postgres does not record whether a function may return NULL — and
+      // this one does, for a file that generates no datasets. The cast
+      // states what SQL allows; the generator gap is recorded in the map.
+      const started = buildId as string | null
+      toast.success(started === null
+        ? 'Nothing to build — this file generates no datasets'
+        : 'Checks passed; build started')
+    },
+    // CodeRepositories:ChecksFailed — the recorded check says why
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

@@ -253,6 +253,24 @@ reconcile.
   but does not then run the build; wiring publish → build_jobs is the next
   step, and Python transforms remain unbuildable by design.
 
+- **The Build button builds** — SHIPPED (693). Closes the loop: run the
+  checks, then build every output dataset of the file, in that order,
+  because the page says "build a new version of your output dataset after
+  running automatic checks on your code". Three behaviours are the page's
+  own rather than ours: checks run first and a file that fails them does
+  not build (its failed check survives to say why), the build targets ALL
+  output datasets of the current file, and a file that generates none
+  triggers no build and does NOT error — "if the current file does not
+  generate any datasets, no build is triggered". So a repository now runs
+  the whole path: author on a sandbox branch, Build, and the dataset is
+  rebuilt through the same build_jobs engine schedules use.
+
+  **A tooling gap found here and worth knowing**: `pnpm gen:client` types
+  every scalar function return as non-nullable, because Postgres does not
+  record whether a function may return NULL — and this one does. The
+  surface casts and says so; fixing it properly means typing every scalar
+  return as `T | null`, which touches every caller and is its own decision.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
