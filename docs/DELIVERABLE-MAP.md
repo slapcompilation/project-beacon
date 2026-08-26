@@ -231,7 +231,27 @@ reconcile.
   regex, with a YAML view). Residual: the transforms connection — a file
   declaring Output(...)/Input(...) IS a job spec, and generating one from a
   committed file is what makes this application load-bearing rather than
-  adjacent. 31 of 35 pages unread.
+  adjacent — CLOSED by 692. 31 of 35 pages unread.
+
+- **A transform file is a job spec** — SHIPPED (692). The connective arc:
+  Code Repositories now feeds the build engine instead of sitting beside
+  it. A .sql file's FILENAME declares its output dataset (the tutorial
+  states exactly that), its backticked references resolve to input
+  datasets, and its body after CREATE TABLE ... AS becomes the job spec's
+  logic — with the backticks rewritten to the CTE names job_spec_query_text
+  builds, which is the same move Foundry's editor makes when it swaps a
+  backticked name for a RID. **The hook is Foundry's own**: publishing runs
+  under the name ci/foundry-publish, because the page says that process is
+  what makes changes take effect — and 690's protected-branch requirement
+  already looked for a check of exactly that name, so the two halves met
+  without either being bent. Python transforms refuse by name (they declare
+  through decorators, and this platform does not run Python).
+  **The probe caught a real design flaw**: raising on a publish failure
+  rolled back the very check row recording it, so publishing now RECORDS a
+  failed check rather than throwing — which is what a CI process does, and
+  what the Checks tab exists to show. Residual: the Build button publishes
+  but does not then run the build; wiring publish → build_jobs is the next
+  step, and Python transforms remain unbuildable by design.
 
 ## Known gaps, not queued
 

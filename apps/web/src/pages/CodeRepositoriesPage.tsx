@@ -21,7 +21,7 @@ import { useProjects } from '@/features/projects/api'
 import {
   useCodeRepositories, useRepositoryContents, useCreateRepository, useRepositoryKinds,
   useCreateBranch, useSaveFile, useCommit, useProposeChanges, useReview, useMerge,
-  useCreateTag, usePullRequestBlockers,
+  useCreateTag, usePullRequestBlockers, usePublishBranch,
   type CodeRepository, type RepositoryContents, type PullRequest,
 } from '@/features/codeRepositories/api'
 
@@ -183,6 +183,7 @@ function CodeTab({ repo, contents, branchId, onPickBranch }: {
   const save = useSaveFile(repo.id)
   const commit = useCommit(repo.id)
   const propose = useProposeChanges(repo.id)
+  const publish = usePublishBranch(repo.id)
   const [path, setPath] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const [newPath, setNewPath] = useState('')
@@ -210,7 +211,13 @@ function CodeTab({ repo, contents, branchId, onPickBranch }: {
               commit.mutate({ branchId: branchId ?? '', message: `Update ${path ?? 'files'}`,
                 parentId: lastCommit?.id ?? null })
             }}>Commit</Button>
-          <Button size="small" variant="minimal" icon="build" disabled title="Not built here">Build</Button>
+          {/* Foundry's Build button runs the publish process, which is what
+              makes code take effect; ours derives the job specs and records
+              the check under Foundry's own name for it. */}
+          <Button size="small" variant="minimal" icon="build"
+            disabled={branchId === null} loading={publish.isPending}
+            title="Derive a job spec from every SQL transform on this branch"
+            onClick={() => { publish.mutate(branchId ?? '') }}>Publish</Button>
           <Button size="small" variant="minimal" icon="git-pull"
             disabled={branch === null || branch.protected || target === null}
             loading={propose.isPending}
