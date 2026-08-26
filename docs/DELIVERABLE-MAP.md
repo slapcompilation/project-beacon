@@ -300,6 +300,35 @@ reconcile.
   surface casts and says so; fixing it properly means typing every scalar
   return as `T | null`, which touches every caller and is its own decision.
 
+- **Fusion** — SHIPPED (694). A spreadsheet whose table regions sync to
+  datasets: spreadsheets/sheets/cells/regions, a grid surface, and
+  `sync_table_region` opening a transaction, writing the schema from the
+  region's column headers and their chosen export types, committing and
+  materialising — which is exactly what the page describes ("you may see a
+  number of finished and aborted transactions on the dataset"). Editor on
+  the DATASET is required, as the page says, composed from the project-role
+  predicate.
+
+  **A sort REARRANGES the cells**, faithfully, because the page is emphatic
+  that "a sort in Fusion cannot be turned off to return to the original
+  ordering" — storing an order instead would be a divergence nobody
+  notices. The surface says so before running one.
+
+  **Formulas are stored, not evaluated, and the number is the reason: 202
+  functions across five categories.** A cell keeps what was typed; the grid
+  renders a formula in monospace with a title saying it is not computed.
+  Same call as Workshop's 62 widgets. NOT built, recorded: lookups and
+  index datasets, dropdowns and locked cells, formatting, templates,
+  presentation view, XLS import, time-series visualisation, Actions from
+  cells (the overview steers those to Actions anyway), multi-user cursors.
+  15 of 22 pages unread.
+
+  **A defect found while adding the Home card**: Slate had been built,
+  routed and categorised since #851 but its Home CARD was never added — an
+  earlier edit changed the section's "not built" note without landing the
+  card itself, so Slate was reachable only by URL. Both Fusion and Slate
+  now appear under Operations, which is four of the capture's five.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

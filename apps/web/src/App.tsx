@@ -44,6 +44,7 @@ const ExplorerHome = lazyWithRetry(() => import('@/features/explorer/ExplorerHom
 const WorkshopPage = lazyWithRetry(() => import('@/pages/WorkshopPage'))
 const SlatePage = lazyWithRetry(() => import('@/pages/SlatePage'))
 const CodeRepositoriesPage = lazyWithRetry(() => import('@/pages/CodeRepositoriesPage'))
+const FusionPage = lazyWithRetry(() => import('@/pages/FusionPage'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
 const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
 const LineagePage = lazyWithRetry(() => import('@/features/lineage/LineagePage'))
@@ -116,6 +117,7 @@ function AppRoutes() {
             <Route path="/workshop" element={<WorkshopPage />} />
             <Route path="/slate" element={<SlatePage />} />
             <Route path="/code" element={<CodeRepositoriesPage />} />
+            <Route path="/fusion" element={<FusionPage />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
             <Route path="/lineage" element={<LineagePage />} />
