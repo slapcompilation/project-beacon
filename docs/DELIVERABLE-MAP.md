@@ -176,7 +176,14 @@ reconcile.
   an org permission we lack; the kind is stored and a guard refuses it,
   because half-built isolation is worse than none), LESS compilation, and
   the ~40-widget catalogue, indexed by `slate_widget_kinds()` with six
-  built. **689 is a correction the suite caught**: 688 opened a comment
+  built. **Surface shipped**: the four-area editor the capture divides —
+  action bar with the eight panel buttons in the capture's order, widget
+  list as a tree under the Widget/Workflow toggle, canvas rendering the
+  tree by container type, and the Widget Editor's four named tabs
+  (Property, Layout, JSON, Events). Four panels have engines (Events,
+  Styles, Variables, and Datasets which the docs say became Variables);
+  the other four open a note naming the page that would build them rather
+  than an empty shell. **689 is a correction the suite caught**: 688 opened a comment
   with "Values from the CONTAINER TYPE dropdown", and `Values from <slug>`
   is a promise the guard checks — it read `the` as a page. That set comes
   from a capture, so it now declares nothing and joins the printed

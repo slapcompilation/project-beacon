@@ -150,6 +150,7 @@ export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/control-panel': 'Data Governance',
   '/explorer': 'Operational applications',
   '/workshop': 'Operational applications',
+  '/slate': 'Operational applications',
   '/ontology': 'Operational applications',
   '/branches': 'Operational applications',
   '/automate': 'Operational applications',
