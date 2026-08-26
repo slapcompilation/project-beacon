@@ -1709,3 +1709,76 @@
   gap:6px; max-height:340px; overflow-y:auto;
 }
 .ws-picker-unbuilt { opacity:.55; }
+
+/* ── Slate: the four-area editor (688/689), as slate-ui-annotated.png
+   divides it — action bar, widget list, canvas, widget editor. ── */
+.sl-actionbar { flex-shrink:0; border-bottom:1px solid hsl(var(--border)); background:hsl(var(--card)); }
+.sl-actionbar-row { display:flex; align-items:center; gap:8px; padding:5px 10px; }
+.sl-appname { font-size:13px; font-weight:600; }
+.sl-panelbar {
+  display:flex; align-items:center; gap:2px; padding:2px 8px;
+  border-top:1px solid hsl(var(--border));
+}
+.sl-panel-active { background:hsl(var(--muted)); font-weight:600; }
+
+.sl-widgetlist {
+  width:240px; flex-shrink:0; border-right:1px solid hsl(var(--border));
+  overflow-y:auto; background:hsl(var(--card));
+}
+.sl-widgetlist-head {
+  display:flex; align-items:center; gap:4px; padding:5px 8px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.sl-tree-root {
+  font-size:10px; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground)); padding:4px 10px 2px;
+}
+.sl-tree-row {
+  display:flex; align-items:center; gap:5px; padding:2px 8px;
+  font-size:12px; cursor:pointer;
+}
+.sl-tree-row:hover { background:hsl(var(--muted)); }
+.sl-tree-selected { background:hsl(var(--muted)); font-weight:600; }
+
+.sl-canvas { padding:10px; display:flex; flex-direction:column; gap:8px; }
+.sl-container { display:flex; gap:8px; padding:8px; }
+.sl-c-basic     { flex-direction:column; }
+.sl-c-flex      { flex-direction:row; align-items:stretch; }
+.sl-c-repeating { flex-direction:column; }
+.sl-c-split     { flex-direction:row; }
+.sl-c-tabbed    { flex-direction:column; }
+.sl-widget {
+  position:relative; border:1px solid hsl(var(--border)); border-radius:3px;
+  padding:10px 8px 8px; min-width:0; cursor:pointer; background:hsl(var(--card));
+}
+.sl-widget-selected { border-color:hsl(var(--primary)); }
+.sl-widget-tag {
+  position:absolute; top:-1px; left:-1px; font-size:9px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  padding:0 4px; background:hsl(var(--muted)); color:hsl(var(--muted-foreground));
+  border-bottom-right-radius:3px;
+}
+.sl-text { font-size:12px; }
+
+.sl-inspector {
+  width:300px; flex-shrink:0; border-left:1px solid hsl(var(--border));
+  overflow-y:auto; background:hsl(var(--card));
+}
+.sl-editor { display:flex; flex-direction:column; }
+.sl-tab-inactive { opacity:.5; }
+.sl-editor-head {
+  display:flex; align-items:center; gap:6px; padding:6px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.sl-editor-name { font-size:12px; font-weight:600; flex:1; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
+.sl-editor-body { padding:8px 10px; }
+.sl-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground));
+}
+.sl-hint { font-size:11px; color:hsl(var(--muted-foreground)); }
+.sl-kindgrid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+  gap:6px; max-height:280px; overflow-y:auto;
+}
+.sl-kind-unbuilt { opacity:.55; }
+.sl-kind-picked { border-color:hsl(var(--primary)); }
