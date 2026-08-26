@@ -126,6 +126,21 @@ the 17 pages of `manage-models` we already hold.
   Overview, Settings) with no page describing what each produces. 115 of
   the section's 122 pages remain unread.
 
+  **Post-build reconciliation** (the seven pages re-walked option by option
+  against the shipped schema) found four gaps, two structural enough to fix
+  rather than record — 687: **variable-backed visibility**, which the page
+  gives to overlays ("a Boolean variable... will determine if the overlay
+  should be visible") AND to sections ("conditional visibility to show or
+  hide based on variable values"), plus the overlay's **On close** event
+  and the **Enable scrolling** option Rows alone is offered. Whether a
+  thing renders is a property of the thing, so those are columns, added
+  before anything depended on their absence; a trigger holds what a CHECK
+  cannot reach — the variable must be Boolean and of the same module.
+  Recorded rather than built, from the same walk: section **drop zones**
+  (cross-app interactivity, its own page), and **cut/copy/paste** of
+  sections and widgets with its two variable modes ("Paste with same input
+  variable" / "Paste with duplicate input variables").
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
