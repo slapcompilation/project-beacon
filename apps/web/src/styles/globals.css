@@ -1948,3 +1948,5 @@
   display:flex; align-items:center; gap:4px;
   font-size:10px; color:hsl(var(--muted-foreground));
 }
+.qv-card-hidden { opacity:.45; }
+.qv-configure { display:flex; align-items:center; gap:6px; margin-top:6px; }

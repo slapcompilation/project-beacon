@@ -17,6 +17,7 @@ import { useProjects } from '@/features/projects/api'
 import {
   useAnalyses, useAnalysisContents, useCardKinds, useUnusedCards, useCreateAnalysis,
   useAddCard, useAddCanvas, usePlaceCard, useDeleteCard, useSaveAnalysis,
+  useSetOutputType, useHideCard, useVersions,
   outputTypeOf, kindsAccepting,
   type Analysis, type AnalysisContents, type CardKind, type QCard,
 } from '@/features/quiver/api'
@@ -156,6 +157,7 @@ function AnalysisView({ analysis, onClose }: { analysis: Analysis; onClose: () =
           <Button size="small" active={mode === 'graph'} icon="graph"
             onClick={() => { setMode('graph') }}>Graph</Button>
         </ButtonGroup>
+        <HistoryButton analysisId={analysis.id} />
         <Button size="small" icon="floppy-disk" intent={Intent.PRIMARY} loading={save.isPending}
           onClick={() => { save.mutate() }}>Save</Button>
       </div>
@@ -192,6 +194,37 @@ function AnalysisView({ analysis, onClose }: { analysis: Analysis; onClose: () =
           canvasId={canvas?.id ?? null} onClose={() => { setAddFrom(undefined) }} />
       )}
     </div>
+  )
+}
+
+/** Analysis history: the versions Save writes. */
+function HistoryButton({ analysisId }: { analysisId: string }) {
+  const [open, setOpen] = useState(false)
+  const { data: versions = [] } = useVersions(open ? analysisId : null)
+  return (
+    <>
+      <Button variant="minimal" size="small" icon="history" title="Analysis history"
+        onClick={() => { setOpen(true) }} />
+      <Dialog isOpen={open} onClose={() => { setOpen(false) }} title="Analysis history">
+        <DialogBody>
+          {versions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nothing saved yet. Quiver saves manually — the Save button writes a version.
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {versions.map((v) => (
+                <div key={v.id} className="flex items-center gap-2 text-sm">
+                  <Icon icon="floppy-disk" size={12} className="text-muted-foreground" />
+                  <span>{new Date(v.savedAt).toLocaleString()}</span>
+                  <Tag minimal className="!text-[9px]">{v.cards} cards</Tag>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogBody>
+      </Dialog>
+    </>
   )
 }
 
@@ -276,6 +309,8 @@ function CanvasView({ analysis, contents, kinds, canvasId, onNext }: {
 }) {
   const del = useDeleteCard(analysis.id)
   const place = usePlaceCard(analysis.id)
+  const setType = useSetOutputType(analysis.id)
+  const hide = useHideCard(analysis.id)
   const [confirm, setConfirm] = useState<QCard | null>(null)
   const ids = new Set(contents.placements.filter((p) => p.canvasId === canvasId).map((p) => p.cardId))
   const shown = contents.cards.filter((c) => ids.has(c.id))
@@ -312,8 +347,10 @@ function CanvasView({ analysis, contents, kinds, canvasId, onNext }: {
           const out = outputTypeOf(card, kinds)
           const k = kinds.find((x) => x.kind === card.kind)
           const feeds = contents.inputs.filter((i) => i.cardId === card.id)
+          const at = contents.placements.find((p) => p.cardId === card.id && p.canvasId === canvasId)
           return (
-            <Card key={card.id} compact className="qv-card">
+            <Card key={card.id} compact
+              className={at?.hidden === true ? 'qv-card qv-card-hidden' : 'qv-card'}>
               <div className="qv-card-head">
                 <span className="qv-id">{card.globalId}</span>
                 <span className="text-sm font-semibold truncate">
@@ -323,6 +360,11 @@ function CanvasView({ analysis, contents, kinds, canvasId, onNext }: {
                 <div className="qv-spacer" />
                 <Button variant="minimal" size="small" icon="arrow-right" title="Next actions"
                   onClick={() => { onNext(card) }} />
+                {at !== undefined && (
+                  <Button variant="minimal" size="small" title="Hide from canvas"
+                    icon={at.hidden ? 'eye-off' : 'eye-open'}
+                    onClick={() => { hide.mutate({ placementId: at.id, hidden: !at.hidden }) }} />
+                )}
                 <Button variant="minimal" size="small" icon="cross" title="Delete"
                   onClick={() => { setConfirm(card) }} />
               </div>
@@ -338,6 +380,19 @@ function CanvasView({ analysis, contents, kinds, canvasId, onNext }: {
                   </div>
                 )}
               </div>
+              {/* a card is added before it is configured; until this kind
+                  says which of its types it emits, nothing can chain off it */}
+              {out === null && k !== undefined && (
+                <div className="qv-configure">
+                  <span className="text-[11px] text-muted-foreground">Emits</span>
+                  <HTMLSelect value="" onChange={(e) => {
+                    setType.mutate({ cardId: card.id, outputType: e.target.value })
+                  }}>
+                    <option value="" disabled>Choose…</option>
+                    {k.output_types.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </HTMLSelect>
+                </div>
+              )}
             </Card>
           )
         })}
@@ -493,7 +548,9 @@ function CardSearch({ analysis, from, kinds, canvasId, onClose }: {
                 add.mutate({
                   kind: k.kind,
                   title: k.title,
-                  outputType: k.output_types.length === 1 ? null : (k.output_types.at(0) ?? null),
+                  // a card is added before it is configured, so no type is
+                  // chosen here — the canvas card asks for it
+                  outputType: null,
                   inputCardId: scoped ? from.id : undefined,
                   canvasId: canvasId ?? undefined,
                 }, { onSuccess: onClose })

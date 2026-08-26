@@ -51,6 +51,7 @@ export interface Placement {
   y: number
   width: number
   height: number
+  hidden: boolean
 }
 
 export interface CardKind {
@@ -134,7 +135,7 @@ export function useAnalysisContents(id: string | null) {
         supabase.from('quiver_card_inputs').select('id, card_id, slot, input_card_id')
           .in('card_id', cards.map((c) => c.id)),
         supabase.from('quiver_canvas_cards')
-          .select('id, canvas_id, card_id, x, y, width, height')
+          .select('id, canvas_id, card_id, x, y, width, height, hidden')
           .in('canvas_id', canvases.map((c) => c.id)),
       ])
       if (ins.error) throw new Error(ins.error.message)
@@ -149,10 +150,10 @@ export function useAnalysisContents(id: string | null) {
         })),
         placements: (pl.data as {
           id: string; canvas_id: string; card_id: string
-          x: number; y: number; width: number; height: number
+          x: number; y: number; width: number; height: number; hidden: boolean
         }[]).map((r) => ({
           id: r.id, canvasId: r.canvas_id, cardId: r.card_id,
-          x: r.x, y: r.y, width: r.width, height: r.height,
+          x: r.x, y: r.y, width: r.width, height: r.height, hidden: r.hidden,
         })),
       }
     },
@@ -218,6 +219,49 @@ export function useAddCard(id: string) {
   })
 }
 
+/** A card lands unconfigured and is configured in place, so this is the
+ *  step that gives a polymorphic card its one output type. Until it has
+ *  one, nothing can chain off it. */
+export function useSetOutputType(id: string) {
+  return useAnalysisMutation<{ cardId: string; outputType: string }>(id, async (i) => {
+    const { error } = await supabase.from('quiver_cards')
+      .update({ output_type: i.outputType }).eq('id', i.cardId)
+    if (error) throw new Error(error.message)
+  }, 'Output type set')
+}
+
+/** "Hide: Hide a card from the canvas" (quiver/analysis-toolbars) — the card
+ *  stays in the analysis and keeps feeding whatever it feeds. */
+export function useHideCard(id: string) {
+  return useAnalysisMutation<{ placementId: string; hidden: boolean }>(id, async (i) => {
+    const { error } = await supabase.from('quiver_canvas_cards')
+      .update({ hidden: i.hidden }).eq('id', i.placementId)
+    if (error) throw new Error(error.message)
+  })
+}
+
+export interface Version {
+  id: string
+  savedAt: string
+  cards: number
+}
+
+/** Analysis history, which is what Save has been writing into. */
+export function useVersions(id: string | null) {
+  return useQuery({
+    queryKey: ['quiver-versions', id ?? ''],
+    enabled: id !== null,
+    queryFn: async (): Promise<Version[]> => {
+      const { data, error } = await supabase.from('quiver_analysis_versions')
+        .select('id, saved_at, snapshot').eq('analysis_id', id ?? '')
+        .order('saved_at', { ascending: false }).limit(20)
+      if (error) throw new Error(error.message)
+      return (data as { id: string; saved_at: string; snapshot: { cards: unknown[] } }[])
+        .map((r) => ({ id: r.id, savedAt: r.saved_at, cards: r.snapshot.cards.length }))
+    },
+  })
+}
+
 export function useConnectCards(id: string) {
   return useAnalysisMutation<{ cardId: string; inputCardId: string; slot: number }>(
     id, async (i) => {
@@ -262,9 +306,13 @@ export function useDeleteCard(id: string) {
 }
 
 export function useSaveAnalysis(id: string) {
+  const qc = useQueryClient()
   return useMutation({
     mutationFn: () => client(saveQuiverAnalysis).applyAction({ p_analysis: id }),
-    onSuccess: () => { toast.success('Analysis saved') },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['quiver-versions', id] })
+      toast.success('Analysis saved')
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
