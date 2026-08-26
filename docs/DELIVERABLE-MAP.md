@@ -71,6 +71,61 @@ docs/foundry-reference/mirror/` is the whole scan, and it is cheap. A page can
 acquire the callout between one reading and the next, which is how a build
 copies a design Foundry has already left.
 
+## The eleven Home applications (opened 2026-08-26)
+
+Foundry's Home draws seventeen application cards; we had six. The operator
+asked for the other eleven, which reverses CLAUDE.md's standing note that
+Contour, Vertex and Code Workbook are "products this repo does not build" —
+recorded here rather than quietly overwritten. **Their Spark execution model
+is still a non-goal**: those three get their shape and semantics on Postgres,
+with the divergence stated in whatever migration builds them.
+
+Measured before starting, because seven of the eleven have no pages on disk:
+
+| card | section | mirrored | known URLs |
+|---|---|---|---|
+| **Workshop** | `workshop` | 122 | 123 |
+| Quiver | `quiver` | 291 | 295 |
+| Slate | `slate` | 47 | 47 |
+| Code repositories | `code-repositories` | 36 | 36 |
+| Code workbook | `code-workbook` | 0 | 43 |
+| Contour | `contour` | 0 | 33 |
+| Vertex | `vertex` | 0 | 28 |
+| Reports | `reports` | 0 | 22 |
+| Fusion | `fusion` | 0 | 22 |
+| Forms | `forms` | 0 | 19 |
+| Machine Learning | `model-studio` + `model-integration` | 0 | 32 |
+| Data prep | `preparation` | 0 | 8 |
+
+The last eight need `node scripts/mirror-foundry-docs.mjs <section>` first.
+Two slugs had to be found rather than guessed: Data prep is `preparation`,
+and Machine Learning is the model-studio/model-integration family beside
+the 17 pages of `manage-models` we already hold.
+
+- **Workshop** — FOUNDATION SHIPPED (685/686,
+  readings/workshop-foundation.md). A module is a Compass resource in a
+  project (Viewer opens, Editor edits — the roles the page names, not a
+  stricter invention), holding pages, nesting sections with the captured
+  six layouts, overlays of exactly two kinds, widgets, variables and
+  ordered events. **The layout tree is rows, not jsonb** — a blob would be
+  unqueryable and its six layouts unconstrainable — while widget config IS
+  jsonb, which is Foundry's own shape ("Raw Widget Configuration displays
+  how the current widget's setup is stored in JSON"), not a shortcut.
+  `workshop_widget_kinds()` INDEXES the catalogue rather than allowlisting
+  it: six built, the rest recorded with the page that would build them, and
+  the database refuses an unbuilt kind by name. Surface: module list,
+  view/edit modes to the captures, the builder rail with Header as a peer
+  of the pages and one marked DEFAULT, the widget picker with the picker's
+  own categories, and the six renderers. **Residuals, each its own arc**:
+  running events (they are stored and validated, not yet executed), widget
+  variable propagation (a filter list computes counts but does not yet
+  drive the table), the ~56 catalogued widgets, style formatting, mobile
+  and vertical headers, loop layouts, embedded modules, scenarios, state
+  saving, routing, translations, kiosk/redact modes, module interface, and
+  the five layout templates the capture names (Details, Grid, Inbox,
+  Overview, Settings) with no page describing what each produces. 115 of
+  the section's 122 pages remain unread.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

@@ -104,8 +104,16 @@ export const AUDIENCES: AppAudience[] = [
         icon: 'search-template',
         tint: '#7961db',
       },
+      {
+        name: 'Workshop',
+        tagline: 'Build interactive, object-backed apps',
+        blurb: 'Lay out pages of widgets over the object layer — everything a module shows is read from the ontology rather than copied out of it.',
+        path: '/workshop',
+        icon: 'applications',
+        tint: '#5c7080',
+      },
     ],
-    missing: 'Fusion, Forms, Slate and Workshop are not built here.',
+    missing: 'Fusion, Forms and Slate are not built here.',
   },
 ]
 
@@ -141,6 +149,7 @@ export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/projects': 'Data Governance',
   '/control-panel': 'Data Governance',
   '/explorer': 'Operational applications',
+  '/workshop': 'Operational applications',
   '/ontology': 'Operational applications',
   '/branches': 'Operational applications',
   '/automate': 'Operational applications',

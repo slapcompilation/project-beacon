@@ -41,6 +41,7 @@ const CatalogPage = lazyWithRetry(() => import('@/pages/CatalogPage'))
 
 // Object Explorer: the search-and-analysis surface over the object index.
 const ExplorerHome = lazyWithRetry(() => import('@/features/explorer/ExplorerHome'))
+const WorkshopPage = lazyWithRetry(() => import('@/pages/WorkshopPage'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
 const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
 const LineagePage = lazyWithRetry(() => import('@/features/lineage/LineagePage'))
@@ -110,6 +111,7 @@ function AppRoutes() {
             <Route path="/automate/:id" element={<AutomatePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/explorer" element={<ExplorerHome />} />
+            <Route path="/workshop" element={<WorkshopPage />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
             <Route path="/lineage" element={<LineagePage />} />
