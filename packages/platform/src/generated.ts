@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (68) ────────────────────────────────────────────────
+// ── ACTION TYPES (70) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -157,6 +157,16 @@ export const createApprovalRequest = { apiName: 'create_approval_request', kind:
  */
 export const createAuditExport = { apiName: 'create_audit_export', kind: 'action' } as ActionType<
   { p_organization: string; p_project: string; p_api_name: string; p_name: string; p_start_date?: string; p_retention_days?: number; p_log_type?: string },
+  string
+>
+
+/**
+ *  Creates a repository with its default branch, protected and requiring one
+ *  approving review — so the first thing an author learns is that editing
+ *  happens on a sandbox branch (code-repositories/navigation).
+ */
+export const createCodeRepository = { apiName: 'create_code_repository', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string; p_kind?: string },
   string
 >
 
@@ -330,6 +340,18 @@ export const lineageGraph = { apiName: 'lineage_graph', kind: 'action' } as Acti
 export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as ActionType<
   { p_proposal: string },
   void
+>
+
+/**
+ *  Merges a pull request into its target, which is the only way a protected
+ *  branch changes. Refuses an unoffered mode and every blocker by name. One
+ *  commit records the merge — squash's shape; the other two modes are stored
+ *  on the row but not replayed as separate commits, since commits here are
+ *  rows rather than a real object graph (690's header).
+ */
+export const mergePullRequest = { apiName: 'merge_pull_request', kind: 'action' } as ActionType<
+  { p_pr: string; p_mode?: string },
+  string
 >
 
 /**
@@ -622,7 +644,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (266) ───────────────────────────────────────────────────
+// ── FUNCTIONS (271) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1090,6 +1112,11 @@ export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'fun
   boolean
 >
 
+export const canReadRepository = { apiName: 'can_read_repository', kind: 'function' } as FunctionType<
+  { p_repo: string },
+  boolean
+>
+
 export const canRemoveMarking = { apiName: 'can_remove_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
   boolean
@@ -1179,6 +1206,17 @@ export const canWriteDataset = { apiName: 'can_write_dataset', kind: 'function' 
 
 export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'function' } as FunctionType<
   { p_dataset: string },
+  boolean
+>
+
+/**
+ *  Editor writes code — "both Owners and Editors can merge pull requests to
+ *  protected branches" (code-repositories/branch-settings), so Editor is the
+ *  floor for authoring. Changing protection settings is an owner's, which
+ *  guard_branch_protection_owner holds separately.
+ */
+export const canWriteRepository = { apiName: 'can_write_repository', kind: 'function' } as FunctionType<
+  { p_repo: string },
   boolean
 >
 
@@ -1315,6 +1353,16 @@ export const cleanupFlags = { apiName: 'cleanup_flags', kind: 'function' } as Fu
 export const cleanupPriorityRank = { apiName: 'cleanup_priority_rank', kind: 'function' } as FunctionType<
   { p: string },
   number
+>
+
+/**
+ *  The repository types this platform can author into
+ *  (code-repositories/overview). Model development is the third Foundry names
+ *  and is excluded by name: no model engine exists here.
+ */
+export const codeRepositoryKinds = { apiName: 'code_repository_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; note: string }[]
 >
 
 export const compassProjectOf = { apiName: 'compass_project_of', kind: 'function' } as FunctionType<
@@ -1944,6 +1992,16 @@ export const mediaReferenceValid = { apiName: 'media_reference_valid', kind: 'fu
 >
 
 /**
+ *  The three merge strategies code-repositories/branch-settings enumerates. A
+ *  repository enables one or more; squash, when enabled, is the main option
+ *  offered.
+ */
+export const mergeModes = { apiName: 'merge_modes', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { mode: string; note: string }[]
+>
+
+/**
  *  The one comparator each rules-reference table prints for its type ("If
  *  value is greater than [or equal to]") — a property of the metric, never of
  *  a condition row.
@@ -2366,6 +2424,18 @@ export const propertyDatasetFieldType = { apiName: 'property_dataset_field_type'
 export const proposalBlockers = { apiName: 'proposal_blockers', kind: 'function' } as FunctionType<
   { p_proposal: string },
   { scope: string; subject: string; reason: string }[]
+>
+
+/**
+ *  Every reason a pull request cannot merge; empty means it can. The four
+ *  requirements a protected branch may set
+ *  (code-repositories/branch-settings) plus a standing rejection. Security
+ *  approval always blocks: the requirement is storable and nothing here can
+ *  satisfy it, which is said rather than silently passed.
+ */
+export const pullRequestBlockers = { apiName: 'pull_request_blockers', kind: 'function' } as FunctionType<
+  { p_pr: string },
+  { reason: string }[]
 >
 
 export const reservedApiNames = { apiName: 'reserved_api_names', kind: 'function' } as FunctionType<
