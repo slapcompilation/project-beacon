@@ -15,7 +15,7 @@ import { useOrgMembers } from '@/features/projects/api'
 import {
   useProposals, useProposalBlockers, useTaskStatus, useReview, useMergeProposal,
   useCanApproveTask, useProposalReviewers, useInviteReviewer, useRemoveReviewer,
-  useTaskPolicy, useEligibleTasks,
+  useTaskPolicy, useEligibleTasks, useResourceLabel, useReviewProposal,
   type ProposalRow, type TaskRow,
 } from '@/features/branching/api'
 
@@ -100,6 +100,7 @@ function ProposalDetail({ proposal }: { proposal: ProposalRow }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Review changes</span>
         {open && <InviteReviewers proposal={proposal} />}
+        {open && <ReviewAll proposal={proposal} />}
       </div>
 
       <TaskSections proposal={proposal} open={open} />
@@ -150,6 +151,25 @@ function TaskSections({ proposal, open }: { proposal: ProposalRow; open: boolean
         </>
       )}
     </>
+  )
+}
+
+/** "reviewers can... approve or reject changes to all modified resources or
+ *  to specific ontology resources" — the header pair decides everything at
+ *  once; the per-task buttons remain for the second grain. */
+function ReviewAll({ proposal }: { proposal: ProposalRow }) {
+  const reviewAll = useReviewProposal(proposal.id)
+  const n = proposal.proposal_tasks.length
+  if (n === 0) return null
+  return (
+    <span className="ml-auto flex gap-1">
+      <Button size="small" variant="minimal" intent={Intent.DANGER} icon="cross"
+        loading={reviewAll.isPending} title={`Reject all ${String(n)} tasks`}
+        onClick={() => { reviewAll.mutate('rejected') }}>Reject all</Button>
+      <Button size="small" variant="minimal" intent={Intent.SUCCESS} icon="tick"
+        loading={reviewAll.isPending} title={`Approve all ${String(n)} tasks`}
+        onClick={() => { reviewAll.mutate('approved') }}>Approve all</Button>
+    </span>
   )
 }
 
@@ -253,6 +273,7 @@ function ViewPolicies({ task }: { task: TaskRow }) {
 function TaskRowView({ task, open }: { task: TaskRow; open: boolean }) {
   const { data: status } = useTaskStatus(task.id)
   const { data: eligible } = useCanApproveTask(task.id)
+  const { data: resourceLabel } = useResourceLabel(task.resource_kind, task.resource_id)
   const review = useReview()
   // "approved resources change from In Progress to Approved" — the page's
   // own name for the waiting state, not an invented one.
@@ -265,9 +286,13 @@ function TaskRowView({ task, open }: { task: TaskRow; open: boolean }) {
 
   return (
     <div className="flex items-center gap-2 text-xs">
-      <Tag minimal>{KIND_LABEL[task.resource_kind] ?? task.resource_kind}</Tag>
-      <code className="text-xs text-muted-foreground">{task.resource_id.slice(0, 8)}</code>
+      {/* "The status tag next to the resource name" — the name, when the
+          caller can see the resource; its identifier otherwise. */}
       <Tag minimal intent={intent}>{label}</Tag>
+      <Tag minimal>{KIND_LABEL[task.resource_kind] ?? task.resource_kind}</Tag>
+      {resourceLabel
+        ? <span className="font-medium truncate">{resourceLabel}</span>
+        : <code className="text-xs text-muted-foreground">{task.resource_id.slice(0, 8)}</code>}
       {task.proposal_reviews.length > 0 && (
         <Tag minimal icon="person">{task.proposal_reviews.length}</Tag>
       )}
