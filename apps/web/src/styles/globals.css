@@ -1235,6 +1235,7 @@
 .mb-8 { margin-bottom:2rem; }
 .min-h-screen { min-height:100vh; }
 .min-w-0 { min-width:0; }
+.min-h-0 { min-height:0; }
 .min-w-4 { min-width:1rem; }
 .min-w-40 { min-width:10rem; }
 .min-w-48 { min-width:12rem; }
@@ -1614,3 +1615,97 @@
   width:26px; height:26px; border-radius:50%; font-size:10px; font-weight:700;
   letter-spacing:.02em; background:hsl(var(--muted)); color:hsl(var(--muted-foreground));
 }
+
+/* ── Workshop: the module chrome, its layout tree, and the six widgets
+   (685/686). Sections nest and their layout decides the axis, which is why
+   the body classes mirror the six the picker draws. ── */
+.ws-header {
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+  padding:6px 10px; border-bottom:1px solid hsl(var(--border));
+  background:hsl(var(--card));
+}
+.ws-header-title { font-size:14px; font-weight:600; }
+.ws-canvas { padding:8px; display:flex; gap:8px; align-items:stretch; }
+.ws-rail {
+  width:230px; flex-shrink:0; border-right:1px solid hsl(var(--border));
+  overflow-y:auto; background:hsl(var(--card));
+}
+.ws-rail-head {
+  display:flex; align-items:center; gap:6px; padding:6px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.ws-rail-title {
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground)); flex:1;
+}
+.ws-rail-list { padding:4px 0; }
+.ws-rail-item {
+  display:flex; align-items:center; gap:6px; padding:3px 12px; font-size:12px;
+}
+.ws-rail-page { cursor:pointer; }
+.ws-rail-page:hover { background:hsl(var(--muted)); }
+.ws-rail-active { background:hsl(var(--muted)); font-weight:600; }
+.ws-rail-default {
+  font-size:9px; font-weight:700; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground));
+}
+.ws-rail-var { gap:4px; }
+.ws-rail-add { display:flex; gap:4px; padding:6px 10px; }
+
+.ws-section { display:flex; flex-direction:column; min-width:0; min-height:0; }
+.ws-section-head {
+  display:flex; align-items:center; gap:6px; padding:5px 8px;
+  border-bottom:1px solid hsl(var(--border)); flex-shrink:0;
+}
+.ws-section-title { font-size:12px; font-weight:600; }
+.ws-section-body { flex:1; min-height:0; display:flex; gap:8px; padding:8px; }
+/* the six layouts: what each does to its children's axis */
+.ws-body-columns { flex-direction:row; }
+.ws-body-rows    { flex-direction:column; }
+.ws-body-flow    { flex-direction:column; overflow-y:auto; }
+.ws-body-toolbar { flex-direction:row; align-items:center; }
+.ws-body-tabs    { flex-direction:column; }
+.ws-body-loop    { flex-direction:column; overflow-y:auto; }
+.ws-empty-section {
+  display:flex; flex-direction:column; gap:6px; align-items:center;
+  justify-content:center; width:100%; border:1px dashed hsl(var(--border));
+  border-radius:3px; padding:16px;
+}
+
+.ws-widget { flex:1 1 0%; min-width:0; min-height:0; overflow:auto; }
+.ws-widget-selected { border-color:hsl(var(--primary)); }
+.ws-widget-bar {
+  display:flex; align-items:center; gap:5px; margin:-4px -4px 6px;
+  padding:3px 6px; border-bottom:1px solid hsl(var(--border));
+}
+.ws-widget-name { font-size:11px; font-weight:600; flex:1; }
+.ws-empty { font-size:11px; color:hsl(var(--muted-foreground)); padding:8px; }
+.ws-scroll { overflow:auto; max-height:100%; }
+
+.ws-filters { display:flex; flex-direction:column; gap:10px; }
+.ws-filter { display:flex; flex-direction:column; }
+.ws-filter-name {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground)); margin-bottom:2px;
+}
+.ws-filter-row { display:flex; align-items:center; gap:6px; font-size:11px; }
+.ws-filter-count { color:hsl(var(--muted-foreground)); font-variant-numeric:tabular-nums; }
+.ws-filter-bar { height:6px; border-radius:2px; background:hsl(var(--primary)); }
+
+.ws-metric { display:flex; flex-direction:column; padding:6px 2px; }
+.ws-metric-value { font-size:28px; font-weight:600; line-height:1.1; }
+.ws-metric-label { font-size:11px; color:hsl(var(--muted-foreground)); }
+
+.ws-properties { display:flex; flex-direction:column; gap:4px; font-size:11px; }
+.ws-property { display:flex; gap:8px; }
+.ws-property dt { color:hsl(var(--muted-foreground)); min-width:120px; }
+.ws-property dd { font-weight:500; }
+.ws-buttons { display:flex; flex-wrap:wrap; gap:4px; }
+
+.ws-picker { width:min(760px, 90vw); }
+.ws-picker-tabs { display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+.ws-picker-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+  gap:6px; max-height:340px; overflow-y:auto;
+}
+.ws-picker-unbuilt { opacity:.55; }

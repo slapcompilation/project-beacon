@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (66) ────────────────────────────────────────────────
+// ── ACTION TYPES (67) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -189,6 +189,17 @@ export const createSpace = { apiName: 'create_space', kind: 'action' } as Action
  */
 export const createTransaction = { apiName: 'create_transaction', kind: 'action' } as ActionType<
   { p_dataset: string; p_txn_type: string; p_branch_name?: string },
+  string
+>
+
+/**
+ *  Creates a module with the page a new one starts with: two vertically
+ *  divided sections under the module header
+ *  (workshop/images/configure_new_page.png). INVOKER, so the module's own
+ *  policy decides who may.
+ */
+export const createWorkshopModule = { apiName: 'create_workshop_module', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string; p_folder?: string },
   string
 >
 
@@ -600,7 +611,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (258) ───────────────────────────────────────────────────
+// ── FUNCTIONS (262) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -967,6 +978,15 @@ export const canEditHealthCheckTarget = { apiName: 'can_edit_health_check_target
   boolean
 >
 
+/**
+ *  Editor edits a module — the role the page names, not a stricter one we
+ *  invented (workshop/concepts-permissions).
+ */
+export const canEditModule = { apiName: 'can_edit_module', kind: 'function' } as FunctionType<
+  { p_module: string },
+  boolean
+>
+
 export const canEditMonitoringRule = { apiName: 'can_edit_monitoring_rule', kind: 'function' } as FunctionType<
   { p_rule: string },
   boolean
@@ -994,6 +1014,15 @@ export const canManageMarking = { apiName: 'can_manage_marking', kind: 'function
 
 export const canManagePortfolio = { apiName: 'can_manage_portfolio', kind: 'function' } as FunctionType<
   { p_portfolio: string },
+  boolean
+>
+
+/**
+ *  Viewer opens a module (workshop/concepts-permissions). Composed by every
+ *  child table so the rule lives once.
+ */
+export const canOpenModule = { apiName: 'can_open_module', kind: 'function' } as FunctionType<
+  { p_module: string },
   boolean
 >
 
@@ -2667,5 +2696,29 @@ export const vectorEmbeddingModels = { apiName: 'vector_embedding_models', kind:
 export const workingStateConflicts = { apiName: 'working_state_conflicts', kind: 'function' } as FunctionType<
   { p_branch?: string },
   { resource_kind: string; resource_id: string; field: string; base_value: Json; mine: Json; theirs: Json }[]
+>
+
+/**
+ *  The event families workshop/concepts-events enumerates, minus the ones
+ *  with nothing to reach: the AIP Assist family and Stream-LLM-response (no
+ *  LLM binding exists here), and the Quiver and Notepad application events
+ *  (those products are not built). Switch-to-tab arrives with the Tabs
+ *  widget.
+ */
+export const workshopEventKinds = { apiName: 'workshop_event_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; family: string; note: string }[]
+>
+
+/**
+ *  The widget catalogue as an index rather than an allowlist: six built, and
+ *  the rest recorded with the page that would build them. Categories are the
+ *  picker's own (workshop/images/widget_picker.png), which differ from the
+ *  five groupings the prose uses. The section holds 62 widget pages; this
+ *  names the ones an arc has reached.
+ */
+export const workshopWidgetKinds = { apiName: 'workshop_widget_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; label: string; category: string; built: boolean; note: string }[]
 >
 
