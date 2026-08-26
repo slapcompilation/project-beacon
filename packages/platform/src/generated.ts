@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (73) ────────────────────────────────────────────────
+// ── ACTION TYPES (76) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -210,6 +210,15 @@ export const createSlateApp = { apiName: 'create_slate_app', kind: 'action' } as
  */
 export const createSpace = { apiName: 'create_space', kind: 'action' } as ActionType<
   { p_name: string; p_description?: string },
+  string
+>
+
+/**
+ *  Creates a spreadsheet with its first sheet. INVOKER, so the spreadsheet's
+ *  own policy decides who may.
+ */
+export const createSpreadsheet = { apiName: 'create_spreadsheet', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string },
   string
 >
 
@@ -647,6 +656,19 @@ export const settleBuild = { apiName: 'settle_build', kind: 'action' } as Action
 >
 
 /**
+ *  Sorts a table region by REARRANGING ITS CELLS, because that is what Fusion
+ *  does: "performing a sort in Fusion actually rearranges the rows in a sheet
+ *  so that the cells are in a sorted order ... a sort in Fusion cannot be
+ *  turned off to return to the original ordering"
+ *  (fusion/create-use-table-regions). Storing an order instead would be a
+ *  quiet divergence.
+ */
+export const sortTableRegion = { apiName: 'sort_table_region', kind: 'action' } as ActionType<
+  { p_region: string; p_column: number; p_descending?: boolean },
+  number
+>
+
+/**
  *  Put an edit in my working state instead of writing it through. Captures
  *  the base on first touch only — re-reading it would silently adopt someone
  *  else's save as my starting point and the conflict would disappear rather
@@ -670,6 +692,19 @@ export const submitCheckpoint = { apiName: 'submit_checkpoint', kind: 'action' }
 >
 
 /**
+ *  Syncs a table region to its dataset as a transaction — "any changes made
+ *  to that table range will trigger a build and be reflected in its
+ *  associated dataset ... you may see a number of finished and aborted
+ *  transactions" (fusion/sync-table-dataset). The schema comes from the
+ *  region's column headers and their chosen export types; Editor on the
+ *  dataset is required, as the page says.
+ */
+export const syncTableRegion = { apiName: 'sync_table_region', kind: 'action' } as ActionType<
+  { p_region: string },
+  string
+>
+
+/**
  *  Pull the latest ontology into my working state. Re-bases every staged
  *  field to what the ontology holds now; a resolution of latest drops my
  *  value for the fields we both moved, mine keeps it as an override. One
@@ -681,7 +716,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (273) ───────────────────────────────────────────────────
+// ── FUNCTIONS (276) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1075,6 +1110,16 @@ export const canEditSlateApp = { apiName: 'can_edit_slate_app', kind: 'function'
   boolean
 >
 
+/**
+ *  Editor edits a spreadsheet, the floor every application resource here
+ *  uses. The dataset sync asks its own question separately, because the page
+ *  permissions the DATASET rather than the sheet.
+ */
+export const canEditSpreadsheet = { apiName: 'can_edit_spreadsheet', kind: 'function' } as FunctionType<
+  { p_sheet: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -1151,6 +1196,11 @@ export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'fun
 
 export const canReadRepository = { apiName: 'can_read_repository', kind: 'function' } as FunctionType<
   { p_repo: string },
+  boolean
+>
+
+export const canReadSpreadsheet = { apiName: 'can_read_spreadsheet', kind: 'function' } as FunctionType<
+  { p_sheet: string },
   boolean
 >
 
@@ -1726,6 +1776,16 @@ export const functionTypeValid = { apiName: 'function_type_valid', kind: 'functi
 export const functionVersionString = { apiName: 'function_version_string', kind: 'function' } as FunctionType<
   { p_major: number; p_minor: number; p_patch: number; p_prerelease?: string },
   string
+>
+
+/**
+ *  The cell types fusion/sheets-overview lists as the most common, with the
+ *  page's own examples. Note the platform's own quirk, kept: Fusion uses
+ *  single quotes for strings, not double.
+ */
+export const fusionCellTypes = { apiName: 'fusion_cell_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { cell_type: string; example: string }[]
 >
 
 /**
