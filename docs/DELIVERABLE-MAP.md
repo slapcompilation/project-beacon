@@ -34,19 +34,6 @@ instructions. Every residual those six entries named is preserved below in
 
 ---
 
-## Citation sweeps
-
-**Four of the five allocated citation sweeps are done** (2026-08-18), each with
-the phase that reopened its pages: `data-lineage` (the surface turned out to be
-already built), `capabilities-typeclasses-and-branching` (the Capabilities tab),
-`projects-roles-and-portfolios` (portfolios), and `control-panel-and-banners`
-(the cross-organization visibility phase, 540-566).
-`capabilities-value-types-and-groups` was found already swept.
-
-**One remains**: `materializations-links-media-and-rids`, with the media and
-attachment property types. `deep-dive-ontology` is allocated **never**.
-`readings/README.md` holds the table and what each sweep found.
-
 ## The deprecation audit (2026-08-15)
 
 Every page carrying a **planned deprecation** callout was checked against what

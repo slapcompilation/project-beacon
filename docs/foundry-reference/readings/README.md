@@ -396,8 +396,10 @@ are missing from it (see `home-and-navigation.md` §7.8).
 ## `verify: strict` — which readings are checked, and when the rest will be
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **50 of 51 are opted in and pass;
-1,462 quotations trace.**
+in with `verify: strict` in its frontmatter. **81 of 82 are opted in and pass;
+1,845 quotations trace** (2026-08-26 — and every count in this file is a
+snapshot with a date, not a fact: run the guard and read what it prints. This
+paragraph said 50 of 51 and 1,462 for eight days after it stopped being true).
 
 **The allocation policy worked, and is now finished.** The seven that remained
 were never a backlog to grind: each belonged to a phase that had to reopen the
@@ -408,6 +410,15 @@ media and attachment read on 2026-08-19.
 
 The one reading left unchecked is `deep-dive-ontology`, permanently and on
 purpose: it quotes course PDFs the guard cannot read.
+
+**And the record outlived the work in the other direction.** `DELIVERABLE-MAP.md`
+went on saying one sweep remained — naming this same
+`materializations-links-media-and-rids` — for a week after the table below
+recorded it swept, because the map was written the day before and never
+corrected. It was read as instructions on 2026-08-26 and sent me to redo
+finished work; the section is deleted rather than annotated, which is the map's
+own rule. **Two documents describing one fact is how one of them goes stale**:
+this table is the record, and the map should point at it rather than restate it.
 
 | reading | fragments | swept when |
 |---|---|---|
