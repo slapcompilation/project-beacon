@@ -44,8 +44,7 @@ export const AUDIENCES: AppAudience[] = [
     id: 'data-ops',
     title: 'Applications for Data Ops',
     // The capture's six: Dataset, Code repositories, Data Lineage, Projects,
-    // Data prep, Catalog. We hold four; Code repositories and Data prep are
-    // authoring products we do not build.
+    // Data prep, Catalog. We hold five since 690; Data prep is not built.
     apps: [
       {
         name: 'Dataset',
@@ -79,8 +78,16 @@ export const AUDIENCES: AppAudience[] = [
         icon: 'endorsed',
         tint: '#7961db',
       },
+      {
+        name: 'Code repositories',
+        tagline: 'Author data pipelines',
+        blurb: 'Transforms and functions in a repository: sandbox branches, commits, pull requests and checks, with protected branches reached only through review.',
+        path: '/code',
+        icon: 'code',
+        tint: '#2d72d2',
+      },
     ],
-    missing: 'Code repositories and Data prep are not built here.',
+    missing: 'Data prep is not built here.',
   },
   {
     id: 'analytics',
@@ -141,6 +148,7 @@ export type PortalCategory = typeof PORTAL_CATEGORIES[number]
 export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/catalog': 'Analyze data',
   '/datasets': 'Build & monitor pipelines',
+  '/code': 'Build & monitor pipelines',
   '/lineage': 'Build & monitor pipelines',
   '/builds': 'Build & monitor pipelines',
   '/data-health': 'Build & monitor pipelines',

@@ -1247,6 +1247,7 @@
 .min-w-\[200px\] { min-width:200px; }
 .ml-1 { margin-left:0.25rem; }
 .ml-auto { margin-left:auto; }
+.ml-4 { margin-left:1rem; }
 .mt-0\.5 { margin-top:0.125rem; }
 .mt-1 { margin-top:0.25rem; }
 .my-1 { margin-top:0.25rem; margin-bottom:0.25rem; }
@@ -1783,3 +1784,47 @@
 }
 .sl-kind-unbuilt { opacity:.55; }
 .sl-kind-picked { border-color:hsl(var(--primary)); }
+
+/* ── Code Repositories: five tabs, and the Code tab's own chrome (690). ── */
+.cr-header {
+  display:flex; align-items:center; gap:8px; flex-shrink:0;
+  padding:5px 10px; border-bottom:1px solid hsl(var(--border));
+  background:hsl(var(--card));
+}
+.cr-title { font-size:13px; font-weight:600; }
+.cr-actionrow {
+  display:flex; align-items:center; gap:6px; flex-shrink:0;
+  padding:5px 10px; border-bottom:1px solid hsl(var(--border));
+}
+.cr-callout { margin:8px 10px; }
+.cr-files {
+  width:240px; flex-shrink:0; border-right:1px solid hsl(var(--border));
+  overflow-y:auto; background:hsl(var(--card));
+}
+.cr-panel-head {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground)); padding:6px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.cr-panel-head-row {
+  display:flex; align-items:center; gap:6px; padding:6px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.cr-file {
+  display:flex; align-items:center; gap:5px; padding:2px 10px;
+  font-size:12px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; cursor:pointer;
+}
+.cr-file:hover { background:hsl(var(--muted)); }
+.cr-file-selected { background:hsl(var(--muted)); font-weight:600; }
+.cr-newfile { display:flex; gap:4px; padding:6px 8px; }
+.cr-editor-head {
+  display:flex; align-items:center; gap:6px; padding:5px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.cr-editor { flex:1; resize:none; border:0; border-radius:0; }
+.cr-label {
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:hsl(var(--muted-foreground));
+}
+.cr-hint { font-size:11px; color:hsl(var(--muted-foreground)); }
+.cr-requirements { list-style:disc; margin-left:1.1rem; color:hsl(var(--muted-foreground)); }
