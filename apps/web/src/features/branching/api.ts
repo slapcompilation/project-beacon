@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import {
   saveToNewBranch, createProposal, mergeProposal, proposalBlockers,
-  taskApprovalStatus, branchConflicts, rebaseBranch, type Json,
+  taskApprovalStatus, canApproveProposalTask, branchConflicts, rebaseBranch, type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import { useAppStore } from '@/stores/app.store'
@@ -121,6 +121,8 @@ export interface ProposalRow {
   merged_at: string | null
   ontology_branches: { name: string; title: string; ontology_id: string } | null
   proposal_tasks: TaskRow[]
+  /** Who should review — advisory, and what "Assigned to me" means. */
+  proposal_reviewers: { user_id: string }[]
 }
 
 export interface TaskRow {
@@ -140,6 +142,7 @@ export function useProposals(ontologyId: string | null) {
         .select(`id, branch_id, name, description, status, do_not_merge,
                  created_by_user_id, created_at, merged_at,
                  ontology_branches!inner(name, title, ontology_id),
+                 proposal_reviewers(user_id),
                  proposal_tasks(id, resource_kind, resource_id, auto_approved,
                    proposal_reviews(user_id, decision))`)
         .eq('ontology_branches.ontology_id', ontologyId ?? '')
@@ -164,6 +167,143 @@ export function useTaskStatus(taskId: string) {
   return useQuery({
     queryKey: ['task-status', taskId],
     queryFn: () => client(taskApprovalStatus).executeFunction({ p_task: taskId }),
+  })
+}
+
+/** Whether MY review would count on this task (680). Anyone may review;
+ *  the page separates the tasks where it changes the outcome. */
+export function useCanApproveTask(taskId: string) {
+  return useQuery({
+    queryKey: ['task-eligible', taskId],
+    queryFn: () => client(canApproveProposalTask).executeFunction({ p_task: taskId }),
+  })
+}
+
+/** Which of a proposal's tasks this caller's approval would count for —
+ *  the capture groups them under their own heading, so the answer is needed
+ *  for the whole proposal at once rather than task by task. */
+export function useEligibleTasks(proposalId: string | null, taskIds: string[]) {
+  return useQuery({
+    queryKey: [...keys.proposal(proposalId ?? ''), 'eligible', taskIds.join(',')],
+    enabled: proposalId !== null && taskIds.length > 0,
+    queryFn: async (): Promise<Set<string>> => {
+      const answers = await Promise.all(taskIds.map(async (id) =>
+        [id, await client(canApproveProposalTask).executeFunction({ p_task: id })] as const))
+      return new Set(answers.filter(([, yes]) => yes).map(([id]) => id))
+    },
+  })
+}
+
+export interface ProposalReviewer {
+  userId: string
+  label: string | null
+  addedAt: string
+}
+
+/** "Use the reviewers list to track who should review changes, not to
+ *  restrict approvals" — advisory by design, so nothing here gates. */
+export function useProposalReviewers(proposalId: string | null) {
+  return useQuery({
+    queryKey: [...keys.proposal(proposalId ?? ''), 'reviewers'],
+    enabled: proposalId !== null,
+    queryFn: async (): Promise<ProposalReviewer[]> => {
+      const { data, error } = await supabase.from('proposal_reviewers')
+        .select('user_id, added_at').eq('proposal_id', proposalId ?? '')
+        .order('added_at')
+      if (error) throw new Error(error.message)
+      const rows = data as { user_id: string; added_at: string }[]
+      if (rows.length === 0) return []
+      const { data: people } = await supabase.from('users')
+        .select('id, username').in('id', rows.map((r) => r.user_id))
+      const byId = new Map((people as { id: string; username: string }[] | null ?? [])
+        .map((p) => [p.id, p.username]))
+      return rows.map((r) => ({
+        userId: r.user_id, label: byId.get(r.user_id) ?? null, addedAt: r.added_at,
+      }))
+    },
+  })
+}
+
+/** The invite writes the row directly: proposal_reviewers' own policy says
+ *  who may (anyone who can manage the branch), so no function sits above it. */
+export function useInviteReviewer(proposalId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.from('proposal_reviewers')
+        .insert({ proposal_id: proposalId, user_id: userId })
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.proposal(proposalId) })
+      toast.success('Reviewer invited')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useRemoveReviewer(proposalId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.from('proposal_reviewers')
+        .delete().eq('proposal_id', proposalId).eq('user_id', userId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.proposal(proposalId) }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** What View policies draws: the project's own approval policy, per task
+ *  resource. NULL approvals means the default policy the page prints. */
+export interface TaskPolicy {
+  projectId: string | null
+  projectName: string | null
+  protectedResource: boolean
+  approvalsRequired: number | null
+  reviewerLabels: string[]
+  contributorApproval: boolean
+}
+
+export function useTaskPolicy(kind: string, resourceId: string) {
+  return useQuery({
+    queryKey: ['task-policy', kind, resourceId],
+    queryFn: async (): Promise<TaskPolicy | null> => {
+      const res = (await supabase.rpc('resource_project', {
+        p_kind: kind, p_id: resourceId,
+      })) as {
+        data: { project_id: string | null; protected: boolean }[] | null
+        error: { message: string } | null
+      }
+      if (res.error) throw new Error(res.error.message)
+      const row = res.data?.at(0) ?? null
+      if (!row?.project_id) {
+        return {
+          projectId: null, projectName: null, protectedResource: row?.protected ?? false,
+          approvalsRequired: null, reviewerLabels: [], contributorApproval: true,
+        }
+      }
+      const { data: proj, error } = await supabase.from('projects')
+        .select('id, name, policy_approvals_required, policy_reviewer_ids, policy_contributor_approval')
+        .eq('id', row.project_id).single<{
+          id: string; name: string; policy_approvals_required: number | null
+          policy_reviewer_ids: string[]; policy_contributor_approval: boolean
+        }>()
+      if (error) throw new Error(error.message)
+      let labels: string[] = []
+      if (proj.policy_reviewer_ids.length > 0) {
+        const { data: people } = await supabase.from('users')
+          .select('username').in('id', proj.policy_reviewer_ids)
+        labels = (people as { username: string }[] | null ?? []).map((p) => p.username)
+      }
+      return {
+        projectId: proj.id, projectName: proj.name, protectedResource: row.protected,
+        approvalsRequired: proj.policy_approvals_required,
+        reviewerLabels: labels,
+        contributorApproval: proj.policy_contributor_approval,
+      }
+    },
   })
 }
 
