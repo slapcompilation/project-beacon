@@ -1775,6 +1775,7 @@
   font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
   color:hsl(var(--muted-foreground));
 }
+.sl-json-error { font-size:11px; color:hsl(var(--destructive)); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
 .sl-hint { font-size:11px; color:hsl(var(--muted-foreground)); }
 .sl-kindgrid {
   display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));

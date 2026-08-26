@@ -183,7 +183,16 @@ reconcile.
   (Property, Layout, JSON, Events). Four panels have engines (Events,
   Styles, Variables, and Datasets which the docs say became Variables);
   the other four open a note naming the page that would build them rather
-  than an empty shell. **689 is a correction the suite caught**: 688 opened a comment
+  than an empty shell. **Post-build reconciliation** (navigation re-walked
+  element by element) found one defect and three gaps: the JSON tab
+  "displays JSON errors and enables Update only after you make a valid
+  change" while mine silently swallowed a parse failure — fixed, so the
+  error shows and Update is disabled until the draft is valid AND changed;
+  and "exit to view mode" is a named action-bar element, now a View mode
+  toggle hiding the three editing areas. Recorded, unbuilt: the canvas
+  screen-size dropdown, the widget list's toolbar/canvas split, and the
+  whole Undo-support section (deletion undo by toast or Cmd+Z, restoring
+  event wirings). **689 is a correction the suite caught**: 688 opened a comment
   with "Values from the CONTAINER TYPE dropdown", and `Values from <slug>`
   is a promise the guard checks — it read `the` as a page. That set comes
   from a capture, so it now declares nothing and joins the printed

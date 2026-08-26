@@ -139,6 +139,8 @@ function SlateEditor({ app, onClose }: { app: SlateApp; onClose: () => void }) {
   const [pageId, setPageId] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [panel, setPanel] = useState<string | null>(null)
+  // "exit to view mode" is an action-bar element the page names
+  const [editing, setEditing] = useState(true)
 
   if (!contents) {
     return <div className="flex-1 flex items-center justify-center"><Spinner size={SpinnerSize.SMALL} /></div>
@@ -158,9 +160,13 @@ function SlateEditor({ app, onClose }: { app: SlateApp; onClose: () => void }) {
           <span className="ml-auto flex items-center gap-1">
             <Tag minimal className="!text-[9px]">{contents.pages.length} page{contents.pages.length === 1 ? '' : 's'}</Tag>
             <Tag minimal className="!text-[9px]">{contents.identifiers.length} identifiers</Tag>
+            <Button size="small" variant="minimal" icon={editing ? 'eye-open' : 'edit'}
+              onClick={() => { setEditing(!editing); setPanel(null) }}>
+              {editing ? 'View mode' : 'Edit'}
+            </Button>
           </span>
         </div>
-        <div className="sl-panelbar">
+        {editing && <div className="sl-panelbar">
           {PANELS.map((p) => (
             <Button key={p.id} size="small" variant="minimal"
               className={panel === p.id ? 'sl-panel-active' : ''}
@@ -172,13 +178,15 @@ function SlateEditor({ app, onClose }: { app: SlateApp; onClose: () => void }) {
             onChange={(e) => { setPageId(e.currentTarget.value) }}>
             {contents.pages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </HTMLSelect>
-        </div>
+        </div>}
       </div>
 
       <div className="flex-1 flex min-h-0">
-        {/* 2 — the widget list */}
-        <WidgetList app={app} contents={contents} pageId={page?.id ?? null}
-          selected={selected} onSelect={setSelected} />
+        {/* 2 — the widget list, which belongs to edit mode */}
+        {editing && (
+          <WidgetList app={app} contents={contents} pageId={page?.id ?? null}
+            selected={selected} onSelect={setSelected} />
+        )}
 
         {/* 3 — the canvas */}
         <div className="flex-1 min-w-0 overflow-auto sl-canvas">
@@ -191,13 +199,15 @@ function SlateEditor({ app, onClose }: { app: SlateApp; onClose: () => void }) {
         </div>
 
         {/* 4 — the widget editor, or a panel over it */}
-        <div className="sl-inspector">
-          {panel !== null
-            ? <PanelBody app={app} contents={contents} panelId={panel} pageId={page?.id ?? null} />
-            : widget
-              ? <WidgetEditor app={app} contents={contents} widget={widget} />
-              : <p className="sl-hint">Select a widget to configure it, or open a panel above.</p>}
-        </div>
+        {editing && (
+          <div className="sl-inspector">
+            {panel !== null
+              ? <PanelBody app={app} contents={contents} panelId={panel} pageId={page?.id ?? null} />
+              : widget
+                ? <WidgetEditor app={app} contents={contents} widget={widget} />
+                : <p className="sl-hint">Select a widget to configure it, or open a panel above.</p>}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -380,6 +390,13 @@ function WidgetEditor({ app, contents, widget }: {
   const [styles, setStyles] = useState(widget.styles)
   const name = contents.identifiers.find((i) => i.id === widget.identifierId)?.name ?? ''
   const events = contents.events.filter((e) => e.eventIdentifierId === widget.identifierId)
+  let parsed: unknown = null
+  let jsonError: string | null = null
+  try {
+    parsed = JSON.parse(json)
+  } catch (e) {
+    jsonError = e instanceof Error ? e.message : 'Invalid JSON'
+  }
 
   return (
     <div className="sl-editor">
@@ -453,13 +470,13 @@ function WidgetEditor({ app, contents, widget }: {
             </p>
             <TextArea fill rows={12} value={json} className="font-mono !text-xs"
               onChange={(e) => { setJson(e.currentTarget.value) }} />
+            {/* "The editor displays JSON errors and enables Update only after
+                you make a valid change" — so the error shows, not swallowed. */}
+            {jsonError !== null && <p className="sl-json-error">{jsonError}</p>}
             <Button size="small" intent={Intent.PRIMARY} icon="tick" loading={update.isPending}
+              disabled={jsonError !== null || json === JSON.stringify(widget.config, null, 2)}
               onClick={() => {
-                try {
-                  update.mutate({ id: widget.id, config: JSON.parse(json) as Record<string, unknown> })
-                } catch {
-                  // an invalid draft is the author's to fix
-                }
+                update.mutate({ id: widget.id, config: parsed as Record<string, unknown> })
               }}>Update</Button>
           </div>
         )}
