@@ -91,11 +91,40 @@ Measured before starting, because seven of the eleven have no pages on disk:
 | Code workbook | `code-workbook` | 43 | 43 |
 | Contour | `contour` | 33 | 33 |
 | Vertex | `vertex` | 28 | 28 |
-| Reports | `reports` | 22 | 22 |
+| ~~Reports~~ **[Sunset]** | `reports` | 22 | 22 |
 | Fusion | `fusion` | 22 | 22 |
-| Forms | `forms` | 19 | 19 |
+| ~~Forms~~ **[Sunset]** | `forms` | 19 | 19 |
 | Machine Learning | `model-studio` + `model-integration` | 31 | 32 |
-| Data prep | `preparation` | 8 | 8 |
+| ~~Data prep~~ **[Sunset]** | `preparation` | 8 | 8 |
+
+**THREE OF THE ELEVEN ARE SUNSET IN FOUNDRY AND ARE NOT BUILT** (measured
+2026-08-27, before building the first of them). Each carries a `[Sunset]`
+callout on its own overview naming its replacement:
+
+- **Forms** — "will be deprecated at a future date... We recommend building
+  user input workflows with the Ontology to represent relevant data
+  structures as object types and configure writeback interactions with
+  **Actions** and **Functions**" (`forms/overview`). We already have that
+  replacement: action types with parameters, the form engine of 666/667,
+  submission criteria, `apply_action`, and reverts (682). Building Forms
+  would add a SECOND, deprecated way to do what we already do the current
+  way.
+- **Reports** — "We recommend migrating your workflows to other
+  applications and tools" (`reports/overview`).
+- **Data prep** (`preparation`) — "We recommend migrating your workflows to
+  **Pipeline Builder**" (`preparation/overview`), a product we do not have.
+
+This follows the rule the deprecation audit above exists for: **do not
+build a design Foundry has already left.** That audit's whole finding was
+that exactly one deprecated design ever reached our schema; building these
+would knowingly make it four. The Home cards say so rather than standing
+silently absent. Verified at product level: Fusion, Quiver, Contour, Code
+workbook, Vertex and the model family carry no product-level sunset —
+Quiver and Vertex mention deprecation only on individual feature pages.
+
+**So the programme is eight buildable, not eleven.** Three complete
+(Workshop, Slate, Code Repositories); five to go — Fusion, Quiver, Machine
+Learning, and the three Spark products last.
 
 **All eleven now have their pages on disk** (#847): the eight absent
 sections were mirrored on 2026-08-26 — 206 pages and 753 images, no

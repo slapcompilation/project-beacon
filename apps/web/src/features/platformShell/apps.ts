@@ -87,7 +87,7 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
     ],
-    missing: 'Data prep is not built here.',
+    missing: 'Data prep is sunset in Foundry, which recommends Pipeline Builder instead, so it is deliberately not built here.',
   },
   {
     id: 'analytics',
@@ -95,7 +95,7 @@ export const AUDIENCES: AppAudience[] = [
     // The capture's six — Code workbook, Machine Learning, Contour, Reports,
     // Quiver, Vertex — are all products this platform does not build.
     apps: [],
-    missing: 'Code Workbook, Machine Learning, Contour, Reports, Quiver and Vertex are not built here.',
+    missing: 'Code Workbook, Machine Learning, Contour, Quiver and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -120,7 +120,7 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#5c7080',
       },
     ],
-    missing: 'Fusion, Forms and Slate are not built here.',
+    missing: 'Fusion is not built here yet. Forms is sunset in Foundry, which recommends Actions and Functions instead — both of which this platform already has — so it is deliberately not built.',
   },
 ]
 
