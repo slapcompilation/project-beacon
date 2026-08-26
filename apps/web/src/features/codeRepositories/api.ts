@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import {
   createCodeRepository, mergePullRequest, pullRequestBlockers,
-  codeRepositoryKinds, mergeModes,
+  codeRepositoryKinds, mergeModes, publishTransformBranch,
 } from '@beacon/platform'
 
 export interface CodeRepository {
@@ -306,6 +306,24 @@ export function useMerge(repoId: string) {
     },
     // CodeRepositories:MergeBlocked, :MergeModeNotOffered — the name is the
     // useful half, and the blockers list already said why.
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** What ci/foundry-publish does: derive a job spec from every SQL transform
+ *  on the branch. "In order to publish changes to your data, the continuous
+ *  integration process must run and finish successfully" — a failure is
+ *  recorded as a failed check rather than thrown away. */
+export function usePublishBranch(repoId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (branchId: string) =>
+      client(publishTransformBranch).applyAction({ p_branch: branchId }),
+    onSuccess: (n) => {
+      void qc.invalidateQueries({ queryKey: keys.repo(repoId) })
+      void qc.invalidateQueries({ queryKey: ['pr-blockers'] })
+      toast.success(`Published ${String(n)} transform${n === 1 ? '' : 's'} — see the Checks tab`)
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

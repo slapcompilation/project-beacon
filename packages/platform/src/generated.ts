@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (70) ────────────────────────────────────────────────
+// ── ACTION TYPES (72) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -371,6 +371,31 @@ export const objectDatasetJobSpec = { apiName: 'object_dataset_job_spec', kind: 
 >
 
 /**
+ *  What ci/foundry-publish does, under Foundry's own name for it: derives a
+ *  job spec from every SQL transform on the branch and records the check the
+ *  page says must succeed before changes take effect
+ *  (code-repositories/branch-settings). 690's protected-branch requirement
+ *  already looks for a check of exactly this name, so the two halves meet
+ *  without either being bent.
+ */
+export const publishTransformBranch = { apiName: 'publish_transform_branch', kind: 'action' } as ActionType<
+  { p_branch: string },
+  number
+>
+
+/**
+ *  Turns one SQL transform file into a job spec: the output dataset its
+ *  FILENAME declares (building-pipelines/create-batch-pipeline-cr), the
+ *  inputs its backticks name, and the SELECT its body holds. Python
+ *  transforms are refused by name — they declare through decorators and this
+ *  platform does not run Python.
+ */
+export const publishTransformFile = { apiName: 'publish_transform_file', kind: 'action' } as ActionType<
+  { p_file: string },
+  string
+>
+
+/**
  *  Finish rebase and save: apply the per-resource choices (Use Main deletes
  *  the branch row; Keep current refreshes its baseline to main's present),
  *  drop rows whose main resource is gone, stamp last_rebased_at. Auto-resolve
@@ -644,7 +669,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (271) ───────────────────────────────────────────────────
+// ── FUNCTIONS (273) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2729,6 +2754,29 @@ export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'func
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
   { p_base_type: string },
   boolean
+>
+
+/**
+ *  The datasets a SQL transform names in backticks, resolved within the
+ *  repository's project. Foundry's editor rewrites a backtick to a dataset
+ *  RID so the code survives a move; ours accepts the RID, the api name, the
+ *  name, or a trailing path segment — a recorded simplification of the same
+ *  intent (building-pipelines/create-batch-pipeline-cr).
+ */
+export const transformFileInputs = { apiName: 'transform_file_inputs', kind: 'function' } as FunctionType<
+  { p_body: string; p_project: string },
+  { dataset_id: string; reference: string }[]
+>
+
+/**
+ *  The SELECT inside a SQL transform — the body after CREATE TABLE `path` AS,
+ *  as the worked example writes it
+ *  (building-pipelines/images/finished-code.png). A file with no CREATE TABLE
+ *  is taken as the logic itself.
+ */
+export const transformFileLogic = { apiName: 'transform_file_logic', kind: 'function' } as FunctionType<
+  { p_body: string },
+  string
 >
 
 export const typeWidens = { apiName: 'type_widens', kind: 'function' } as FunctionType<
