@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (76) ────────────────────────────────────────────────
+// ── ACTION TYPES (79) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -191,6 +191,16 @@ export const createProposal = { apiName: 'create_proposal', kind: 'action' } as 
 >
 
 /**
+ *  Creates an analysis with its first canvas, named Canvas after
+ *  howto-analysis-canvas-annotated.png's tab bar. INVOKER, so the analysis'
+ *  own policy decides who may.
+ */
+export const createQuiverAnalysis = { apiName: 'create_quiver_analysis', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string; p_type?: string },
+  string
+>
+
+/**
  *  Creates a Slate application with the document a new one starts from: one
  *  page rooted at a w_document container, as the widget list draws it
  *  (slate/images/slate-ui-annotated.png). INVOKER, so the application's own
@@ -268,6 +278,17 @@ export const datasetRematerialize = { apiName: 'dataset_rematerialize', kind: 'a
 export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string },
   string
+>
+
+/**
+ *  Deletion takes a MODE because the page gives two: "Delete and remove from
+ *  downstream cards" and "Remove from canvas". Returns how many downstream
+ *  slots were emptied, or how many canvases the card left. INVOKER — the
+ *  card's own policy decides who may.
+ */
+export const deleteQuiverCard = { apiName: 'delete_quiver_card', kind: 'action' } as ActionType<
+  { p_card: string; p_mode?: string },
+  number
 >
 
 /**
@@ -618,6 +639,16 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
+/**
+ *  The Save button: "Quiver analyses are saved manually by clicking the Save
+ *  button" (quiver/core-concepts). Snapshots the graph, the canvases and the
+ *  placements. INVOKER, so a viewer's SELECT-only policy stops the insert.
+ */
+export const saveQuiverAnalysis = { apiName: 'save_quiver_analysis', kind: 'action' } as ActionType<
+  { p_analysis: string },
+  string
+>
+
 export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'action' } as ActionType<
   { p_property: Json; p_branch?: string },
   string
@@ -716,7 +747,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (276) ───────────────────────────────────────────────────
+// ── FUNCTIONS (283) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1103,6 +1134,16 @@ export const canEditMonitoringView = { apiName: 'can_edit_monitoring_view', kind
 >
 
 /**
+ *  "users with view access can see (not edit) a Quiver analysis, while users
+ *  with edit access can view and update it" (quiver/analysis-save-share). The
+ *  project's role, asked once.
+ */
+export const canEditQuiverAnalysis = { apiName: 'can_edit_quiver_analysis', kind: 'function' } as FunctionType<
+  { p_analysis: string },
+  boolean
+>
+
+/**
  *  Editor edits a Slate application, the same floor a Workshop module uses.
  */
 export const canEditSlateApp = { apiName: 'can_edit_slate_app', kind: 'function' } as FunctionType<
@@ -1191,6 +1232,11 @@ export const canReadDataset = { apiName: 'can_read_dataset', kind: 'function' } 
  */
 export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'function' } as FunctionType<
   { p_dataset: string },
+  boolean
+>
+
+export const canReadQuiverAnalysis = { apiName: 'can_read_quiver_analysis', kind: 'function' } as FunctionType<
+  { p_analysis: string },
   boolean
 >
 
@@ -2536,6 +2582,43 @@ export const pullRequestBlockers = { apiName: 'pull_request_blockers', kind: 'fu
   { reason: string }[]
 >
 
+/**
+ *  Every card Quiver documents (203), with the signature its own page
+ *  declares, normalised to the twenty-eight-type enumeration. An index, not
+ *  an allowlist: a kind here with built = false refuses by name rather than
+ *  rendering blank, which is what "Understanding a card's output type, and
+ *  which downstream cards it can be used in is a very important concept in
+ *  Quiver" (quiver/analysis-data-model) needs in order to mean anything. note
+ *  carries what the page said that the enumeration does not carry.
+ */
+export const quiverCardKinds = { apiName: 'quiver_card_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; title: string; input_types: string[]; output_types: string[]; built: boolean; note: string }[]
+>
+
+export const quiverCardOutputType = { apiName: 'quiver_card_output_type', kind: 'function' } as FunctionType<
+  { p_card: string },
+  string
+>
+
+/**
+ *  The twenty-eight types quiver/analysis-data-model enumerates in one table,
+ *  which is what "Together, these types form Quiver's data model, and define
+ *  how cards can be chained together" refers to. Two of them are arity
+ *  markers rather than data, which is how a card with no input or no output
+ *  still types. This enumeration WINS over any single card page that spells a
+ *  member differently.
+ */
+export const quiverDataTypes = { apiName: 'quiver_data_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { data_type: string; description: string }[]
+>
+
+export const quiverGlobalId = { apiName: 'quiver_global_id', kind: 'function' } as FunctionType<
+  { n: number },
+  string
+>
+
 export const reservedApiNames = { apiName: 'reserved_api_names', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
@@ -2854,6 +2937,20 @@ export const transformFileLogic = { apiName: 'transform_file_logic', kind: 'func
 export const typeWidens = { apiName: 'type_widens', kind: 'function' } as FunctionType<
   { p_from: string; p_to: string },
   boolean
+>
+
+/**
+ *  The page's definition, not ours: a card is unused only if "It is not
+ *  placed on any canvas", "No card on a canvas depends on it" and "It is not
+ *  referenced by any dashboard, function, or global settings entity"
+ *  (quiver/analysis-canvas). The second is transitive here, since a card
+ *  feeding a card that feeds a canvas card is depended on. Quiver functions
+ *  and global settings entities are not built, so the third reduces to
+ *  dashboards.
+ */
+export const unusedQuiverCards = { apiName: 'unused_quiver_cards', kind: 'function' } as FunctionType<
+  { p_analysis: string },
+  { card_id: string; global_id: string; kind: string }[]
 >
 
 export const userCanEditResource = { apiName: 'user_can_edit_resource', kind: 'function' } as FunctionType<
