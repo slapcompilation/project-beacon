@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**4123 pages across 107 sections.**
+**4329 pages across 116 sections.**
 
 ## action-types — 37 pages
 
@@ -2261,6 +2261,52 @@ stay findable.
 - `unit-tests` — Unit tests
 - `use-project-references` — Use Project references
 
+## code-workbook — 43 pages
+
+- `_index` — Code Workbook \[Legacy]
+- `available-fonts` — Available Fonts
+- `branching-getting-started` — Getting started
+- `branching-imported-datasets` — Choose imported dataset branch
+- `branching-merging` — Merging branches
+- `branching-overview` — Branching
+- `code-products-comparison` — Comparison: Code Repositories vs. Code Workspaces vs. Code Workbook
+- `code-repositories-export` — Exporting to a Code Repository
+- `core-concepts` — Core concepts
+- `environment-batch-interactive` — Batch builds and interactive builds
+- `environment-creation-overview` — Environment creation
+- `environment-overview` — Environments
+- `environment-profiles` — Code Workbook profiles
+- `environment-troubleshooting` — Troubleshooting guide
+- `environment-view-resolved` — View resolved environment
+- `faq` — Code Workbook FAQ
+- `getting-started` — Getting started
+- `hidden-repository` — Hidden code repositories
+- `keyboard-shortcuts` — Keyboard shortcuts
+- `optional-data-persistence` — Optional data persistence
+- `overview` — Code Workbook \[Legacy]
+- `present-visualizations` — Present visualizations
+- `project-references` — Project references
+- `pyspark-reference` — PySpark reference
+- `r-filesystem` — R Filesystem API
+- `session-history-pinning` — Session history and session pinning
+- `sparkr-reference` — SparkR reference
+- `templates-getting-started` — Getting started
+- `templates-multi-node` — Multi-node templates
+- `templates-overview` — Templates
+- `templates-suggested` — Suggested templates
+- `transforms-faq` — Transforms FAQ
+- `transforms-overview` — Transforms
+- `transforms-spark` — Spark
+- `transforms-unstructured` — Access unstructured files
+- `transforms-visualize` — Visualize data
+- `workbooks-console` — Console
+- `workbooks-duplicate-nodes` — Duplicate nodes
+- `workbooks-global-code` — Global code
+- `workbooks-input-output-types` — Inputs and outputs
+- `workbooks-languages` — Languages
+- `workbooks-overview` — Workbooks
+- `workbooks-production` — Moving to production
+
 ## compass — 10 pages
 
 - `create-a-project` — Create a Project
@@ -2294,6 +2340,42 @@ stay findable.
 - `typescript-sdk` — TypeScript SDK
 - `usage` — Compute module usage and pricing
 - `volumes` — Volumes
+
+## contour — 33 pages
+
+- `_index` — Contour
+- `analysis-create-path` — Create a path
+- `analysis-parameterize` — Parameterize your analysis
+- `analysis-share-collaborate` — Share and collaborate on an analysis
+- `analysis-share-results` — Share results
+- `analysis-switch-aggregated` — Switch to aggregated data
+- `boards-add` — Add a board
+- `boards-descriptions` — Board descriptions
+- `boards-filter` — Filter data
+- `boards-join` — Join datasets
+- `boards-map` — Map board
+- `boards-overview` — Boards
+- `boards-verify-results` — Verify results
+- `change-dataset-version` — Change input dataset version
+- `compute-usage` — Compute usage with Contour
+- `convert-to-pipeline-builder` — Export Contour logic to Pipeline Builder
+- `core-concepts` — Core concepts
+- `correctness-non-determinism` — Non-determinism in Contour
+- `correctness-timezones` — Time zones in Contour
+- `dashboards-getting-started` — Getting started
+- `dashboards-overview` — Dashboards
+- `datasets-save` — Save as dataset
+- `expressions-arrays` — Array functions
+- `expressions-overview` — Expressions
+- `expressions-relative-dates` — Derive relative dates
+- `expressions-syntax` — Syntax and supported functions
+- `expressions-use-board` — Use the expression board
+- `expressions-window-functions` — Window functions
+- `faq` — Contour FAQ
+- `getting-started` — Getting started
+- `overview` — Contour
+- `performance-optimize` — Optimizing your analysis
+- `project-references` — Project references
 
 ## custom-docs — 13 pages
 
@@ -2521,6 +2603,28 @@ stay findable.
 - `scheduling-suggestion-functions` — Suggestion Function
 - `scheduling-validation-rules` — Validation rules
 
+## forms — 19 pages
+
+- `_index` — Forms \[Sunset]
+- `attachments-field` — Attachments field
+- `auto-populating-fields` — Auto-populating fields
+- `code-editor` — Code Editor
+- `create-a-form` — Create a form
+- `data-backed-fields` — Data-backed fields
+- `faqs` — FAQs
+- `generate-primary-key` — Generate a primary key
+- `integrate` — Integrate with other Foundry applications
+- `multiplicity` — Multiplicity
+- `notifications` — Receive notifications
+- `overview` — Forms \[Sunset]
+- `permissions` — Permissions
+- `review-edit-responses` — Review and edit responses
+- `share-form` — Share a form with other users
+- `sheets` — Sheets
+- `simple-fields` — Simple fields
+- `transforms` — Transforms
+- `validators` — Validators
+
 ## foundry-branching — 14 pages
 
 - `_index` — Global Branching
@@ -2654,6 +2758,31 @@ stay findable.
 - `using-palantir-provided-models-to-create-a-semantic-search-workflow` — Use Palantir-provided models to create a semantic search workflow
 - `version-range-dependencies-for-functions` — Version range dependencies for functions
 - `webhooks` — Webhooks in functions
+
+## fusion — 22 pages
+
+- `_index` — Fusion
+- `boolean-logic` — Boolean logic
+- `create-templates` — Create templates
+- `create-use-table-regions` — Create and use table regions
+- `data-updates-edit-history` — Data updates and edit history
+- `dropdowns-locked-cells-links` — Dropdowns, locked cells, and links
+- `find-and-use-data` — Find and use data
+- `format-cells` — Format cells
+- `formulas-overview` — Formulas
+- `function-library` — Function library
+- `import-xls` — Import XLS documents
+- `index-datasets` — Index datasets
+- `lookup-datasets` — Lookup datasets
+- `overview` — Fusion
+- `perform-actions` — Perform Actions
+- `presentation-view` — Presentation view
+- `project-scope` — Project scope
+- `resync-table-dataset` — Resync a table to a dataset
+- `sheets-overview` — Sheets
+- `sync-table-dataset` — Sync data from Fusion to a dataset
+- `validate-results` — Validate results
+- `visualize-time-series` — Visualize time series
 
 ## geospatial — 17 pages
 
@@ -2907,6 +3036,43 @@ stay findable.
 - `_index` — Model Catalog
 - `model-deprecation` — Model deprecation
 - `overview` — Model Catalog
+
+## model-integration — 21 pages
+
+- `_index` — Model connectivity and development
+- `evaluations` — Evaluations
+- `experiments` — Experiments
+- `functions-on-models` — Functions on models
+- `getting-started` — Getting started
+- `gpu-training` — Train models with GPUs
+- `marketplace-models` — Add modeling resources to a Marketplace product
+- `model-functions-guide` — Model functions developer guide
+- `model-studio` — Model Studio
+- `models` — Models
+- `objectives` — Objectives
+- `overview` — Model connectivity and development
+- `tutorial-conclusion` — Conclusion and next steps
+- `tutorial-evaluate-manage-models` — 3. Tutorial - Evaluate a model in the Modeling Objectives application
+- `tutorial-intro` — Tutorial: Supervised machine learning
+- `tutorial-productionize` — 4. Tutorial - Productionize a model
+- `tutorial-set-up-project` — 1. Tutorial - Set up a machine learning project in Foundry
+- `tutorial-train-code-repositories` — 2c. Tutorial: Train a model in Code Repositories
+- `tutorial-train-jupyter-notebook` — 2b. Tutorial: Train a model in a Jupyter® notebook
+- `tutorial-train-model-studio` — 2a. Tutorial: Train a model in Model Studio
+- `what-to-use` — Selecting the right modeling tool
+
+## model-studio — 10 pages
+
+- `configuration-compute-resources` — Compute resources
+- `configuration-inputs` — Inputs
+- `core-concepts` — Core concepts
+- `faq` — FAQ
+- `navigation` — Navigation
+- `overview` — Model Studio
+- `trainers-classification` — Classification trainer
+- `trainers-regression` — Regression trainer
+- `trainers-timeseries-forecasting` — Time series forecasting trainer
+- `troubleshooting` — Troubleshooting
 
 ## monitoring-views — 7 pages
 
@@ -3640,6 +3806,17 @@ stay findable.
 - `user-generated-tokens` — User-generated tokens
 - `writing-oauth2-clients` — Writing OAuth2 clients for Foundry
 
+## preparation — 8 pages
+
+- `_index` — Preparation \[Sunset]
+- `advanced-examples` — Advanced examples
+- `basic-examples` — Basic examples
+- `faq` — faq
+- `getting-started` — Getting started
+- `overview` — Preparation \[Sunset]
+- `preparation-tutorial` — Create a simple preparation
+- `project-references` — Project references
+
 ## projects — 9 pages
 
 - `add-documentation` — Create a Project
@@ -3981,6 +4158,31 @@ stay findable.
 - `visual-functions-create` — Create and use visual functions
 - `visual-functions-overview` — Visual functions
 - `xy-plots` — Time series X/Y plots
+
+## reports — 22 pages
+
+- `_index` — Reports \[Sunset]
+- `add-content` — Add content
+- `add-content-from-other-apps` — Add content from other Foundry applications
+- `add-parameter` — Add a parameter
+- `change-parameter` — Change a parameter
+- `change-title` — Add or change the report title
+- `change-width-and-height` — Change width and height
+- `collaborate` — Collaborate on a report
+- `copy-as-markdown` — Copy a report's text as markdown
+- `duplicate-report` — Duplicate a report
+- `export-board-to-csv` — Export a board's data to CSV
+- `export-to-pdf-ppt` — Export to PDF or PowerPoint
+- `merge-multiple-parameters` — Merge multiple parameters
+- `overview` — Reports \[Sunset]
+- `parameters-overview` — Parameters
+- `reorder-widgets` — Reorder widgets
+- `report-conversion` — Convert legacy Foundry Reports to Contour or Notepad
+- `share` — Share a report with others
+- `show-and-hide-content` — Show and hide content
+- `show-suggested-values` — Show suggested values
+- `update-data-automatically` — Update data automatically
+- `use-a-parameter-as-widget-title-prefix` — Use a parameter as a widget title prefix
 
 ## resource-management — 12 pages
 
@@ -4329,6 +4531,37 @@ stay findable.
 - `resource-assignment` — Resource assignment
 - `resource-type` — Resource Types in Upgrade Assistant
 - `technical-maintenance-operators` — Maintenance Operator and Technical Compliance Officer
+
+## vertex — 28 pages
+
+- `_index` — Vertex
+- `chained-models` — Configure chained models \[Sunset]
+- `configure-events` — Configure events
+- `configure-thresholds` — Configure thresholds
+- `derive-property-functions` — Derive properties using Functions
+- `embed-graph-workshop` — Embed a graph in a Workshop module
+- `events-overview` — Events and time series
+- `example-use-cases` — Example use cases
+- `explore-object-relationships` — Explore object relationships
+- `explore-related-events` — Explore related events
+- `explore-time-series` — Explore related time series
+- `generate-graph-apps` — Generate a graph from other applications
+- `generate-graph-functions` — Generate graphs using Functions
+- `graphs-display-options` — Object and edge display options
+- `graphs-explore` — Explore existing graphs
+- `graphs-template` — Create a graph template
+- `link-merging` — Configure link merging
+- `marketplace-vertex` — Add Vertex graph template to a Marketplace product
+- `media-layers` — Media layers and image annotations
+- `overview` — Vertex
+- `read-only-mode` — Read-only mode
+- `save-share` — Save, share, and collaborate
+- `scenarios-getting-started` — Getting started
+- `scenarios-options` — Scenario options
+- `scenarios-overview` — Scenarios
+- `timeline` — View and filter events on a timeline
+- `use-time-selection` — Use time selection
+- `vertex-settings-control-panel` — Configure Vertex settings in Control Panel
 
 ## workflow-lineage — 7 pages
 
