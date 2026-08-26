@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Quiver — the foundation
 
 **Pages read whole (24):** `quiver/overview.md`, `core-concepts.md`,
@@ -46,7 +50,8 @@ catalogue — see §6, which counts it exactly.
 
 > "Quiver provides a point-and-click interface to perform data analysis on
 > object and time series data from the Ontology."
-> — quiver/overview.md
+
+— `quiver/overview.md`
 
 It reads the ontology we already have; it does not introduce a store of its own.
 That matters for what follows, because every other application we built this
@@ -61,11 +66,13 @@ This is the whole design, and it is stated twice on one page:
 
 > "Every card in Quiver can take zero or more inputs and produces an output of a
 > specific type."
-> — quiver/analysis-data-model.md
+
+— `quiver/analysis-data-model.md`
 
 > "A card can only be added as an input to another card if that card's output
 > type is equal to the downstream card's input type."
-> — quiver/analysis-data-model.md
+
+— `quiver/analysis-data-model.md`
 
 So a Quiver analysis is a DAG whose edges are **type-checked**. The page then
 draws the consequence in a worked example: a filter object set produces an
@@ -75,7 +82,7 @@ other. Conversion is not a coercion — it is a card.
 
 The type list is enumerated on the same page, twenty-eight of them, and this is
 the enumeration that wins over any single card page that spells one differently
-(CLAUDE.md, "an enumeration beats a description"):
+(CLAUDE.md, on why an enumeration beats a description):
 
 `Object set`, `Single object`, `Categorical chart`, `Object selection`,
 `Pivot table`, `Ontology SQL`, `Transform table`, `Materialization`,
@@ -88,16 +95,19 @@ Two of those are not data at all but arity markers, which is how a zero-input or
 zero-output card still types:
 
 > "Flow start | Indicator that a card does not take any inputs."
-> — quiver/analysis-data-model.md
+
+— `quiver/analysis-data-model.md`
 
 > "Flow end | Indicator that a card does not produce an output type."
-> — quiver/analysis-data-model.md
+
+— `quiver/analysis-data-model.md`
 
 The type system is not decorative — it drives the authoring UI:
 
 > "It only shows cards that are able to take your current card's output type as
 > input."
-> — quiver/analysis-data-model.md
+
+— `quiver/analysis-data-model.md`
 
 **Inference (not on the page):** if we hold the catalogue as a table of
 (kind, accepted input types, output type), then the type check, the next-actions
@@ -109,14 +119,16 @@ same shape as `workshop_widget_kinds()` and `fusion_cell_types()`.
 
 > "Unique Quiver global identifiers (IDs) in the form of `$A` are automatically
 > assigned to all Quiver cards when added to an analysis."
-> — quiver/analysis-global-identifiers.md
+
+— `quiver/analysis-global-identifiers.md`
 
 They are the reference mechanism everywhere — formulas, Vega specs, axis
 bindings:
 
 > "To reference specific columns in a transform table, use the syntax
 > `$A.column_name`."
-> — quiver/analysis-global-identifiers.md
+
+— `quiver/analysis-global-identifiers.md`
 
 **What the image adds that the prose does not.**
 `concepts-global-ids.png` shows IDs well past one letter — `$AHK`, `$GE`, `$AU`,
@@ -129,16 +141,18 @@ shared time axis of many.
 
 ## 4. Canvas and graph are two views of one graph
 
-> "A canvas is a page where you can display, rearrange, and resize the cards in
-> your analysis."
-> — quiver/analysis-canvas.md
+> "A Quiver canvas is a page where you can display, rearrange, and resize
+> the cards in your analysis."
+
+— `quiver/analysis-canvas.md`
 
 And the sentence that stops a whole class of wrong modelling:
 
 > "Unlike a Contour path, a Quiver canvas is used for display and organization
 > only. Rearranging cards in your canvas will not affect the underlying sequence
 > of data transformation."
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 So canvas membership is a **join table with position**, never the dependency
 order. The two are explicitly independent in both directions:
@@ -146,7 +160,8 @@ order. The two are explicitly independent in both directions:
 > "Note that adding cards to your analysis on a canvas will also make them
 > visible in the graph. However, cards added in graph mode are not automatically
 > placed on a canvas."
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 Which means a card may exist in the analysis and be on no canvas at all — the
 page names that state:
@@ -154,34 +169,41 @@ page names that state:
 > "The card will appear in the **Not in canvas** section of the **Analysis
 > Contents** panel, where it can be configured, added back to a canvas, or
 > deleted."
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 Deletion therefore has two modes, and the page gives both verbatim:
 
 > "**Delete and remove from downstream cards:** Removes the card from the
 > analysis entirely."
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 > "**Remove from canvas:** Keeps the card in the analysis and keeps dependent
 > cards unchanged."
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 And "unused" is a **three-part definition**, not a guess:
 
 > "It is not placed on any canvas"
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 > "No card on a canvas depends on it"
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 > "It is not referenced by any dashboard, function, or global settings entity"
-> — quiver/analysis-canvas.md
+
+— `quiver/analysis-canvas.md`
 
 Graph mode is the same data drawn as nodes:
 
 > "In graph mode, cards are represented as nodes on a graph, and inputs and
 > outputs are represented by links."
-> — quiver/analysis-graph.md
+
+— `quiver/analysis-graph.md`
 
 **What the images add.** `analysis-graph-compact-nodes.png` shows a node is four
 things: the `$AHK` ID badge, the title, a canvas-membership glyph, and a **type
@@ -200,7 +222,8 @@ dashboards / settings; and a canvas tab bar along the bottom with `+`.
 Three analysis types, from the comparison table:
 
 > "| Analytical flexibility | High | Low | Low |"
-> — quiver/analysis-types.md
+
+— `quiver/analysis-types.md`
 
 Quiver analysis (all data, dashboards yes), **Time series analysis** and
 **Object set path analysis** (one data kind each, no dashboards, convertible up
@@ -208,22 +231,26 @@ but never back):
 
 > "Note that Quiver analyses cannot be converted to the simplified analysis
 > types"
-> — quiver/analysis-types.md
+
+— `quiver/analysis-types.md`
 
 Saving is manual and versioned:
 
 > "Access and revert to historical versions of your analysis by opening the
 > **Analysis history** menu at the top of the screen."
-> — quiver/analysis-save-share.md
+
+— `quiver/analysis-save-share.md`
 
 And permissions need no new mechanism at all:
 
 > "The permissions for a Quiver analysis are derived from its Project in the
 > Foundry file system."
-> — quiver/analysis-save-share.md
+
+— `quiver/analysis-save-share.md`
 
 > "The access level stays the same between the Project and the Quiver analysis."
-> — quiver/analysis-save-share.md
+
+— `quiver/analysis-save-share.md`
 
 That is our `project_role_grants` unchanged. Link sharing is a second mechanism
 on top of it and is **not** in scope below.
@@ -232,10 +259,12 @@ Dashboards are read-only presentations of an analysis, many per analysis:
 
 > "Quiver dashboard mode allows you to present insights from your analysis in
 > read-only, interactive dashboards."
-> — quiver/dashboards-overview.md
+
+— `quiver/dashboards-overview.md`
 
 > "Create multiple dashboards per analysis."
-> — quiver/dashboards-overview.md
+
+— `quiver/dashboards-overview.md`
 
 ## 6. The catalogue, counted
 
@@ -248,7 +277,8 @@ count. They are organised by **output** type —
 
 > "Select a card type category below to see all cards that return data of that
 > type:"
-> — quiver/cards-index.md
+
+— `quiver/cards-index.md`
 
 — and each bullet group states its signature in prose ("The following cards
 accept object sets and return a single number:"). That yields **203 index rows
@@ -265,11 +295,56 @@ here because "the index is complete" would have been a false claim.
 **What the search-window image adds.** `concepts-input-output-types-next-actions.png`
 shows the signature is drawn as **icons with a tooltip**, not words — `[in] → [out]
 +1`, where `+1` means one further accepted input type, so a card may accept more
-than one input type for the same slot. It also gives a category axis the prose
-never lists: the next-actions bar reads `Search · Filter · Visualize · Calculate
-· Join · Transform · Convert`, and the same seven appear on the empty canvas.
-That set is **capture-derived**, so per our rule it may not carry a
-`Values from <slug>` declaration.
+than one input type for the same slot. The next-actions bar reads
+`Search · Filter · Visualize · Calculate · Join · Transform · Convert`, and the
+same seven appear on the empty canvas.
+
+**Corrected after the build (2026-08-27):** I wrote here that the prose never
+lists those categories. It does — I had not read `analysis-toolbars.md` when I
+wrote this section:
+
+> "Actions are grouped by categories such as filtering, visualizing,
+> calculating, joining, transforming, and converting data."
+
+— `quiver/analysis-toolbars.md`
+
+It still may not carry a `Values from` declaration, but for a different reason
+than I gave: **"such as" makes it a description, not an enumeration.** The
+capture is what shows the set is closed at seven.
+
+## 6b. What the toolbars page adds, read during reconciliation
+
+`analysis-toolbars.md` was not in my original 24 and it is the page that
+describes the workspace. Four things it settles that §4 and the build both
+guessed at:
+
+**There are five side panels, not one.**
+
+> "Marked as `5` in the image at the top of the page, select one of the icons on the left side to open the side panels. There are five side panels:"
+
+— `quiver/analysis-toolbars.md`
+
+Analysis Contents, **Parameters**, **Visual Functions**, **Dashboards**,
+**Settings**. The capture's left rail is that list, and I read its five glyphs
+correctly in §4 without knowing what they were. Only Analysis Contents is built.
+
+**The contents panel is grouped differently in each mode**, which my build does
+not do:
+
+> "In canvas mode, every card is listed in the order it appears on the canvas."
+
+— `quiver/analysis-toolbars.md`
+
+> "In graph mode, cards are listed based on the color group they belong to."
+
+— `quiver/analysis-toolbars.md`
+
+**The card actions menu holds seven items**, of which the build has three
+(Delete, Hide, and the next-actions menu): Configure, Duplicate, Rename, Open in
+new analysis, View dependencies in graph, Hide, Delete.
+
+**The workspace header holds five**: Undo / Redo, Analysis history, Save, Share,
+Details panel. The build has Analysis history and Save.
 
 ## 7. Connects to
 
@@ -309,6 +384,17 @@ That set is **capture-derived**, so per our rule it may not carry a
 8. **Not in this build, recorded by name:** link sharing; the AIP query bar; the
    preview panel and focus mode; colour groups; time series of any kind
    (no store exists); the 267 unread pages; the two orphan card pages in §6.
+   Added by the reconciliation pass: four of the five side panels; the
+   mode-dependent grouping of the contents panel; four of the seven card
+   actions (Configure, Duplicate, Rename, Open in new analysis); Undo / Redo,
+   Share and the Details panel; the seven next-action categories as a grouping
+   of the search list.
+9. **One divergence, scoped.** 696 refuses a cycle in the card graph
+   (`Quiver:Cycle`). No page states that rule; it is inferred from
+   "using a left-to-right layout that makes it easy to follow data flow"
+   (`analysis-graph`) and from the graph being a dependency graph at all. It is
+   bounded to `quiver_card_inputs` and refuses nothing a documented workflow
+   asks for.
 
 ## Questions
 
@@ -326,3 +412,28 @@ That set is **capture-derived**, so per our rule it may not carry a
    says revert but not what is stored. I have assumed a JSON snapshot of the
    analysis, which is what `analysis_history` implies and what our branch
    overlay does not fit.
+
+## What the reconciliation caught (2026-08-27)
+
+Re-reading `analysis-canvas`, `analysis-graph` and `analysis-toolbars` whole
+after 696 shipped found **one defect of the class that only this pass finds —
+being stricter than Foundry** — plus the four structural gaps recorded in §6b.
+
+696 refused to create a card whose kind emits more than one type until it said
+which. Foundry adds the card first and configures it after:
+
+> "This gets added to the bottom of the canvas, and requires manual configuration of the object set input."
+
+— `quiver/analysis-canvas.md`
+
+and tolerates the unconfigured state rather than refusing it:
+
+> "Note that downstream cards may enter an errored state after this action."
+
+— `quiver/analysis-graph.md`
+
+The rule that does hold is about **chaining**, not existing, and 696 already had
+it — `Quiver:NoOutputType` — standing behind a check that made it unreachable.
+698 removes the insert-time arm, which both fixes the divergence and makes an
+existing guard fire for the first time. Third instance of this class after 691
+and 695.

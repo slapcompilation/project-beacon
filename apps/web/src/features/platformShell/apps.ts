@@ -92,10 +92,21 @@ export const AUDIENCES: AppAudience[] = [
   {
     id: 'analytics',
     title: 'Applications for Analytics',
-    // The capture's six — Code workbook, Machine Learning, Contour, Reports,
-    // Quiver, Vertex — are all products this platform does not build.
-    apps: [],
-    missing: 'Code Workbook, Machine Learning, Contour, Quiver and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
+    // The capture's six: Code workbook, Machine Learning, Contour, Reports,
+    // Quiver, Vertex. Quiver is built since 696; Reports is sunset.
+    apps: [
+      {
+        name: 'Quiver',
+        // the capture's own tagline, kept verbatim even though the time
+        // series half of Quiver is catalogued here rather than built
+        tagline: 'Explore time series data',
+        blurb: 'A typed graph of cards over the ontology: every card takes typed inputs and emits one typed output, so only the cards that fit can follow. Object and scalar cards are built; the time series ones are catalogued and refuse by name, because this platform has no time series store.',
+        path: '/quiver',
+        icon: 'chart',
+        tint: '#2d72d2',
+      },
+    ],
+    missing: 'Code Workbook, Machine Learning, Contour and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -163,6 +174,7 @@ export type PortalCategory = typeof PORTAL_CATEGORIES[number]
  *  own register; the capture never lists its 40 platform apps by name. */
 export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/catalog': 'Analyze data',
+  '/quiver': 'Analyze data',
   '/datasets': 'Build & monitor pipelines',
   '/code': 'Build & monitor pipelines',
   '/lineage': 'Build & monitor pipelines',
