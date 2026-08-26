@@ -36,6 +36,7 @@ import {
 } from '@/features/actionTypes/api'
 import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
 import { FrontendConsumers } from '@/features/actionTypes/FrontendConsumers'
+import { SubmissionOptions } from '@/features/actionTypes/SubmissionOptions'
 
 /** A parameter is filled by a form field, so the picker offers the base types a
  *  form field can produce. The CHECK accepts every property base type. */
@@ -110,6 +111,7 @@ export default function ActionTypesPage() {
                       base_type: p.base_type ?? 'string',
                     }))} />
                     <FrontendConsumers actionTypeId={a.id} />
+                    <SubmissionOptions actionTypeId={a.id} />
                   </div>
                 )}
                 </li>

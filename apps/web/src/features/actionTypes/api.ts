@@ -14,7 +14,7 @@ import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import type { ObjectTypeStatus, PropertyType } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { saveActionType, applyAction, actionRuleKinds, actionFormEffective, type Json } from '@beacon/platform'
+import { saveActionType, applyAction, revertAction, actionRuleKinds, actionFormEffective, type Json } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import { useReindex } from '@/features/objectTypes/indexing'
 
@@ -164,20 +164,61 @@ export interface ApplyInput {
   objectTypeIds: string[]
 }
 
+/** "The toast below is your only opportunity to revert the action" — so the
+ *  toast has to know which submission it is offering to undo. apply_action
+ *  returns an edit count, and the application is read back from the log's
+ *  own table (682); a second concurrent apply of the same action by the same
+ *  user would name the wrong one, recorded rather than papered over. */
+async function myLastApplication(actionTypeId: string): Promise<string | null> {
+  const { data: me } = await supabase.auth.getUser()
+  const uid = me.user?.id
+  if (uid === undefined) return null
+  const { data } = await supabase.from('action_applications')
+    .select('id, revertible')
+    .eq('action_type_id', actionTypeId).eq('applied_by_user_id', uid)
+    .is('reverted_at', null)
+    .order('applied_at', { ascending: false }).limit(1)
+  const row = (data as { id: string; revertible: boolean }[] | null)?.at(0)
+  return row?.revertible === true ? row.id : null
+}
+
 export function useApplyAction() {
   const reindex = useReindex()
+  const revert = useRevertAction()
   return useMutation({
     mutationFn: (i: ApplyInput) => client(applyAction).applyAction({
       p_action_type: i.actionTypeId,
       p_parameters: i.parameters,
       ...(i.primaryKey ? { p_primary_key: i.primaryKey } : {}),
     }),
-    onSuccess: (n, i) => {
-      toast.success(`${String(n)} edit${n === 1 ? '' : 's'} written`)
+    onSuccess: (_n, i) => {
       for (const id of new Set(i.objectTypeIds)) reindex.mutate(id)
+      void myLastApplication(i.actionTypeId).then((application) => {
+        // The drawn button says Revert where the prose says Undo.
+        toast.success('Edits successfully applied.', application === null ? undefined : {
+          action: {
+            label: 'Revert',
+            onClick: () => { revert.mutate({ application, objectTypeIds: i.objectTypeIds }) },
+          },
+        })
+      })
     },
     // Actions:MissingParameter, Actions:ModifyNeedsTarget, Actions:EditsDisabled…
     // the name is the useful half; re-deriving the rule here is how they drift.
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useRevertAction() {
+  const reindex = useReindex()
+  return useMutation({
+    mutationFn: (i: { application: string; objectTypeIds: string[] }) =>
+      client(revertAction).applyAction({ p_application: i.application }),
+    onSuccess: (_n, i) => {
+      toast.success('Edits successfully reverted')
+      for (const id of new Set(i.objectTypeIds)) reindex.mutate(id)
+    },
+    // Actions:ObjectEditedSince, Actions:NotTheApplier, Actions:NotRevertible…
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (65) ────────────────────────────────────────────────
+// ── ACTION TYPES (66) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -385,6 +385,20 @@ export const restoreObjectType = { apiName: 'restore_object_type', kind: 'action
 export const retryApprovalRequest = { apiName: 'retry_approval_request', kind: 'action' } as ActionType<
   { p_request: string },
   void
+>
+
+/**
+ *  Reverts one action submission by appending compensating edits — create
+ *  answered by delete, modify by a modify back to its before-image, delete by
+ *  a create from it (action-types/action-reverts). Refuses a caller who is
+ *  not the applier, an application already reverted or not revertible, and
+ *  any object edited since. Side effects are NOT reverted: the page states
+ *  that a revert "will not revert side effects, such as notifications or
+ *  webhooks".
+ */
+export const revertAction = { apiName: 'revert_action', kind: 'action' } as ActionType<
+  { p_application: string },
+  number
 >
 
 export const reviewApprovalTask = { apiName: 'review_approval_task', kind: 'action' } as ActionType<
