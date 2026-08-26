@@ -327,9 +327,28 @@ to every commentable catalog. What it recorded as build gaps, ranked:
   Create user or Pre-register user button (provisioning is Supabase
   auth's, preregistration is the external-provider day), and attribute
   editing has no list-of-values editor beyond comma entry.
-- **`proposal_reviewers`** — measured reachable by nothing, both sides. Needs
-  either its surface or a reasoned divergence note against 651's
-  computed-eligibility choice.
+- **Inviting reviewers** — SHIPPED (680, readings/proposal-reviewers.md).
+  It was never a divergence from 651: the page's own warning callout says
+  the list "tracks who should review changes, not to restrict approvals",
+  so advisory-list and computed-eligibility are two halves of one design.
+  680 adds `can_approve_proposal_task` — whether THIS caller's approval
+  would count — composing the same three predicates `task_approval_status`
+  counts with, so the label can never disagree with the arithmetic; the
+  probe asserts an admitted approval actually moves the counter, and that
+  membership of the reviewers list confers nothing. No invite function:
+  the table's own policy already says who may write it, which is the rung
+  the ladder stops at. Surface: Invite reviewers popover with the list and
+  removal, tasks split under the capture's heading (eligible above, the
+  rest below, both still reviewable — "Users without permissions may still
+  review the task"), the View policies popover in the capture's order, and
+  the state label corrected from the invented "Awaiting approval" to the
+  page's own "In progress". **A defect the unreached table was hiding:**
+  the Assigned-to-me tab filtered on `proposal_reviews` (already
+  reviewed) — it now reads the invite list. Not built, with reasons: the
+  per-task before/after edit diff (`branch_resource_changes` holds
+  authorship, not field-level history), per-task comments (no store), and
+  the branch-taskbar and Global-Branching invite entry points (neither
+  surface exists).
 - **Action reverts** (`action-types/action-reverts`) — `object_edits` is the
   log a revert would compensate against.
 - **Corpus fact**: the mirror holds 2,597 DISTINCT page bodies, not 4,123 —

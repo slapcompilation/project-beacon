@@ -574,7 +574,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (256) ───────────────────────────────────────────────────
+// ── FUNCTIONS (257) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -900,6 +900,20 @@ export const buildFieldOf = { apiName: 'build_field_of', kind: 'function' } as F
 
 export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
+  boolean
+>
+
+/**
+ *  Whether the caller's approval would COUNT toward this task
+ *  (ontologies/branching-ontology: a user without permissions may still
+ *  review, and it will not affect the approved status). Composes the same
+ *  predicates task_approval_status counts with, so the review tab's
+ *  eligible-tasks label cannot disagree with the arithmetic. The reviewers
+ *  list is deliberately not consulted — it tracks who should review, not who
+ *  may.
+ */
+export const canApproveProposalTask = { apiName: 'can_approve_proposal_task', kind: 'function' } as FunctionType<
+  { p_task: string },
   boolean
 >
 
