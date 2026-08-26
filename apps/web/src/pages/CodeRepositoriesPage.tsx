@@ -21,7 +21,7 @@ import { useProjects } from '@/features/projects/api'
 import {
   useCodeRepositories, useRepositoryContents, useCreateRepository, useRepositoryKinds,
   useCreateBranch, useSaveFile, useCommit, useProposeChanges, useReview, useMerge,
-  useCreateTag, usePullRequestBlockers, usePublishBranch,
+  useCreateTag, usePullRequestBlockers, usePublishBranch, useBuildFile,
   type CodeRepository, type RepositoryContents, type PullRequest,
 } from '@/features/codeRepositories/api'
 
@@ -184,6 +184,7 @@ function CodeTab({ repo, contents, branchId, onPickBranch }: {
   const commit = useCommit(repo.id)
   const propose = useProposeChanges(repo.id)
   const publish = usePublishBranch(repo.id)
+  const build = useBuildFile(repo.id)
   const [path, setPath] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const [newPath, setNewPath] = useState('')
@@ -211,10 +212,14 @@ function CodeTab({ repo, contents, branchId, onPickBranch }: {
               commit.mutate({ branchId: branchId ?? '', message: `Update ${path ?? 'files'}`,
                 parentId: lastCommit?.id ?? null })
             }}>Commit</Button>
-          {/* Foundry's Build button runs the publish process, which is what
-              makes code take effect; ours derives the job specs and records
-              the check under Foundry's own name for it. */}
+          {/* "trigger a build on all output datasets of the current file …
+              after running automatic checks on your code" — so Build is the
+              selected file's, and Publish is the whole branch's. */}
           <Button size="small" variant="minimal" icon="build"
+            disabled={file === null} loading={build.isPending}
+            title="Run the checks, then build this file's output datasets"
+            onClick={() => { build.mutate(file?.id ?? '') }}>Build</Button>
+          <Button size="small" variant="minimal" icon="cloud-upload"
             disabled={branchId === null} loading={publish.isPending}
             title="Derive a job spec from every SQL transform on this branch"
             onClick={() => { publish.mutate(branchId ?? '') }}>Publish</Button>

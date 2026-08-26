@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (72) ────────────────────────────────────────────────
+// ── ACTION TYPES (73) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -104,6 +104,18 @@ export const automationFires = { apiName: 'automation_fires', kind: 'action' } a
 export const buildMaterialization = { apiName: 'build_materialization', kind: 'action' } as ActionType<
   { p_materialization: string },
   number
+>
+
+/**
+ *  What the Build button does (code-repositories/navigation): runs the
+ *  checks, then builds every output dataset of the file. A file that
+ *  generates no datasets triggers no build and returns NULL, which is the
+ *  page's own behaviour rather than an error; a file whose checks fail does
+ *  not build, and the recorded check says why.
+ */
+export const buildTransformFile = { apiName: 'build_transform_file', kind: 'action' } as ActionType<
+  { p_file: string; p_force?: boolean },
+  string
 >
 
 /**
