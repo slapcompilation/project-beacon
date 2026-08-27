@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (89) ────────────────────────────────────────────────
+// ── ACTION TYPES (97) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -87,6 +87,18 @@ export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } 
 export const applyOneChange = { apiName: 'apply_one_change', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_op: string; p_fields: Json; p_ont: string },
   void
+>
+
+/**
+ *  Creates an INSTANCE: a template-type transform pinning the exact version —
+ *  "Edits to a template do not automatically update instances"
+ *  (code-workbook/templates-overview); the update prompt is the surface's,
+ *  read off the pin vs the latest. The template's Save-as-dataset default
+ *  decides whether the instance lands persisted. INVOKER.
+ */
+export const applyWorkbookTemplate = { apiName: 'apply_workbook_template', kind: 'action' } as ActionType<
+  { p_workbook: string; p_branch: string; p_alias: string; p_version: string; p_values?: Json },
+  string
 >
 
 export const automationFires = { apiName: 'automation_fires', kind: 'action' } as ActionType<
@@ -179,6 +191,16 @@ export const createAuditExport = { apiName: 'create_audit_export', kind: 'action
  */
 export const createCodeRepository = { apiName: 'create_code_repository', kind: 'action' } as ActionType<
   { p_project: string; p_name: string; p_kind?: string },
+  string
+>
+
+/**
+ *  Creates the workbook, its master branch, and the hidden repository with
+ *  its own master — "every workbook is backed by a special hidden code
+ *  repository" (code-workbook/hidden-repository). INVOKER.
+ */
+export const createCodeWorkbook = { apiName: 'create_code_workbook', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string },
   string
 >
 
@@ -284,6 +306,19 @@ export const createTransaction = { apiName: 'create_transaction', kind: 'action'
 >
 
 /**
+ *  Creates a branch off the parent (master by default): copies the parent's
+ *  transforms and edges — a branch operates on its own logic — pins every
+ *  dataset's current state ("keeps track of the state of each dataset at the
+ *  time of branch creation"), mirrors the branch into the hidden repository,
+ *  and holds the page's own cap of 100. Requires edit: "Creating a branch …
+ *  always requires only edit permissions" (code-workbook/faq). INVOKER.
+ */
+export const createWorkbookBranch = { apiName: 'create_workbook_branch', kind: 'action' } as ActionType<
+  { p_workbook: string; p_name: string; p_parent?: string },
+  string
+>
+
+/**
  *  Creates a module with the page a new one starts with: two vertically
  *  divided sections under the module header
  *  (workshop/images/configure_new_page.png). INVOKER, so the module's own
@@ -328,6 +363,17 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const deleteQuiverCard = { apiName: 'delete_quiver_card', kind: 'action' } as ActionType<
   { p_card: string; p_mode?: string },
   number
+>
+
+/**
+ *  Deletes a branch, re-parenting its children onto its parent — "Deleting a
+ *  branch that still has child branches based on it will re-parent those
+ *  branches" (code-workbook/branching-overview). master is not deletable; it
+ *  is where project scoping (recorded, unbuilt) would live. INVOKER.
+ */
+export const deleteWorkbookBranch = { apiName: 'delete_workbook_branch', kind: 'action' } as ActionType<
+  { p_branch: string },
+  void
 >
 
 /**
@@ -447,6 +493,18 @@ export const mergePullRequest = { apiName: 'merge_pull_request', kind: 'action' 
 >
 
 /**
+ *  The merge: immediate parent only, the source's logic replaces the
+ *  target's, each persisted output gets a
+ *  vector-merge-{source}-{target}-{uuid} dataset branch (the attested
+ *  naming), and the merged branch self-deletes unless children hold it. edit
+ *  prepares; maintain is demanded by a protected target. INVOKER.
+ */
+export const mergeWorkbookBranch = { apiName: 'merge_workbook_branch', kind: 'action' } as ActionType<
+  { p_branch: string },
+  number
+>
+
+/**
  *  "Only a constraint change mints one." The new constraint set lands as a
  *  fresh version in one call, so a version can never be half-written; earlier
  *  versions stay readable for consumers that pin (function repositories do;
@@ -460,6 +518,18 @@ export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 
 export const objectDatasetJobSpec = { apiName: 'object_dataset_job_spec', kind: 'action' } as ActionType<
   { p_object_dataset: string },
   string
+>
+
+/**
+ *  The two branch settings, with the second's documented default: protecting
+ *  a branch turns running OFF unless explicitly kept ("By default, a
+ *  protected branch does not allow any user to use the Run button on that
+ *  branch to compute output datasets", code-workbook/workbooks-production).
+ *  Requires manage — the faq's token for what the prose calls Owner. INVOKER.
+ */
+export const protectWorkbookBranch = { apiName: 'protect_workbook_branch', kind: 'action' } as ActionType<
+  { p_branch: string; p_protected: boolean; p_allows_running?: boolean },
+  void
 >
 
 /**
@@ -771,6 +841,19 @@ export const saveToNewBranch = { apiName: 'save_to_new_branch', kind: 'action' }
 >
 
 /**
+ *  The Save as dataset toggle, on: re-links to the previous saved dataset or
+ *  creates one (optional-data-persistence's state machine), publishes the
+ *  compiled logic as the job spec (692's upsert shape), and declares the
+ *  persisted frontier's datasets as inputs. The build validates the schema —
+ *  "at least one column exists, column names are not duplicated"
+ *  (code-workbook/faq) is the runner's own output typing. INVOKER.
+ */
+export const saveWorkbookTransform = { apiName: 'save_workbook_transform', kind: 'action' } as ActionType<
+  { p_transform: string; p_dataset?: string },
+  string
+>
+
+/**
  *  Save the working state. On main: apply, validate the delta, bump the
  *  version, clear the entries. On a branch: validate the same way against the
  *  COMPOSED overlay (rolled back), then promote the entries into
@@ -855,6 +938,16 @@ export const syncTableRegion = { apiName: 'sync_table_region', kind: 'action' } 
 >
 
 /**
+ *  The toggle, off: the transform becomes a logical block again, and its
+ *  saved_dataset_id stays so a later re-save "will re-link to its previous
+ *  saved dataset" (code-workbook/optional-data-persistence). INVOKER.
+ */
+export const unsaveWorkbookTransform = { apiName: 'unsave_workbook_transform', kind: 'action' } as ActionType<
+  { p_transform: string },
+  void
+>
+
+/**
  *  Pull the latest ontology into my working state. Re-bases every staged
  *  field to what the ontology holds now; a resolution of latest drops my
  *  value for the fields we both moved, mine keeps it as an override. One
@@ -866,7 +959,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (297) ───────────────────────────────────────────────────
+// ── FUNCTIONS (302) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1323,6 +1416,17 @@ export const canEditSpreadsheet = { apiName: 'can_edit_spreadsheet', kind: 'func
   boolean
 >
 
+/**
+ *  Editor on the workbook's project edits it. The branch-level
+ *  view/edit/maintain/manage tokens (708) compose from the same role — "By
+ *  default, compass:read expands to view, compass:edit expands to edit, and
+ *  compass:manage expands to maintain and manage" (code-workbook/faq).
+ */
+export const canEditWorkbook = { apiName: 'can_edit_workbook', kind: 'function' } as FunctionType<
+  { p_workbook: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -1424,6 +1528,11 @@ export const canReadRepository = { apiName: 'can_read_repository', kind: 'functi
 
 export const canReadSpreadsheet = { apiName: 'can_read_spreadsheet', kind: 'function' } as FunctionType<
   { p_sheet: string },
+  boolean
+>
+
+export const canReadWorkbook = { apiName: 'can_read_workbook', kind: 'function' } as FunctionType<
+  { p_workbook: string },
   boolean
 >
 
@@ -1694,6 +1803,22 @@ export const compassProjectOf = { apiName: 'compass_project_of', kind: 'function
  */
 export const compileContourPath = { apiName: 'compile_contour_path', kind: 'function' } as FunctionType<
   { p_path: string },
+  string
+>
+
+/**
+ *  The run model of optional persistence, compiled: unpersisted upstream
+ *  inlines as a CTE named by its alias; persisted upstream reads its dataset;
+ *  imports read the runner's api_name CTE through their alias. A template
+ *  instance substitutes its pinned version's {{{param}}} placeholders from
+ *  its stored values — "Values selected by users are substituted into a code
+ *  template, which can then be run like any other transform"
+ *  (code-workbook/core-concepts) — and refuses while any parameter is
+ *  unbound. Python and R refuse with the divergence named; an object-type
+ *  workbook input refuses because its documented use is time-series access.
+ */
+export const compileWorkbookTransform = { apiName: 'compile_workbook_transform', kind: 'function' } as FunctionType<
+  { p_transform: string },
   string
 >
 
@@ -3305,6 +3430,24 @@ export const vectorDistanceOperator = { apiName: 'vector_distance_operator', kin
 export const vectorEmbeddingModels = { apiName: 'vector_embedding_models', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  The four internal branch permission levels, expanded from the caller's
+ *  project role the way the page expands them from Compass operations: "By
+ *  default, compass:read expands to view, compass:edit expands to edit, and
+ *  compass:manage expands to maintain and manage" (code-workbook/faq). The
+ *  prose pages say Owner where the faq says maintain/manage — one mechanism,
+ *  two vocabularies.
+ */
+export const workbookBranchPermissions = { apiName: 'workbook_branch_permissions', kind: 'function' } as FunctionType<
+  { p_workbook: string },
+  string[]
+>
+
+export const workbookSchemaColumns = { apiName: 'workbook_schema_columns', kind: 'function' } as FunctionType<
+  { p_dataset: string },
+  string
 >
 
 /**

@@ -2036,3 +2036,44 @@
 }
 .ct-menu-item:hover { background:hsl(var(--muted)); }
 .ct-menu-item-off { opacity:.55; cursor:not-allowed; }
+
+/* Code Workbook (707-709) — transforms in topological order, the branch bar,
+   the Contents rail, Save-as-dataset toggles, Preview-vs-Run by persistence. */
+.wk-topbar {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 10px; border-bottom:1px solid hsl(var(--border));
+  background:hsl(var(--card));
+}
+.wk-spacer { flex:1; }
+.wk-branchbar { display:flex; align-items:center; gap:4px; }
+.wk-body { flex:1; display:flex; min-height:0; }
+.wk-rail {
+  width:250px; flex:none; display:flex; flex-direction:column; gap:6px;
+  border-right:1px solid hsl(var(--border)); background:hsl(var(--card));
+  padding-top:6px;
+}
+.wk-rail-head { font-size:13px; font-weight:600; padding:2px 12px; }
+.wk-rail-list { flex:1; overflow-y:auto; }
+.wk-import { display:flex; align-items:center; gap:6px; padding:3px 12px; }
+.wk-rail-foot {
+  display:flex; flex-direction:column; gap:4px;
+  border-top:1px solid hsl(var(--border)); padding:8px 12px;
+}
+.wk-canvas { flex:1; overflow-y:auto; padding:16px; }
+.wk-flow { max-width:860px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+.wk-node { min-width:0; }
+.wk-node-head { display:flex; align-items:center; gap:8px; }
+.wk-switch { margin:0 !important; }
+.wk-src {
+  font-family:ui-monospace, monospace; font-size:11px; margin:6px 0 0;
+  background:hsl(var(--muted)); border-radius:4px; padding:6px 8px;
+  max-height:120px; overflow:auto;
+}
+.wk-preview {
+  font-family:ui-monospace, monospace; font-size:11px; margin:6px 0 0;
+  border:1px dashed hsl(var(--border)); border-radius:4px; padding:6px 8px;
+  max-height:120px; overflow:auto; color:hsl(var(--muted-foreground));
+}
+.wk-add { display:flex; align-items:center; gap:6px; justify-content:center; padding:8px 0; }
+.wk-alias { font-family:ui-monospace, monospace; font-size:12px; font-weight:600; }
+.wk-alias-plain { font-family:ui-monospace, monospace; font-size:12px; }

@@ -106,6 +106,15 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
       {
+        name: 'Code workbook',
+        // the capture's own tagline
+        tagline: 'Develop data science models',
+        blurb: 'A graph of transforms whose persistence is a toggle: unsaved nodes are logical blocks that inline into whatever runs below them, saved ones are datasets the build system recomputes — with a hidden code repository committing every change. Legacy in Foundry, built whole.',
+        path: '/workbook',
+        icon: 'code-block',
+        tint: '#2d72d2',
+      },
+      {
         name: 'Contour',
         // the capture's own tagline
         tagline: 'Visualize, filter, and transform data',
@@ -125,7 +134,7 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
     ],
-    missing: 'Code Workbook and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
+    missing: 'Vertex is not built here yet. Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -195,6 +204,7 @@ export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/catalog': 'Analyze data',
   '/quiver': 'Analyze data',
   '/contour': 'Analyze data',
+  '/workbook': 'Analyze data',
   '/modeling': 'Manage & deploy models',
   '/datasets': 'Build & monitor pipelines',
   '/code': 'Build & monitor pipelines',
