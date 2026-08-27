@@ -93,8 +93,8 @@ export const AUDIENCES: AppAudience[] = [
     id: 'analytics',
     title: 'Applications for Analytics',
     // The capture's six: Code workbook, Machine Learning, Contour, Reports,
-    // Quiver, Vertex. Quiver is built since 696, Machine Learning since 699;
-    // Reports is sunset.
+    // Quiver, Vertex. Quiver is built since 696, Machine Learning since 699,
+    // Vertex since 710; Reports is sunset.
     apps: [
       {
         name: 'Machine Learning',
@@ -133,8 +133,17 @@ export const AUDIENCES: AppAudience[] = [
         icon: 'chart',
         tint: '#2d72d2',
       },
+      {
+        name: 'Vertex',
+        // the capture's own tagline
+        tagline: 'Build a connected company',
+        blurb: 'System graphs of ontology objects in sub-graphs, templates that generate graphs from parameters, and scenarios — sandboxes of action-applied edits merged back into the ontology as one transaction.',
+        path: '/vertex',
+        icon: 'graph',
+        tint: '#2d72d2',
+      },
     ],
-    missing: 'Vertex is not built here yet. Reports is sunset in Foundry and deliberately will not be.',
+    missing: 'Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -205,6 +214,7 @@ export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/quiver': 'Analyze data',
   '/contour': 'Analyze data',
   '/workbook': 'Analyze data',
+  '/vertex': 'Analyze data',
   '/modeling': 'Manage & deploy models',
   '/datasets': 'Build & monitor pipelines',
   '/code': 'Build & monitor pipelines',

@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (97) ────────────────────────────────────────────────
+// ── ACTION TYPES (102) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -33,6 +33,17 @@ export const abortTransaction = { apiName: 'abort_transaction', kind: 'action' }
 export const applyAction = { apiName: 'apply_action', kind: 'action' } as ActionType<
   { p_action_type: string; p_parameters?: Json; p_primary_key?: string },
   number
+>
+
+/**
+ *  Applies one action WITH the scenario context set, so the engine's edits
+ *  land in the sandbox, and records the (action type, parameters) row the
+ *  scenario pane lists. A merged scenario refuses more actions. INVOKER — the
+ *  action engine's own permissioning runs unchanged.
+ */
+export const applyActionInScenario = { apiName: 'apply_action_in_scenario', kind: 'action' } as ActionType<
+  { p_scenario: string; p_action_type: string; p_parameters?: Json; p_primary_key?: string },
+  string
 >
 
 /**
@@ -214,6 +225,19 @@ export const createContourAnalysis = { apiName: 'create_contour_analysis', kind:
 >
 
 /**
+ *  Using a template: the object parameter values become nodes and the
+ *  template's layer styling travels onto the generated graph — "resources
+ *  that generate graphs with a defined styling based on parameters"
+ *  (vertex/graphs-template). Executing the bound Search Arounds to EXPAND the
+ *  generated graph runs through the ontology traversal engine in the surface,
+ *  the same split as every compiler here. INVOKER.
+ */
+export const createGraphFromTemplate = { apiName: 'create_graph_from_template', kind: 'action' } as ActionType<
+  { p_template: string; p_project: string; p_name: string; p_objects: Json },
+  string
+>
+
+/**
  *  Creates a model with no versions yet. INVOKER, so the model's own policy
  *  decides who may.
  */
@@ -302,6 +326,14 @@ export const createSpreadsheet = { apiName: 'create_spreadsheet', kind: 'action'
  */
 export const createTransaction = { apiName: 'create_transaction', kind: 'action' } as ActionType<
   { p_dataset: string; p_txn_type: string; p_branch_name?: string },
+  string
+>
+
+/**
+ *  Creates a graph with its first sub-graph. INVOKER.
+ */
+export const createVertexGraph = { apiName: 'create_vertex_graph', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string },
   string
 >
 
@@ -490,6 +522,18 @@ export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as Ac
 export const mergePullRequest = { apiName: 'merge_pull_request', kind: 'action' } as ActionType<
   { p_pr: string; p_mode?: string },
   string
+>
+
+/**
+ *  "Applying the scenario commits all those staged edits to the Ontology as a
+ *  single transaction via the merge action" (ontology/merge-scenario): the
+ *  sandbox's edits copy into the base log in sequence, in one transaction,
+ *  and the scenario closes. Re-indexing the touched types is the same
+ *  index_object_type step every base edit already takes. INVOKER.
+ */
+export const mergeScenario = { apiName: 'merge_scenario', kind: 'action' } as ActionType<
+  { p_scenario: string },
+  number
 >
 
 /**
@@ -841,6 +885,16 @@ export const saveToNewBranch = { apiName: 'save_to_new_branch', kind: 'action' }
 >
 
 /**
+ *  Saving writes a version the Graph History sidebar lists — sub-graphs,
+ *  nodes, edges and layers snapshotted, the version number the resource
+ *  header shows. INVOKER.
+ */
+export const saveVertexGraph = { apiName: 'save_vertex_graph', kind: 'action' } as ActionType<
+  { p_graph: string; p_label?: string },
+  string
+>
+
+/**
  *  The Save as dataset toggle, on: re-links to the previous saved dataset or
  *  creates one (optional-data-persistence's state machine), publishes the
  *  compiled logic as the job spec (692's upsert shape), and declares the
@@ -959,7 +1013,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (302) ───────────────────────────────────────────────────
+// ── FUNCTIONS (309) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1417,6 +1471,21 @@ export const canEditSpreadsheet = { apiName: 'can_edit_spreadsheet', kind: 'func
 >
 
 /**
+ *  Editor on the project edits a graph that is not read-only — "Graph nodes
+ *  cannot be re-arranged" and its siblings (vertex/read-only-mode) are this
+ *  flag.
+ */
+export const canEditVertexGraph = { apiName: 'can_edit_vertex_graph', kind: 'function' } as FunctionType<
+  { p_graph: string },
+  boolean
+>
+
+export const canEditVxTemplate = { apiName: 'can_edit_vx_template', kind: 'function' } as FunctionType<
+  { p_template: string },
+  boolean
+>
+
+/**
  *  Editor on the workbook's project edits it. The branch-level
  *  view/edit/maintain/manage tokens (708) compose from the same role — "By
  *  default, compass:read expands to view, compass:edit expands to edit, and
@@ -1528,6 +1597,16 @@ export const canReadRepository = { apiName: 'can_read_repository', kind: 'functi
 
 export const canReadSpreadsheet = { apiName: 'can_read_spreadsheet', kind: 'function' } as FunctionType<
   { p_sheet: string },
+  boolean
+>
+
+export const canReadVertexGraph = { apiName: 'can_read_vertex_graph', kind: 'function' } as FunctionType<
+  { p_graph: string },
+  boolean
+>
+
+export const canReadVxTemplate = { apiName: 'can_read_vx_template', kind: 'function' } as FunctionType<
+  { p_template: string },
   boolean
 >
 
@@ -2730,6 +2809,20 @@ export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as Fu
   string
 >
 
+/**
+ *  The vertex and timeseries type classes
+ *  object-link-types/metadata-typeclasses enumerates (17 vertex + 13
+ *  timeseries rows, two deprecated), plus the three link-direction classes
+ *  vertex/graphs-display-options defines on link types. applies_to is the
+ *  table's own Property/Relation column; parameterised rows take a dot suffix
+ *  (event_intent.danger). Kinds the page carries that no application here
+ *  consumes yet (schedules, …) refuse until catalogued deliberately.
+ */
+export const ontologyTypeClassesCatalogue = { apiName: 'ontology_type_classes_catalogue', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; name: string; applies_to: string; parameterised: boolean; deprecated: boolean }[]
+>
+
 export const ontologyUsageByApplication = { apiName: 'ontology_usage_by_application', kind: 'function' } as FunctionType<
   { p_object_type: string; p_days?: number },
   { application: string; reads: number; writes: number }[]
@@ -3097,6 +3190,19 @@ export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'functio
   boolean
 >
 
+/**
+ *  One object as the scenario sees it: the live base overlaid with the
+ *  sandbox's edits in sequence — "If the function reads from the Ontology, it
+ *  will read the state of the Ontology on the scenario"
+ *  (ontology/overview-ontology-scenario). Because the base is read LIVE, the
+ *  ten-minute auto-rebase needs no machinery: the overlay always sits on
+ *  current main.
+ */
+export const scenarioObjectState = { apiName: 'scenario_object_state', kind: 'function' } as FunctionType<
+  { p_scenario: string; p_object_type: string; p_primary_key: string },
+  Json
+>
+
 export const scheduleObserve = { apiName: 'schedule_observe', kind: 'function' } as FunctionType<
   { p_trigger: Json; p_state: Json },
   Json
@@ -3430,6 +3536,18 @@ export const vectorDistanceOperator = { apiName: 'vector_distance_operator', kin
 export const vectorEmbeddingModels = { apiName: 'vector_embedding_models', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  The event convention, read: an object type whose properties wear
+ *  timeseries.event_start_time and timeseries.event_end_time is an event type
+ *  — "Events are object types configured in the Ontology that include
+ *  temporal information—minimally, two timestamps" (vertex/events-overview).
+ *  No events table exists, deliberately.
+ */
+export const vertexEventTypes = { apiName: 'vertex_event_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type_id: string; start_property: string; end_property: string }[]
 >
 
 /**
