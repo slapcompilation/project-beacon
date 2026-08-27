@@ -402,6 +402,65 @@ reconcile.
   Bounded to `quiver_card_inputs`, and it refuses nothing a documented
   workflow asks for.
 
+- **Machine Learning** — SHIPPED (699/700/701/702). The second Analytics
+  application: models, versions, adapters, objectives, submissions, checks,
+  reviews, releases, deployments — and batch inference that actually writes
+  a dataset. The RIDs are attested (`ri.models.main.model.`,
+  `ri.models.main.model-version.`); the objective kind token is marked
+  inference.
+
+  **The adapter is THE recorded divergence.** Foundry's is Python
+  (`palantir_models`); ours is a function version — the same seam (versioned
+  code, declared typed signature, sandboxed execution under the caller's
+  JWT) in the language we run. Every adapter is held to one uniform shape,
+  predict(artifacts, input) → JSON string, because the platform "interacts
+  with all models in the same way". A version declares its api() against the
+  page's seven API types and eleven column types, and carries the
+  wire-attested seven-member source union.
+
+  **The pre-build adversary pass moved the reconciliation catch EARLIER.**
+  For the first time the falsification ran before `pnpm db` instead of
+  after the merge, and it caught the stricter-than-Foundry class before it
+  shipped: a release carries BOTH tags (the release-history capture shows
+  one row wearing Staging and Production with "Tagged production on"), so
+  there is no environment column — promotion ADDS a tag; direct model
+  deployments are a second resource the reading had silently skipped, now
+  built (one per model, resolving the latest version per call, branch
+  recorded as the gap); the submission guard was scoped to the COPY, with
+  metadata editable. Checks are advisory BY CONSTRUCTION — the probe
+  creates a release under a failing check, because "it is not mandatory
+  for all checks to be approved".
+
+  **The batch run is real and split where the substrate splits.**
+  batch_run_input reads the input view pinned to its head transaction; the
+  adapter runs once in the existing function isolate (predict takes the
+  whole dataframe); record_batch_run writes the output dataset through the
+  run_build sequence and pins which release ran over which input
+  transaction. The probe drives the loop with the isolate stubbed in SQL
+  and asserts the arithmetic in the output rows; the isolate half is
+  501/502's engine, live since #565.
+
+  **702 is the forward correction after three platform guards fired**: a
+  missing FK index, two per-row auth.uid() policies (the 619 lesson,
+  relearned), and a value set declared from a wrong api slug — re-declared
+  from data-integration/builds, which defines all four values.
+
+  **Post-build reconciliation added two named residuals**: live deployments
+  have an attested RID (`ri.foundry-ml-live.main.live-deployment.`) our
+  tables do not carry, and Foundry rebuilds a batch output through a
+  logic schedule when a release lands — ours are caller-triggered, the
+  same residual class as Fusion's sync-job-spec note (695).
+
+  NOT built, recorded by name: containers and container adapters; external
+  model connections (SageMaker, Vertex AI, Databricks, OpenAI); Hugging
+  Face import; GPU and Spark training; serialization/@auto_serialize;
+  Model Studio's three trainers (catalogued, refusing by name) and their
+  parameters/config versions; live-deployment replica scaling, schedule
+  overrides, logs, metrics and the ACTIVE/STARTING/DEGRADED/DISABLED/FAILED
+  runtime states (no runtime exists to be in them); model inference
+  history; the model catalog (an AIP LLM discovery app); Marketplace;
+  74 of the 91 pages.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

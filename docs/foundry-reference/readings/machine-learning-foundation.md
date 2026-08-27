@@ -350,6 +350,38 @@ batch inference, unlike live inference" (`integrate-models/model-adapter-api`),
 trainer parameters and the always-latest training configuration, and archived
 checks keeping their history.
 
+## 11. Post-build reconciliation (2026-08-27)
+
+After the merge, the three cited pages I had still only read in part —
+`set-up-batch`, `set-up-live`, `review-model` — were re-read whole
+(review-model turned out to be complete already). Two finds, neither a
+wrongness, both recorded rather than quietly absent:
+
+**A live deployment RID is attested.** The curl example queries
+
+> "https://<URL>/foundry-ml-live/api/inference/transform/ri.foundry-ml-live.main.live-deployment.<RID>"
+
+— `manage-models/set-up-live.md`
+
+so the service is `foundry-ml-live` and the kind `live-deployment`. Neither of
+our deployment tables carries a RID column; the attested token covers only the
+live kind, so this waits for a deliberate migration rather than a guessed one.
+
+**A release triggers the rebuild through a schedule.**
+
+> "You can [create a schedule](/docs/foundry/building-pipelines/create-schedule/) on the output dataset of a batch deployment for it to automatically update whenever a new model is released to that deployment environment."
+
+— `manage-models/set-up-batch.md`
+
+Foundry wires release → output-dataset logic update → logic schedule. Our
+batch runs are caller-triggered; wiring a deployment to a job spec so a
+release rebuilds the output is the same residual 695 recorded for Fusion
+syncs, and it is named here rather than implied. Also confirmed on the same
+pages: dataset-backed deployments answer only single-I/O queries (ours do,
+by the inherited caveat), and the objective live deployment's Publish
+Function step is trivially satisfied here because the adapter already IS a
+function.
+
 ## Decisions
 
 1. **Build the lifecycle, which is the documented part**: models → versions →
