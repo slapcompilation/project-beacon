@@ -1319,6 +1319,208 @@ is materialised); link-merge's user affordance is the Search Around menu's
 "link via"; intermediate edges between the same two objects merge onto
 one; and the two OMA Capabilities captures are from two UI eras, undated.
 
+## 16. Post-build reconciliation — what 710–714 built, against the corpus whole
+
+Done 2026-08-27 after #880 merged and Deploy verify went green: a foundry-gap
+pass over all 27 vertex pages plus the five ontology scenario pages, diffed
+against the applied schema in both directions, its top findings then
+re-verified by me against the pages and the live catalogues. The verdict
+first, then the findings in consequence order.
+
+**The graph and the template are Foundry's shape; the scenario side is not,
+three ways, all pointing the same direction.** A graph as materialized
+objects with positions in sub-graphs, edges carrying their link type, layers
+per (sub-graph, type), versions on save, a project resource with a RID — that
+holds against `save-share`, `embed-graph-workshop` and `generate-graph-apps`
+read together. The template — object parameters carrying Search Arounds of
+three kinds, value parameters over the function argument set — holds too,
+with the capture-derived parts declared (714 corrected the one that
+over-claimed). The scenario divergences are structural, not omissions, and
+none of them is recorded in §10–§15 because all three are consequences of
+build decisions taken after the corrections were folded.
+
+### 16.1 The three scenario divergences
+
+**Merge is a function here; Foundry's merge is an action type.**
+
+> Scenarios are merged through action types that provide granular control
+> over the scenario edits and enforce fine-grained execution permissions.
+
+— `ontology/merge-scenario.md`
+
+That page's merge action declares a scope (object types + link types on its
+Scenario tab) and carries its own submission criteria. Ours is
+`merge_scenario(p_scenario uuid)`, INVOKER, whose only refusal is
+`merged_at IS NOT NULL` — under the org-scoped RLS, any org member can merge
+any scenario. No `apply_scenario` rule kind exists in `action_rule_kinds()`
+(13 kinds, none of them this), no merge scope, no scenario parameter type on
+`action_type_parameters`. An enumeration tension to hold rather than
+resolve: `action-types/rules.md` lists twelve ontology rules and Apply
+Scenario is not among them, while `merge-scenario.md` and
+`osdk-scenario.md` both describe it as a rule — and the api's `LogicRule`
+union carries `applyScenario` as its ninth member.
+
+**Foundry threads a scenario through the existing read/write engines; we
+forked two bespoke entry points.** `scenarioRid` is an optional request
+field on eight distinct api endpoints — apply-action, both object-set load
+shapes, aggregate, edits-history, execute-query, execute-ontology-sql-query
+among them:
+
+> The resource identifier of an ontology scenario to apply the action
+> against.
+
+— `api/ontologies-v2-resources-actions-apply-action.md`
+
+Ours: none of `apply_action`, `evaluate_object_set`, `aggregate_object_set`,
+`object_state` takes a scenario; instead `apply_action_in_scenario` writes
+and `scenario_object_state` reads one primary key at a time. **A scenario
+cannot be queried, filtered, aggregated or paged.** This is the exact shape
+question `api/` exists to settle, and I did not ask it before building 713.
+
+**A persisted scenario is an object type; ours is a platform table.**
+
+> Temporary scenarios are created and used only within the current session.
+
+— `ontology/temporary-scenario.md`
+
+> You can define and store metadata of a scenario in the Ontology, where
+> each object represents a scenario, to create a **persisted** scenario.
+
+— `ontology/persisted-scenario.md`
+
+Foundry has two kinds — not stored at all, or stored as an object type
+implementing the Ontology Scenario interface with a Scenario Reference
+value-typed key. `ontology_scenarios` is neither: a bespoke always-persisted
+platform table, the three-times-mistake shape in a new place (a platform
+table where the page says the storage is an object type).
+
+### 16.2 The correctness findings inside the sandbox
+
+- **The preview and the merge replay edits by different rules.**
+  `scenario_object_state` folds `scenario_edits` with its own
+  create/modify/delete arms; `object_state` — what `index_object_type`
+  replays after a merge — nulls every unnamed declared property on create,
+  treats delete as terminal, and folds unmerged base `object_edits` in. So
+  the state a scenario previews and the state its merge produces can
+  disagree (a one-property scenario `create` previews as a one-key object
+  and indexes as a fully-nulled row). And my comment on
+  `scenario_object_state` says the base is read LIVE — it reads the
+  **index**, so base edits since the last build are invisible to a scenario.
+- **The redirect drops the two revert columns.** `redirect_edit_to_scenario`
+  copies six fields and not `application_id` or `before`; merged rows carry
+  NULL and `'{}'`, so `revert_action` (682) cannot revert a merged scenario,
+  and `apply_action`'s `action_applications` row is orphaned meanwhile. My
+  comment calling `scenario_edits` "object_edits' own shape" is false — the
+  two columns it lacks are exactly the revert columns.
+- **A scenario cannot hold link edits** — `merge-scenario.md` includes
+  "adding or removing links" in the sandbox and `scenario_edits` has no link
+  column. Partially a consequence of `create_link`/`delete_link` being
+  `executable=false` (no link instance store), but that dependency is
+  recorded nowhere on the table.
+- **713's `DO $$` never calls `apply_action_in_scenario`** — it sets both
+  GUCs by hand and inserts directly. The trigger is proven; the one function
+  that is the trigger's caller is proven only by an interactive probe
+  nothing re-runs. The assertion rule, violated again by me.
+- **The redirect trigger has no `WHEN` clause**, so every `object_edits`
+  insert — the hottest ontology write path — calls `current_setting()` for a
+  feature with zero rows. 619's lesson in trigger form. And BEFORE triggers
+  fire alphabetically, so `guard_object_edit` validates a scenario edit
+  against BASE state: a scenario permits modify-after-scenario-delete and
+  refuses modify-after-base-delete. 713 declares the first half of this,
+  not the second.
+
+### 16.3 Type classes: 710 built a store two of our own maps refuse
+
+`docs/ONTOLOGY-BUILD-MAP.md` §B6 says type classes are **deliberately not
+built** ("do not build the bag") and `DELIVERABLE-MAP.md` recorded the same.
+710 built the bag anyway, and the enumerating page's own migration note
+says the mechanism is being retired:
+
+> The configuration of all supported type classes will move to the
+> **Capabilities** page.
+
+— `object-link-types/metadata-typeclasses.md`
+
+The destination already exists here: `object_type_capabilities` +
+`capability_slots()` (415), with a shipped Capabilities tab writing it —
+and `capability_slots()` already holds all six event slots
+(`event_start_time`, `event_end_time`, `event_id`, `event_description`,
+`event_root_object_id`, `event_linked_series_id`; verified live). So
+`vertex_event_types()` reads a second store: an event type configured
+through the shipped tab is invisible to Vertex, and one configured through
+710's table is invisible to the tab. Two sources of truth, both currently
+empty. Also: the catalogue asserts 33 rows against a page carrying 17
+vertex + 17 timeseries rows — `parent` (a Relation),
+`timeseries_is_deprecated`, `timeseries_is_value_inverted` and
+`timeseries_depth_units` are absent and refuse by name — and the page's
+Deprecated column has three states where our boolean has two, the collapsed
+third — the configure-in-Capabilities marker — sitting on exactly the rows
+the other store models. **Open decision, for a human:** fold the type-class families
+into `capability_slots()` and repoint `vertex_event_types()`, or keep the
+bag and record why. The real design question either way: `capability_slots`
+is object-type-shaped and the three link-direction classes need a link-type
+home.
+
+### 16.4 The residuals, now actually recorded
+
+711's comment on `vertex_graph_layers` said groups and saved selections were
+recorded residuals in this reading, when the reading contained no such list
+— a citation-shaped claim I wrote pointing at a document that did not say
+it. This section is now that list.
+
+**Unbuilt, buildable now (no missing runtime):** the ten-layout vocabulary
+and its six wire values (neither set exists; `layout text DEFAULT 'Auto'` is
+never read); grouping, group-on-edge, saved styles, saved selections;
+versioning as opt-in, Duplicate, Revert, and any reader of
+`vertex_graph_versions`; link sharing and per-graph roles; the seven-param
+URL contract and the two route shapes; the Vertex Control Panel settings
+page (including the search-around limits that guard the engine this arc
+feeds); histogram filtering (`histogram_object_set` exists, nothing in
+Vertex reaches it); Save as Template — templates have a read path and no
+write path, the mirror image of the search-around residual; every consumer
+of the events convention (badges, Events tab, Open linked events,
+`event_intent` colours); **the timeline page in its entirety** — "the
+timeline will show lines for an object's time properties and bars for time
+ranges in an object's properties" (`vertex/timeline.md`) draws timestamp
+properties, not series, so it is NOT time-series-blocked; the scenario
+scope-to-graph option; batch-action and nesting refusals on scenarios;
+scenario-on-a-branch (we have branches); edited-entity listing; the
+execution-context submission criterion ("within a scenario" vs "against the
+main Ontology") — the safeguard that makes sandboxes safe to delegate.
+
+**Blocked on a time series store:** `explore-time-series.md` and
+`configure-thresholds.md` wholly; `use-time-selection.md`'s scrub and
+Compare; `scenarios-getting-started.md`'s model-run panel and
+`scenarios-options.md`'s smoothing; the Control Panel's data-loading
+settings; the Color-by-measure and series-readout clauses of
+display-options.
+
+**Unrecorded until now, unbuilt by choice pending demand:** Marketplace
+packaging of graphs/templates, and the Workshop embed widget (§9 specifies
+it; nothing implements it — `workshop_widgets` has no Vertex kind). Media
+layers were named in §14 but overstated: `object_type_media_sources` (582)
+exists, so the missing piece is the two OMA Capabilities fields (default
+image reference, pixel-space bounding box), which belong in
+`capability_slots()` — the store 710 bypassed.
+
+**Seven of the arc's sixteen tables have no reader**: `vertex_graph_layers`,
+`vertex_graph_versions`, `vertex_search_arounds`,
+`vertex_template_search_arounds`, `vertex_template_value_parameters`,
+`scenario_edits`, `ontology_type_classes`. By CLAUDE.md's rule those seven
+are not built yet — they are storage waiting for their surfaces, and this
+line is the record that says so.
+
+### 16.5 Two smaller structural notes
+
+`vertex_graphs.read_only` models as resource state what `read-only-mode.md`
+attributes to how a graph is opened (Workshop toggle, Carbon, Notepad —
+none of which exist here), and the surface honours it only below the fold:
+the footer hides, the topbar's Save does not. The search-around steps
+grammar (`[{link_type_id, filters}]`) is a second traversal representation
+beside `object_sets.traversals` (`[{edgeType, direction, filters}]`, 3-hop
+cap, validated) — two grammars for one Foundry concept, neither aware of the
+other, unification unrecorded until now.
+
 ## Decisions I had to make
 
 1. **I treated the product as not sunset and two of its features as sunset,
