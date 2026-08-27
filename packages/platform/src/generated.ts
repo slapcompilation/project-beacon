@@ -1682,13 +1682,15 @@ export const compassProjectOf = { apiName: 'compass_project_of', kind: 'function
 
 /**
  *  The Contour backend's code generation, in the substrate we run: boards
- *  become one nested SELECT over the head input's CTE (the job runner names
- *  each declared input by its api_name, 493). Filters compile their predicate
- *  — or NOTHING when their parameter has no value, the capture's rule;
- *  expressions pass through as Postgres, the recorded divergence; a pivoted
- *  histogram groups the working set into its buckets; disabled and
- *  display-only boards compile to nothing but their selection. Refuses a
- *  restricted-view head, transitively.
+ *  become one nested SELECT over the head input's CTE. Filters compile their
+ *  predicate — or NOTHING when their parameter has no value, the capture's
+ *  rule; expressions pass through as Postgres, the recorded divergence; a
+ *  pivoted histogram groups by its bucket column under one of the NINE
+ *  aggregates the page enumerates (Count, Unique Count, Min, Max, Sum, Mean,
+ *  Approx. median, Standard Deviation, Variance), with Approx. median exact
+ *  here rather than Spark's percentile_approx; disabled and display-only
+ *  boards compile to nothing but their selection. Refuses a restricted-view
+ *  head, transitively.
  */
 export const compileContourPath = { apiName: 'compile_contour_path', kind: 'function' } as FunctionType<
   { p_path: string },
