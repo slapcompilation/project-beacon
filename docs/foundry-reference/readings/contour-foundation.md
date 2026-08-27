@@ -4,7 +4,7 @@ verify: strict
 
 # Contour — a path is a pipeline you built by looking at it
 
-**The section is 33 pages, 163 images. Pages read whole (16):** `overview`,
+**The section is 33 pages, 163 images. Pages read whole (18):** `overview`,
 `core-concepts`, `boards-overview`, `boards-add`, `boards-join` (head + join
 board), `boards-descriptions` (its headings and Summary; it is the 25-board
 catalogue, §4), `datasets-save`, `analysis-create-path`, `analysis-parameterize`
@@ -20,13 +20,17 @@ and heading structure), `dashboards-overview`, `dashboards-getting-started`,
 `expressions-window-functions`, `correctness-timezones`, `compute-usage`,
 `performance-optimize`, `faq`, `getting-started`, `_index`.
 
-**Images: my 16 pages reference 77 distinct files; I opened two** —
+**Images: my 18 pages reference 93 distinct files (recounted by the adversary
+pass — my first claim said 77, which was false); I opened two** —
 `contour/images/overview.png` and `contour/images/boards-category-mode.png` —
-because they carry the workspace anatomy and the toolbar. **The seventy-five I
-did not open are the per-board configuration captures** (the
-`board-descriptions-*` family, 48 of the 77), the parameter dialogs, the join
-GIFs and the dashboard captures; they become due board-by-board if boards are
-ever built individually, and I am the one who skipped them.
+because they carry the workspace anatomy and the toolbar. The rest are mostly
+per-board configuration captures (46 of `boards-descriptions`'s 48 are the
+`board-descriptions-*` family), parameter dialogs, join GIFs and dashboard
+captures; they become due board-by-board, and I am the one who skipped them.
+**The section also carries TWO UI ERAS** — `overview.png` is the dashboards
+era (blue Dashboard button, Add to dashboard); `boards-insert.png` is the
+older Reports era (Add to report, no Dashboard button) — so any number
+measured from a capture must say which era it came from (CLAUDE.md rule 8).
 
 **Not sunset.** No page in the section carries a Sunset marker (grepped), and
 the Home capture lists Contour under Applications for Analytics with the
@@ -214,18 +218,157 @@ built.
   named operations our roles do not yet carry.
 - **Fusion (694)** — both end the same way: a real dataset other tools consume.
 
+## 10. Corrected BEFORE building — the adversary pass
+
+A foundry-adversary pass ran against this reading before any migration was
+written, and it falsified the four decisions that would have shaped the
+schema. All 19 attributed quotes survived byte-exact; the design around them
+did not.
+
+**A board can have a SECOND input, and paths fan out.** The list model was
+wrong as stated. Join, Union, Enrich, Link and Set math each name another
+set, and that set can be a path:
+
+> "You can filter a dataset prior to joining by opening it in a new Contour path, adding filter conditions, and then joining to the result of that path instead of the dataset."
+
+— `contour/performance-optimize.md`
+
+and the Map board takes one source PER LAYER, defaulting to the current set:
+
+> "The **Data source** represents the dataset or Contour path that the layer will use to display data and compute aggregations. By default, the **Current set** is selected for this option which will use data from the current Contour path."
+
+— `contour/boards-map.md`
+
+Common-input paths make the path graph a fan-out DAG, not a chain:
+
+> "Instead, use a **common input path** and use that path’s result as an input for other paths."
+
+— `contour/performance-optimize.md`
+
+So: a path remains the ordered spine of a board's PRIMARY input, and a board
+may carry secondary input references (dataset or path). The list is the
+order; it is not the whole graph.
+
+**A path's head is one of FOUR kinds, and the compiler refuses two.** A
+dataset, another path's result, a restricted view, or a virtual table:
+
+> "You will not be able to save a path with a Restricted View as an input as a dataset."
+
+— `contour/datasets-save.md`
+
+(a callout I skipped on a page I claimed read whole), and the virtual-tables
+capability table marks Contour's "Save as dataset" column "Not supported".
+We have restricted views (481-486); save-as-dataset must refuse them.
+
+**The category is not a scalar — the page's own matrix is five booleans.**
+`boards-descriptions` OPENS with a 25-row capability matrix (Visualize /
+Filter Rows / Aggregate / Manipulate Columns / Remove Duplicates) that I
+never mentioned; Histogram alone is yes-yes-yes-yes(via Pivot)-no. The
+catalogue holds the five flags; the six toolbar categories are display
+grouping, capture-derived.
+
+**The 25 headings are not the whole board set.** The Map board has its own
+23KB page outside the enumeration; the Text board is named
+("You can add all Visualize boards to a dashboard, excluding the Text and Map boards"
+— `contour/dashboards-getting-started.md`) but has no page I can find; and
+the Actions-mode toolbar capture spells `Charts` and shows an `Edit data`
+entry the enumeration lacks. The enumeration still wins as the spine
+(the 599/600 rule), with Map added from its own page and the divergences
+recorded in the note column rather than silently.
+
+**A dashboard is a real structure, not a membership list.** The tail of
+`dashboards-getting-started` (which I had not read) gives it a name, ordered
+renameable TABS, first-class text widgets, and layout rules:
+
+> "You can organize your dashboard into tabs. Tabs can be renamed or dragged into a different order. Boards and text can be dragged from one tab to another."
+
+— `contour/dashboards-getting-started.md`
+
+> "Note that rows can only consist of a single item type - you cannot have a row with both boards and text boxes."
+
+— `contour/dashboards-getting-started.md`
+
+One-per-analysis survives, and more strongly than I knew: the filesystem
+API's resource-type enum lists `CONTOUR_ANALYSIS` alone where Quiver gets
+`QUIVER_ANALYSIS`, `QUIVER_ARTIFACT`, `QUIVER_DASHBOARD`, `QUIVER_FUNCTION`
+(`api/v2/filesystem-v2-resources/resources-get-resource.md`). So: no
+dashboard resource, but tabs and items tables and a dashboard name on the
+analysis.
+
+**A board row carries more state than kind + configuration.** A board can be
+DISABLED in place (the deep-dive course: toggling Enabled leaves it visible
+but unapplied), renamed, and an aggregating board can PIVOT — switching every
+downstream board onto its aggregate output:
+
+> "Some boards that allow you to calculate aggregate metrics have an option to pivot. This switches your working dataset to the aggregate data computed in that board, instead of the original dataset. Any boards that follow will use the new aggregate dataset."
+
+— `contour/analysis-switch-aggregated.md`
+
+That flag changes the schema of everything below it, and Histogram — in the
+first build slice — carries it.
+
+**Two compiler rules I had missed, one off an image I had opened:**
+
+> Use parameters in filters and expressions to quickly manipulate data by typing "$". Filtering will be ignored when no value is set for a parameter.
+> — contour/images/overview.png
+
+An unset parameter DROPS its filter — it does not evaluate false. And the
+parameter model has a tail I skipped: default values, suggested values
+(linked to a column, capped at 1000, or a manual list), cross-filter groups,
+and session-local overrides ("Overriding a parameter value will persist
+until you refresh the page, and will not affect what that other users see" —
+`contour/analysis-parameterize.md`). Parameters also reach text widgets and
+titles, not only Filter and Expression boards.
+
+**The analysis is stale until refreshed; only the SAVED dataset is always
+latest.**
+
+> "At this time, there is no way to automatically update a Contour analysis path; this must be completed manually."
+
+— `contour/faq.md`
+
+So the analysis pins what it read (the §3 version selector is that pin made
+visible), refresh moves the pin to latest, and the compiled job spec ignores
+the pin entirely — §2's rule survives with its other half attached.
+
+**Better citation for §2, from a page I had not read:**
+
+> "Contour paths can be \"saved as\" datasets. This saves the underlying code generated by the Contour backend into a dataset job specification. This dataset build can then be run on a schedule or ad hoc."
+
+— `contour/compute-usage.md`
+
+"Job specification", verbatim — the `job_specs` mapping is Foundry's own
+word, and schedulability comes with it.
+
+**Also recorded from the pass:** the deep-dive course (30 extracted lessons I
+never consulted) conflicts with the mirror on sizing — the course says five
+paths of at most 20 boards, `performance-optimize` says 15-20 paths per
+analysis; `expressions-window-functions` and `correctness-non-determinism`
+disagree on the non-deterministic function list (5 names vs 7); selections
+are TYPED per board kind (bar-or-range, interval, date range, multi-select,
+cell set, drawn circle — each with Keep/Remove); boards can be INSERTED
+mid-path and copied-above into a new path; and
+`questions-answers/contour-community.md` names two export operations
+(`export-dashboard-data`, `export-data`) for the workflow catalogue.
+
 ## Decisions
 
-1. **Build the path engine**: analyses → paths (ordered, dataset-headed,
-   chainable from another path's result) → boards (ordered within the path,
-   kind + configuration jsonb + optional selection). Position is the
-   computation; there are no edges to type-check because the list is the
-   graph. (Quote-backed: §1.)
+1. **Build the path engine**: analyses → paths → boards. A path's head is a
+   dataset OR another path's result (restricted-view heads exist and
+   save-as-dataset refuses them; virtual tables are recorded unbuilt). A
+   board's PRIMARY input is its position in the path; join-class boards and
+   map layers carry SECONDARY input references (dataset or path) in their
+   configuration, and common-input paths make the path graph a DAG. A board
+   row carries kind, title, enabled, pivoted, configuration jsonb and a typed
+   selection jsonb. (Corrected by §10.)
 2. **The board catalogue is the seventh indexed catalogue** —
-   `contour_board_kinds(kind, category, built, note)` from the 25 the page
-   enumerates and the six capture-confirmed categories. A first slice built:
-   Summary, Filter, Table, Expression, Histogram — enough to filter, derive,
-   see, and count. The rest refuse by name.
+   `contour_board_kinds(kind, visualize, filter_rows, aggregate,
+   manipulate_columns, remove_duplicates, built, note)`: the 25 the page
+   enumerates PLUS Map from its own page, flags from the page's own
+   capability matrix, toolbar categories left to the surface as
+   capture-derived grouping. Text board and `Edit data` recorded in notes as
+   named-but-unlocated. A first slice built: Summary, Filter, Table,
+   Expression, Histogram. The rest refuse by name. (Corrected by §10.)
 3. **Save-as-dataset compiles the path to a job spec** (§2) — filters become
    WHERE, expressions become SELECT terms, the input is the head dataset's
    master view; Update re-publishes and bumps the version. The Spark → SQL
@@ -233,11 +376,16 @@ built.
 4. **Parameters are analysis-level typed values** (Date/String/Number,
    multi-value for String/Number only), referenced `$name` in filter and
    expression configurations. (Quote-backed: §5.)
-5. **One dashboard per analysis** — a membership row per promoted board with a
-   position; no dashboards table. (Quote-backed: §6.)
+5. **One dashboard per analysis** — no dashboard resource (the api/ resource
+   enum has no CONTOUR_DASHBOARD), but a real structure: a dashboard name on
+   the analysis, ordered renameable tabs, and items (a promoted board OR a
+   text widget) with row layout, one item type per row. (Corrected by §10.)
 6. **The version selector pins the ANALYSIS, never the saved dataset** — the
-   path head stores an optional pinned transaction used for previews; the
-   compiled job spec always reads latest, because §2's rule says so.
+   path head stores a pinned transaction used for previews; REFRESH moves the
+   pin to latest (there is no automatic update); the compiled job spec always
+   reads latest, because §2's rule says so. An UNSET parameter drops its
+   filter from the compiled SQL rather than evaluating it. (Corrected by
+   §10.)
 7. **Not in this build, recorded by name:** 20 of the 25 boards (including
    Join, Set math, Pivot table, Heatmap, Macro); the expression function
    library beyond direct SQL passthrough; window functions and both
