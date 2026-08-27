@@ -713,10 +713,12 @@ control. The footer carries the alias chip, a column count, a row count, and `+ 
 The row-count slot has **three distinct published strings** and no page names any
 of them:
 
-> 12 columns • Row count not computed
 > 12 columns • Row count disabled
 > 12 columns • Unknown row count
 > — code-workbook/images/branching_pipeline.png
+
+("Row count not computed" I had filed under this capture too; the adversary
+pass found it lives in save-as-dataset-toggle.png and two others, not here.)
 
 `toggle_transformation.png` explains why: the Edit submenu carries **Enable row
 count**, so the count is opt-in per node.
@@ -1584,8 +1586,11 @@ it is a plain screenshot of something a sentence already says:
 `transforms-visualize-py-plotly.png`, `repository-selection.png`,
 `repository-select-nodes.png`, `transforms_new_transform_button.png`.
 
-(That trailing list is deliberately the **complete** manifest of all 139 files, so
-the coverage claim in the header is countable. The first paragraph of this
+(That trailing list holds 138 of the 139 files — `branching_pipeline.png` is
+named in §7.1 instead, so every file is named somewhere in this reading, but
+the block that claimed completeness was off by one (caught by the adversary
+pass; CLAUDE.md rule 7 exists because this exact assertion has now been false
+three times). The coverage claim in the header is countable. The first paragraph of this
 subsection names only the ones that genuinely added nothing.)
 
 ---
@@ -1773,6 +1778,117 @@ graph and ledger concerns and port cleanly. Anything that needs a driver does no
   and a severity in parentheses (`Column unique (moderate)`) and a watch setting.
 
 ---
+
+## 13. Corrected BEFORE building — the adversary pass
+
+A foundry-adversary pass ran before any migration was written: all 117
+attributed prose quotations byte-exact, image accounting structurally sound,
+the branch semantics confirmed — and twenty-four findings, of which these
+change or complete the build's shape:
+
+**A workbook holds a FOURTH input class, and my "I grepped and found
+nothing" was false.** `time-series/foundryts.md` documents Workbook Inputs:
+
+> Any queried object types (accessed by time series properties) or time series catalog syncs (accessed by series ID or a search query) must be added as workbook inputs from the left **Contents** panel.
+
+— `time-series/foundryts.md`
+
+So a Workbook Input is a non-dataset input — an ontology OBJECT TYPE or a
+time-series catalog sync — registered at workbook scope. We have object
+types; catalog syncs are recorded unbuilt. This also weakens Q3's premise:
+"Object input types … are not related to ontology objects" is about custom
+file formats, a different sense of the word.
+
+**Unsave and re-save is a documented state machine**, one line below the
+sentence I quoted:
+
+> If you choose to change a transform from not saved to saved, it will re-link to its previous saved dataset. If a previous saved dataset does not exist, a new dataset will be created.
+
+— `code-workbook/optional-data-persistence.md`
+
+So persistence is a TOGGLE beside a persistent dataset link — re-link or
+create, never a second dataset.
+
+**A save validates the schema**, in the sentence's unquoted second half and
+a whole FAQ section (`## Failed to save as dataset`): at least one column,
+valid column names, no duplicates.
+
+**Every workbook is backed by a hidden, read-only code repository** — the
+page I had read only for a RID placeholder:
+
+> every workbook is backed by a special hidden code repository. This repository serves as a secure backup of the code written in a code workbook while also exposing the history of all code changes made on the workbook.
+
+— `code-workbook/hidden-repository.md`
+
+> Every code change made on a workbook branch automatically creates a new commit to the corresponding branch in the hidden code repository.
+
+— `code-workbook/hidden-repository.md`
+
+with three per-language files (`pipeline.py`, `pipeline.R`, `pipeline.sql`)
+plus a `workbook.yml`. We built code repositories in 690 — this is a real
+integration, not a note. It also resolves an intra-corpus contradiction my
+§8 missed: faq.md says intermediate-transform code "cannot be recovered"
+while this page calls the hidden repo "the recommended way to restore code
+that was lost".
+
+**Templates pin and prompt, never auto-upgrade** — the sentence that defines
+the mechanism, which I paraphrased down to its first clause:
+
+> The version history of templates is saved, and new edits to a template are always saved as a new version of that template. Edits to a template do not automatically update instances of that template; each instance of the template will include a prompt to update to the latest version if they are using an outdated version of the template.
+
+— `code-workbook/templates-overview.md`
+
+A template also carries a PERSISTENCE DEFAULT ("By checking the **Save as
+dataset** box, when added the template will be added as a persisted
+transform by default" — `code-workbook/templates-getting-started.md`), is a
+Compass resource in a FOLDER whose promotion is a move ("you can save a
+Template in your home folder while you are still working on it, and move it
+to a shared folder once you want to promote it"), appends its home
+workbook's global functions at creation and has no access to global code
+where applied. My earlier claim that the always-use toggle goes beyond
+prose was wrong — prose states it twice.
+
+**master is special**: "Project scoping can only be enabled on the master
+branch" (`code-workbook/project-references.md`) — and scoping, once on, has
+no UI off-switch. The scoped classes are FOUR with Workbook Inputs, not my
+three.
+
+**A protected branch's documented DEFAULT is no running**:
+
+> By default, a protected branch does not allow any user to use the Run button on that branch to compute output datasets.
+
+— `code-workbook/workbooks-production.md`
+
+And batch builds recompute unpersisted logic without updating previews —
+the other half of optional persistence I had not carried. The
+Owner-vs-maintain/manage wording across three pages is the two-vocabularies
+rule: prose speaks roles, the faq speaks the internal permission tokens,
+one mechanism.
+
+**The input-type enumeration carries a persistence qualifier I dropped**:
+Python/R "transform input" types are "only available on inputs 'saved as
+dataset'" — a cross-product of the two headline features, and the reason
+the export page excludes those inputs.
+
+**Smaller corrections, recorded:** Preview-vs-Run follows the persistence
+toggle, not the node kind; SQL references a parent ALIAS AS A TABLE NAME
+("The dataframe can be read within SQL as a table") and a transform "can
+have any amount of inputs"; §8.2/Q4 dissolve — the export page states SQL
+support three times and the dialog string is the connectedness rule; the
+conversion flowchart has a second hub (`transform input (Python or R)`);
+"SAVED DATASET" in §7.1 is a dataset NAME, the real rule being the
+two-names-per-persisted-node sentence; §7.17's "only description" is false
+(two prose pages describe the Notepad/Reports embed, where "board" is the
+embedding noun); "Sever parent permissions" is DEPRECATED severing per
+building-pipelines/remove-markings — copied nowhere; §7.13's "third
+vocabulary" is the api's Succeeded plus a per-job STAGE vocabulary;
+`api/` attests `CODE_WORKBOOK` as a first-class resourceType and
+`CODE_WORKBOOK_BUILD` as a checkpoint record type (Q8 answered);
+Matplotlib's parallel-node execution and the 20,000-point Plotly limit;
+Run Affected is defined in prose; and code-products-comparison (the
+section's largest page) contributes "does not support incremental
+computation, transform generation, or multi-output transforms" to the
+divergence ledger.
 
 ## Decisions I had to make
 
