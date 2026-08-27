@@ -389,6 +389,19 @@ look finished too.
   first, then edit batches; semver with the six checks refusing rather than
   warning; no RID until attested.
 
+- `vertex-foundation.md` — all 28 pages, 36 of 150 images opened and the other
+  114 named. **The product is NOT sunset; model chaining and the in-Vertex model
+  selection UI are**, and their replacement path is Function-on-model →
+  function-backed Action → Action in a scenario, which is all things we have.
+  Vertex stores nothing: an event is an object type with two timestamps plus a
+  type class, a media annotation is an Action parameter value, and a graph is a
+  Compass resource that leaks its shape but not its data. Four vocabulary splits
+  recorded rather than resolved (ten UI layouts vs six wire values; three
+  parameter type sets; Relation vs link type; two names for one submenu), eight
+  controls that exist only inside screenshots — among them `Links to ignore
+  cardinality`, `Vertex Promoted Graphs` and a whole `Graph publishing` Control
+  Panel tab — and no Vertex RID attested anywhere in the mirror.
+
 Thirty-six readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
