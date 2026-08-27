@@ -501,6 +501,40 @@ reconcile.
   guidance conflict (5×20 vs 15-20 paths, recorded in the reading); 15 of
   33 pages and 75 per-board captures.
 
+- **Code Workbook** — SHIPPED (707-709). LEGACY, EXPLICITLY NOT SUNSET
+  (separate rows of the lifecycle table), and the operator's directive was
+  to replicate Foundry exactly, so the full documented shape landed. The
+  pre-build adversary's twenty-four findings (#876) shaped the schema before
+  any SQL existed: Workbook Inputs as a fourth input class (object types,
+  registered and compile-refused because their documented use is time-series
+  access), the unsave/re-link state machine, the HIDDEN CODE REPOSITORY
+  (690's engine, one per workbook, committing pipeline.sql on every code
+  change), and template pin-and-prompt with the Save-as-dataset default.
+
+  **Optional persistence is the execution model, compiled**: an unsaved
+  transform is a logical block that inlines into whatever runs below it; a
+  persisted one reads in from its dataset; the probe walks the page's own
+  diagrams. Branches snapshot LOGIC AND DATA (copy + pins, cap 100), merges
+  go one level up and grow the attested vector-merge-{source}-{target}-{uuid}
+  dataset branches, protection applies the documented no-running default,
+  and the four permission tokens expand from project roles as the faq
+  expands them from Compass operations. Templates are folder resources,
+  zero-indexed versions, instances pinned and prompted.
+
+  **Post-build reconciliation**: the execution model matches the page whole;
+  the honest delta is that BRANCH PINS ARE STORED, NOT CONSUMED — compile
+  reads latest on every branch, and the pinned read is a named residual.
+
+  NOT built, recorded by name: Python and R execution (stored, refused with
+  the divergence — Spark/Conda is the substrate divergence); environments,
+  Spark profiles, warm modules; project scoping (master-only, no UI
+  off-switch — both recorded); branch fallbacks as a compile rule;
+  time-series catalog syncs as workbook inputs; the bulk persistence
+  editor; global code; visualizations (Matplotlib/Seaborn/Plotly/ggplot2);
+  the Paths view; export to Code Repositories; Run Affected; the update
+  prompt UI; incremental computation, transform generation, multi-output
+  transforms (Foundry itself lacks them here).
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

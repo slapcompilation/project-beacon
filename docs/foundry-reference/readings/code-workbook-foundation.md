@@ -1890,6 +1890,25 @@ section's largest page) contributes "does not support incremental
 computation, transform generation, or multi-output transforms" to the
 divergence ledger.
 
+## 14. Post-build reconciliation (2026-08-27)
+
+After 707-709 merged, `optional-data-persistence.md` — the headline
+feature's page — was re-read whole against the shipped compiler. The
+execution model matches section by section: a persisted upstream reads in
+from the dataset, unsaving re-inlines all three upstream transforms in the
+page's own diagram walk, and the re-link callout is the shipped state
+machine. Three deltas, named:
+
+- **Branch pins are stored, not consumed.** "Any transforms you run on your
+  new branch will use this stored state to load data" — the pins table holds
+  the snapshot, but compile reads latest on every branch. The pinned read is
+  a named residual, not silently absent.
+- The **bulk persistence editor** and the saved-transform **blue bar** are
+  surface residuals.
+- The FAQ's advice cases (computational intensity, cross-tool reuse,
+  nondeterministic functions) are guidance the surface could echo; nothing
+  to enforce.
+
 ## Decisions I had to make
 
 1. **I read `Legacy` as *not* Sunset, and said so explicitly**, because the task
