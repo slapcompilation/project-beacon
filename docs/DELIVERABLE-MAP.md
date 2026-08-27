@@ -461,6 +461,46 @@ reconcile.
   history; the model catalog (an AIP LLM discovery app); Marketplace;
   74 of the 91 pages.
 
+- **Contour** — SHIPPED (703-706). The third Analytics application, and the
+  first whose PRE-BUILD adversary pass reshaped the schema before a line of
+  SQL existed: the pure-list path model, the scalar board category, the
+  dataset-only path head and the no-dashboards-table decision were all
+  falsified from the reading (#871), so none of them shipped. An analysis is
+  paths of boards; the path is the ordered spine of the PRIMARY input;
+  join-class boards carry secondary references; common-input paths fan out,
+  guarded acyclic. The catalogue is boards-descriptions' own 25×5 capability
+  matrix plus Map — five boards built, twenty-one refusing by name.
+
+  **Save as Dataset is the arc's point**: compile_contour_path generates
+  what Foundry's backend generates as Spark — the recorded divergence,
+  scoped to one function — and publishes "a dataset job specification"
+  (Foundry's words) that run_build executes. The probe runs the loop whole:
+  filter + derived column build 3 of 4 rows; a disabled filter and an
+  unset-parameter filter compile to nothing (the capture's rule); Update
+  alone picks up logic changes; a pivoted histogram on a path-headed path
+  compiles recursively; a restricted-view head refuses with the page's own
+  sentence. Three runner constraints surfaced en route: the input CTE
+  carries _row/_file (schema columns now selected explicitly), output
+  branches provision like Fusion's sync, and builds speak SUCCEEDED.
+
+  **Post-build reconciliation caught the compiler NARROWER than the page**
+  (the fourth reconciliation catch of the stricter/narrower class): the
+  pivoted histogram aggregated one way where the page enumerates nine. 706
+  honors all nine — the probe rebuilds the page's own taxi example,
+  mean-by-neighborhood — with Approx. median exact rather than Spark's
+  percentile_approx, recorded.
+
+  NOT built, recorded by name: 21 of 26 boards (Join, Set math, Enrich,
+  Link, Pivot table, Heatmap, Map's per-layer sources among them); the
+  filter board's five text-filter kinds and the all/any multi-condition
+  toggle; the expression function library beyond Postgres passthrough;
+  window functions and both correctness pages; suggested values' 1000-cap
+  rendering, cross-filter groups; dashboard chart-to-chart filtering,
+  presentation view, PDF export; Export board; virtual-table heads; project
+  scoping; convert-to-Pipeline-Builder; the deep-dive course's sizing
+  guidance conflict (5×20 vs 15-20 paths, recorded in the reading); 15 of
+  33 pages and 75 per-board captures.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

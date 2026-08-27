@@ -394,6 +394,33 @@ mid-path and copied-above into a new path; and
    in expressions; Export board; project references; convert-to-Pipeline
    Builder; compute usage; the 75 unopened images.
 
+## 11. Post-build reconciliation (2026-08-27)
+
+After 703-705 merged, the five BUILT boards' own sections of
+`boards-descriptions` were re-read whole — the sections that bound the
+compiler, which I had read only as far as the matrix. One compiler defect,
+fixed forward as 706, and three named residuals:
+
+**The pivoted histogram aggregates nine ways, not one.** 705 compiled
+count(*) alone; the board's SQL Equivalent prints the general form and the
+page enumerates the set:
+
+> "The available aggregate metrics are: **Count** (number of records), **Unique Count**, **Min**, **Max**, **Sum**, **Mean**, **Approx. median**, **Standard Deviation**, and **Variance**."
+
+— `contour/boards-descriptions.md`
+
+706 honors all nine, refusing the tenth by name and demanding the column in
+the page's own words ("Except for Count, you must specify which column the
+aggregate applies to"). Approx. median is exact here (percentile_cont)
+where Foundry calls Spark's percentile_approx — recorded on the function.
+
+**Residuals, named:** the filter board's five text-filter kinds (contains /
+contains-with-wildcards / is / is-with-wildcards / matches, the last being
+Java-regex); multi-condition filter boards with the all/any match toggle
+("You can choose to match **all filters** or **any filter**"); and the
+histogram's top-ten display with Show More up to 50. The expression
+editor's function autocomplete and ?-reference are surface residuals.
+
 ## Questions
 
 1. **How much of the expression language should the Expression board accept?**
