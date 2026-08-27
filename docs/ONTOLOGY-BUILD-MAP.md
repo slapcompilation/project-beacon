@@ -269,6 +269,18 @@ read it.
 **Take hints one at a time, from a consumer that needs one.** Do not build the
 bag.
 
+**2026-08-27: 710 built the bag anyway, and this note is the reconciliation
+catching it, not an endorsement.** The Vertex arc needed the events
+convention (an object type wearing both event timestamps) and I reached for
+`ontology_type_classes(kind, name)` without re-reading this section — while
+`capability_slots()` (415) already held all six event slots, so
+`vertex_event_types()` now reads a second store beside the shipped
+Capabilities tab. Both stores have zero rows. The open decision — fold the
+type-class families into `capability_slots()` and repoint the view, or keep
+the bag and record why — is in `readings/vertex-foundation.md` §16.3 and
+waits for a human. Until it is taken, nothing else may write to either
+store.
+
 > "Type classes can be applied to **properties, link types, and action types**."
 
 **Not to object types directly** — the legacy group type class went on "the

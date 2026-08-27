@@ -535,6 +535,59 @@ reconcile.
   prompt UI; incremental computation, transform generation, multi-output
   transforms (Foundry itself lacks them here).
 
+- **Vertex** — SHIPPED (710-714, #880). The last Analytics card: system
+  graphs of specific objects in sub-graphs (nodes carry object type +
+  primary key + position, edges their link type, layers style, save
+  snapshots a version), templates generating graphs from object and value
+  parameters, and the ontology scenario sandbox — a transaction-local flag
+  turns the object_edits redirect on, `apply_action` runs UNCHANGED inside
+  it, and merge commits the staged edits in order as one transaction. The
+  pre-build adversary (#879) had already forced the big corrections in:
+  scenarios are an ontology primitive, sub-graphs exist, and the type-class
+  contract carries the events convention (an event is an object type
+  wearing both event timestamps; no events table). 714 is the arc's
+  in-flight self-correction: the platform suite caught 710's bare
+  `auth.uid()` FOR ALL policy and 712's capture-derived value set falsely
+  declaring a page.
+
+  **Post-build reconciliation found the scenario side STRUCTURALLY diverged
+  three ways, all unrecorded until reading §16** — the first arc where the
+  reconciliation's findings are divergences rather than omissions. Foundry
+  merges through an ACTION TYPE with scope and submission criteria; ours is
+  an INVOKER function any org member can call. Foundry threads
+  `scenarioRid` through eight existing api endpoints so every read and
+  aggregation is scenario-scopable; ours forked two bespoke entry points,
+  so a scenario cannot be queried. Foundry persists a scenario as an
+  OBJECT TYPE implementing an interface; ours is a platform table that is
+  neither of Foundry's two kinds. Beneath them, a correctness gap: the
+  scenario preview replays edits by different rules than the post-merge
+  index does, and the redirect drops the two revert columns, so a merged
+  scenario cannot be reverted. All recorded in `vertex-foundation.md` §16,
+  none yet fixed — they belong to the ontology end-to-end review queued
+  next.
+
+  **And 710 built a store two of our own maps refuse**: `ONTOLOGY-BUILD-MAP`
+  §B6 says type classes are deliberately not built, the enumerating page
+  says the mechanism is retiring into the Capabilities page, and
+  `capability_slots()` (415) already holds all six event slots — so
+  `vertex_event_types()` reads a second source of truth beside the shipped
+  Capabilities tab. Open decision, recorded in §16.3: fold the families
+  into `capability_slots()` and repoint the view, or keep the bag and say
+  why. The catalogue is also four rows short of the page it claims (17+17
+  there, 33 here, its own assertion proving the wrong number).
+
+  NOT built, recorded by name in §16.4: layouts (both vocabularies),
+  grouping, saved styles and selections, versioning opt-in/Duplicate/
+  Revert, link sharing, the URL contract, the Control Panel, histogram
+  filtering (the engine exists unreached), Save as Template (a read path
+  with no write path), every consumer of the events convention, the
+  timeline (NOT time-series-blocked — it draws timestamp properties);
+  Search Around EXPANSION execution stays the named residual, now with the
+  sharper truth that `searchAround` has no caller anywhere and the steps
+  grammar is a second traversal representation beside
+  `object_sets.traversals`. Seven of the arc's sixteen tables have no
+  reader — storage waiting for surfaces, said out loud.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed
@@ -1662,9 +1715,11 @@ vocabularies and nothing will. That is worth knowing before someone goes looking
 
 **And the action-rule row is the one most likely to be mistaken for a defect.**
 The api's `LogicRule` union carries **nine** kinds — corrected from eight by
-`readings/api-action-type.md`, which counted them: the ninth is `applyScenario`,
-and it maps onto nothing of ours because we have no scenario at all, while the
-mirror carries five pages describing one. `action-types/rules` enumerates
+`readings/api-action-type.md`, which counted them: the ninth is `applyScenario`.
+When this paragraph was written it mapped onto nothing of ours; since 713 we
+HAVE scenarios, and the gap moved — the rule kind is still absent from
+`action_rule_kinds()`, which is one leg of the merge-as-function divergence
+`vertex-foundation.md` §16.1 records. `action-types/rules` enumerates
 twelve. That is not two spellings of one idea — the case CLAUDE.md's table
 covers — but **what the Ontology Manager can configure versus what a program can
 send.** We build Ontology Manager, so twelve is right. It is also independent
