@@ -388,6 +388,17 @@ look finished too.
   the CALLER's JWT; declared ontology imports are the sandbox; queries
   first, then edit batches; semver with the six checks refusing rather than
   warning; no RID until attested.
+- `code-workbook-foundation.md` — the whole 43-page section with all 139 images
+  opened; **Legacy, explicitly NOT Sunset** (the two are separate rows of
+  `development-life-cycle`'s table). The portable idea is optional persistence —
+  an unsaved transform is a logical block, not a resource — plus the
+  workbook-local alias namespace, branch-snapshots-data, and integer-versioned
+  templates; everything else is Spark, Conda, Python and R, recorded as
+  divergences rather than ported. Images carry what the prose does not: nine
+  attested RIDs (two of which break our four-part grammar), a third build-job
+  vocabulary (`Queueing in Code workbook`, `Job type: Vector write`), six menu
+  operations named nowhere in prose, and `Workbook Inputs`, which appears in
+  three screenshots and zero sentences. Ten open questions, all `blocks: nothing`.
 
 - `vertex-foundation.md` — all 28 pages, 36 of 150 images opened and the other
   114 named. **The product is NOT sunset; model chaining and the in-Vertex model
