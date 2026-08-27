@@ -106,6 +106,15 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
       {
+        name: 'Contour',
+        // the capture's own tagline
+        tagline: 'Visualize, filter, and transform data',
+        blurb: 'Paths of boards over datasets at scale: filter, derive and chart without code, then save a path as a dataset — the sequence of transformations becomes a job specification the build system recomputes.',
+        path: '/contour',
+        icon: 'route',
+        tint: '#2d72d2',
+      },
+      {
         name: 'Quiver',
         // the capture's own tagline, kept verbatim even though the time
         // series half of Quiver is catalogued here rather than built
@@ -116,7 +125,7 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
     ],
-    missing: 'Code Workbook, Contour and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
+    missing: 'Code Workbook and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -185,6 +194,7 @@ export type PortalCategory = typeof PORTAL_CATEGORIES[number]
 export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/catalog': 'Analyze data',
   '/quiver': 'Analyze data',
+  '/contour': 'Analyze data',
   '/modeling': 'Manage & deploy models',
   '/datasets': 'Build & monitor pipelines',
   '/code': 'Build & monitor pipelines',
