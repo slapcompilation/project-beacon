@@ -47,6 +47,7 @@ const CodeRepositoriesPage = lazyWithRetry(() => import('@/pages/CodeRepositorie
 const FusionPage = lazyWithRetry(() => import('@/pages/FusionPage'))
 const QuiverPage = lazyWithRetry(() => import('@/pages/QuiverPage'))
 const ModelingPage = lazyWithRetry(() => import('@/pages/ModelingPage'))
+const ContourPage = lazyWithRetry(() => import('@/pages/ContourPage'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
 const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
 const LineagePage = lazyWithRetry(() => import('@/features/lineage/LineagePage'))
@@ -122,6 +123,7 @@ function AppRoutes() {
             <Route path="/fusion" element={<FusionPage />} />
             <Route path="/quiver" element={<QuiverPage />} />
             <Route path="/modeling" element={<ModelingPage />} />
+            <Route path="/contour" element={<ContourPage />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
             <Route path="/lineage" element={<LineagePage />} />
