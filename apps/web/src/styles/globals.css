@@ -1950,3 +1950,29 @@
 }
 .qv-card-hidden { opacity:.45; }
 .qv-configure { display:flex; align-items:center; gap:6px; margin-top:6px; }
+
+/* Machine Learning (699-701) — the objective page: submissions with check
+   chips, the releases rail with both tag badges, deployments grouped by
+   environment with the capture's RELEASE / HEALTH / UPGRADE columns. */
+.ml-columns { display:grid; grid-template-columns:1fr 260px; gap:20px; align-items:start; }
+.ml-version { display:flex; align-items:center; gap:8px; }
+.ml-checkrow { display:flex; align-items:center; gap:4px; margin-top:6px; flex-wrap:wrap; }
+.ml-envgroup { border:1px solid hsl(var(--border)); border-radius:6px; overflow:hidden; }
+.ml-envhead {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 10px; background:hsl(var(--muted));
+}
+.ml-table { width:100%; border-collapse:collapse; font-size:12px; }
+.ml-table th {
+  text-align:left; font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+  color:hsl(var(--muted-foreground)); padding:5px 10px;
+  border-bottom:1px solid hsl(var(--border));
+}
+.ml-table td { padding:5px 10px; border-bottom:1px solid hsl(var(--border)); }
+.ml-table tr:last-child td { border-bottom:0; }
+.ml-output {
+  font-family:ui-monospace, monospace; font-size:11px;
+  background:hsl(var(--muted)); border-radius:4px; padding:6px 8px;
+  max-height:180px; overflow:auto; flex:1; margin:0;
+}
+.ml-archived { opacity:.5; }

@@ -14,32 +14,35 @@ create-a-model-deployment, archive-model, set-up-checks, set-up-batch,
 set-up-live, models-in-the-ontology}`, `integrate-models/{integrate-overview,
 model-adapter-overview, model-adapter-api}`, `model-studio/core-concepts`.
 
-**Images: those 17 pages reference 50 distinct files, of which I opened four** —
+**Images: those 17 pages reference 50 distinct files, of which I opened seven** —
 `model-integration/images/concepts_concept-flow1.png`,
 `model-integration/images/concepts_concept-deployments.png`,
 `manage-models/images/concepts_concept-review.png`,
-`integrate-models/images/custom_adapter-lifecycle.png`. Those four are the ones
-carrying structure the prose leaves out; the rest are button locations and
-configuration dialogs for features this build does not reach.
+`integrate-models/images/custom_adapter-lifecycle.png`, and — after the
+adversary pass in §10 falsified my claim that the unopened rest were "button
+locations" — `manage-models/images/howto-create-deployment.png`,
+`manage-models/images/manage_release-history.png`,
+`manage-models/images/setup-configure-objective-check.png`. Those last three
+each changed or confirmed schema (§10).
 
-**Forty-six I did not open**, named so the debt is recorded as mine:
+**Forty-three I did not open**, named so the debt is recorded as mine:
 `model-integration/images/2-Models.svg`,
 `model-integration/images/concept_foundry-model.png`,
 `model-integration/images/concept-metric-flow.png`,
 `manage-models/images/manage_submit-model-new.png`,
 `manage_submit-model-existing.png`, `manage_submit-model-popover.png`,
 `manage_release-staging-home.png`, `manage_create-release-staging.png`,
-`manage_create-production-release.png`, `manage_release-history.png`,
+`manage_create-production-release.png`,
 `model-direct-deployment-start.png`, `configure-modeling-direct-deployment.png`,
 `model-deployment-function-publish.png`, `edit-runtime-configuration.png`,
 `schedule-overrides.png`, `model-deployment-debugging.png`,
 `direct-run-debug.png`, `archive_view-archive.png`, `archive_howto-archive.png`,
-`archive_no-archive.png`, `setup-configure-objective-check.png`,
+`archive_no-archive.png`,
 `objective-checks.png`, `setup-submission-checks.png`,
 `evaluation-checks-create-check.png`,
 `evaluation-checks-evaluation-results.png`, `evaluation-checks-result.png`,
 `setup-archive-a-check.png`, `setup-filter-submissions-by-check.png`,
-`howto-create-deployment.png`, `howto-configure-batch-deployment.png`,
+`howto-configure-batch-deployment.png`,
 `howto-edit-batch-deployment-configuration.png`, `howto-view-deployment.png`,
 `howto_open_batch_deployment_output.png`,
 `howto_configure_batch_deployment_schedule.png`, `howto-live-create.png`,
@@ -263,6 +266,90 @@ on the adapter table itself rather than implied.
 - **Quiver (696)** — `card-code-function-object-set` and the modelling cards are
   in its catalogue unbuilt; a model that can be called makes some of them real.
 
+## 10. Corrected BEFORE building — the adversary pass
+
+Before any migration was applied, a foundry-adversary pass tried to falsify
+this reading against all five sections, the `api/` mirror and the images. It
+confirmed the load-bearing claims — checks never block, the submission copy,
+batch-through-builds, the model-catalog exclusion, all 22 quotations byte-exact
+— and falsified enough that the build would have shipped 691's class of defect
+three more times. Each catch, with what the schema now does instead:
+
+**A release carries tags, PLURAL.** §3 modelled `environment` as one value that
+promotion flips. The release history capture — which I had dismissed unopened —
+shows one release wearing both badges:
+
+> 2.0 … Staging … Production … Tagged production on Mon, Nov 28, 2022
+> — manage-models/images/manage_release-history.png
+
+and the prose I myself quoted says "configurable environment tags", plural. So
+there is no environment column at all: a release is staging-tagged from birth
+and promotion ADDS the production tag with its own timestamp, which is the
+capture's "Tagged production on" line. The skipped **Release history** section
+of the same page carries the currency rule:
+
+> "Every release will overwrite the previous release for that environment, and all deployments in that environment will automatically be upgraded to use the newly released model."
+
+— `manage-models/release-model.md`
+
+**Direct model deployments are a second resource, and I had silently skipped
+them.** `create-a-model-deployment.md` was on my read-whole list while I had
+read three of its nine sections. It is about a deployment bound to a model
+BRANCH, with no objective, no submission and no release anywhere in it:
+
+> "One direct model deployment can be created for each branch of a [model](/docs/foundry/model-integration/models/). When a new model version is published to that branch, the direct model deployment will automatically upgrade to the new endpoint with no downtime."
+
+— `manage-models/create-a-model-deployment.md`
+
+Its comparison table is the page that settles which features belong to which
+kind — automatic upgrades and type safety to direct, pre-release review,
+inference history and automatic evaluation to objective live deployments. The
+enumerating table I skipped on `what-to-use.md` lists both kinds under **Model
+deployment**, and its **Batch inference** row carries a caveat the batch runner
+now inherits verbatim:
+
+> "Does not support multi-output and external models, [models as sidecars](/docs/foundry/integrate-models/transform-model-input/#running-models-as-sidecar-containers), or deployment via Marketplace as [detailed here](/docs/foundry/model-integration/marketplace-models/)."
+
+— `model-integration/what-to-use.md`
+
+**The create form is one resource with a type radio.** Opening
+`howto-create-deployment.png`: Deployment name, Description, `Release tag to
+deploy` (Staging/Production radios, captioned "a production environment will
+take the latest production tagged release"), `Deployment type` —
+
+> Batch … Models will take in and output a dataset in one build. … Live … Models are available online as near real-time runtime inference endpoints, which can be executed by API calls.
+> — manage-models/images/howto-create-deployment.png
+
+— then Input dataset (branch-stamped `master`), Output dataset (create new /
+select existing), Spark profiles, and a `DEPLOYING RELEASE 1.0 Staging`
+preview. "In one build" is the batch runner's warrant.
+
+**The check form confirms the approver split.** `setup-configure-objective-check.png`
+holds exactly: Check name, Description, **Reviewer groups** (multi), **Reviewer
+users** (multi) — the user-or-group approver rows the schema has.
+
+**Submission immutability is scoped to the COPY.** The word "immutable" in
+`objectives.md` modifies the copied model version; the submission row itself is
+archived and carries editable per-objective metadata ("Custom metadata fields
+can be collected with each model submission" — the `## Metadata` heading I
+skipped). The guard freezes the snapshot and the references, nothing else.
+
+**The `api/` mirror publishes what the prose omits, and the reading never
+looked.** Now wired in: `ModelVersion.source` is a seven-member union
+(`importedContainerizedModel`, `external`, `codeWorkspace`, `modelStudio`,
+`codeRepository`, `sdk`, `promoted` — `api/models-v2-resources-model-versions-get-model-version`),
+a live deployment's `status.state` is `ACTIVE`/`STARTING`/`DEGRADED`/`DISABLED`/`FAILED`
+(recorded unbuilt — no runtime exists to be in those states), and a Model
+Studio training run speaks the builds vocabulary (`buildStatus`:
+RUNNING/SUCCEEDED/FAILED/CANCELED).
+
+**Also surfaced, recorded not built:** the adapter API's seven input/output
+types and eleven column types (now the declared vocabulary of a version's
+`api`), the batch asymmetry "Column types are generally *not* enforced for
+batch inference, unlike live inference" (`integrate-models/model-adapter-api`),
+trainer parameters and the always-latest training configuration, and archived
+checks keeping their history.
+
 ## Decisions
 
 1. **Build the lifecycle, which is the documented part**: models → versions →
@@ -273,10 +360,18 @@ on the adapter table itself rather than implied.
    immutable and it is what everything downstream points at.
 3. **A release's environment tag is the deployment's selector.** A deployment
    names an environment, not a release, and resolves to the latest tagged one.
+   Corrected by §10: the tag set is additive — staging from birth, production
+   by promotion — and DIRECT deployments are a second resource that skips
+   releases entirely, following the model's latest version. Ours bind one per
+   model because models here have no branches; the branch column is the
+   recorded gap.
 4. **Checks never block a release** (§5). They are advisory, and the automatic
    status set `PASS` / `REJECT` / `PENDING` is declarable from
    `manage-models/set-up-checks`.
-5. **Released submissions cannot be archived** (§3) — a trigger.
+5. **Released submissions cannot be archived** (§3), and archived ones cannot
+   be released ("Removes the ability to create a release from that model",
+   `manage-models/archive-model`) — one trigger, one refusal in create_release.
+   The submission's metadata stays editable; only the copy is frozen (§10).
 6. **The adapter is a function version**, with the language divergence recorded
    on the table. Batch inference runs through the build engine so it is a real
    pipeline rather than a stored intention.

@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (79) ────────────────────────────────────────────────
+// ── ACTION TYPES (86) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -183,6 +183,24 @@ export const createCodeRepository = { apiName: 'create_code_repository', kind: '
 >
 
 /**
+ *  Creates a model with no versions yet. INVOKER, so the model's own policy
+ *  decides who may.
+ */
+export const createModel = { apiName: 'create_model', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string },
+  string
+>
+
+/**
+ *  Creates an objective. INVOKER, so the objective's own policy decides who
+ *  may.
+ */
+export const createModelingObjective = { apiName: 'create_modeling_objective', kind: 'action' } as ActionType<
+  { p_project: string; p_name: string; p_description?: string },
+  string
+>
+
+/**
  *  Opens a proposal and snapshots one task per resource the branch changed.
  */
 export const createProposal = { apiName: 'create_proposal', kind: 'action' } as ActionType<
@@ -197,6 +215,18 @@ export const createProposal = { apiName: 'create_proposal', kind: 'action' } as 
  */
 export const createQuiverAnalysis = { apiName: 'create_quiver_analysis', kind: 'action' } as ActionType<
   { p_project: string; p_name: string; p_type?: string },
+  string
+>
+
+/**
+ *  "Give the model a release number and a release note, then click Create
+ *  release" (manage-models/release-model). Always a STAGING release, the only
+ *  creation the page documents; Mark as production promotes it. Refuses an
+ *  archived submission, because archiving "Removes the ability to create a
+ *  release" (manage-models/archive-model). INVOKER.
+ */
+export const createRelease = { apiName: 'create_release', kind: 'action' } as ActionType<
+  { p_submission: string; p_version_label: string; p_note?: string },
   string
 >
 
@@ -374,6 +404,17 @@ export const lineageGraph = { apiName: 'lineage_graph', kind: 'action' } as Acti
 >
 
 /**
+ *  "a staging release can be promoted to production by clicking Mark as
+ *  production" (manage-models/release-model). ADDS the production tag — the
+ *  staging badge stays, because manage_release-history.png shows a release
+ *  wearing both. The one edit a release admits. INVOKER.
+ */
+export const markReleaseAsProduction = { apiName: 'mark_release_as_production', kind: 'action' } as ActionType<
+  { p_release: string },
+  void
+>
+
+/**
  *  Merges a proposal: blockers, then the branch's overlay through the same
  *  arms a main save uses, then the violations delta — atomically, in one
  *  transaction. Deliberately does NOT check who is merging beyond visibility:
@@ -413,6 +454,19 @@ export const objectDatasetJobSpec = { apiName: 'object_dataset_job_spec', kind: 
 >
 
 /**
+ *  Model.publish, the second box of the lifecycle diagram: artifacts, the
+ *  declared api(), and the exact adapter version they are read through become
+ *  one immutable model version. Refuses an adapter that is not the uniform
+ *  predict shape, because "Palantir interacts with all models in the same way
+ *  by interfacing with the model adapter class of that model version"
+ *  (integrate-models/model-adapter-overview). INVOKER.
+ */
+export const publishModelVersion = { apiName: 'publish_model_version', kind: 'action' } as ActionType<
+  { p_model: string; p_artifacts: Json; p_adapter_version: string; p_api?: Json },
+  string
+>
+
+/**
  *  What ci/foundry-publish does, under Foundry's own name for it: derives a
  *  job spec from every SQL transform on the branch and records the check the
  *  page says must succeed before changes take effect
@@ -446,6 +500,22 @@ export const publishTransformFile = { apiName: 'publish_transform_file', kind: '
 export const rebaseBranch = { apiName: 'rebase_branch', kind: 'action' } as ActionType<
   { p_branch: string; p_resolutions?: Json },
   number
+>
+
+/**
+ *  The write half of a batch run: the adapter's output rows become a
+ *  committed transaction on the output dataset, exactly the run_build
+ *  sequence (493), and the run ledger pins which release ran over which input
+ *  transaction. The isolate half — predict itself — is 501/502's engine,
+ *  invoked by the caller between batch_run_input and this. Output types are
+ *  derived by inspection, not enforced: "Column types are generally not
+ *  enforced for batch inference, unlike live inference"
+ *  (integrate-models/model-adapter-api). INVOKER: writing the output dataset
+ *  takes the caller's own rights.
+ */
+export const recordBatchRun = { apiName: 'record_batch_run', kind: 'action' } as ActionType<
+  { p_deployment: string; p_input_transaction: string; p_output_rows: Json },
+  string
 >
 
 /**
@@ -723,6 +793,19 @@ export const submitCheckpoint = { apiName: 'submit_checkpoint', kind: 'action' }
 >
 
 /**
+ *  The Submit model button: creates the immutable COPY — "a copy of that
+ *  model version is created" (model-integration/objectives) — carrying the
+ *  artifacts and the adapter's exact call address (api_name, ontology,
+ *  semver), so a submission stays runnable as submitted. INVOKER: the caller
+ *  needs read on the model and editor on the objective, and the policies say
+ *  so.
+ */
+export const submitModel = { apiName: 'submit_model', kind: 'action' } as ActionType<
+  { p_objective: string; p_model_version: string; p_metadata?: Json },
+  string
+>
+
+/**
  *  Syncs a table region to its dataset as a transaction — "any changes made
  *  to that table range will trigger a build and be reflected in its
  *  associated dataset ... you may see a number of finished and aborted
@@ -747,7 +830,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (283) ───────────────────────────────────────────────────
+// ── FUNCTIONS (293) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1057,6 +1140,18 @@ export const automationScheduleCron = { apiName: 'automation_schedule_cron', kin
 >
 
 /**
+ *  The read half of a batch run: the input dataset's current master view as
+ *  ordered rows, plus the head transaction so the run can pin what it
+ *  consumed. The caller hands these rows to the adapter — one predict call
+ *  takes the whole dataframe, which is what the api() example's
+ *  input_dataframe is (integrate-models/model-adapter-api).
+ */
+export const batchRunInput = { apiName: 'batch_run_input', kind: 'function' } as FunctionType<
+  { p_deployment: string },
+  Json
+>
+
+/**
  *  Every field both this branch and main have moved since the branch recorded
  *  its base. Everything not listed auto-resolves on rebase, which is what
  *  Global Branching does.
@@ -1115,6 +1210,17 @@ export const canEditHealthCheckTarget = { apiName: 'can_edit_health_check_target
 >
 
 /**
+ *  Editor on the model's project edits it — the application-resource floor.
+ *  "Full version history, granular model permissioning"
+ *  (model-integration/models) is the project's permissioning here, composed
+ *  rather than restated.
+ */
+export const canEditModel = { apiName: 'can_edit_model', kind: 'function' } as FunctionType<
+  { p_model: string },
+  boolean
+>
+
+/**
  *  Editor edits a module — the role the page names, not a stricter one we
  *  invented (workshop/concepts-permissions).
  */
@@ -1130,6 +1236,17 @@ export const canEditMonitoringRule = { apiName: 'can_edit_monitoring_rule', kind
 
 export const canEditMonitoringView = { apiName: 'can_edit_monitoring_view', kind: 'function' } as FunctionType<
   { p_view: string },
+  boolean
+>
+
+/**
+ *  "Objective owners can set roles to control access for review, release, and
+ *  deployment" (manage-models/review-model) — composed from the project role.
+ *  Reviews and check responses take any project MEMBER, because review is the
+ *  collaboration point; submissions, checks and releases take editor.
+ */
+export const canEditObjective = { apiName: 'can_edit_objective', kind: 'function' } as FunctionType<
+  { p_objective: string },
   boolean
 >
 
@@ -1232,6 +1349,16 @@ export const canReadDataset = { apiName: 'can_read_dataset', kind: 'function' } 
  */
 export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'function' } as FunctionType<
   { p_dataset: string },
+  boolean
+>
+
+export const canReadModel = { apiName: 'can_read_model', kind: 'function' } as FunctionType<
+  { p_model: string },
+  boolean
+>
+
+export const canReadObjective = { apiName: 'can_read_objective', kind: 'function' } as FunctionType<
+  { p_objective: string },
   boolean
 >
 
@@ -2075,6 +2202,21 @@ export const jobSpecVersion = { apiName: 'job_spec_version', kind: 'function' } 
 >
 
 /**
+ *  The deployment selector: "a deployment with a "Production" environment
+ *  will take the latest tagged "Production" release"
+ *  (model-integration/objectives). Every release carries the staging tag from
+ *  birth; production is the promoted subset. Latest by when THAT tag was
+ *  acquired, which is what "Every release will overwrite the previous release
+ *  for that environment" (manage-models/release-model) resolves to. An
+ *  unknown environment returns nothing, and 701's deployments constrain the
+ *  word.
+ */
+export const latestTaggedRelease = { apiName: 'latest_tagged_release', kind: 'function' } as FunctionType<
+  { p_objective: string; p_environment: string },
+  string
+>
+
+/**
  *  The generated accessor for one end of a link type: .get() where that side
  *  sees one, .all() where it sees many. Derived from cardinality so the two
  *  can never disagree.
@@ -2142,6 +2284,19 @@ export const mediaReferenceValid = { apiName: 'media_reference_valid', kind: 'fu
 export const mergeModes = { apiName: 'merge_modes', kind: 'function' } as FunctionType<
   Record<string, never>,
   { mode: string; note: string }[]
+>
+
+/**
+ *  The three trainers model-studio/core-concepts enumerates — "Model studio
+ *  trainers are the actual model training implementation that is used to
+ *  train a model. Each trainer is targeted at a specific task." None is
+ *  built: training here means publishing a version whose artifacts came from
+ *  elsewhere. The catalogue exists so an unbuilt trainer refuses by name, the
+ *  same pattern as quiver_card_kinds.
+ */
+export const modelStudioTrainers = { apiName: 'model_studio_trainers', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { trainer: string; description: string; built: boolean }[]
 >
 
 /**
@@ -2625,6 +2780,33 @@ export const reservedApiNames = { apiName: 'reserved_api_names', kind: 'function
 >
 
 /**
+ *  Resolves a direct deployment to the model's LATEST version — "When a new
+ *  model version is published to that branch, the direct model deployment
+ *  will automatically upgrade to the new endpoint with no downtime"
+ *  (manage-models/create-a-model-deployment). Contrast the objective path,
+ *  which resolves through a reviewed release; the comparison table on that
+ *  page is exactly this trade.
+ */
+export const resolveDirectDeployment = { apiName: 'resolve_direct_deployment', kind: 'function' } as FunctionType<
+  { p_deployment: string },
+  Json
+>
+
+/**
+ *  Resolves a deployment to what a caller needs for inference: the latest
+ *  release carrying the deployment's tag, and the SUBMISSION SNAPSHOT's
+ *  artifacts and adapter address — the copy, not the live model, because the
+ *  copy is what was reviewed and released. Resolution happens per call, which
+ *  is the page's automatic upgrade: "corresponding deployments pick up the
+ *  new model versions automatically without downtime"
+ *  (model-integration/objectives).
+ */
+export const resolveObjectiveDeployment = { apiName: 'resolve_objective_deployment', kind: 'function' } as FunctionType<
+  { p_deployment: string },
+  Json
+>
+
+/**
  *  The single definition of file access: same organization, a member of every
  *  file marking, and inside the scoped session. Every policy and helper
  *  composes this rather than restating it — restating it is what produced
@@ -2851,6 +3033,22 @@ export const structFieldTypes = { apiName: 'struct_field_types', kind: 'function
 export const structPropertyProblems = { apiName: 'struct_property_problems', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  The page's three automatic statuses, computed rather than stored so they
+ *  are always current: PASS when "the metric satisfies the requirement",
+ *  REJECT when "the metric fails the requirement or is not found in the set
+ *  of metrics", PENDING when "metrics were not yet built for the combination
+ *  of submission, input dataset, and evaluation library"
+ *  (manage-models/set-up-checks). Manual checks return APPROVED on an
+ *  eligible approval and PENDING otherwise, because the approved condition is
+ *  the only one the page defines. NEVER consulted by create_release: "it is
+ *  not mandatory for all checks to be approved before creating a release".
+ */
+export const submissionCheckStatus = { apiName: 'submission_check_status', kind: 'function' } as FunctionType<
+  { p_check: string; p_submission: string },
+  string
 >
 
 /**

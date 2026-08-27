@@ -93,8 +93,18 @@ export const AUDIENCES: AppAudience[] = [
     id: 'analytics',
     title: 'Applications for Analytics',
     // The capture's six: Code workbook, Machine Learning, Contour, Reports,
-    // Quiver, Vertex. Quiver is built since 696; Reports is sunset.
+    // Quiver, Vertex. Quiver is built since 696, Machine Learning since 699;
+    // Reports is sunset.
     apps: [
+      {
+        name: 'Machine Learning',
+        // the capture's own tagline
+        tagline: 'Manage and deploy models',
+        blurb: 'Models are artifacts plus a typed adapter; objectives manage their submissions, checks, reviews and releases; deployments pick up the latest release carrying their tag, and a batch run writes a real dataset transaction.',
+        path: '/modeling',
+        icon: 'predictive-analysis',
+        tint: '#2d72d2',
+      },
       {
         name: 'Quiver',
         // the capture's own tagline, kept verbatim even though the time
@@ -106,7 +116,7 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
     ],
-    missing: 'Code Workbook, Machine Learning, Contour and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
+    missing: 'Code Workbook, Contour and Vertex are not built here yet. Reports is sunset in Foundry and deliberately will not be.',
   },
   {
     id: 'operations',
@@ -175,6 +185,7 @@ export type PortalCategory = typeof PORTAL_CATEGORIES[number]
 export const APP_CATEGORY: Record<string, PortalCategory> = {
   '/catalog': 'Analyze data',
   '/quiver': 'Analyze data',
+  '/modeling': 'Manage & deploy models',
   '/datasets': 'Build & monitor pipelines',
   '/code': 'Build & monitor pipelines',
   '/lineage': 'Build & monitor pipelines',
