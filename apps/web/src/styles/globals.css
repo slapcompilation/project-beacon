@@ -2077,3 +2077,34 @@
 .wk-add { display:flex; align-items:center; gap:6px; justify-content:center; padding:8px 0; }
 .wk-alias { font-family:ui-monospace, monospace; font-size:12px; font-weight:600; }
 .wk-alias-plain { font-family:ui-monospace, monospace; font-size:12px; }
+
+/* Vertex (710-713) — the graph canvas, positioned nodes, and the scenario
+   panel. */
+.vx-topbar {
+  display:flex; align-items:center; gap:6px; padding:6px 12px;
+  border-bottom:1px solid var(--border);
+}
+.vx-spacer { flex:1; }
+.vx-canvas { flex:1; overflow:auto; position:relative; }
+.vx-board { position:relative; min-width:900px; min-height:480px; }
+.vx-node {
+  position:absolute; display:flex; align-items:center; gap:8px;
+  padding:6px 10px; border:1px solid var(--border); border-radius:3px;
+  background:var(--card); max-width:180px;
+}
+.vx-node-title { font-size:12px; font-weight:600; margin:0; }
+.vx-node-type { font-size:10px; color:var(--muted-foreground); margin:0; }
+.vx-edges-list {
+  position:absolute; right:8px; top:8px; display:flex; flex-direction:column;
+  gap:2px; align-items:flex-end;
+}
+.vx-footer {
+  display:flex; align-items:center; gap:6px; padding:6px 12px;
+  border-top:1px solid var(--border);
+}
+.vx-two-col { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.vx-peek { display:flex; align-items:center; gap:6px; padding-top:4px; }
+.vx-peeked {
+  font-size:10px; font-family:ui-monospace, monospace; margin:0;
+  max-height:120px; overflow:auto; flex:1; min-width:0;
+}
