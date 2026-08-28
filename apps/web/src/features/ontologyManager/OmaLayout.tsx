@@ -8,18 +8,16 @@
 // The dark rail to the left is the platform's and stays; everything here is the
 // application's, and light (§5.1). Two chromes, nested — that is the point.
 //
-// The sidebar screenshot (§6.3) inventories fourteen entries. Eight lead
-// somewhere — Cleanup, Health issues and Functions arrived last, each once
-// something rendered the engine that had been backing it all along. OMITTED BY NAME, with
-// what would have to exist first:
-//   Unsaved changes  — the save session lives in the top bar instead, where the
-//                      count and its buttons already are (§10.8 puts it here too).
-//   History          — `object_edits` and `branch_resource_changes` exist; no reader.
+// The sidebar screenshot (§6.3) inventories fourteen entries. Eleven lead
+// somewhere — Cleanup, Health issues and Functions arrived once something
+// rendered their engines; Unsaved changes and History arrived the same way
+// (672's save log got its first reader in the F6.2 chunk), and Ontology
+// configuration with 722's arc. OMITTED BY NAME, with what would have to
+// exist first:
 //   Properties       — a flat index of every property across types; nothing builds
 //                      it. It is also the one entry with no count in the screenshot.
-//   Groups           — `type_groups` and `object_type_group_members` exist; no surface.
-//   Value types      — nothing behind it.
-//   Ontology configuration — nothing behind it.
+//   Groups           — `type_groups` and `object_type_group_members` exist; no writer.
+//   Value types      — the Value Types Manager lives at /value-types, outside OMA.
 // The header's `New ▾` goes with them: creation lives in the object types page.
 
 import { Fragment, useEffect, useState } from 'react'
@@ -101,6 +99,11 @@ export default function OmaLayout() {
           <nav className="oma-nav">
             <NavRow icon="compass" label="Discover" path="/ontology" end />
             <NavRow icon="people" label="Proposals" path="/ontology/proposals" />
+            {/* "select Unsaved changes to view a list of all unsaved changes
+                made by you" / "Select the History tab in the homepage
+                sidebar" — restore-changes. */}
+            <NavRow icon="edit" label="Unsaved changes" path="/ontology/unsaved" />
+            <NavRow icon="history" label="History" path="/ontology/history" />
             <MainBranchUpdatesRow />
             <div className="oma-rule" />
             {/* One indented block from the heading down to Cleanup: in

@@ -2081,6 +2081,14 @@
 .no-underline { text-decoration:none; }
 .py-4 { padding-top:1rem; padding-bottom:1rem; }
 .py-8 { padding-top:2rem; padding-bottom:2rem; }
+.pl-6 { padding-left:1.5rem; }
+
+/* Ontology history (F6.2) — one row per save, collapsed by default. */
+.oh-row {
+  display:flex; align-items:center; gap:8px; width:100%;
+  background:none; border:none; padding:0; cursor:pointer; text-align:left;
+  color:inherit; font:inherit;
+}
 
 /* Object View (718) — the header one object gets, the standard sections,
    and the configured view's tab strip. */
