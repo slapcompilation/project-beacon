@@ -37,6 +37,7 @@ export interface PropertyRow {
   /** The chain, one row per link. Embedded unordered, so `rowToProperty` sorts. */
   derived_property_hops?: { position: number; link_type_id: string }[]
   shared_property_id: string | null
+  value_type_id: string | null
   required: boolean
   visibility: 'prominent' | 'normal' | 'hidden'
   position: number
@@ -64,6 +65,7 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
     description: r.description, required: r.required,
     source: r.source, backingColumn: r.backing_column,
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
+    valueTypeId: r.value_type_id,
     hops: [...(r.derived_property_hops ?? [])]
       .sort((a, b) => a.position - b.position).map((h) => h.link_type_id),
     derivedAggregation: r.derived_aggregation,
@@ -98,6 +100,7 @@ export function propertyToRow(p: PropertyDef, position: number) {
       derived_limit: p.derivedLimit ?? null,
     } : { hops: [], derived_aggregation: null, derived_from_property_id: null, derived_limit: null }),
     shared_property_id: p.sharedPropertyId ?? null,
+    value_type_id: p.valueTypeId ?? null,
     required: p.required, visibility: p.visibility ?? 'normal', position,
     is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
     // Absent means unchanged: the session's status pass only touches rows
