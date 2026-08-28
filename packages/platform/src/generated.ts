@@ -2739,13 +2739,14 @@ export const objectTypeIndexReady = { apiName: 'object_type_index_ready', kind: 
 >
 
 /**
- *  One row per index: the last build job's state and error, with the row
- *  count and time. The OSv2 answer to what the Index status scalar used to
- *  show.
+ *  The per-type index answer the surfaces read: last job state, error, count,
+ *  indexed_at — and since 720, stale (edits newer than the index, or a spec
+ *  whose inputs moved). Ready-but-stale gets a label instead of passing as
+ *  current.
  */
 export const objectTypeIndexReport = { apiName: 'object_type_index_report', kind: 'function' } as FunctionType<
   Record<string, never>,
-  { object_type_id: string; state: string; error: string; object_count: number; indexed_at: string }[]
+  { object_type_id: string; state: string; error: string; object_count: number; indexed_at: string; stale: boolean }[]
 >
 
 /**

@@ -126,6 +126,7 @@ export function MetadataCard(
           {phase !== 'none' && (
             <Row label="Index status">
               {phase === 'ready' ? <Tag minimal>Indexed</Tag>
+                : phase === 'refreshing' ? <Tag minimal intent="warning">Indexed · refreshing</Tag>
                 : phase === 'failed' ? <Tag minimal intent="danger">Index failed</Tag>
                 : <Tag minimal intent="primary">Indexing</Tag>}
             </Row>
