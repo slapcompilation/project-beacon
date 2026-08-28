@@ -16,8 +16,8 @@ import { toast } from 'sonner'
 import { useComposeBranch } from '@/features/branching/api'
 import { STATUS_META } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { client } from '@/lib/supabase/ontologyClient'
-import { generateBackingDataset } from '@beacon/platform'
+import { useAuthStore } from '@/stores/auth.store'
+import { toSlug } from '@beacon/ontology'
 import type { Backing } from './BackingStep'
 import {
   fetchObjectTypes, saveObjectType, deleteObjectType, setObjectTypeStatus, updateObjectType,
@@ -159,29 +159,38 @@ export function useAddObjectTypeDatasource(objectTypeId: string) {
   })
 }
 
-/** Step 1 of the create wizard, applied once the type exists. Either branch
- *  leaves the type with a datasource, which is what makes it saveable at all. */
-export function useApplyBacking() {
-  const qc = useQueryClient()
-  return async (objectTypeId: string, b: Backing) => {
-    try {
-      if (b.kind === 'existing') {
-        if (!b.datasetId || !b.branchId) return
-        await addObjectTypeDatasource({ objectTypeId, datasetId: b.datasetId, branchId: b.branchId })
-      } else {
-        await client(generateBackingDataset).applyAction({
-          p_object_type: objectTypeId,
-          p_name: b.name.trim() || 'Backing dataset',
-          p_folder: b.folderId ?? undefined,
-        })
+/** Step 1 of the create wizard, resolved BEFORE the type is staged: the
+ *  staged payload carries the backing inline, and both land together on save.
+ *  The old order — stage, then attach — deadlocked, because both attachment
+ *  paths need the landed row and the linter refuses landing without backing
+ *  (creation review, F1). The generate branch makes the empty dataset first,
+ *  the way 590 does: dataset + master branch in the chosen folder, empty
+ *  because that is the point. */
+export function useResolveBacking() {
+  const organizationId = useAuthStore((s) => s.organizationId)
+  return async (
+    b: Backing, projectId: string | null, typeLabel: string,
+  ): Promise<{ datasetId: string; branchId: string }> => {
+    if (b.kind === 'existing') {
+      if (!b.datasetId || !b.branchId) {
+        throw new Error('Choose the dataset and branch that back this type.')
       }
-      void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
-      void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
-    } catch (e) {
-      // The type exists either way; say what is missing rather than pretending.
-      toast.error(`Object type created, but its backing datasource was not: ${
-        e instanceof Error ? e.message : String(e)}`)
+      return { datasetId: b.datasetId, branchId: b.branchId }
     }
+    if (!organizationId || !projectId) {
+      throw new Error('Choose a project first — the backing dataset needs a location.')
+    }
+    const name = b.name.trim() || `${typeLabel.trim() || 'Backing'} backing`
+    const { data, error } = await supabase.from('datasets').insert({
+      organization_id: organizationId, project_id: projectId,
+      folder_id: b.folderId, api_name: toSlug(name), name,
+    }).select('id').single()
+    if (error) throw new Error(error.message)
+    const datasetId = (data as { id: string }).id
+    const { data: br, error: bErr } = await supabase.from('dataset_branches')
+      .insert({ dataset_id: datasetId, name: 'master' }).select('id').single()
+    if (bErr) throw new Error(bErr.message)
+    return { datasetId, branchId: (br as { id: string }).id }
   }
 }
 
