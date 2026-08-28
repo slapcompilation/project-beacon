@@ -588,6 +588,33 @@ reconcile.
   `object_sets.traversals`. Seven of the arc's sixteen tables have no
   reader — storage waiting for surfaces, said out loud.
 
+- **The creation-flow fix series + the Object View** — SHIPPED #883-#890
+  (2026-08-28). The creation review (docs/ONTOLOGY-CREATION-REVIEW.md,
+  #882) found the flow had never run; six findings were fixed the next day
+  — the wizard deadlock (backing travels inline in the staged payload),
+  the property-key seam (715: object_state speaks property_id like its
+  writer and reader), the indexing loop's self-entry (716: the datasource
+  binding provisions the pipeline, the heartbeat admits row-less types,
+  the job_specs index-spec policy arm), the branch-blind save surface,
+  the link relationship (717: cardinality DEFAULT dropped,
+  link_type_problems() in the linter, the object_backed pairing arm, the
+  relationship-aware creation card), and the builds status vocabulary.
+  The e2e probe (scripts/probes/) walks the whole flow 19/19.
+
+  **F8 closed the consumption chain**: readings/object-views.md (adversary
+  §20, reconciliation §21) → the operator's gate (standard-first;
+  configured default computed until first edit; whole arc) → 718/719.
+  object_views is a logical child (a row IS the detach), tabs are Workshop
+  modules in the two enumerated kinds, object_view_for() NULL means the
+  standard view, Explorer title cells link, and the OMA carries the Object
+  views tab. Reconciliation caught the first cut conflating the two
+  composition sentences — the standard view spotlights prominent ABOVE the
+  normal table, both shown — fixed same-day. Residuals recorded in the
+  reading: per-tab profiles/conditions, panel views, sidebar config,
+  versions-restore, view branching, pin-default-display, Marketplace, and
+  the per-base-type prominent displays (media/series/map) with the stores
+  they need.
+
 ## Known gaps, not queued
 
 **Automate: what is left after the queue.** The entry that stood here listed

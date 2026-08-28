@@ -110,11 +110,13 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
   const labelOf = (id: string) => types.find((t) => t.id === id)?.label ?? '?'
 
   if (!type) return null
-  // "a list of prominent properties, or all non-hidden properties if none
-  // are prominent" — the standard composition.
+  // The standard view's own composition (standard-object-views): prominent
+  // properties spotlighted in card format "elevated above a table displaying
+  // the remaining standard properties"; normal in a regular table; hidden
+  // not visible. (The prominent-OR-all sentence describes the generated
+  // CONFIGURED default, not this — the build's first cut conflated them.)
   const prominent = type.properties.filter((p) => p.visibility === 'prominent')
-  const shown = (prominent.length > 0 ? prominent
-    : type.properties.filter((p) => p.visibility !== 'hidden'))
+  const normal = type.properties.filter((p) => p.visibility === 'normal' || p.visibility === undefined)
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -131,14 +133,26 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
               No indexed object with this key — the index may not have run since it was created.
             </p>
           ) : (
-            <dl className="ov-properties">
-              {shown.map((p) => (
-                <div key={p.key} className="ov-prop">
-                  <dt>{p.label}</dt>
-                  <dd>{fmt(record[p.key])}</dd>
+            <>
+              {prominent.length > 0 && (
+                <div className="ov-prominent">
+                  {prominent.map((p) => (
+                    <div key={p.key} className="ov-prominent-card">
+                      <p className="ov-prominent-label">{p.label}</p>
+                      <p className="ov-prominent-value">{fmt(record[p.key])}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </dl>
+              )}
+              <dl className="ov-properties">
+                {normal.map((p) => (
+                  <div key={p.key} className="ov-prop">
+                    <dt>{p.label}</dt>
+                    <dd>{fmt(record[p.key])}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
           )}
         </Card>
 
