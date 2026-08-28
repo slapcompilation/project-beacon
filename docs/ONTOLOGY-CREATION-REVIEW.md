@@ -1,5 +1,18 @@
 # The ontology creation flow, reviewed end to end
 
+> **Fixed since this review shipped (2026-08-28):** F1 → #883 (backing
+> resolves before staging, travels inline). F3 → #884 (715: object_state
+> speaks property_id). F13 → #885 (716: the datasource binding provisions
+> the pipeline; the heartbeat admits row-less types; the job_specs
+> index-spec policy arm). F4 → #886 (every working-state hook follows the
+> ambient branch). F2+F7 → #887 (717: cardinality DEFAULT dropped,
+> link_type_problems() in the linter's UNION, the object_backed pairing
+> arm, the relationship-aware creation card). The step-9 builds-vocabulary
+> bug → #888. The e2e probe (scripts/probes/) passes 19/19. F8's reading
+> (`readings/object-views.md`) landed the same day; its build waits on the
+> operator's read of its Decisions block. Everything else below stands as
+> written.
+
 Opened 2026-08-27, the operator's stage 2 after the Spark trio: "review all the
 ontology step by step creation so we have the end to end in place." Method:
 a live probe walking the whole flow as a real `authenticated` user in one

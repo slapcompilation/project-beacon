@@ -330,6 +330,21 @@ look finished too.
   (`metadata-render-hints.md`, mirrored, unread). Verified against the live
   left-nav: 17 of 17.
 
+- `object-views.md` — **the whole 23-file section plus all 75 images** (61 PNGs
+  directly; the 14 GIFs as named still frames, decoded because Read rejects
+  files over 5MB), written to close creation-review F8. **Both** views are
+  auto-created: the standard one is a pure function of the object type, and a
+  *default configured* one is generated too and stays live until first edit,
+  when it detaches and becomes hand-managed. Its one tab is titled `Overview`
+  with tab id `overview` — a fact only three screenshots carry, along with the
+  standard view's section names (`Prominent`/`Properties`/`Linked objects`), the
+  `General View` pseudo-profile, one OV version per type against one semver per
+  module, a 1000-event cap, and an **Actions** widget documented on no page
+  (its spec is in `action-types/use-actions.md`). Every configured tab and panel
+  *is* a Workshop module permissioned by the object type. **The section is
+  partially mirrored** — `config-widgets`, `config-workshop-tabs`,
+  `use-object-views-in-platform` are known URLs with no file.
+
 - `render-hints.md` — the one-page prerequisite `object-explorer.md` named. Ten
   per-property hints; **Searchable is the parent of five** (Selectable, Sortable,
   Low cardinality, leading wildcards, regex); six add a second raw index and
