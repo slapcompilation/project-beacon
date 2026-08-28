@@ -6,9 +6,11 @@ import { useState } from 'react'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { useBuildJobs, useBuilds, type Build } from '@/features/builds/api'
 
+// Builds speak the API vocabulary; the jobs below speak the prose one. The
+// exact confusion CLAUDE.md's two-vocabularies table warns about sat here.
 const BUILD_INTENT: Record<Build['status'], Intent> = {
-  RUNNING: Intent.WARNING, COMPLETED: Intent.SUCCESS,
-  FAILED: Intent.DANGER, ABORTED: Intent.NONE,
+  RUNNING: Intent.WARNING, SUCCEEDED: Intent.SUCCESS,
+  FAILED: Intent.DANGER, CANCELED: Intent.NONE,
 }
 
 const JOB_INTENT: Record<string, Intent> = {
