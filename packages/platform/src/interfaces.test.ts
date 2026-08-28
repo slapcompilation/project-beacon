@@ -45,8 +45,9 @@ describe.skipIf(noDb)('interfaces', () => {
     await db.query('set local role authenticated')
 
     const space = (await one(`select public.create_space('Iface regress') as id`)).id
+    await db.query(`delete from public.ontologies where space_id = '${space}'`)
     ont = (await one(`insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
-                      values ($1,'ifaceregress','Iface regress',false) returning id`, [space])).id
+                      values ('${space}','ifaceregress','Iface regress',false) returning id`)).id
     const proj = (await one(`insert into public.projects (organization_id, space_id, api_name, name)
                              values ($1,$2,'ifacer','IfaceR') returning id`, [org, space])).id
     const ds = (await one(`insert into public.datasets (organization_id, project_id, api_name, name)

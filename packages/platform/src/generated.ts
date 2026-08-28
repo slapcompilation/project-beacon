@@ -297,11 +297,10 @@ export const createSlateApp = { apiName: 'create_slate_app', kind: 'action' } as
 >
 
 /**
- *  Create a space and attach the caller's organization to it, in one call.
- *  Two separate writes cannot work: `insert into spaces … returning id` is
- *  REFUSED outright, because Postgres applies the SELECT policy to a
- *  RETURNING clause and that policy reads through space_organizations — a row
- *  that does not exist until the space does.
+ *  One operation makes the space usable: the row, its organization, and —
+ *  since 721 — its ontology, simultaneously and with the same name, the way
+ *  ontologies-overview describes. 424's ontology-less space is a legacy state
+ *  the picker still tolerates, not one this function produces.
  */
 export const createSpace = { apiName: 'create_space', kind: 'action' } as ActionType<
   { p_name: string; p_description?: string },

@@ -64,8 +64,13 @@ export default function OmaLayout() {
     return () => { window.removeEventListener('keydown', onKey) }
   }, [])
 
-  if (role !== 'owner' && role !== 'admin') {
-    return <NonIdealState icon="shield" title="Ontology Manager is available to admin and owner roles" />
+  // Every member may LOOK: "ontology resource information is accessible for
+  // all users of that ontology" (ontology-manager/ontology-roles-migration).
+  // The owner/admin gate that stood here was stricter than Foundry with no
+  // recorded scope (creation review, F5) — writes stay refused where they
+  // always were, by the database's own policies and guards.
+  if (role === null) {
+    return <NonIdealState icon="shield" title="Sign in to open the Ontology Manager" />
   }
 
   return (

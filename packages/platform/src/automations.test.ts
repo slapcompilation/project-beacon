@@ -41,9 +41,10 @@ describe.skipIf(noDb)('automations', () => {
       [JSON.stringify({ sub: owner, app_metadata: { role: 'admin', org_id: f.orgId } })])
 
     const space = (await one(`select public.create_space('Autos') as id`)).id
+    await db.query(`delete from public.ontologies where space_id = '${space}'`)
     ont = (await one(
       `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
-       values ($1,'autos','Autos',false) returning id`, [space])).id
+       values ('${space}','autos','Autos',false) returning id`)).id
     action = (await one(
       `insert into public.action_types (ontology_id, api_name, label)
        values ($1,'ping','Ping') returning id`, [ont])).id
