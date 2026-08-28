@@ -1013,7 +1013,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (309) ───────────────────────────────────────────────────
+// ── FUNCTIONS (310) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2524,6 +2524,17 @@ export const linkHopIsMany = { apiName: 'link_hop_is_many', kind: 'function' } a
 export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as FunctionType<
   { p_link: string; p_from: string },
   string
+>
+
+/**
+ *  The linter's link arm (717). An undeclared relationship, a join column the
+ *  dataset dropped, a column serving both keys, and the type-match rule
+ *  edit-link-types says prevents a save. Filed under the source type's
+ *  api_name, the side our surface creates from.
+ */
+export const linkTypeProblems = { apiName: 'link_type_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
 >
 
 /**

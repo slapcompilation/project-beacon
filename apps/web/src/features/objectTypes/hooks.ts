@@ -16,6 +16,8 @@ import { toast } from 'sonner'
 import { useComposeBranch } from '@/features/branching/api'
 import { STATUS_META } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
+import { datasetCurrentFields } from '@beacon/platform'
 import { useAuthStore } from '@/stores/auth.store'
 import { toSlug } from '@beacon/ontology'
 import type { Backing } from './BackingStep'
@@ -37,6 +39,19 @@ const keys = {
 
 export function useObjectTypes() {
   return useQuery({ queryKey: keys.types, queryFn: fetchObjectTypes, staleTime: 30_000 })
+}
+
+/** The current schema of a dataset, for pickers that map its columns —
+ *  the join-table step needs "a dataset that contains columns matching the
+ *  primary keys for both selected object types". */
+export function useDatasetFields(datasetId: string | null) {
+  return useQuery({
+    queryKey: ['dataset-fields', datasetId ?? ''],
+    enabled: datasetId !== null,
+    queryFn: async (): Promise<{ name: string; type: string }[]> =>
+      ((await client(datasetCurrentFields).executeFunction(
+        { p_dataset: datasetId as string })) ?? []) as { name: string; type: string }[],
+  })
 }
 
 export function useCreateObjectType() {

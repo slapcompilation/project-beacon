@@ -299,6 +299,26 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
 export interface CreateLinkTypeInput {
   sourceTypeId: string; targetTypeId: string; apiName: string; label: string; ontologyId: string
   projectId?: string | null
+  /** The helper's FIRST choice — the relationship type and its cardinality
+   *  (create-link-type). Unset used to mean a silent many_to_many default
+   *  and no backing at all; since 717 the linter refuses an undeclared
+   *  relationship, so the surface collects the whole choice. */
+  cardinality: string
+  backingKind: 'foreign_key' | 'join_table' | 'object_backed'
+  /** foreign_key: the FK column on the source type. */
+  backingColumn?: string | null
+  /** join_table: the dataset, its branch, and one column per primary key. */
+  datasetId?: string | null
+  branchId?: string | null
+  sourceKeyColumn?: string | null
+  targetKeyColumn?: string | null
+  /** object_backed: the intermediary type. */
+  backingObjectTypeId?: string | null
+  /** Per-side display names — "A link type has exactly two sides". */
+  sourceLabel?: string | null
+  targetLabel?: string | null
+  sourceApiName?: string | null
+  targetApiName?: string | null
 }
 
 /** Staged, not written. The row appears in the ontology on save — until then it
@@ -309,6 +329,13 @@ export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
       source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId,
       api_name: i.apiName, label: i.label, ontology_id: i.ontologyId,
       project_id: i.projectId ?? null,
+      cardinality: i.cardinality, backing_kind: i.backingKind,
+      backing_column: i.backingColumn ?? null,
+      dataset_id: i.datasetId ?? null, branch_id: i.branchId ?? null,
+      source_key_column: i.sourceKeyColumn ?? null, target_key_column: i.targetKeyColumn ?? null,
+      backing_object_type_id: i.backingObjectTypeId ?? null,
+      source_label: i.sourceLabel ?? null, target_label: i.targetLabel ?? null,
+      source_api_name: i.sourceApiName ?? null, target_api_name: i.targetApiName ?? null,
     } as unknown as Json,
     p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })

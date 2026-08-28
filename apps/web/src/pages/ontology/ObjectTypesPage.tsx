@@ -14,6 +14,8 @@ import {
   attachProblem,
   primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
   STATUS_META, OBJECT_TYPE_STATUSES, ONTOLOGY_STATUSES, pluralise,
+  LINK_BACKINGS, BACKING_LABEL, LINK_CARDINALITIES, CARDINALITY_LABEL, canBack,
+  type LinkBackingKind, type LinkCardinality,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type SharedPropertyDef,
   type ObjectTypeStatus, type OntologyStatus,
@@ -24,8 +26,9 @@ import { rowToLinkType } from '@/features/objectTypes/api'
 import {
   useCreateObjectType, useUpdateObjectType, useSetObjectTypeStatus,
   useApplyActiveToProperties, useCreateLinkType, useDeleteLinkType, useLinkTypes,
-  useResolveBacking,
+  useResolveBacking, useDatasetFields,
 } from '@/features/objectTypes/hooks'
+import { useDatasets, useBranches } from '@/features/datasets/api'
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
@@ -591,15 +594,60 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const projectId = useAppStore((s) => s.omaProjectId)
   const [label, setLabel] = useState('')
   const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
+  // The helper's FIRST choice: the relationship type, then a cardinality it
+  // can express (create-link-type). Nothing defaults silently any more —
+  // an undeclared relationship is a linter violation since 717.
+  const [backingKind, setBackingKind] = useState<LinkBackingKind>('foreign_key')
+  const [cardinality, setCardinality] = useState<LinkCardinality>('many_to_one')
+  const [fkColumn, setFkColumn] = useState('')
+  const [joinDatasetId, setJoinDatasetId] = useState('')
+  const [joinBranchId, setJoinBranchId] = useState('')
+  const [sourceKeyColumn, setSourceKeyColumn] = useState('')
+  const [targetKeyColumn, setTargetKeyColumn] = useState('')
+  const [backingObjectTypeId, setBackingObjectTypeId] = useState('')
+  const [sourceSide, setSourceSide] = useState('')
+  const [targetSide, setTargetSide] = useState('')
+  const { data: datasets = [] } = useDatasets()
+  const { data: joinBranches = [] } = useBranches(backingKind === 'join_table' && joinDatasetId ? joinDatasetId : null)
+  const { data: joinFields = [] } = useDatasetFields(backingKind === 'join_table' && joinDatasetId ? joinDatasetId : null)
   const apiName = toSlug(label)
   const validation = validateLinkTypeDraft({ apiName, label, sourceTypeId: type.id, targetTypeId })
   const labelOf = (id: string) => allTypes.find((t) => t.id === id)?.label ?? '?'
 
+  const cardinalityOptions = LINK_CARDINALITIES.filter((c) => canBack(c, backingKind))
+  const pickKind = (k: LinkBackingKind) => {
+    setBackingKind(k)
+    const legal = LINK_CARDINALITIES.filter((c) => canBack(c, k))
+    if (!legal.includes(cardinality)) setCardinality(legal[0])
+  }
+  const backingComplete =
+    backingKind === 'foreign_key' ? fkColumn !== ''
+    : backingKind === 'join_table'
+      ? joinDatasetId !== '' && joinBranchId !== '' && sourceKeyColumn !== ''
+        && targetKeyColumn !== '' && sourceKeyColumn !== targetKeyColumn
+      : backingObjectTypeId !== ''
+
   const submit = () => {
-    if (!validation.ok || !ontology) return
+    if (!validation.ok || !backingComplete || !ontology) return
     create.mutate(
-      { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(), ontologyId: ontology.id, projectId },
-      { onSuccess: () => { setLabel('') } })
+      { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(),
+        ontologyId: ontology.id, projectId,
+        cardinality, backingKind,
+        backingColumn: backingKind === 'foreign_key' ? fkColumn : null,
+        datasetId: backingKind === 'join_table' ? joinDatasetId : null,
+        branchId: backingKind === 'join_table' ? joinBranchId : null,
+        sourceKeyColumn: backingKind === 'join_table' ? sourceKeyColumn : null,
+        targetKeyColumn: backingKind === 'join_table' ? targetKeyColumn : null,
+        backingObjectTypeId: backingKind === 'object_backed' ? backingObjectTypeId : null,
+        sourceLabel: sourceSide.trim() || null,
+        targetLabel: targetSide.trim() || null,
+        sourceApiName: sourceSide.trim() ? toCamel(sourceSide) : null,
+        targetApiName: targetSide.trim() ? toCamel(targetSide) : null },
+      { onSuccess: () => {
+        setLabel(''); setFkColumn(''); setJoinDatasetId(''); setJoinBranchId('')
+        setSourceKeyColumn(''); setTargetKeyColumn(''); setBackingObjectTypeId('')
+        setSourceSide(''); setTargetSide('')
+      } })
   }
 
   return (
@@ -626,7 +674,69 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
         <HTMLSelect value={targetTypeId} onChange={(e) => { setTargetTypeId(e.currentTarget.value) }}>
           {allTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
         </HTMLSelect>
-        <Button size="small" icon="add" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Add link type</Button>
+      </div>
+      {/* The helper's step 1: relationship type, then a cardinality it can
+          express — a foreign key cannot carry many-to-many, a join table
+          carries nothing else. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <HTMLSelect value={backingKind}
+          onChange={(e) => { pickKind(e.currentTarget.value as LinkBackingKind) }}>
+          {LINK_BACKINGS.map((b) => <option key={b} value={b}>{BACKING_LABEL[b]}</option>)}
+        </HTMLSelect>
+        <HTMLSelect value={cardinality}
+          onChange={(e) => { setCardinality(e.currentTarget.value as LinkCardinality) }}>
+          {cardinalityOptions.map((c) => <option key={c} value={c}>{CARDINALITY_LABEL[c]}</option>)}
+        </HTMLSelect>
+        {backingKind === 'foreign_key' && (
+          <HTMLSelect value={fkColumn} onChange={(e) => { setFkColumn(e.currentTarget.value) }}>
+            <option value="">Foreign key property…</option>
+            {type.properties.filter((p) => p.backingColumn).map((p) => (
+              <option key={p.key} value={p.backingColumn as string}>{p.label}</option>
+            ))}
+          </HTMLSelect>
+        )}
+        {backingKind === 'object_backed' && (
+          <HTMLSelect value={backingObjectTypeId} onChange={(e) => { setBackingObjectTypeId(e.currentTarget.value) }}>
+            <option value="">Backing object type…</option>
+            {allTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </HTMLSelect>
+        )}
+      </div>
+      {backingKind === 'join_table' && (
+        <div className="flex flex-wrap items-center gap-2">
+          <HTMLSelect value={joinDatasetId}
+            onChange={(e) => { setJoinDatasetId(e.currentTarget.value); setJoinBranchId(''); setSourceKeyColumn(''); setTargetKeyColumn('') }}>
+            <option value="">Join table dataset…</option>
+            {datasets.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </HTMLSelect>
+          <HTMLSelect value={joinBranchId} disabled={!joinDatasetId}
+            onChange={(e) => { setJoinBranchId(e.currentTarget.value) }}>
+            <option value="">Branch…</option>
+            {joinBranches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </HTMLSelect>
+          {/* "A column can only be mapped to one primary key." */}
+          <HTMLSelect value={sourceKeyColumn} disabled={!joinDatasetId}
+            onChange={(e) => { setSourceKeyColumn(e.currentTarget.value) }}>
+            <option value="">{`${type.label} key column…`}</option>
+            {joinFields.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
+          </HTMLSelect>
+          <HTMLSelect value={targetKeyColumn} disabled={!joinDatasetId}
+            onChange={(e) => { setTargetKeyColumn(e.currentTarget.value) }}>
+            <option value="">{`${labelOf(targetTypeId)} key column…`}</option>
+            {joinFields.filter((f) => f.name !== sourceKeyColumn)
+              .map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
+          </HTMLSelect>
+        </div>
+      )}
+      {/* "A link type has exactly two sides... Each side has its own display
+          name and API name" — the API names derive from these. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <InputGroup size="small" placeholder={`${type.label} side (e.g. ${label.trim() || 'Docked at'})`}
+          value={sourceSide} onChange={(e) => { setSourceSide(e.currentTarget.value) }} className="flex-1 min-w-[150px]" />
+        <InputGroup size="small" placeholder={`${labelOf(targetTypeId)} side (the reverse sentence)`}
+          value={targetSide} onChange={(e) => { setTargetSide(e.currentTarget.value) }} className="flex-1 min-w-[150px]" />
+        <Button size="small" icon="add" disabled={!validation.ok || !backingComplete}
+          loading={create.isPending} onClick={submit}>Add link type</Button>
       </div>
     </Card>
   )
