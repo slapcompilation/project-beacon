@@ -2078,6 +2078,28 @@
 .wk-alias { font-family:ui-monospace, monospace; font-size:12px; font-weight:600; }
 .wk-alias-plain { font-family:ui-monospace, monospace; font-size:12px; }
 
+.no-underline { text-decoration:none; }
+.py-4 { padding-top:1rem; padding-bottom:1rem; }
+.py-8 { padding-top:2rem; padding-bottom:2rem; }
+
+/* Object View (718) — the header one object gets, the standard sections,
+   and the configured view's tab strip. */
+.ov-header {
+  display:flex; align-items:center; gap:10px; padding:10px 16px;
+  border-bottom:1px solid var(--border);
+}
+.ov-title { font-size:15px; font-weight:600; margin:0; }
+.ov-type { font-size:11px; color:var(--muted-foreground); margin:0; }
+.ov-tabs { padding:0 12px; border-bottom:1px solid var(--border); }
+.ov-properties {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  gap:8px 16px; margin:0;
+}
+.ov-prop dt { font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted-foreground); }
+.ov-prop dd { font-size:13px; margin:0; overflow-wrap:anywhere; }
+.results-title-link { font-weight:600; text-decoration:none; color:var(--primary); }
+.results-title-link:hover { text-decoration:underline; }
+
 /* Vertex (710-713) — the graph canvas, positioned nodes, and the scenario
    panel. */
 .vx-topbar {

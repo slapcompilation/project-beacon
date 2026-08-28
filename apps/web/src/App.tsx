@@ -51,6 +51,7 @@ const ContourPage = lazyWithRetry(() => import('@/pages/ContourPage'))
 const CodeWorkbookPage = lazyWithRetry(() => import('@/pages/CodeWorkbookPage'))
 const VertexPage = lazyWithRetry(() => import('@/pages/VertexPage'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
+const ObjectViewPage = lazyWithRetry(() => import('@/pages/ObjectViewPage'))
 const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
 const LineagePage = lazyWithRetry(() => import('@/features/lineage/LineagePage'))
 
@@ -130,6 +131,7 @@ function AppRoutes() {
             <Route path="/vertex" element={<VertexPage />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
+            <Route path="/objects/:typeId/:pk" element={<ObjectViewPage />} />
             <Route path="/lineage" element={<LineagePage />} />
             <Route path="/lineage/:kind/:id" element={<LineagePage />} />
             <Route path="/approvals" element={<ApprovalsPage />} />

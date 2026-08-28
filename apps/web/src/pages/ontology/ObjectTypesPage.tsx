@@ -29,6 +29,7 @@ import {
   useResolveBacking, useDatasetFields,
 } from '@/features/objectTypes/hooks'
 import { useDatasets, useBranches } from '@/features/datasets/api'
+import { ObjectViewsTab } from '@/features/objectView/ObjectViewsTab'
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
@@ -455,6 +456,9 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Tab id="datasources" title="Datasources" icon="database" panel={<DatasourcesTab type={type} />} />
         <Tab id="interfaces" title="Interfaces" icon="layers" panel={<InterfacesTab type={type} />} />
         <Tab id="capabilities" title="Capabilities" icon="widget" panel={<CapabilitiesTab type={type} />} />
+        {/* The capture places Object views between Capabilities and
+            Interfaces (ontology-manager-object-view-edit.png). */}
+        <Tab id="object-views" title="Object views" icon="grid-view" panel={<ObjectViewsTab type={type} />} />
         {/* Sections 5 and 7 of Foundry's object type Overview. Both engines
             shipped in 579/580 with nothing reading them until now. */}
         <Tab id="dependents" title="Dependents" icon="graph" panel={<DependentsTab type={type} />} />

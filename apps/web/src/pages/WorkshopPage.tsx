@@ -244,7 +244,9 @@ function BuilderRail({ module, contents, pageId, onPickPage }: {
 
 /** Sections nest, so the tree renders itself. A section's layout decides
  *  how its children are arranged — the captured six. */
-function SectionTree({ contents, moduleId, parent, editing, selected, onSelect }: {
+// Exported for the Object View's tab embeds (718): a configured tab IS a
+// Workshop module, rendered view-only inside the tab panel.
+export function SectionTree({ contents, moduleId, parent, editing, selected, onSelect }: {
   contents: ModuleContents
   moduleId: string
   parent: { pageId: string } | { parentId: string }
