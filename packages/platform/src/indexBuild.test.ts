@@ -301,4 +301,75 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect(Number(rows[0].distance)).toBeLessThan(0.001)
     expect(Number(rows[1].distance)).toBeGreaterThan(0.9)
   })
+
+  // 716, the creation review's F13: a new type enters the indexing loop by
+  // itself. The datasource binding provisions the spec (nobody calls an index
+  // function), and the heartbeat's next tick runs the FIRST build — the old
+  // INNER JOIN on object_type_indexes made a never-indexed type invisible.
+  const frontDoorType = async (slug: string, typeApi: string, rows: string[][]) => {
+    const ds = (await one(
+      `insert into public.datasets (organization_id, project_id, api_name, name)
+       values ($1,$2,$3,$3) returning id`, [f.orgId, f.projectId, slug])).id
+    const br = (await one(
+      `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`, [ds])).id
+    const txn = (await one(
+      `insert into public.dataset_transactions (dataset_id, branch_id, txn_type)
+       values ($1,$2,'SNAPSHOT') returning id`, [ds, br])).id
+    await db.query(
+      `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
+      [ds, txn, JSON.stringify([{ name: 'pk', type: 'STRING' }])])
+    const file = (await one(
+      `insert into public.dataset_files (dataset_id, transaction_id, logical_path, row_count)
+       values ($1,$2,'rows.parquet',$3) returning id`, [ds, txn, rows.length])).id
+    await db.query(
+      `update public.dataset_transactions set status='COMMITTED', committed_at=clock_timestamp() where id=$1`, [txn])
+    const phys = (await one('select public.dataset_materialize($1,$2) as t', [ds, txn])).t
+    for (const [pk] of rows) {
+      await db.query(`insert into datasets.${phys} (_file, pk) values ($1,$2)`, [file, pk])
+    }
+    const t = (await one(`select public.save_object_type($1::jsonb, $2::jsonb) as id`, [
+      JSON.stringify({ api_name: typeApi, label: slug, ontology_id: ont,
+        project_id: f.projectId, datasources: [{ dataset_id: ds, branch_id: br }] }),
+      JSON.stringify([{ property_id: 'pk', display_name: 'Id', api_name: 'id', base_type: 'string',
+        source: 'column', backing_column: 'pk', is_primary_key: true, is_title_key: true, required: true }]),
+    ])).id
+    await db.query('select public.save_working_state()')
+    return { t, phys, file }
+  }
+
+  it('a type saved through the front door is provisioned and indexed unprompted', async () => {
+    const { t } = await frontDoorType('idx_auto', 'IdxAuto', [['X'], ['Y']])
+    // The binding provisioned the pipeline; no index function was called.
+    expect(await count(
+      'select count(*) n from public.job_specs where output_object_type_id=$1', [t])).toBe(1)
+    expect(await count(
+      'select count(*) n from public.object_type_indexes where object_type_id=$1', [t])).toBe(0)
+
+    expect(Number((await one('select public.run_stale_indexes(clock_timestamp()) as n')).n)).toBeGreaterThan(0)
+    expect((await one(
+      `select state from public.build_jobs where output_object_type_id=$1
+        order by started_at desc nulls last limit 1`, [t])).state).toBe('COMPLETED')
+    expect(await count(
+      'select object_count n from public.object_type_indexes where object_type_id=$1', [t])).toBe(2)
+  })
+
+  it('a failed FIRST build is retried once the data is fixed — no orphan', async () => {
+    const { t, phys, file } = await frontDoorType('idx_heal', 'IdxHeal', [['D'], ['D']])
+    await db.query('select public.run_stale_indexes(clock_timestamp())')
+    expect((await one(
+      `select state from public.build_jobs where output_object_type_id=$1
+        order by started_at desc nulls last limit 1`, [t])).state).toBe('FAILED')
+    // No index row — the state the old join could never see again.
+    expect(await count(
+      'select count(*) n from public.object_type_indexes where object_type_id=$1', [t])).toBe(0)
+
+    await db.query(`delete from datasets.${phys} where ctid in
+      (select ctid from datasets.${phys} where _file=$1 and pk='D' limit 1)`, [file])
+    await db.query('select public.run_stale_indexes(clock_timestamp())')
+    expect((await one(
+      `select state from public.build_jobs where output_object_type_id=$1
+        order by started_at desc nulls last limit 1`, [t])).state).toBe('COMPLETED')
+    expect(await count(
+      'select object_count n from public.object_type_indexes where object_type_id=$1', [t])).toBe(1)
+  })
 })
