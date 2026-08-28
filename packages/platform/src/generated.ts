@@ -2825,6 +2825,13 @@ export const ontologyResourceRow = { apiName: 'ontology_resource_row', kind: 'fu
   Json
 >
 
+/**
+ *  An explicit grant wins; absent one, an organization owner/admin of an org
+ *  in the ontology's space answers owner — the 722 BRIDGE, standing in for
+ *  the space-role derivation shared-ontologies describes until a workflow
+ *  catalogue can map space roles onto viewer/editor/owner. The bridge
+ *  dissolves then; nothing else may grow on it.
+ */
 export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as FunctionType<
   { p_ontology: string },
   string
