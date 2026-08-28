@@ -8,12 +8,14 @@
 // This card is why 415's and 422's columns exist at all. Until it, plural_label,
 // point_of_contact, contributors and track_edit_history were stored and read by
 // nothing.
-import { HTMLSelect, Icon, Tag } from '@blueprintjs/core'
+import { HTMLSelect, Icon, Tag, TagInput } from '@blueprintjs/core'
 import { useQuery } from '@tanstack/react-query'
 import type { ObjectTypeDef, OntologyVisibility } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 import { indexPhase, useIndexStatuses } from '@/features/objectTypes/indexing'
-import { useSetObjectTypeStatus } from '@/features/objectTypes/hooks'
+import { useSetObjectTypeStatus, useUpdateObjectType } from '@/features/objectTypes/hooks'
+import { useUsers } from '@/features/users/api'
+import { useTypeGroups, useTypeGroupOps } from '@/features/objectTypes/groups'
 
 /** auth.users is not exposed to PostgREST; `users` is, with id and email. The
  *  same follow-up read the project members list does, for the same reason. */
@@ -29,13 +31,6 @@ function usePeople(ids: string[]) {
   })
 }
 
-function Person({ id, label }: { id: string; label: string | undefined }) {
-  const name = label ?? id.slice(0, 8)
-  // Foundry draws initials in a chip — "HB" beside Point of contact.
-  const initials = (label ?? '?').replace(/@.*/, '').split(/[.\-_ ]/)
-    .map((w) => w.charAt(0)).join('').slice(0, 2).toUpperCase()
-  return <Tag minimal round title={name}>{initials || name}</Tag>
-}
 
 /** The two-column shell: metadata left, a status panel right, ID and RID below
  *  a rule. Shared with the link type view, which draws the same card
@@ -80,28 +75,78 @@ export function MetadataCard(
   const phase = indexPhase(indexes?.get(type.id))
   const setStatus = useSetObjectTypeStatus()
   const contributors = type.contributors ?? []
+  const { data: users = [] } = useUsers()
+  const update = useUpdateObjectType()
+  const { data: groups = [] } = useTypeGroups(type.ontologyId ?? null)
+  const groupOps = useTypeGroupOps(type.ontologyId ?? '')
+  // One patch shape for the trio: the full identity travels (children are
+  // replaced wholesale, so the properties must ride along); the delta overlays.
+  const patch = (delta: { aliases?: string[]; pointOfContact?: string | null; contributors?: string[] }) => {
+    update.mutate({ id: type.id, label: type.label, icon: type.icon || 'cube',
+      description: type.description, properties: type.properties, ...delta })
+  }
 
   return (
     <MetaShell
       left={<>
         <Row label="Plural name">{type.pluralLabel || <span className="text-muted-foreground">—</span>}</Row>
         <Row label="Description">{type.description || <span className="text-muted-foreground">—</span>}</Row>
+        {/* Writable since 725 — each edit STAGES, like every ontology edit;
+            the top bar's Save lands it. */}
         <Row label="Aliases" help="Alternative names (synonyms) for the object type, usable as search terms.">
-          {(type.aliases ?? []).length > 0
-            ? <span className="flex flex-wrap gap-1">{(type.aliases ?? []).map((a) => <Tag key={a} minimal>{a}</Tag>)}</span>
-            : <span className="text-muted-foreground">None</span>}
+          <TagInput values={type.aliases ?? []} placeholder="Add an alias…"
+            onChange={(vals) => { patch({ aliases: vals.map(String) }) }} />
         </Row>
         <Row label="Point of contact" help="Who to ask about this object type.">
-          {type.pointOfContact !== null && type.pointOfContact !== undefined
-            ? <Person id={type.pointOfContact} label={people.data?.get(type.pointOfContact)} />
-            : <span className="text-muted-foreground">None</span>}
+          <HTMLSelect value={type.pointOfContact ?? ''}
+            onChange={(e) => { patch({ pointOfContact: e.currentTarget.value || null }) }}>
+            <option value="">None</option>
+            {users.map((u) => <option key={u.id} value={u.id}>{u.email}</option>)}
+          </HTMLSelect>
         </Row>
         <Row label="Contributors" help="Who else works on this object type.">
-          {contributors.length > 0
-            ? <span className="flex flex-wrap gap-1">
-                {contributors.map((c) => <Person key={c} id={c} label={people.data?.get(c)} />)}
-              </span>
-            : <span className="text-muted-foreground">None</span>}
+          <span className="flex flex-wrap items-center gap-1">
+            {contributors.map((c) => (
+              <Tag key={c} minimal onRemove={() => {
+                patch({ contributors: contributors.filter((x) => x !== c) })
+              }}>{people.data?.get(c) ?? c}</Tag>
+            ))}
+            <HTMLSelect value=""
+              onChange={(e) => {
+                const id = e.currentTarget.value
+                if (id && !contributors.includes(id)) patch({ contributors: [...contributors, id] })
+              }}>
+              <option value="">Add…</option>
+              {users.filter((u) => !contributors.includes(u.id))
+                .map((u) => <option key={u.id} value={u.id}>{u.email}</option>)}
+            </HTMLSelect>
+          </span>
+        </Row>
+        {/* The Groups metadata field (object-type-metadata) — its writer at
+            last (F6.6): membership here, sections on the Explorer home. */}
+        <Row label="Groups" help="Object type groups — the Explorer home renders one section per group.">
+          <span className="flex flex-wrap items-center gap-1">
+            {groups.filter((g) => g.memberIds.includes(type.id)).map((g) => (
+              <Tag key={g.id} minimal onRemove={() => {
+                groupOps.removeMember.mutate({ groupId: g.id, objectTypeId: type.id })
+              }}>{g.name}</Tag>
+            ))}
+            <HTMLSelect value=""
+              onChange={(e) => {
+                const v = e.currentTarget.value
+                if (v === '__new__') {
+                  const name = window.prompt('New group name')
+                  if (name?.trim()) groupOps.create.mutate(name)
+                } else if (v) {
+                  groupOps.addMember.mutate({ groupId: v, objectTypeId: type.id })
+                }
+              }}>
+              <option value="">Add…</option>
+              {groups.filter((g) => !g.memberIds.includes(type.id))
+                .map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
+              <option value="__new__">+ New group…</option>
+            </HTMLSelect>
+          </span>
         </Row>
         <Row label="Ontology">{ontologyName}</Row>
         <Row label="API name"><span className="font-mono truncate">{type.apiName}</span></Row>

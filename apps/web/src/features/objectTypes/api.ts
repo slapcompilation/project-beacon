@@ -191,6 +191,10 @@ export async function saveObjectType(
         *  guess, because a silent wrong guess writes to the wrong ontology. */
        ontologyId?: string | null
        projectId?: string | null
+       /** 415's metadata trio, writable since 725 — absent means unchanged. */
+       aliases?: string[]
+       pointOfContact?: string | null
+       contributors?: string[]
        /** The wizard's step-1 choice travels WITH the staged type and lands
         *  when the save does — the backing cannot be attached afterwards,
         *  because both attachment paths need the landed row and the linter
@@ -201,6 +205,9 @@ export async function saveObjectType(
     p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon,
       plural_label: i.pluralLabel ?? null, description: i.description,
       ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null,
+      ...(i.aliases !== undefined ? { aliases: i.aliases } : {}),
+      ...(i.pointOfContact !== undefined ? { point_of_contact: i.pointOfContact } : {}),
+      ...(i.contributors !== undefined ? { contributors: i.contributors } : {}),
       ...(i.datasources ? {
         datasources: i.datasources.map((d) => ({ dataset_id: d.datasetId, branch_id: d.branchId })),
       } : {}) },
@@ -240,6 +247,9 @@ export interface UpdateObjectTypeInput {
   icon: string
   description: string
   properties: PropertyDef[]
+  aliases?: string[]
+  pointOfContact?: string | null
+  contributors?: string[]
 }
 
 export async function updateObjectType(i: UpdateObjectTypeInput): Promise<string> {
