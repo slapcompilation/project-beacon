@@ -3,7 +3,7 @@
 // by the things its placeholder promises — name, RID, aliases.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup, within } from '@testing-library/react'
+import { render, screen, cleanup, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -99,6 +99,19 @@ const renderOma = (at = '/ontology') => {
 }
 
 describe('Ontology Manager chrome', () => {
+  // F5: "ontology resource information is accessible for all users of that
+  // ontology" — the gate is signed-in, not role-shaped. The platform's user
+  // vocabulary is owner|admin today, so the old shield refused nobody real;
+  // this pins that a future third role inherits the view without an edit,
+  // and that signed-out still gets the shield.
+  it('gates the Ontology Manager on being signed in, not on a role', async () => {
+    renderOma()
+    // renderOma signs in as owner; signing out re-renders into the shield.
+    act(() => { useAuthStore.setState({ role: null }) })
+    expect(await screen.findByText(/Sign in to open the Ontology Manager/)).toBeDefined()
+    useAuthStore.setState({ role: 'owner' })
+  })
+
   it('counts this ontology in the sidebar, under its switcher', async () => {
     renderOma()
     expect(await screen.findByRole('button', { name: /Ontology: Production Ontology/ })).toBeDefined()

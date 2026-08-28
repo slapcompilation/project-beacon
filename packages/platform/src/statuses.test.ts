@@ -37,8 +37,9 @@ describe.skipIf(noDb)('status coupling', () => {
     await db.query('set local role authenticated')
 
     const space = (await one(`select public.create_space('Status regress') as id`)).id
+    await db.query(`delete from public.ontologies where space_id = '${space}'`)
     const ont = (await one(`insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
-                            values ($1,'statusregress','Status regress',false) returning id`, [space])).id
+                            values ('${space}','statusregress','Status regress',false) returning id`)).id
     ta = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
                      values ($1,'StatusA','A','active') returning id`, [ont])).id
     tb = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
