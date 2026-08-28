@@ -2,7 +2,7 @@
 // F1 (wizard deadlock) is already established; this walks the rest of the
 // chain the way the ENGINE supports it (inline datasources), noting where the
 // surface diverges. One transaction, savepoint per step, ROLLBACK at the end.
-import { connectionString, SSL } from './scripts/db-url.mjs'
+import { connectionString, SSL } from '../db-url.mjs'
 import pg from 'pg'
 
 const c = new pg.Client({ connectionString: connectionString(), ssl: SSL })
@@ -170,11 +170,10 @@ await step('run_index_build indexes ProbePort through a real build', async () =>
   idxTable = idx.index_table
   return `build ${st.status}; ${idx.k} objects in objects.${idxTable} (2 rows + 1 edit)`
 })
-await step('the index table serves rows as authenticated', async () => {
+// The OSv2 mediation, deliberate: the raw index is private, function reads serve.
+await refusal('a direct read of the index table as authenticated is refused (mediated reads)', async () => {
   await c.query('SET LOCAL ROLE authenticated')
-  const k = (await one(`select count(*)::int as k from objects.${idxTable}`)).k
-  await c.query('RESET ROLE')
-  return `${k} row(s) direct from objects.${idxTable}`
+  await one(`select count(*)::int as k from objects.${idxTable}`)
 })
 await step('evaluate_object_set reads the type as authenticated', async () => {
   await c.query('SET LOCAL ROLE authenticated')

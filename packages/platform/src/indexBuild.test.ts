@@ -194,6 +194,35 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect(err).toContain('Builds:IndexNeedsAJob')
   })
 
+  // 715, the creation review's F3: this fixture's key property is the seam's
+  // exact shape — property_id 'pk', api_name 'id' — and an action-created
+  // object must survive the merge into the index. Before 715, object_state
+  // scaffolded and reinjected by api_name while the edit log and the index
+  // columns speak property_id, so this exact sequence FAILED the whole build
+  // with a null pk. Front door only: the action applies through apply_action.
+  it('an action-created object joins the index, with property_id and api_name apart', async () => {
+    await db.query(`update public.object_types set edits_enabled = true where id=$1`, [type])
+    const pid = (await one(
+      `select id from public.object_type_properties where object_type_id=$1 and is_primary_key`,
+      [type])).id
+    const action = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'idx-add', label: 'Idx add', ontology_id: ont,
+      parameters: [{ api_name: 'newId', display_name: 'Id', base_type: 'string', required: true, position: 0 }],
+      rules: [{ kind: 'create_object', position: 0, object_type_id: type,
+        properties: [{ property_id: pid, value_source: 'parameter', parameter_api_name: 'newId' }] }],
+    })])).id
+    await db.query('select public.save_working_state()')
+    await db.query(`select public.apply_action($1, '{"newId":"C"}'::jsonb)`, [action])
+
+    const build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    const job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
+    const tbl = (await one(
+      'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t
+    // The created object's key landed in the property_id-named column.
+    expect(await count(`select count(*) n from objects.${tbl} where pk = 'C'`)).toBe(1)
+  })
+
   // 644: the rebuild writes objects.<tbl>__next and swaps only after the last
   // row lands — "without impacting the live data being served to users".
   it('a rebuild is a replacement: a broken build leaves the old index serving', async () => {
@@ -232,7 +261,8 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect((await one('select state from public.build_jobs where build_id=$1', [build])).state).toBe('COMPLETED')
     expect((await one(
       'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t).toBe(tbl)
-    expect(await count(`select count(*) n from objects.${tbl}`)).toBe(2)
+    // 2 dataset rows + the action-created C from the case above.
+    expect(await count(`select count(*) n from objects.${tbl}`)).toBe(3)
     expect(await count(
       `select count(*) n from pg_tables where schemaname='objects' and tablename=$1`, [tbl + '__next'])).toBe(0)
   })

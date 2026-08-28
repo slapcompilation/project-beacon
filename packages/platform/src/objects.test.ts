@@ -51,10 +51,11 @@ describe.skipIf(noDb)('an object with edits', () => {
     // type's property list is its definition — T9 depends on that, since a
     // create yields `col1 = null, col2 = null` for properties it never names.
     //
-    // The page writes the key as `pk_column` because it is naming the DATASOURCE
-    // COLUMN. Object state is keyed by API name, and a property API name must
-    // "begin with a lowercase character… written in camelCase", so the property
-    // is `pkColumn` over the column `pk_column`. Same value, correct spelling.
+    // The page writes the key as `pk_column`, and since 715 the state does
+    // too: object_state speaks PROPERTY_ID — the key apply_action writes and
+    // index_object_type reads (its own comment declares that contract). The
+    // property still carries the camelCase API name `pkColumn`; the API
+    // naming rules govern the API, not the state bag.
     for (const [pid, api, col, pk] of [
       ['pk_column', 'pkColumn', 'pk_column', true], ['col1', 'col1', 'col1', false],
       ['col2', 'col2', 'col2', false], ['col3', 'col3', 'col3', false],
@@ -76,10 +77,10 @@ describe.skipIf(noDb)('an object with edits', () => {
     return r as ObjectState
   }
 
-  const DS_A = { pkColumn: 'pk1', col1: 'val1', col2: 'val2' }
-  const DS_B = { pkColumn: 'pk1', col1: 'newVal1', col2: 'val2' }
-  const DS_C = { pkColumn: 'pk1', col1: 'newVal1', col2: 'val2', col3: null }
-  const DS_D = { pkColumn: 'pk1', col1: 'newVal1', col2: 'newVal2', col3: 'newVal3' }
+  const DS_A = { pk_column: 'pk1', col1: 'val1', col2: 'val2' }
+  const DS_B = { pk_column: 'pk1', col1: 'newVal1', col2: 'val2' }
+  const DS_C = { pk_column: 'pk1', col1: 'newVal1', col2: 'val2', col3: null }
+  const DS_D = { pk_column: 'pk1', col1: 'newVal1', col2: 'newVal2', col3: 'newVal3' }
 
   checkAnswerKey<Moment, ObjectState>({
     source: 'object-edits/how-edits-applied — "Resolve conflicting user edits and datasource updates"',
@@ -96,8 +97,8 @@ describe.skipIf(noDb)('an object with edits', () => {
         because: 'same row reappears in the datasource' },
 
       { at: 'T3', input: { datasource: DS_A,
-          edit: { instruction: 'modify', properties: { pkColumn: 'pk1', col2: 'newVal2' } } },
-        expected: { properties: { pkColumn: 'pk1', col1: 'val1', col2: 'newVal2' }, deleted: false },
+          edit: { instruction: 'modify', properties: { pk_column: 'pk1', col2: 'newVal2' } } },
+        expected: { properties: { pk_column: 'pk1', col1: 'val1', col2: 'newVal2' }, deleted: false },
         because: 'user runs a Modify object Action' },
 
       { at: 'T4', input: { datasource: null },
@@ -105,11 +106,11 @@ describe.skipIf(noDb)('an object with edits', () => {
         because: 'row disappears again' },
 
       { at: 'T5', input: { datasource: DS_A },
-        expected: { properties: { pkColumn: 'pk1', col1: 'val1', col2: 'newVal2' }, deleted: false },
+        expected: { properties: { pk_column: 'pk1', col1: 'val1', col2: 'newVal2' }, deleted: false },
         because: 'the previous user edit is still applied when the row reappears' },
 
       { at: 'T6', input: { datasource: DS_B },
-        expected: { properties: { pkColumn: 'pk1', col1: 'newVal1', col2: 'newVal2' }, deleted: false },
+        expected: { properties: { pk_column: 'pk1', col1: 'newVal1', col2: 'newVal2' }, deleted: false },
         because: 'an UNEDITED property receives a datasource update, and it is applied' },
 
       { at: 'T7', input: { datasource: DS_B, edit: { instruction: 'delete' } },
@@ -121,21 +122,21 @@ describe.skipIf(noDb)('an object with edits', () => {
         because: 'the datasource gains a column, and the object is still deleted' },
 
       { at: 'T9', input: { datasource: DS_C,
-          edit: { instruction: 'create', properties: { pkColumn: 'pk1', col3: 'val3' } } },
-        expected: { properties: { pkColumn: 'pk1', col1: null, col2: null, col3: 'val3' }, deleted: false },
+          edit: { instruction: 'create', properties: { pk_column: 'pk1', col3: 'val3' } } },
+        expected: { properties: { pk_column: 'pk1', col1: null, col2: null, col3: 'val3' }, deleted: false },
         because: 'a Create object Action — the create is the starting point and IGNORES ALL DATASOURCE DATA' },
 
       { at: 'T10', input: { datasource: DS_D },
-        expected: { properties: { pkColumn: 'pk1', col1: null, col2: null, col3: 'val3' }, deleted: false },
+        expected: { properties: { pk_column: 'pk1', col1: null, col2: null, col3: 'val3' }, deleted: false },
         because: 'col3 is updated in the datasource but no longer considered, due to the prior Create' },
 
       { at: 'T11', input: { datasource: DS_D,
-          edit: { instruction: 'modify', properties: { pkColumn: 'pk1', col2: 'newVal22' } } },
-        expected: { properties: { pkColumn: 'pk1', col1: null, col2: 'newVal22', col3: 'val3' }, deleted: false },
+          edit: { instruction: 'modify', properties: { pk_column: 'pk1', col2: 'newVal22' } } },
+        expected: { properties: { pk_column: 'pk1', col1: null, col2: 'newVal22', col3: 'val3' }, deleted: false },
         because: 'user runs a Modify object Action' },
 
       { at: 'T12', input: { datasource: null },
-        expected: { properties: { pkColumn: 'pk1', col1: null, col2: 'newVal22', col3: 'val3' }, deleted: false },
+        expected: { properties: { pk_column: 'pk1', col1: null, col2: 'newVal22', col3: 'val3' }, deleted: false },
         because: 'the row disappears but the object survives, as it was last created by a user edit' },
 
       { at: 'T13', input: { datasource: DS_D, edit: { instruction: 'delete' } },
@@ -172,9 +173,9 @@ describe.skipIf(noDb)('an object with edits', () => {
     await asAction()
     await db.query(
       `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
-       values ($1,'pk1','create','{"pkColumn":"pk1"}'::jsonb)`, [objectType])
+       values ($1,'pk1','create','{"pk_column":"pk1"}'::jsonb)`, [objectType])
     expect(await state(DS_D)).toEqual({
-      properties: { pkColumn: 'pk1', col1: null, col2: null, col3: null }, deleted: false,
+      properties: { pk_column: 'pk1', col1: null, col2: null, col3: null }, deleted: false,
     })
   })
 
