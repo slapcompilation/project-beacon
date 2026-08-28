@@ -123,6 +123,10 @@ export default function OmaLayout() {
               {/* "the Advanced settings page from the application's home page" —
                   where Export and Import live. */}
               <NavRow icon="cog" label="Advanced" path="/ontology/advanced" />
+              {/* "navigate to the Ontology configuration tab in Ontology
+                  Manager" — the two ontology-level toggles (454, 579), given
+                  their documented surface by 722's arc. */}
+              <NavRow icon="settings" label="Ontology configuration" path="/ontology/configuration" />
             </div>
           </nav>
         </aside>
