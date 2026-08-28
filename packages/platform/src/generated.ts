@@ -1013,7 +1013,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (310) ───────────────────────────────────────────────────
+// ── FUNCTIONS (311) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2782,6 +2782,16 @@ export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'functi
 export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'function' } as FunctionType<
   { p_object_type: string },
   { scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  NULL means the standard view: computed from the type, stored nowhere. A
+ *  row means a configured view exists and is the default, with the standard
+ *  view one toggle away. 718.
+ */
+export const objectViewFor = { apiName: 'object_view_for', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string
 >
 
 /**

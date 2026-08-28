@@ -350,7 +350,14 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
                     }} />
                 </td>
                 {props.map((p) => (
-                  <td key={p.property_id}>{cell(r[p.property_id])}</td>
+                  <td key={p.property_id}>
+                    {/* "To open the object view for an object ... click the
+                        Title column" — the consumption chain's last hop. */}
+                    {p.is_title_key
+                      ? <Link to={`/objects/${type}/${encodeURIComponent(pk)}`}
+                          className="results-title-link">{cell(r[p.property_id])}</Link>
+                      : cell(r[p.property_id])}
+                  </td>
                 ))}
               </tr>
             )
