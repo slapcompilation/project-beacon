@@ -131,4 +131,39 @@ describe.skipIf(noDb)('a constraint belongs to its base type', () => {
       [vt.integer, JSON.stringify([{ kind: 'regex', params: { pattern: '^x$' } }])]))
     expect(err).toContain('Ontology:ConstraintNotValidForBaseType')
   })
+
+  // 723, the creation review's F6.3: the binding rides the FRONT door — the
+  // dropdown's payload travels through save_object_type and lands. The
+  // engine (452's value_conforms at index time) had been unreachable because
+  // apply_object_type's upsert never carried the column.
+  it('a value-type binding staged by the save lands on the property', async () => {
+    const usr = (await one('select gen_random_uuid() as id')).id
+    const email = `vtc723-${Date.now()}@beacon.test`
+    await db.query(
+      `insert into auth.users (id, instance_id, aud, role, email)
+       values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2)`,
+      [usr, email])
+    await db.query(`insert into public.users (id, email, role, organization_id)
+                    values ($1,$2,'admin',$3)`, [usr, email, f.orgId])
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: usr, app_metadata: { role: 'admin', org_id: f.orgId } })])
+    const ont = (await one(
+      `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
+       values ($1,'vtc723','Vtc 723',false) returning id`, [f.spaceId])).id
+
+    const t = (await one(`select public.save_object_type($1::jsonb, $2::jsonb) as id`, [
+      JSON.stringify({ api_name: 'BoundThing', label: 'Bound thing', ontology_id: ont,
+        project_id: f.projectId,
+        datasources: [{ dataset_id: f.datasetId, branch_id: f.branchId }] }),
+      JSON.stringify([{ property_id: 'pk', display_name: 'Id', api_name: 'id',
+        base_type: 'string', source: 'column', backing_column: 'pk',
+        is_primary_key: true, is_title_key: true, required: true,
+        value_type_id: vt.string }]),
+    ])).id
+    await db.query('select public.save_working_state()')
+
+    expect((await one(
+      `select value_type_id from public.object_type_properties
+        where object_type_id=$1 and property_id='pk'`, [t])).value_type_id).toBe(vt.string)
+  })
 })

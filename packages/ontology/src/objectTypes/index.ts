@@ -194,6 +194,9 @@ export interface PropertyDef {
   /** The shared property this inherits its metadata from. A real reference now,
    *  not an api-name string in jsonb. */
   sharedPropertyId?: string | null
+  /** The value type constraining this property (452); index-time
+   *  value_conforms enforces it with the authored failure message. */
+  valueTypeId?: string | null
   description?: string
   visibility?: 'prominent' | 'normal' | 'hidden'
   isPrimaryKey?: boolean

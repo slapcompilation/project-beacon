@@ -45,6 +45,7 @@ import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { tileStyle, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
+import { useValueTypes } from '@/features/valueTypes/api'
 import { indexPhase, useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
 /** The three sources, in the editor's own words. */
@@ -96,6 +97,9 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
   const { data: linkTypeRows } = useLinkTypes()
   const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType), [linkTypeRows])
   const { types } = useOmaTypes()
+  // Value types are space-owned; the ontology's space scopes the dropdown.
+  const { ontology: omaOntology } = useOmaOntology()
+  const { data: valueTypes = [] } = useValueTypes(omaOntology?.spaceId ?? null)
   const named = drafts.filter((p) => p.label.trim())
   const setProp = (i: number, patch: Partial<PropertyDraft>) => {
     onChange(drafts.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
@@ -211,6 +215,19 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
                 </option>
               ))}
             </HTMLSelect>
+            {/* "To assign a value type to a property, select the value type
+                from the dropdown menu during property configuration" —
+                use-value-type. Same-base-type only; index-time value_conforms
+                enforces the constraint with the authored message. */}
+            {valueTypes.some((v) => v.baseType === p.type) && (
+              <HTMLSelect value={p.valueTypeId ?? ''} title="Constrain values to a value type"
+                onChange={(e) => { setProp(i, { valueTypeId: e.currentTarget.value || null }) }}>
+                <option value="">No value type</option>
+                {valueTypes.filter((v) => v.baseType === p.type).map((v) => (
+                  <option key={v.id} value={v.id}>{v.displayName}</option>
+                ))}
+              </HTMLSelect>
+            )}
             <Checkbox checked={p.required} label="Required" disabled={p.isPrimaryKey}
               title={p.isPrimaryKey ? 'A nullable key is not a key' : undefined}
               onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
