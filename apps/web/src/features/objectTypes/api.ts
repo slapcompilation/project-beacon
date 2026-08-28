@@ -66,6 +66,7 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
     source: r.source, backingColumn: r.backing_column,
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
     valueTypeId: r.value_type_id,
+    searchable: r.searchable, sortable: r.sortable, selectable: r.selectable,
     hops: [...(r.derived_property_hops ?? [])]
       .sort((a, b) => a.position - b.position).map((h) => h.link_type_id),
     derivedAggregation: r.derived_aggregation,
@@ -101,6 +102,7 @@ export function propertyToRow(p: PropertyDef, position: number) {
     } : { hops: [], derived_aggregation: null, derived_from_property_id: null, derived_limit: null }),
     shared_property_id: p.sharedPropertyId ?? null,
     value_type_id: p.valueTypeId ?? null,
+    ...(p.searchable !== undefined ? { searchable: p.searchable, sortable: p.sortable ?? false, selectable: p.selectable ?? false } : {}),
     required: p.required, visibility: p.visibility ?? 'normal', position,
     is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
     // Absent means unchanged: the session's status pass only touches rows

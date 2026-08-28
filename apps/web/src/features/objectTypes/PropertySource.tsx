@@ -20,7 +20,7 @@
 // `derived_aggregations()` rather than hardcoded — Count needs no property, the
 // collects take a limit, and the database already says so.
 
-import { Button, Callout, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon, InputGroup, Radio, RadioGroup, Tag } from '@blueprintjs/core'
+import { Button, Callout, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon, InputGroup, Radio, RadioGroup, Tag } from '@blueprintjs/core'
 import type { PropertyDef, LinkTypeDef, ObjectTypeDef } from '@beacon/ontology'
 import { useObjectTypeDatasources, useMediaBindings, useSetMediaBinding } from './hooks'
 import { useDerivedAggregations } from './derived'
@@ -212,6 +212,36 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
                   </HTMLSelect>}
           </div>
         )}
+        {/* "You can select and deselect render hints in the properties pane
+            of the property editor" — metadata-render-hints. Searchable is the
+            parent: the dependency CHECK (475) refuses sortable or selectable
+            without it, so the pane makes the illegal state unpickable. */}
+        <div className="mt-3 space-y-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Render hints</span>
+          {(() => {
+            const searchable = property.searchable ?? (property.type !== 'vector')
+            const sortable = property.sortable ?? (property.type !== 'vector')
+            const selectable = property.selectable ?? (property.type !== 'vector')
+            return (
+              <div className="flex flex-wrap gap-4">
+                <Checkbox checked={searchable} label="Searchable"
+                  onChange={(e) => {
+                    const on = e.currentTarget.checked
+                    onChange(on ? { searchable: true }
+                      : { searchable: false, sortable: false, selectable: false })
+                  }} />
+                <Checkbox checked={sortable && searchable} label="Sortable"
+                  disabled={!searchable}
+                  title={searchable ? undefined : 'Sortable requires Searchable'}
+                  onChange={(e) => { onChange({ searchable: true, sortable: e.currentTarget.checked, selectable }) }} />
+                <Checkbox checked={selectable && searchable} label="Selectable"
+                  disabled={!searchable}
+                  title={searchable ? undefined : 'Selectable requires Searchable'}
+                  onChange={(e) => { onChange({ searchable: true, sortable, selectable: e.currentTarget.checked }) }} />
+              </div>
+            )
+          })()}
+        </div>
       </DialogBody>
       <DialogFooter actions={<Button intent="primary" onClick={onClose}>Done</Button>} />
     </Dialog>
