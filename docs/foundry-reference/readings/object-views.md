@@ -1726,6 +1726,51 @@ resource in its own right — corroborating `branching-object-views`'
 logical-children framing, and a real input to the
 materialised-vs-computed fork in Question 2.
 
+## 21. Post-build reconciliation (2026-08-28, after #890)
+
+Migrations 718/719 and the `/objects/:typeId/:pk` surface were built from
+this reading through §20 and the operator's three gate decisions
+(standard-first landing; the configured default computed until first edit —
+a row in `object_views` IS the detach; the whole arc in one chunk). The
+reconciliation pass re-read the key pages against what shipped. One delta
+found and fixed the same day:
+
+**21.1 The first cut conflated the two composition sentences.** The build
+rendered prominent-OR-all-non-hidden — which is `config-overview`'s
+sentence about the GENERATED CONFIGURED default — where the standard
+view's own page composes differently:
+
+> The standard Object View matches the object type's configuration by spotlighting prominent properties in either a dedicated table or in other visual formats if the property's [base type](/docs/foundry/object-link-types/base-types/) is a time series, media reference, or geospatial property. Normal properties are displayed in a regular table, and hidden properties are not visible.
+
+— `object-views/standard-object-views.md`
+
+Prominent properties are spotlighted ABOVE the table of the remaining
+normal ones — both shown, hidden excluded. The surface now renders exactly
+that (elevated cards over the property grid). The per-base-type visual
+formats (media viewer, time-series chart, map) are residuals with the
+stores they need.
+
+**21.2 What the build holds and what it defers, checked.** The built
+schema matches the reading's shape: one configured view per type as a
+logical child (no project, no RID, no own ACL), tabs as Workshop modules
+in the two enumerated kinds, the immutable tab id, the version bump, the
+NULL-means-standard resolver, reads composed through `auth_in_ontology`
+and writes through `can_index_object_type` (§20.2's current model). Every
+residual named at the gate is recorded in this reading (per-tab profiles
+and visibility conditions §7, panel views §5, sidebar config §8,
+versions-with-restore, view branching §11, the pin-a-default-display
+object §20.7, Marketplace §15) and the two structural ones also in 718's
+own comments. One decision to keep visible: `UNIQUE(object_type_id)` —
+one configured view per type — is OUR reading of the pages (the toggle is
+binary, profiles vary per TAB); if a page ever shows several configured
+views per type, the constraint is the first thing to fall.
+
+**21.3 The suite lesson worth keeping:** a project-homed object type is
+invisible to the `authenticated` role unless a real user (sub claim,
+`users` row, project grant) stands behind the claims — the composed read
+fails silently otherwise. Fixtures that probe composed policies must model
+the user a real session always has.
+
 ## Decisions I had to make
 
 1. **RE-TAKEN in §20.1 — read that first.** I treated `config-overview` as

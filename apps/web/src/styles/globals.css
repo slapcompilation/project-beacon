@@ -2091,6 +2091,16 @@
 .ov-title { font-size:15px; font-weight:600; margin:0; }
 .ov-type { font-size:11px; color:var(--muted-foreground); margin:0; }
 .ov-tabs { padding:0 12px; border-bottom:1px solid var(--border); }
+.ov-prominent {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+  gap:8px; margin-bottom:10px;
+}
+.ov-prominent-card {
+  border:1px solid var(--border); border-radius:3px; padding:8px 12px;
+  background:var(--muted);
+}
+.ov-prominent-label { font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted-foreground); margin:0; }
+.ov-prominent-value { font-size:16px; font-weight:600; margin:0; overflow-wrap:anywhere; }
 .ov-properties {
   display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
   gap:8px 16px; margin:0;
