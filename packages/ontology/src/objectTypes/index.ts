@@ -197,6 +197,11 @@ export interface PropertyDef {
   /** The value type constraining this property (452); index-time
    *  value_conforms enforces it with the authored failure message. */
   valueTypeId?: string | null
+  /** Render hints (475): searchable is the parent; sortable and selectable
+   *  require it. Undefined lets the writer default them (vector gets none). */
+  searchable?: boolean
+  sortable?: boolean
+  selectable?: boolean
   description?: string
   visibility?: 'prominent' | 'normal' | 'hidden'
   isPrimaryKey?: boolean
