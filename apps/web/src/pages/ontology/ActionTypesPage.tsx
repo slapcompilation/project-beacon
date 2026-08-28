@@ -18,7 +18,7 @@
 
 import { useMemo, useState } from 'react'
 import {
-  Button, Callout, Card, Checkbox, Dialog, DialogBody, DialogFooter,
+  Button, Card, Checkbox,
   HTMLSelect, Icon, InputGroup, Intent, Tag, TextArea,
 } from '@blueprintjs/core'
 import {
@@ -31,10 +31,12 @@ import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resource
 import { useInterfaces } from '@/features/interfaces/hooks'
 import { rowToInterface } from '@/features/interfaces/api'
 import {
-  useActionTypes, useApplyAction, useRuleKinds, useSaveActionType,
+  useActionTypes, useRuleKinds, useSaveActionType,
   VALUE_SOURCES, type ActionRuleRow, type ActionTypeRow, type ValueSource,
 } from '@/features/actionTypes/api'
 import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
+import { FormEditor } from '@/features/actionTypes/FormEditor'
+import { RunActionDialog } from '@/features/explorer/ActionsMenu'
 import { FrontendConsumers } from '@/features/actionTypes/FrontendConsumers'
 import { SubmissionOptions } from '@/features/actionTypes/SubmissionOptions'
 
@@ -45,12 +47,6 @@ const PARAM_TYPES: PropertyType[] = ['string', 'integer', 'double', 'boolean', '
 /** kebab-case, which is what action_types.api_name's CHECK wants. */
 const toKebab = (s: string) => toSlug(s).replace(/_/g, '-')
 
-const needsTarget = (rules: ActionRuleRow[]) =>
-  rules.some((r) => r.kind === 'modify_object' || r.kind === 'delete_object')
-
-const VALUE_INPUT: Partial<Record<PropertyType, string>> = {
-  integer: 'number', double: 'number', date: 'date', timestamp: 'datetime-local',
-}
 
 export default function ActionTypesPage() {
   const { ontology, isLoading } = useOmaOntology()
@@ -110,6 +106,7 @@ export default function ActionTypesPage() {
                       id: p.id, api_name: p.api_name, display_name: p.display_name,
                       base_type: p.base_type ?? 'string',
                     }))} />
+                    <FormEditor actionTypeId={a.id} />
                     <FrontendConsumers actionTypeId={a.id} />
                     <SubmissionOptions actionTypeId={a.id} />
                   </div>
@@ -311,56 +308,10 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
 /** "Every time you invoke this action from different contexts in Foundry, a
  *  common input form will collect the necessary input from a user." The form is
  *  the action's exposed parameters, and nothing else. */
+// Since F6.5/F9 the OMA applies through the SAME dialog the Explorer uses —
+// sections, defaults and override-driven visibility come from the one
+// resolver, and the two apply surfaces can no longer disagree about what the
+// form is. With nothing selected, the dialog collects the target key itself.
 function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () => void }) {
-  const apply = useApplyAction()
-  const [values, setValues] = useState<Record<string, string>>({})
-  const [primaryKey, setPrimaryKey] = useState('')
-  const exposed = action.action_type_parameters
-    .filter((p) => p.exposed).sort((a, b) => a.position - b.position)
-  const target = needsTarget(action.action_type_rules)
-
-  return (
-    <Dialog isOpen title={action.label} icon="play" onClose={onClose}>
-      <DialogBody>
-        <div className="space-y-2">
-          {exposed.length === 0 && <p className="text-xs text-muted-foreground">This action takes no input.</p>}
-          {exposed.map((p) => (
-            <label key={p.id} className="flex flex-col gap-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {p.display_name}{p.required && <span className="text-red-600"> *</span>}
-              </span>
-              <InputGroup size="small" value={values[p.api_name] ?? ''} disabled={!p.editable}
-                type={(p.base_type && VALUE_INPUT[p.base_type]) ?? 'text'}
-                onChange={(e) => { setValues({ ...values, [p.api_name]: e.currentTarget.value }) }} />
-            </label>
-          ))}
-          {target && (
-            <label className="flex flex-col gap-1">
-              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Target primary key<span className="text-red-600"> *</span>
-              </span>
-              <InputGroup size="small" value={primaryKey} className="font-mono"
-                placeholder="The object this action edits"
-                onChange={(e) => { setPrimaryKey(e.currentTarget.value) }} />
-            </label>
-          )}
-          {apply.error && <Callout intent={Intent.DANGER}>{apply.error.message}</Callout>}
-        </div>
-      </DialogBody>
-      <DialogFooter actions={
-        <>
-          <Button variant="minimal" onClick={onClose}>Cancel</Button>
-          <Button intent={Intent.PRIMARY} icon="play" loading={apply.isPending}
-            onClick={() => {
-              apply.mutate({
-                actionTypeId: action.id, parameters: values,
-                primaryKey: primaryKey.trim() || undefined,
-                objectTypeIds: action.action_type_rules
-                  .map((r) => r.object_type_id).filter((id): id is string => id !== null),
-              }, { onSuccess: onClose })
-            }}>Apply</Button>
-        </>
-      } />
-    </Dialog>
-  )
+  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} />
 }
