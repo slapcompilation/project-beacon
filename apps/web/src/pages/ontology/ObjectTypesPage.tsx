@@ -228,6 +228,16 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
                 ))}
               </HTMLSelect>
             )}
+            {/* prominent | normal | hidden — the metadata page's visibility;
+                hidden is excluded everywhere and Ontology:PropertyIsHidden
+                refuses it at query time. */}
+            <HTMLSelect value={p.visibility ?? 'normal'}
+              title="Prominent properties are spotlighted; hidden ones never show"
+              onChange={(e) => { setProp(i, { visibility: e.currentTarget.value as PropertyDef['visibility'] }) }}>
+              <option value="prominent">Prominent</option>
+              <option value="normal">Normal</option>
+              <option value="hidden">Hidden</option>
+            </HTMLSelect>
             <Checkbox checked={p.required} label="Required" disabled={p.isPrimaryKey}
               title={p.isPrimaryKey ? 'A nullable key is not a key' : undefined}
               onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />

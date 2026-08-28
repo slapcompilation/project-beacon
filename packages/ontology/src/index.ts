@@ -64,15 +64,6 @@ export type {
 
 
 
-// Tier 1 — the object set: the selection an authored tool aggregates over, and
-// that an automation and a cohort will act on and name.
-export {
-  selectObjectSet, bindSetArgs, validateSetDefinition, validateObjectSet, describeSetFilters,
-} from './objectSets/index'
-export type {
-  ObjectSetDef, SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
-  SetRecord, RecordGroup, ObjectSetSelection, SetTypeBreakdown,
-} from './objectSets/index'
 
 // searchAround — Foundry's set-to-set traversal, capped at depth 3 and gated on
 // registered link types (api-object-sets).

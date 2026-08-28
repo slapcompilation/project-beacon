@@ -26,7 +26,20 @@
 // Pure, like the rest of objectSets: the caller supplies the link rows, this
 // decides which members come out the other side.
 
-import type { SetFilter } from './index'
+// The filter shape, inlined when the in-memory set module was deleted (725's
+// arc) — this engine survives as the named executor for Vertex's
+// search-around expansion.
+export type ComparisonOp = 'lt' | 'lte' | 'gt' | 'gte'
+export interface SetFilter {
+  property: string
+  op: ComparisonOp | 'eq' | 'neq'
+  /** Typed against the property. When `param` is set this is the fallback used
+   *  if the caller omits an optional parameter. */
+  value: number | string | boolean
+  /** Take the comparison value from this parameter instead of the literal
+   *  above — what turns one set into a family of sets. */
+  param?: string
+}
 
 /** Foundry's runtime limit, copied deliberately. */
 export const MAX_TRAVERSAL_DEPTH = 3
