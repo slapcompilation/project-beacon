@@ -5,10 +5,10 @@
 
 import { useState } from 'react'
 import {
-  Button, HTMLSelect, Icon, InputGroup, Intent, Tab, Tabs, Tag,
+  Button, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Tab, Tabs, Tag,
 } from '@blueprintjs/core'
 import { toCamel, type ObjectTypeDef } from '@beacon/ontology'
-import { useStageClauses, useImplementations } from './hooks'
+import { useStageClauses, useStageMetadata, useImplementations } from './hooks'
 import type { ActionConstraintRow, InterfaceRow } from './api'
 import { ActionConstraintDialog } from './ActionConstraintDialog'
 
@@ -37,11 +37,35 @@ export function InterfaceDetail({ row, all, types }: {
 
 function OverviewTab({ row, types }: { row: InterfaceRow; types: ObjectTypeDef[] }) {
   const { data: impls = [] } = useImplementations()
+  const stage = useStageMetadata()
   const implementers = impls.filter((i) => i.interface_id === row.id)
     .map((i) => types.find((t) => t.id === i.object_type_id)?.label ?? '?')
   return (
     <div className="space-y-2 text-xs">
-      {row.description && <p className="text-muted-foreground">{row.description}</p>}
+      {/* interface-metadata's own fields, writable at last (F6.8) — each edit
+          stages through the session like every ontology edit. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <HTMLSelect value={row.icon}
+          onChange={(e) => { stage.mutate({ id: row.id, patch: { icon: e.currentTarget.value } }) }}>
+          {['layers', 'cube', 'diagram-tree', 'inheritance', 'shapes', 'globe'].map((ic) => (
+            <option key={ic} value={ic}>{ic}</option>
+          ))}
+        </HTMLSelect>
+        <HTMLSelect value={row.status}
+          onChange={(e) => { stage.mutate({ id: row.id, patch: { status: e.currentTarget.value } }) }}>
+          {['experimental', 'active', 'example', 'deprecated'].map((st) => (
+            <option key={st} value={st}>{st}</option>
+          ))}
+        </HTMLSelect>
+        {/* "Searchable interfaces are limited to 50 implementing object
+            types, whereas non-searchable interfaces are limited to 1,000.
+            By default, the `Facility` interface will be searchable." */}
+        <Checkbox checked={row.searchable} label="Searchable" className="!mb-0"
+          title="Searchable: 50-implementer cap, whole-interface loads; non-searchable: 1,000"
+          onChange={(e) => { stage.mutate({ id: row.id, patch: { searchable: e.currentTarget.checked } }) }} />
+      </div>
+      <InputGroup size="small" placeholder="Description" value={row.description}
+        onChange={(e) => { stage.mutate({ id: row.id, patch: { description: e.currentTarget.value } }) }} />
       <div>
         <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Implemented by</span>
         <div className="flex flex-wrap gap-1 mt-1">

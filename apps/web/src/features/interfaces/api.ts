@@ -47,6 +47,10 @@ export interface InterfaceRow {
   api_name: string
   label: string
   description: string
+  /** interface-metadata's own fields (450), writable since the F6.8 arc. */
+  icon: string
+  searchable: boolean
+  status: string
   /** Rows since migration 450 — the jsonb array is gone. */
   interface_properties: {
     id: string
@@ -117,6 +121,19 @@ export async function createInterface(i: CreateInterfaceInput): Promise<string> 
         base_type: p.type, position: idx,
       })),
     } as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
+  })
+}
+
+/** Stage the interface's own metadata (F6.8): icon, description, searchable,
+ *  status — schema-exact to interface-metadata since 450, writable since this
+ *  landed. Absent keys stay untouched, like every clause. */
+export async function stageInterfaceMetadata(
+  id: string,
+  patch: { icon?: string; description?: string; searchable?: boolean; status?: string },
+): Promise<string> {
+  return client(saveInterface).applyAction({
+    p_interface: { id, ...patch } as unknown as Json,
     p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }

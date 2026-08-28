@@ -325,8 +325,10 @@ describe.skipIf(noDb)('interfaces', () => {
   it('refuses to flip searchable on past 50 implementers', async () => {
     // An interface with no required properties conforms trivially, so volume
     // is the only thing under test.
-    const cap = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
-                            values ($1,'Capped','Capped') returning id`, [ont])).id
+    // Explicitly non-searchable: 726 made searchable the DEFAULT (the page's
+    // own sentence), so a fixture wanting the 1,000-cap side says so.
+    const cap = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label, searchable)
+                            values ($1,'Capped','Capped',false) returning id`, [ont])).id
     await db.query(
       `with types as (
          insert into public.object_types (ontology_id, api_name, label)
