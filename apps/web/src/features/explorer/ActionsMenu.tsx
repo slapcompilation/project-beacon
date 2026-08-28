@@ -64,7 +64,10 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
   )
 }
 
-function RunActionDialog({ action, targets, selectedRow, onClose }: {
+// Exported since F6.5/F9: the OMA's Apply reuses THIS dialog, so both apply
+// surfaces agree about what the form is — sections, defaults, overrides,
+// through the one resolver.
+export function RunActionDialog({ action, targets, selectedRow, onClose }: {
   action: ActionTypeRow
   targets: string[]
   selectedRow: Record<string, unknown> | null
@@ -76,6 +79,10 @@ function RunActionDialog({ action, targets, selectedRow, onClose }: {
   const [debounced, setDebounced] = useState<Record<string, string>>({})
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [busy, setBusy] = useState(false)
+  // With no selection to act on (the OMA's per-action Apply), the target is
+  // typed rather than picked.
+  const [manualPk, setManualPk] = useState('')
+  const effTargets = targets.length > 0 ? targets : (manualPk.trim() ? [manualPk.trim()] : [])
 
   // conditions read the values, so the resolver follows them — debounced,
   // because it is a round trip per change
@@ -137,14 +144,14 @@ function RunActionDialog({ action, targets, selectedRow, onClose }: {
         })
       } else {
         // One apply per selected object — the set is what the button meant.
-        for (const pk of targets) {
+        for (const pk of effTargets) {
           await new Promise<void>((res, rej) => {
             apply.mutate({ actionTypeId: action.id, parameters: values,
               primaryKey: pk, objectTypeIds: touched },
               { onSuccess: () => { res() }, onError: rej })
           })
         }
-        toast.success(`${action.label} applied to ${targets.length} object${targets.length === 1 ? '' : 's'}`)
+        toast.success(`${action.label} applied to ${effTargets.length} object${effTargets.length === 1 ? '' : 's'}`)
       }
       onClose()
     } catch {
@@ -216,9 +223,13 @@ function RunActionDialog({ action, targets, selectedRow, onClose }: {
             )
           })}
           {targeted && targets.length === 0 && (
-            <Callout intent={Intent.WARNING} className="!text-[11px]">
-              This action modifies objects — select rows in Results, or clear filters that leave nothing.
-            </Callout>
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Target primary key <span className="text-red-600">*</span>
+              </span>
+              <InputGroup size="small" value={manualPk} className="font-mono"
+                onChange={(e) => { setManualPk(e.currentTarget.value) }} />
+            </label>
           )}
           {apply.error && <Callout intent={Intent.DANGER} className="!text-[11px]">{apply.error.message}</Callout>}
         </div>
@@ -227,7 +238,7 @@ function RunActionDialog({ action, targets, selectedRow, onClose }: {
         <>
           <Button variant="minimal" onClick={onClose}>Cancel</Button>
           <Button intent={Intent.PRIMARY} icon="play" loading={busy}
-            disabled={targeted && targets.length === 0}
+            disabled={targeted && effTargets.length === 0}
             onClick={() => { void run() }}>
             Apply
           </Button>

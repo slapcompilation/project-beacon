@@ -87,7 +87,11 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
              { operator: 'includes', arity: 'multi', note: '' }]
           : entity.apiName === 'can_write_action_type'
             ? db.canEdit
-            : [],
+            : entity.apiName === 'action_form_effective'
+              // the resolver's shape, empty: every parameter falls back to
+              // its own flags, which is what this suite exercises
+              ? { parameters: {} }
+              : [],
     ),
     applyAction: (args: unknown) => {
       if (entity.apiName === 'save_action_type') { db.staged.push(args); return Promise.resolve('at2') }
@@ -186,8 +190,10 @@ describe('Action types', () => {
     const user = userEvent.setup()
     renderPage()
     await user.click(await screen.findByRole('button', { name: 'Apply' }))
+    // Since F6.5/F9 the OMA applies through the Explorer's dialog — the one
+    // resolver-honoring form — which collects its own target key when
+    // nothing is selected.
     expect(await screen.findByText(/Reason/)).toBeDefined()
     expect(screen.getByText(/Target primary key/)).toBeDefined()
-    expect(screen.getByPlaceholderText('The object this action edits')).toBeDefined()
   })
 })
