@@ -1,6 +1,6 @@
 // Pin F3: what exactly does the create-rule edit hold, and what does
 // object_state say for it, when the index build fails on NULL pk?
-import { connectionString, SSL } from './scripts/db-url.mjs'
+import { connectionString, SSL } from '../db-url.mjs'
 import pg from 'pg'
 const c = new pg.Client({ connectionString: connectionString(), ssl: SSL })
 await c.connect()
