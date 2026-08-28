@@ -20,7 +20,11 @@ export interface JobSpec {
 
 export interface Build {
   id: string
-  status: 'RUNNING' | 'COMPLETED' | 'FAILED' | 'ABORTED'
+  /** The API vocabulary — builds speak SUCCEEDED/CANCELED (506); the JOB
+   *  states speak the prose tokens (COMPLETED/ABORTED). This union carried
+   *  the job tokens for months, so the intent map missed every finished
+   *  build (creation review, step 9). */
+  status: 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELED'
   force: boolean
   startedAt: string
   finishedAt: string | null
