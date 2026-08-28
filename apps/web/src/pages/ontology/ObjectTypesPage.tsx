@@ -291,6 +291,10 @@ export default function ObjectTypesPage() {
                       switch (indexPhase(ix)) {
                         case 'ready':
                           return <Tag minimal intent={Intent.SUCCESS}>{ix?.objectCount ?? 0} objects</Tag>
+                        // Ready-but-stale (720): the index serves while the
+                        // next minute tick rebuilds it.
+                        case 'refreshing':
+                          return <Tag minimal intent={Intent.WARNING} title="Edits or datasource changes newer than the index; rebuilding on the next tick">{ix?.objectCount ?? 0} objects · refreshing</Tag>
                         case 'failed':
                           return <Tag minimal intent={Intent.DANGER} title={ix?.error ?? undefined}>index failed</Tag>
                         // The pipeline is mid-run; the states are the job's own.

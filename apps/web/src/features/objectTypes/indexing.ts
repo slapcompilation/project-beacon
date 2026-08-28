@@ -24,6 +24,9 @@ export interface IndexStatus {
   error: string | null
   objectCount: number | null
   indexedAt: string | null
+  /** Ready is not current (720): edits newer than the index, or a spec
+   *  whose inputs moved — the next minute tick rebuilds. */
+  stale: boolean
 }
 
 export function useIndexStatuses() {
@@ -33,7 +36,7 @@ export function useIndexStatuses() {
       const rows = await client(objectTypeIndexReport).executeFunction({})
       return new Map(rows.map((r) => [r.object_type_id, {
         objectTypeId: r.object_type_id, state: r.state, error: r.error,
-        objectCount: r.object_count, indexedAt: r.indexed_at,
+        objectCount: r.object_count, indexedAt: r.indexed_at, stale: r.stale,
       }]))
     },
   })
@@ -44,10 +47,12 @@ export function useIndexStatuses() {
  *  to be queried from OSv2" — one state, of the seven, means ready. */
 export const indexReady = (ix?: IndexStatus): ix is IndexStatus => ix?.state === 'COMPLETED'
 
-/** Where a type is in its pipeline, for a tag. `null` means no job has run. */
-export function indexPhase(ix?: IndexStatus): 'ready' | 'running' | 'failed' | 'none' {
+/** Where a type is in its pipeline, for a tag. `null` means no job has run.
+ *  'refreshing' is ready-but-stale (720): the index serves while the next
+ *  minute tick rebuilds it. */
+export function indexPhase(ix?: IndexStatus): 'ready' | 'refreshing' | 'running' | 'failed' | 'none' {
   if (!ix?.state) return 'none'
-  if (ix.state === 'COMPLETED') return 'ready'
+  if (ix.state === 'COMPLETED') return ix.stale ? 'refreshing' : 'ready'
   if (ix.state === 'FAILED' || ix.state === 'ABORTED') return 'failed'
   return 'running'
 }
