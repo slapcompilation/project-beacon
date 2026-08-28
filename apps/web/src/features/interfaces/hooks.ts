@@ -4,7 +4,7 @@ import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import {
   fetchInterfaces, fetchImplementations, createInterface, deleteInterface,
-  addImplementation, removeImplementation, stageInterfaceClauses,
+  addImplementation, removeImplementation, stageInterfaceMetadata, stageInterfaceClauses,
   type CreateInterfaceInput, type MappingDraft, type InterfaceRow,
 } from './api'
 
@@ -56,6 +56,20 @@ export function useDeleteInterface() {
 
 /** Clause edits stage into the same working-state entry as the rest of the
  *  interface; the extension guards have their say when the save applies. */
+export function useStageMetadata() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: Parameters<typeof stageInterfaceMetadata>[1] }) =>
+      stageInterfaceMetadata(id, patch),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.interfaces })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — save to apply it')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
 export function useStageClauses() {
   const qc = useQueryClient()
   return useMutation({
