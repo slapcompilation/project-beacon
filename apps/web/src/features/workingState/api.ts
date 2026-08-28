@@ -42,14 +42,21 @@ interface EntryRow {
 
 const KEY = ['working-state']
 
+/** Read the entries of the branch the save would save. The read side used to
+ *  hardcode main (`branch_id IS NULL`) while the save followed the ambient
+ *  branch — so branch edits were invisible to the count and the dialog, and
+ *  a user with only branch entries had no Save control at all (creation
+ *  review, F4). Every hook here now follows the same branch the save does. */
 export function useWorkingState() {
+  const branchId = useAppStore((s) => s.omaBranchId)
   return useQuery({
-    queryKey: KEY,
+    queryKey: [...KEY, branchId ?? 'main'],
     queryFn: async (): Promise<WorkingEntry[]> => {
-      const { data, error } = await supabase
+      const q = supabase
         .from('working_state_changes')
         .select('id, resource_kind, resource_id, operation, fields, base, updated_at')
-        .is('branch_id', null)
+      const { data, error } = await (branchId === null
+        ? q.is('branch_id', null) : q.eq('branch_id', branchId))
         .order('created_at')
       if (error) throw new Error(error.message)
       return (data as EntryRow[]).map((r) => ({
@@ -72,10 +79,12 @@ export interface Conflict {
 /** Fields somebody else moved while I was editing. Empty is the normal case —
  *  everything that does not overlap merges without asking. */
 export function useWorkingStateConflicts() {
+  const branchId = useAppStore((s) => s.omaBranchId)
   return useQuery({
-    queryKey: [...KEY, 'conflicts'],
+    queryKey: [...KEY, 'conflicts', branchId ?? 'main'],
     queryFn: async (): Promise<Conflict[]> =>
-      (await client(workingStateConflicts).executeFunction({})) as unknown as Conflict[],
+      (await client(workingStateConflicts).executeFunction(
+        { p_branch: branchId ?? undefined })) as unknown as Conflict[],
   })
 }
 
@@ -88,7 +97,10 @@ export function useUpdateWorkingState() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (resolutions: Resolution[]) =>
-      client(updateWorkingState).applyAction({ p_resolutions: resolutions as unknown as Json }),
+      client(updateWorkingState).applyAction({
+        p_resolutions: resolutions as unknown as Json,
+        p_branch: useAppStore.getState().omaBranchId ?? undefined,
+      }),
     onSuccess: () => {
       invalidateAll(qc)
       toast.success('Updated to the latest ontology')
@@ -127,9 +139,10 @@ export function useDiscardWorkingState() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (target?: { kind: ResourceKind; id: string }) =>
-      client(discardWorkingState).applyAction(
-        target ? { p_kind: target.kind, p_id: target.id } : {},
-      ),
+      client(discardWorkingState).applyAction({
+        ...(target ? { p_kind: target.kind, p_id: target.id } : {}),
+        p_branch: useAppStore.getState().omaBranchId ?? undefined,
+      }),
     onSuccess: (n, target) => {
       invalidateAll(qc)
       toast.success(target ? 'Changes discarded' : `${n} entries discarded`)
