@@ -48,13 +48,17 @@ export const BACKING_ICON: Record<LinkBackingKind, 'key' | 'th' | 'cube'> = {
   foreign_key: 'key', join_table: 'th', object_backed: 'cube',
 }
 
-/** Which backing kinds can express each cardinality. */
+/** Which backing kinds can express each cardinality — the three database
+ *  arms (437's foreign-key and join-table half-rules, 717's object-backed),
+ *  direction-aware: our pair is stored source→target, so the page's
+ *  many-to-one read from the other end is one_to_many. The map this replaces
+ *  offered a join table for every cardinality against the sentence quoted
+ *  above — "For 'many-to-many' cardinality link types" is the whole list. */
 export const CARDINALITY_BACKINGS: Record<LinkCardinality, ReadonlyArray<LinkBackingKind>> = {
-  one_to_one:   ['foreign_key', 'join_table', 'object_backed'],
-  many_to_one:  ['foreign_key', 'join_table', 'object_backed'],
-  // A foreign key holds one value, so it cannot carry the many side.
-  one_to_many:  ['join_table', 'object_backed'],
-  many_to_many: ['join_table', 'object_backed'],
+  one_to_one:   ['foreign_key'],
+  many_to_one:  ['foreign_key', 'object_backed'],
+  one_to_many:  ['foreign_key', 'object_backed'],
+  many_to_many: ['join_table'],
 }
 
 export const canBack = (c: LinkCardinality, backing: LinkBackingKind): boolean =>

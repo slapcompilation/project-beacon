@@ -43,9 +43,12 @@ describe.skipIf(noDb)('status coupling', () => {
                      values ($1,'StatusA','A','active') returning id`, [ont])).id
     tb = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
                      values ($1,'StatusB','B','active') returning id`, [ont])).id
+    // 717 dropped the silent cardinality default — a link declares its own.
     lt = (await one(`insert into public.link_types
-                       (ontology_id, api_name, label, source_object_type_id, target_object_type_id, status)
-                     values ($1,'status_ab','A to B',$2,$3,'active') returning id`, [ont, ta, tb])).id
+                       (ontology_id, api_name, label, source_object_type_id, target_object_type_id,
+                        cardinality, status)
+                     values ($1,'status_ab','A to B',$2,$3,'many_to_one','active') returning id`,
+      [ont, ta, tb])).id
   })
   afterAll(async () => { await rollback(db) })
 
