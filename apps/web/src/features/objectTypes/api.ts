@@ -185,12 +185,20 @@ export async function saveObjectType(
         *  the organization has more than one — `default_ontology()` refuses to
         *  guess, because a silent wrong guess writes to the wrong ontology. */
        ontologyId?: string | null
-       projectId?: string | null },
+       projectId?: string | null
+       /** The wizard's step-1 choice travels WITH the staged type and lands
+        *  when the save does — the backing cannot be attached afterwards,
+        *  because both attachment paths need the landed row and the linter
+        *  refuses landing without backing (creation review, F1). */
+       datasources?: { datasetId: string; branchId: string }[] },
 ): Promise<string> {
   return client(saveObjectTypeAction).applyAction({
     p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon,
       plural_label: i.pluralLabel ?? null, description: i.description,
-      ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null },
+      ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null,
+      ...(i.datasources ? {
+        datasources: i.datasources.map((d) => ({ dataset_id: d.datasetId, branch_id: d.branchId })),
+      } : {}) },
     p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
     p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })

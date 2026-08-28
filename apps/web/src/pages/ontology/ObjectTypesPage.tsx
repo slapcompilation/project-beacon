@@ -18,12 +18,13 @@ import {
   type SharedPropertyDef,
   type ObjectTypeStatus, type OntologyStatus,
 } from '@beacon/ontology'
+import { toast } from 'sonner'
 import { useAppStore } from '@/stores/app.store'
 import { rowToLinkType } from '@/features/objectTypes/api'
 import {
   useCreateObjectType, useUpdateObjectType, useSetObjectTypeStatus,
   useApplyActiveToProperties, useCreateLinkType, useDeleteLinkType, useLinkTypes,
-  useApplyBacking,
+  useResolveBacking,
 } from '@/features/objectTypes/hooks'
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
@@ -326,25 +327,31 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<PropertyDraft[]>([newProperty()])
   const [backing, setBacking] = useState<Backing>({ kind: 'generate', name: '', folderId: null })
-  const applyBacking = useApplyBacking()
+  const resolveBacking = useResolveBacking()
 
   const apiName = toPascal(label)
   const properties = draftsToProperties(props)
   const validation = validateObjectTypeDraft({ apiName, label, properties })
   const canSave = validation.ok
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSave) return
+    // The backing resolves FIRST and travels inside the staged payload — the
+    // attach-afterwards order deadlocked, because attachment needs the landed
+    // row and the linter refuses landing without backing (creation review, F1).
+    let backingRef: { datasetId: string; branchId: string }
+    try {
+      backingRef = await resolveBacking(backing, projectId, label)
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : String(e))
+      return
+    }
     create.mutate(
       { apiName, label: label.trim(), pluralLabel: plural.trim(),
-        icon, description: description.trim(), properties, ontologyId, projectId },
+        icon, description: description.trim(), properties, ontologyId, projectId,
+        datasources: [backingRef] },
       {
-        onSuccess: (id) => {
-          // Step 1 of the wizard, applied after the type exists because the
-          // backing names it. A type with no datasource fails its own linter,
-          // so this is not optional decoration. It reports its own failure, and
-          // the form resets either way — the type is created regardless.
-          void applyBacking(id, backing)
+        onSuccess: () => {
           setLabel(''); setPlural(''); setPluralEdited(false)
           setDescription(''); setProps([newProperty()]); setIcon('cube')
           setBacking({ kind: 'generate', name: '', folderId: null })
@@ -388,7 +395,7 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
       )}
       <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave || !ontologyId}
         title={ontologyId ? undefined : 'Create an ontology first — every object type belongs to one'}
-        loading={create.isPending} onClick={submit}>Create object type</Button>
+        loading={create.isPending} onClick={() => { void submit() }}>Create object type</Button>
     </Card>
   )
 }

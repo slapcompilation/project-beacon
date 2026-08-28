@@ -97,4 +97,55 @@ describe.skipIf(noDb)('an object type may generate its own empty dataset', () =>
       `select public.generate_backing_dataset($1,'   ',null)`, [type]))
     expect(err).toMatch(/InvalidName/)
   })
+
+  // The FRONT door, exactly as the wizard drives it since the creation
+  // review's F1: the backing resolves first (an empty dataset, made the way
+  // the web makes one), travels INSIDE the staged payload, and both land on
+  // save. The old order — stage, then attach — deadlocked: attachment needs
+  // the landed row and the linter refuses landing without backing. This case
+  // enters through the same RPC sequence as the UI, because a fixture that
+  // enters through a side door proves the engine, not the flow.
+  it('the wizard sequence: backing resolved first, staged inline, landed by the save', async () => {
+    // Staging records who staged, so this case needs a real user behind the
+    // claims — the wizard always has one. Last case in the file, so the claim
+    // swap cannot leak into another.
+    const usr = (await one('select gen_random_uuid() as id')).id
+    const email = `gen590-${Date.now()}@beacon.test`
+    await db.query(
+      `insert into auth.users (id, instance_id, aud, role, email)
+       values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2)`,
+      [usr, email])
+    await db.query(`insert into public.users (id, email, role, organization_id)
+                    values ($1,$2,'admin',$3)`, [usr, email, f.orgId])
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: usr, app_metadata: { role: 'admin', org_id: f.orgId } })])
+
+    const ds = (await one(
+      `insert into public.datasets (organization_id, project_id, api_name, name)
+       values ($1,$2,'gadget_backing','Gadget backing') returning id`, [f.orgId, f.projectId])).id
+    const br = (await one(
+      `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`, [ds])).id
+
+    const staged = (await one(`select public.save_object_type($1::jsonb, $2::jsonb) as id`, [
+      JSON.stringify({ api_name: 'Gadget', label: 'Gadget', ontology_id: ont,
+        project_id: f.projectId, datasources: [{ dataset_id: ds, branch_id: br }] }),
+      JSON.stringify([{ property_id: 'gadget_id', display_name: 'Id', api_name: 'id',
+        base_type: 'string', source: 'column', backing_column: 'gadget_id',
+        is_primary_key: true, is_title_key: true, required: true }]),
+    ])).id
+    // Staged means staged: not in object_types until the save.
+    expect(Number((await one(
+      `select count(*) as n from public.object_types where id=$1`, [staged])).n)).toBe(0)
+
+    await db.query('select public.save_working_state()')
+
+    expect(Number((await one(
+      `select count(*) as n from public.object_types where id=$1`, [staged])).n)).toBe(1)
+    expect(Number((await one(
+      `select count(*) as n from public.object_type_datasources
+        where object_type_id=$1 and dataset_id=$2 and branch_id=$3`, [staged, ds, br])).n)).toBe(1)
+    const { rows } = await db.query(
+      `select problem from public.ontology_violations() where object_type = 'Gadget'`)
+    expect(rows).toEqual([])
+  })
 })
