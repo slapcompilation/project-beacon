@@ -1012,7 +1012,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (311) ───────────────────────────────────────────────────
+// ── FUNCTIONS (314) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2032,6 +2032,18 @@ export const datasetViewTransactionsFrom = { apiName: 'dataset_view_transactions
   { transaction_id: string; txn_type: string; seq: number }[]
 >
 
+/**
+ *  May the caller bind this backing to this object type: the dataset gate for
+ *  a dataset, the editor gate plus the view's own visibility for a restricted
+ *  view, the editor gate alone for a media set view whose resource lives
+ *  elsewhere. INVOKER on purpose — the EXISTS is meant to see what the caller
+ *  sees. 731.
+ */
+export const datasourceBindingAllowed = { apiName: 'datasource_binding_allowed', kind: 'function' } as FunctionType<
+  { p_type: string; p_dataset: string; p_restricted_view: string },
+  boolean
+>
+
 export const datasourceMappingProblems = { apiName: 'datasource_mapping_problems', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
@@ -2551,8 +2563,23 @@ export const loginConditionMatches = { apiName: 'login_condition_matches', kind:
   boolean
 >
 
+/**
+ *  The mandatory-control validations that go stale as datasources move: the
+ *  restricted-view mapping and the per-datasource allowed-values declaration
+ *  (mandatory-control-properties). 727.
+ */
+export const markingControlProblems = { apiName: 'marking_control_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
 export const markingMember = { apiName: 'marking_member', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string },
+  boolean
+>
+
+export const markingValueAllowed = { apiName: 'marking_value_allowed', kind: 'function' } as FunctionType<
+  { p_value: Json; p_markings: string[]; p_organizations: string[] },
   boolean
 >
 

@@ -170,16 +170,25 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
               title="camelCase, unique within this object type"
               onChange={(e) => { setProp(i, { apiName: e.currentTarget.value }) }} className="min-w-[110px] max-w-[130px] font-mono" />
             <HTMLSelect value={def?.baseType ?? p.type} disabled={!!def}
-              onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
+              onChange={(e) => {
+                const t = e.currentTarget.value as PropertyType
+                // "Mandatory control properties must be required." — and they
+                // "are set to `Hidden` by default"; picking marking presets both.
+                setProp(i, t === 'marking' ? { type: t, required: true, visibility: 'hidden' } : { type: t })
+              }}>
               {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value} title={t.help}>{t.label}</option>)}
             </HTMLSelect>
             {p.type === 'array' && !def && (
               // "All base types may be used in arrays… excluding the Vector and
-              // Time series types" — and never another array.
+              // Time series types" — and never another array. The fourth is on
+              // the media page, which is where 546 found it: "Media reference
+              // lists are not supported as a property type on an object." The
+              // list here was one short of the CHECK, so the picker could stage
+              // what the save refuses (creation review, F11).
               <HTMLSelect value={p.arrayElementType ?? ''} title="Element type"
                 onChange={(e) => { setProp(i, { arrayElementType: e.currentTarget.value as PropertyType }) }}>
                 <option value="">Element…</option>
-                {PROPERTY_TYPES.filter((t) => !['array', 'vector', 'time_series'].includes(t.value))
+                {PROPERTY_TYPES.filter((t) => !['array', 'vector', 'time_series', 'media_reference'].includes(t.value))
                   .map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </HTMLSelect>
             )}
@@ -238,8 +247,10 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
               <option value="normal">Normal</option>
               <option value="hidden">Hidden</option>
             </HTMLSelect>
-            <Checkbox checked={p.required} label="Required" disabled={p.isPrimaryKey}
-              title={p.isPrimaryKey ? 'A nullable key is not a key' : undefined}
+            <Checkbox checked={p.required} label="Required"
+              disabled={p.isPrimaryKey || p.type === 'marking'}
+              title={p.isPrimaryKey ? 'A nullable key is not a key'
+                : p.type === 'marking' ? 'Mandatory control properties must be required' : undefined}
               onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
             <Button variant="minimal" size="small" icon="cross"
               onClick={() => { onChange(drafts.filter((_, idx) => idx !== i)) }} />

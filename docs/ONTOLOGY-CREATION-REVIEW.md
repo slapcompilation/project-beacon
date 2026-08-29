@@ -9,8 +9,24 @@
 > link_type_problems() in the linter's UNION, the object_backed pairing
 > arm, the relationship-aware creation card). The step-9 builds-vocabulary
 > bug → #888. The e2e probe (scripts/probes/) passes 19/19. F8's reading
-> (`readings/object-views.md`) landed the same day; its build waits on the
-> operator's read of its Decisions block. Everything else below stands as
+> (`readings/object-views.md`) landed the same day; F8 itself → #890
+> (718/719). F14 → #892 (720). F5 → #893 (721). The F6 engines-without-
+> surfaces census closed twelve of twelve, #894–#900 (722–726).
+>
+> **F11 → 727–732 (2026-08-29), all three of its parts.** Mandatory
+> controls became real (727: required, the restricted-view mapping and the
+> per-datasource declaration as linter arms, the storage-level refusal in
+> both the indexer and `apply_action`; 729: the empty array the page
+> permits, which 727 alone would have refused). The active-property
+> protections landed (730). The array-element picker lost
+> `media_reference`, which its own CHECK had refused since 546. Two
+> defects the build turned up on the way, both measured live and neither
+> visible to any green guard: an RV- or media-backed type could not be
+> saved a second time (728, then 732 keying a datasource on its rid rather
+> than its definition, per the api's `rid`/`definition` split), and
+> **binding a restricted view or a media set view was refused by RLS for
+> every caller who was not the database owner** (731) — which is why no
+> such backing has ever existed here. Everything else below stands as
 > written.
 
 Opened 2026-08-27, the operator's stage 2 after the Spark trio: "review all the
@@ -301,6 +317,40 @@ protects object types, action types and interfaces, but
 deleted or API-renamed freely against edit-properties.md's protections.
 Third: the array element dropdown offers `media_reference` while the 546
 CHECK refuses it — the UI can stage what the save rejects.
+
+**All three closed 2026-08-29 (727–732).** What the build found that this
+finding did not, each measured on production in a rolled-back transaction:
+
+* The page permits an **empty** mandatory control — "markings and
+  organization values can be set to an empty array" — and 727's
+  required-ness alone refused it, because the indexer rejects `[]` unless
+  the property allows empty arrays. 729 has the writer settle that flag
+  and a CHECK hold it, so we are not stricter than the page.
+* An RV- or media-backed object type **could not be saved twice**:
+  `ontology_resource_row` described a backing as a `{dataset_id,
+  branch_id}` pair, which is `{null, null}` for both kinds, so the next
+  save deleted the real row and inserted a bogus one. 728 compared the
+  whole definition NULL-aware; 732 replaced that with the identity the
+  api gives a datasource — a `rid` distinct from its `definition` — which
+  is what also keeps `primary_key_column`, the allowed markings and the
+  media bindings across a change of backing.
+* **Nobody could bind a restricted view or a media set view at all.**
+  405's write policy is `can_write_dataset(dataset_id)`, `one_backing`
+  forces that column NULL for both kinds, and `can_write_dataset(NULL)`
+  is `false` — so the Datasources tab's two non-dataset branches worked
+  only for the database owner. Every proof of those branches, in
+  migrations and suites alike, had been written as the owner. 731 gates
+  the binding on both ends instead, and its probe runs as
+  `authenticated`.
+
+Still open, recorded rather than built: removing a backing that
+properties still name fails with a raw foreign-key error rather than a
+namespaced one; there is no unique index on `restricted_view_id` or
+`media_set_view_rid`, so binding a view another type already holds is
+skipped silently where a dataset would raise; CBAC max-classification;
+per-datasource mandatory controls on multi-datasource types; the
+Marketplace installation inputs; and organization action parameters,
+which the page says are "currently not supported".
 
 ### F12 — the type-class two-store state, unchanged
 

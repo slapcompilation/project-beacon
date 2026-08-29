@@ -377,9 +377,24 @@ export interface ObjectTypeDatasource {
   /** The column holding the object type's primary key, when this datasource
    *  spells it differently from the key property. Null means inherit. */
   primaryKeyColumn: string | null
+  /** "Every datasource that contains a mandatory control property must define
+   *  a constraint on what values can be added" — null is undeclared (the
+   *  linter reports it when a marking property sits here); [] admits everyone. */
+  allowedMarkings: string[] | null
+  allowedOrganizations: string[] | null
   datasetName: string
   branchName: string
   restrictedViewName: string
+}
+
+/** The per-datasource mandatory-control constraint (727). Passing null clears
+ *  a declaration back to undeclared. */
+export async function setDatasourceControls(
+  id: string, markings: string[] | null, organizations: string[] | null,
+): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources')
+    .update({ allowed_markings: markings, allowed_organizations: organizations }).eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 /** "The Map primary key helper will appear and prompt you for a column with
@@ -394,17 +409,20 @@ export async function setDatasourcePrimaryKeyColumn(id: string, column: string |
 export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
   const { data, error } = await supabase.from('object_type_datasources')
     .select('id, dataset_id, branch_id, restricted_view_id, media_set_view_rid, primary_key_column, ' +
+            'allowed_markings, allowed_organizations, ' +
             'datasets(name), dataset_branches(name), restricted_views(name)')
     .eq('object_type_id', objectTypeId)
   if (error) throw new Error(error.message)
   return (data as unknown as {
     id: string; dataset_id: string | null; branch_id: string | null; restricted_view_id: string | null
     media_set_view_rid: string | null; primary_key_column: string | null
+    allowed_markings: string[] | null; allowed_organizations: string[] | null
     datasets: { name: string } | null; dataset_branches: { name: string } | null
     restricted_views: { name: string } | null
   }[]).map((r) => ({
     id: r.id, datasetId: r.dataset_id, branchId: r.branch_id, restrictedViewId: r.restricted_view_id,
     mediaSetViewRid: r.media_set_view_rid, primaryKeyColumn: r.primary_key_column,
+    allowedMarkings: r.allowed_markings, allowedOrganizations: r.allowed_organizations,
     datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
     restrictedViewName: r.restricted_views?.name ?? '',
   }))
