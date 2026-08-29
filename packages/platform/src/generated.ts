@@ -1012,7 +1012,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (314) ───────────────────────────────────────────────────
+// ── FUNCTIONS (319) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2050,6 +2050,18 @@ export const datasourceMappingProblems = { apiName: 'datasource_mapping_problems
 >
 
 /**
+ *  The date/timestamp format union: a strict stringFormat.pattern, or one of
+ *  the seven localized formats. The prose table lists six;
+ *  DATE_FORMAT_YEAR_AND_MONTH is published only by the api. Values from
+ *  api/ontologies-v2-resources-object-types-get-object-type-full-metadata.
+ *  736.
+ */
+export const dateFormatValid = { apiName: 'date_format_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
+>
+
+/**
  *  The caller organization's ontology when it has exactly one. Raises rather
  *  than guessing when there are none or several — the Ontology Manager picker
  *  is a choice, and a silent wrong guess writes to the wrong ontology.
@@ -2100,6 +2112,17 @@ export const derivedPropertyProblems = { apiName: 'derived_property_problems', k
 export const discoverableCoverPages = { apiName: 'discoverable_cover_pages', kind: 'function' } as FunctionType<
   Record<string, never>,
   { project_id: string; rid: string; name: string; description: string; cover_page: string }[]
+>
+
+/**
+ *  A timestamp's required displayTimezone: the viewing user's, or a static
+ *  zone id given as a constant or read from a property. Values from
+ *  api/ontologies-v2-resources-object-types-get-object-type-full-metadata.
+ *  736.
+ */
+export const displayTimezoneValid = { apiName: 'display_timezone_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
 >
 
 /**
@@ -2189,6 +2212,18 @@ export const formatRuleValid = { apiName: 'format_rule_valid', kind: 'function' 
 >
 
 export const formatRulesValid = { apiName: 'format_rules_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
+>
+
+/**
+ *  The api's constant-or-property union: an affix prefix/postfix, a currency
+ *  code, a unit and a timezone id are each a constant.value or a
+ *  propertyType.propertyApiName. Values from
+ *  api/ontologies-v2-resources-object-types-get-object-type-full-metadata.
+ *  736.
+ */
+export const formattingOperandValid = { apiName: 'formatting_operand_valid', kind: 'function' } as FunctionType<
   { j: Json },
   boolean
 >
@@ -2645,6 +2680,29 @@ export const monitoringRuleFamily = { apiName: 'monitoring_rule_family', kind: '
 export const monitoringRuleTypes = { apiName: 'monitoring_rule_types', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  baseFormatOptions, required by six of the nine numberType members and
+ *  "Consistent with JavaScript's Intl.NumberFormat". Values from
+ *  api/ontologies-v2-resources-object-types-get-object-type-full-metadata.
+ *  736.
+ */
+export const numberFormatOptionsValid = { apiName: 'number_format_options_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
+>
+
+/**
+ *  The nine numberType members: standard, duration, fixedValues, affix,
+ *  scale, currency, standardUnit, customUnit, ratio. 673 had one numeric kind
+ *  with a four-member base. Values from
+ *  api/ontologies-v2-resources-object-types-get-object-type-full-metadata.
+ *  736.
+ */
+export const numberTypeValid = { apiName: 'number_type_valid', kind: 'function' } as FunctionType<
+  { j: Json },
+  boolean
 >
 
 export const objectCurrentValue = { apiName: 'object_current_value', kind: 'function' } as FunctionType<
