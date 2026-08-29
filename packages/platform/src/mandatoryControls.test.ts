@@ -251,4 +251,48 @@ describe.skipIf(noDb)('mandatory control properties', () => {
     expect(back.base_type).toBe('marking')
     expect(back.allow_empty_arrays).toBe(true)
   })
+
+  // 735: 734 carried the three columns unconditionally, and EXCLUDED for an
+  // unmentioned key is the INSERT list's DEFAULT rather than the stored value —
+  // so an ordinary rename erased them. The web sends none of the three.
+  it('keeps formatting through an edit that never mentions it', async () => {
+    const pkProp = {
+      property_id: 'pk', display_name: 'Id', api_name: 'id', base_type: 'string',
+      source: 'column', backing_column: 'pk', is_primary_key: true,
+      is_title_key: true, required: true,
+    }
+    const ctrl = {
+      property_id: 'ctrl', display_name: 'Control', api_name: 'ctrl',
+      base_type: 'marking', source: 'column', backing_column: 'ctrl',
+      datasource_id: rvSrc, required: true, visibility: 'hidden',
+    }
+    const save = async (extra: Record<string, unknown>) => {
+      await db.query('select public.save_object_type($1::jsonb, $2::jsonb)', [
+        JSON.stringify({ id: type, api_name: 'McThing', label: 'MC thing', ontology_id: ont }),
+        JSON.stringify([pkProp, { ...ctrl, ...extra }]),
+      ])
+      await db.query('select public.save_working_state()')
+    }
+    await save({ format_rules: [{ kind: 'always_true', formatting: { type: 'intent', intent: 'warning' } }] })
+    expect(await count(
+      `select count(*) n from public.object_type_properties
+        where object_type_id = $1 and property_id = 'ctrl' and format_rules <> '[]'::jsonb`,
+      [type])).toBe(1)
+
+    // A rename, mentioning neither key — this erased them before 735.
+    await save({ display_name: 'Control renamed' })
+    const kept = await one(
+      `select display_name, format_rules, allow_empty_arrays from public.object_type_properties
+        where object_type_id = $1 and property_id = 'ctrl'`, [type])
+    expect(kept.display_name).toBe('Control renamed')
+    expect(kept.format_rules).not.toEqual([])
+    expect(kept.allow_empty_arrays).toBe(true)
+
+    // A spoken empty still clears: "Adding/removing value formatting".
+    await save({ format_rules: [] })
+    expect(await count(
+      `select count(*) n from public.object_type_properties
+        where object_type_id = $1 and property_id = 'ctrl' and format_rules = '[]'::jsonb`,
+      [type])).toBe(1)
+  })
 })
