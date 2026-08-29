@@ -216,4 +216,39 @@ describe.skipIf(noDb)('mandatory control properties', () => {
     expect(await count(
       'select object_count n from public.object_type_indexes where object_type_id = $1', [type])).toBe(3)
   })
+
+  // 734: the upsert's UPDATE arm dropped three columns the INSERT arm carried,
+  // so `allow_empty_arrays` never reached an existing property and 729's CHECK
+  // refused the page's own three-step workaround at its last step:
+  // "Change the property's base type to **Mandatory Control**."
+  it('turns an existing string array into a mandatory control', async () => {
+    const pkProp = {
+      property_id: 'pk', display_name: 'Id', api_name: 'id', base_type: 'string',
+      source: 'column', backing_column: 'pk', is_primary_key: true,
+      is_title_key: true, required: true,
+    }
+    const save = async (note: Record<string, unknown>) => {
+      await db.query('select public.save_object_type($1::jsonb, $2::jsonb)', [
+        JSON.stringify({ id: type, api_name: 'McThing', label: 'MC thing', ontology_id: ont }),
+        JSON.stringify([pkProp, {
+          property_id: 'ctrl', display_name: 'Control', api_name: 'ctrl',
+          source: 'column', backing_column: 'ctrl', datasource_id: rvSrc, ...note,
+        }]),
+      ])
+      await db.query('select public.save_working_state()')
+    }
+    // Step 1 of the page's workaround, over the marking property already there.
+    await save({ base_type: 'array', array_element_type: 'string' })
+    expect(await count(
+      `select count(*) n from public.object_type_properties
+        where object_type_id = $1 and property_id = 'ctrl' and base_type = 'array'`, [type])).toBe(1)
+
+    // Step 3 — refused before 734, because the settled flag never reached it.
+    await save({ base_type: 'marking', required: true, visibility: 'hidden' })
+    const back = await one(
+      `select base_type, allow_empty_arrays from public.object_type_properties
+        where object_type_id = $1 and property_id = 'ctrl'`, [type])
+    expect(back.base_type).toBe('marking')
+    expect(back.allow_empty_arrays).toBe(true)
+  })
 })
