@@ -497,6 +497,67 @@ a review debt, not necessarily a build debt — but every unrecorded one
 must end up either reviewed or recorded as a non-goal, or it will be
 rediscovered the expensive way.
 
+### The thirteen, assessed (2026-08-29)
+
+Ten parallel assessments, each asked the same four questions — does the
+mirror document it, what engine exists, what reaches it, build or record.
+The verdicts:
+
+**Record as non-goal.** *Gaia object creation* — enrollment-gated, not
+effort-gated ("your enrollment must use both Foundry and Gotham"), and
+everything Foundry-side is already built. *Gotham type mapping* — same
+gate, stated twice; and note the live temptation, `object_type_
+capabilities.capability` has no CHECK and the Capabilities tab ships, so a
+`gotham` slot is one row away and would be a form writing to nothing.
+**Marketplace packaging is NOT a non-goal** — it is core Foundry and the
+mechanism for promotion between spaces; it is *blocked*, because
+`marketplace-ontology-types` delegates every step to `foundry-devops`,
+and `devops` (3 URLs) and `foundry-devops` (11) are absent by section.
+The unblocking command is a mirror fetch.
+
+**Already done, the debt was only the record:** JSON export-edit-import
+(634 + the Advanced page), the cleanup queue (578/596), derived-property
+*authoring* (576/577/591), struct fields (633), function *query*
+authoring, and the READS column — which CLAUDE.md still lists as
+unreached and is rendered at `CleanupPage.tsx:216`.
+
+**Built since, from the top of that ranking:** the upsert's UPDATE arm
+(734) — and the assessment's own top item turned out to be two thirds of
+the defect; see below.
+
+**Ranked and unbuilt**, engine-exists-nothing-reaches first: the
+formatting SURFACE (four documented consumers, we own two, both printing
+raw); an `@OntologyEditFunction` that can be published and attached (the
+whole engine exists — `function_versions.edits`, `guard_function_rule`,
+`apply_function_edits`, `action-apply` — with zero rows in every one of
+them, plus two live defects: three of the eight types the publish form
+offers are refused by `function_type_valid`, and `action_function_to_run`
+passes raw UUIDs where `function_to_run` passes api names);
+`index_object_type` materialising a derived property as a permanently
+NULL column; the usage ledger having no producer at all — with a live
+hazard, since `no_registered_usage` gates on the TOGGLE rather than the
+data, so flipping `metrics_enabled` and waiting thirty days flags every
+object type at `high` with `reads = 0`; delete's second half, which never
+drops `objects.ot_<uuid>` though `cleanup.md` says "remove associated
+data from object storage"; and 629's live COMMENT, false since 408.
+
+**Needs a reading first, and the evidence holes are why:** property
+reducers (no reading, 0 of 5 images opened), struct main fields and
+automapping (deferred by name at 633, and `guard_struct_field` contradicts
+`struct-main-fields.md:86` on whether a struct *array* may carry fields),
+time series / geotemporal / sensor (8 of 42 pages read, 0 of 17
+geospatial), and the action test run (0 of 4 images opened — the
+execution log exists only in the images).
+
+**And a correction to this repo's own record:** CLAUDE.md's
+engines-nothing-reaches list is stale on at least two of its seven named
+entries, and its "thirteen and counting" is a number no assessment
+verified. Worth its own audit. The same pass named a distinction worth
+keeping: three different shapes are all called "not built" — engine with
+no reader, *surface with no engine*, and neither. The house rule covers
+only the first, and the second is the more dangerous, because it looks
+finished from the app.
+
 ## The verdict
 
 **The engine layer is Foundry's shape to a degree the surface layer is
