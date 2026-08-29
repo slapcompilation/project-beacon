@@ -26,7 +26,7 @@ import {
   fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
-  setDatasourcePrimaryKeyColumn, fetchMediaBindings, setMediaBinding,
+  setDatasourcePrimaryKeyColumn, setDatasourceControls, fetchMediaBindings, setMediaBinding,
   type UpdateObjectTypeInput, type CreateLinkTypeInput, type LinkTypeRow,
 } from './api'
 
@@ -241,6 +241,47 @@ export function useSetDatasourcePrimaryKeyColumn(objectTypeId: string) {
       void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
     },
     onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The datasource's mandatory-control constraint: which markings and
+ *  organizations its marking properties may hold (727). */
+export function useSetDatasourceControls(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { id: string; markings: string[] | null; organizations: string[] | null }) =>
+      setDatasourceControls(i.id, i.markings, i.organizations),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
+      void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** Every marking the caller can see, for the allowed-markings picker. */
+export function useAllMarkings() {
+  return useQuery({
+    queryKey: ['all-markings'],
+    queryFn: async (): Promise<{ id: string; name: string }[]> => {
+      const { data, error } = await supabase.from('markings').select('id, name').order('name')
+      if (error) throw new Error(error.message)
+      return (data as { id: string; name: string }[] | null) ?? []
+    },
+    staleTime: 60_000,
+  })
+}
+
+/** Organizations, for the allowed-organizations picker. */
+export function useAllOrganizations() {
+  return useQuery({
+    queryKey: ['all-organizations'],
+    queryFn: async (): Promise<{ id: string; name: string }[]> => {
+      const { data, error } = await supabase.from('organizations').select('id, name').order('name')
+      if (error) throw new Error(error.message)
+      return (data as { id: string; name: string }[] | null) ?? []
+    },
+    staleTime: 60_000,
   })
 }
 

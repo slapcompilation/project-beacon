@@ -13,8 +13,9 @@ import { supabase } from '@/lib/supabase/client'
 import { useDatasets, useBranches } from '@/features/datasets/api'
 import {
   useObjectTypeDatasources, useAddObjectTypeDatasource, useRemoveObjectTypeDatasource,
-  useSetDatasourcePrimaryKeyColumn,
+  useSetDatasourcePrimaryKeyColumn, useSetDatasourceControls, useAllMarkings, useAllOrganizations,
 } from '@/features/objectTypes/hooks'
+import type { ObjectTypeDatasource } from '@/features/objectTypes/api'
 import {
   useMaterializations, useEditsConfig, useSetEditsConfig,
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
@@ -121,6 +122,7 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const [mediaSet, setMediaSet] = useState('')
   const [mediaView, setMediaView] = useState('')
   const [keyDraft, setKeyDraft] = useState<Partial<Record<string, string>>>({})
+  const hasMarking = type.properties.some((p) => p.type === 'marking')
 
   return (
     <div className="space-y-3">
@@ -163,6 +165,12 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
                   }
                 }} />
             </div>
+          )}
+          {/* "Every datasource that contains a mandatory control property must
+              define a constraint on what values can be added" — shown once the
+              type carries a marking property. */}
+          {hasMarking && !s.mediaSetViewRid && (
+            <MandatoryControlsRow source={s} typeId={type.id} />
           )}
         </div>
       ))}
@@ -251,6 +259,69 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+/** The datasource's mandatory-control constraint: allowed markings and/or
+ *  allowed organizations. Null is undeclared — the linter reports it; an
+ *  empty set is a real declaration that admits every user. */
+function MandatoryControlsRow({ source, typeId }: {
+  source: ObjectTypeDatasource; typeId: string
+}) {
+  const set = useSetDatasourceControls(typeId)
+  const { data: markings = [] } = useAllMarkings()
+  const { data: organizations = [] } = useAllOrganizations()
+  const declared = source.allowedMarkings !== null || source.allowedOrganizations !== null
+
+  if (!declared) {
+    return (
+      <div className="flex items-center gap-2 pl-5 text-xs">
+        <Tag minimal intent={Intent.WARNING}>Mandatory controls undeclared</Tag>
+        <Button size="small" variant="minimal"
+          onClick={() => { set.mutate({ id: source.id, markings: [], organizations: [] }) }}>
+          Declare
+        </Button>
+      </div>
+    )
+  }
+
+  const pickerLine = (
+    label: string, ids: string[], all: { id: string; name: string }[],
+    save: (next: string[]) => void,
+  ) => (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-muted-foreground w-40">{label}</span>
+      {ids.map((id) => (
+        <Tag key={id} minimal onRemove={() => { save(ids.filter((x) => x !== id)) }}>
+          {all.find((m) => m.id === id)?.name ?? id}
+        </Tag>
+      ))}
+      {ids.length === 0 && (
+        <span className="text-muted-foreground italic"
+          title="markings and organization values can be set to an empty array. In such cases, all users will meet the marking requirements">
+          empty — admits every user
+        </span>
+      )}
+      <HTMLSelect value="" onChange={(e) => {
+        const v = e.currentTarget.value
+        if (v) save([...ids, v])
+      }}>
+        <option value="">Add…</option>
+        {all.filter((m) => !ids.includes(m.id))
+          .map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+      </HTMLSelect>
+    </div>
+  )
+
+  const mk = source.allowedMarkings ?? []
+  const org = source.allowedOrganizations ?? []
+  return (
+    <div className="space-y-1 pl-5 text-xs">
+      {pickerLine('Allowed markings', mk, markings,
+        (next) => { set.mutate({ id: source.id, markings: next, organizations: source.allowedOrganizations }) })}
+      {pickerLine('Allowed organizations', org, organizations,
+        (next) => { set.mutate({ id: source.id, markings: source.allowedMarkings, organizations: next }) })}
     </div>
   )
 }
