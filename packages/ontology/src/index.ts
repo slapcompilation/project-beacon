@@ -159,7 +159,7 @@ export {
   formatValue, matchingRule, ruleSummary,
 } from './formatting/index'
 export type {
-  ValueFormatting, FormatRule, RuleCondition, RuleFormatting, RuleComparison,
+  ValueFormatting, FormatRule, RuleCondition, RuleFormatting, RuleComparison, ConditionOperand,
   StringOperator, NumberType, NumberFormatOptions, DateFormat,
   LocalizedDateFormat, Operand, FormatContext,
 } from './formatting/index'

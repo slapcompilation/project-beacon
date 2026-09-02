@@ -34,6 +34,7 @@ import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { StructFieldsCard } from '@/features/objectTypes/StructFieldsCard'
+import { FormattingDialog } from '@/features/objectTypes/FormattingDialog'
 import { VectorEmbeddingCard } from '@/features/objectTypes/VectorEmbeddingCard'
 import { useEditsConfig } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
@@ -94,6 +95,7 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
   objectTypeId: string | null
 }) {
   const [sourceOf, setSourceOf] = useState<number | null>(null)
+  const [formattingOf, setFormattingOf] = useState<number | null>(null)
   const { data: linkTypeRows } = useLinkTypes()
   const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType), [linkTypeRows])
   const { types } = useOmaTypes()
@@ -174,7 +176,13 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
                 const t = e.currentTarget.value as PropertyType
                 // "Mandatory control properties must be required." — and they
                 // "are set to `Hidden` by default"; picking marking presets both.
-                setProp(i, t === 'marking' ? { type: t, required: true, visibility: 'hidden' } : { type: t })
+                // A formatter is typed by the base type (736), so a retyped
+                // property drops it rather than carrying a shape the CHECK
+                // refuses at save. Rules stay: their conditions are typed by
+                // the property they READ, which need not be this one.
+                setProp(i, t === 'marking'
+                  ? { type: t, required: true, visibility: 'hidden', valueFormatting: null }
+                  : { type: t, valueFormatting: null })
               }}>
               {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value} title={t.help}>{t.label}</option>)}
             </HTMLSelect>
@@ -209,6 +217,12 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
               onClick={() => { setSourceOf(i) }}>
               {SOURCE_LABEL[p.source ?? 'column']}
             </Button>
+            {/* Value formatting and the conditional rule set, per property. A
+                dot on the icon marks a property that carries either. */}
+            <Button size="small" variant="minimal" icon="style"
+              title="Value formatting and conditional formatting"
+              intent={(p.formatRules?.length ?? 0) > 0 || p.valueFormatting ? Intent.PRIMARY : Intent.NONE}
+              onClick={() => { setFormattingOf(i) }} />
             {(p.source ?? 'column') === 'column' && (
               <InputGroup size="small" placeholder={toSlug(p.label) || 'column'} value={p.backingColumn ?? ''}
                 title="The column in the backing datasource"
@@ -265,6 +279,11 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
           objectTypeId={objectTypeId} property={drafts[sourceOf]}
           linkTypes={linkTypes} types={types}
           onChange={(patch) => { setProp(sourceOf, patch) }} />
+      )}
+      {formattingOf !== null && drafts[formattingOf] && (
+        <FormattingDialog property={drafts[formattingOf]} properties={drafts}
+          onChange={(patch) => { setProp(formattingOf, patch) }}
+          onClose={() => { setFormattingOf(null) }} />
       )}
     </div>
   )

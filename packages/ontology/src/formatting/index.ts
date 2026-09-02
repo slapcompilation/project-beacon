@@ -78,14 +78,21 @@ export type ValueFormatting =
 export type RuleComparison = 'string' | 'exact_numeric' | 'numeric_range' | 'boolean' | 'is_null'
 export type StringOperator = 'is_exactly' | 'contains' | 'starts_with'
 
+/** A condition's operand: the api's two-member shape, except the constant is
+ *  typed by the property it compares — a boolean rule stores a real boolean,
+ *  or it can never match a typed column (738 admits all three). */
+export type ConditionOperand =
+  | { constant: { value: string | number | boolean } }
+  | { propertyType: { propertyApiName: string } }
+
 export interface RuleCondition {
   /** The property the condition READS, which may not be the one it colours. */
   property: string
   comparison: RuleComparison
   operator?: StringOperator
-  caseSensitive?: boolean
+  case_sensitive?: boolean
   /** Absent only for is_null; a range carries its own two ends. */
-  value?: Operand | { min?: number; max?: number }
+  value?: ConditionOperand | { min?: number; max?: number }
 }
 
 export interface RuleFormatting {
@@ -99,7 +106,7 @@ export interface RuleFormatting {
 export interface FormatRule {
   kind: 'standard' | 'always_true'
   /** "Toggle between a True or False rule." Absent is a True rule. */
-  isTrue?: boolean
+  is_true?: boolean
   formatting: RuleFormatting
   condition?: RuleCondition
 }
@@ -115,6 +122,14 @@ const operandValue = (o: Operand | undefined, row: Record<string, unknown>): unk
   if (!o) return undefined
   if (isOperandConstant(o)) return o.constant.value
   return row[(o as { propertyType: { propertyApiName: string } }).propertyType.propertyApiName]
+}
+
+const conditionOperandValue = (
+  o: ConditionOperand | undefined, row: Record<string, unknown>,
+): unknown => {
+  if (!o) return undefined
+  if ('constant' in o) return o.constant.value
+  return row[o.propertyType.propertyApiName]
 }
 
 const numberOptions = (o: NumberFormatOptions): Intl.NumberFormatOptions => ({
@@ -134,8 +149,16 @@ const numberOptions = (o: NumberFormatOptions): Intl.NumberFormatOptions => ({
 const withParens = (text: string, n: number, o: NumberFormatOptions): string =>
   o.convertNegativeToParenthesis && n < 0 ? `(${text.replace('-', '')})` : text
 
-const plain = (n: number, o: NumberFormatOptions, locale?: string): string =>
-  withParens(new Intl.NumberFormat(locale, numberOptions(o)).format(n), n, o)
+const plain = (n: number, o: NumberFormatOptions, locale?: string): string => {
+  // Intl has floors the api does not publish (fraction digits >= 0, integer
+  // digits >= 1); a stored value outside them must degrade, not throw through
+  // every surface that renders the property.
+  try {
+    return withParens(new Intl.NumberFormat(locale, numberOptions(o)).format(n), n, o)
+  } catch {
+    return String(n)
+  }
+}
 
 const SCALE: Record<string, [number, string]> = {
   THOUSANDS: [1e3, 'K'], MILLIONS: [1e6, 'M'], BILLIONS: [1e9, 'B'],
@@ -171,7 +194,10 @@ const formatDuration = (seconds: number, d: Extract<NumberType, { duration: unkn
 const formatNumber = (n: number, t: NumberType, row: Record<string, unknown>, locale?: string): string => {
   if ('standard' in t) return plain(n, t.standard.baseFormatOptions, locale)
   if ('duration' in t) return formatDuration(n, t.duration)
-  if ('fixedValues' in t) return t.fixedValues.values[String(n)] ?? String(n)
+  if ('fixedValues' in t) {
+    const mapped: unknown = t.fixedValues.values[String(n)]
+    return mapped === undefined ? String(n) : String(mapped)
+  }
   if ('affix' in t) {
     const pre = operandValue(t.affix.affix.prefix, row)
     const post = operandValue(t.affix.affix.postfix, row)
@@ -320,13 +346,13 @@ const compare = (left: unknown, c: RuleCondition, row: Record<string, unknown>):
     if (Number.isNaN(n)) return false
     return (range.min === undefined || n >= range.min) && (range.max === undefined || n <= range.max)
   }
-  const right = operandValue(c.value as Operand | undefined, row)
+  const right = conditionOperandValue(c.value as ConditionOperand | undefined, row)
   if (c.comparison === 'boolean') return left === right
   if (c.comparison === 'exact_numeric') return Number(left) === Number(right)
   // string comparison, with the editor's case-sensitivity switch
   const a0 = left === null || left === undefined ? '' : String(left)
   const b0 = right === null || right === undefined ? '' : String(right)
-  const [a, b] = c.caseSensitive === false ? [a0.toLowerCase(), b0.toLowerCase()] : [a0, b0]
+  const [a, b] = c.case_sensitive === false ? [a0.toLowerCase(), b0.toLowerCase()] : [a0, b0]
   if (c.operator === 'contains') return a.includes(b)
   if (c.operator === 'starts_with') return a.startsWith(b)
   return a === b
@@ -350,7 +376,7 @@ export function matchingRule(
       const read = rule.condition.property in row ? row[rule.condition.property] : value
       holds = compare(read, rule.condition, row)
     }
-    if (rule.isTrue === false) holds = !holds
+    if (rule.is_true === false) holds = !holds
     if (holds) return rule
   }
   return null
@@ -362,7 +388,7 @@ export function ruleSummary(rule: FormatRule, propertyLabel?: string): string {
   const c = rule.condition
   if (!c) return 'Incomplete rule.'
   const subject = propertyLabel ?? c.property
-  const negated = rule.isTrue === false
+  const negated = rule.is_true === false
   if (c.comparison === 'is_null') return `${subject} is ${negated ? 'not ' : ''}empty.`
   if (c.comparison === 'numeric_range') {
     const r = (c.value ?? {}) as { min?: number; max?: number }
@@ -370,9 +396,9 @@ export function ruleSummary(rule: FormatRule, propertyLabel?: string): string {
       .filter(Boolean).join(' and ')
     return `${subject} is ${negated ? 'not ' : ''}${bounds || 'in range'}.`
   }
-  const v = c.value as Operand | undefined
+  const v = c.value as ConditionOperand | undefined
   const shown = v === undefined ? '…'
-    : isOperandConstant(v) ? `"${v.constant.value}"`
+    : 'constant' in v ? (typeof v.constant.value === 'string' ? `"${v.constant.value}"` : String(v.constant.value))
       : v.propertyType.propertyApiName
   const verb = c.comparison === 'string' && c.operator === 'contains' ? 'contains'
     : c.comparison === 'string' && c.operator === 'starts_with' ? 'starts with'
