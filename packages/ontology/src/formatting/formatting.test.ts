@@ -173,11 +173,24 @@ describe('conditional formatting', () => {
   // A321 and A330, with an Always true rule as the fallback.
   it('takes the first matching rule, top to bottom', () => {
     const rules = [isExactly('type', 'A320', 'primary'), isExactly('type', 'A321', 'success'), colour('warning')]
-    expect(matchingRule('A320', rules)?.formatting.intent).toBe('primary')
-    expect(matchingRule('A321', rules)?.formatting.intent).toBe('success')
+    expect(matchingRule('A320', rules, { row: { type: 'A320' } })?.formatting.intent).toBe('primary')
+    expect(matchingRule('A321', rules, { row: { type: 'A321' } })?.formatting.intent).toBe('success')
     // "Use Always true as a fallback in case your other rules do not match."
-    expect(matchingRule('A330', rules)?.formatting.intent).toBe('warning')
-    expect(matchingRule('A330', rules.slice(0, 2))).toBeNull()
+    expect(matchingRule('A330', rules, { row: { type: 'A330' } })?.formatting.intent).toBe('warning')
+    expect(matchingRule('A330', rules.slice(0, 2), { row: { type: 'A330' } })).toBeNull()
+  })
+
+  // A condition reads the property it NAMES, out of the row, and only that. A
+  // dangling reference — a renamed source, a hidden property the Explorer's
+  // own rule strips from the row — goes quiet; it must never silently read the
+  // coloured value instead, which would invert "Copied rules will continue
+  // referencing their original properties."
+  it('does not match when the row lacks the property the condition names', () => {
+    const rule = isExactly('status', 'open', 'danger')
+    expect(matchingRule('open', [rule], { row: { priority: 'open' } })).toBeNull()
+    expect(matchingRule('open', [rule], { row: {} })).toBeNull()
+    // The Always true fallback still fires, since it reads nothing.
+    expect(matchingRule('open', [rule, colour('warning')], { row: {} })?.formatting.intent).toBe('warning')
   })
 
   // "this dropdown allows you to choose to apply the rule based on the value of
