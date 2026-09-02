@@ -104,7 +104,30 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
   const { data: valueTypes = [] } = useValueTypes(omaOntology?.spaceId ?? null)
   const named = drafts.filter((p) => p.label.trim())
   const setProp = (i: number, patch: Partial<PropertyDraft>) => {
-    onChange(drafts.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
+    let next = drafts.map((p, idx) => (idx === i ? { ...p, ...patch } : p))
+    // A NEW row's id is derived from its label, so renaming it moves the id —
+    // and a formatting rule elsewhere may reference the OLD one. The rename
+    // carries every reference with it; a saved row's id never moves.
+    if (patch.label !== undefined && drafts[i].isNew) {
+      const before = draftId(drafts[i])
+      const after = draftId(next[i])
+      if (before && after && before !== after) {
+        next = next.map((p) => (p.formatRules?.length
+          ? { ...p, formatRules: p.formatRules.map((r) => (r.condition ? {
+              ...r,
+              condition: {
+                ...r.condition,
+                property: r.condition.property === before ? after : r.condition.property,
+                value: r.condition.value && 'propertyType' in r.condition.value
+                  && r.condition.value.propertyType.propertyApiName === before
+                  ? { propertyType: { propertyApiName: after } }
+                  : r.condition.value,
+              },
+            } : r)) }
+          : p))
+      }
+    }
+    onChange(next)
   }
   const designate = (field: 'isPrimaryKey' | 'isTitleKey', id: string) => {
     onChange(drafts.map((p) => ({ ...p, [field]: draftId(p) === id })))
@@ -281,8 +304,24 @@ function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
           onChange={(patch) => { setProp(sourceOf, patch) }} />
       )}
       {formattingOf !== null && drafts[formattingOf] && (
-        <FormattingDialog property={drafts[formattingOf]} properties={drafts}
+        // Keys resolved to what the SAVE will store: a rule's condition
+        // references property_id, and a new row's id is derived from its label
+        // at save time — an empty draft key would store a reference nothing
+        // resolves.
+        <FormattingDialog
+          property={{ ...drafts[formattingOf], key: draftId(drafts[formattingOf]) }}
+          propertyIndex={formattingOf}
+          properties={drafts.map((d) => ({ ...d, key: draftId(d) }))}
           onChange={(patch) => { setProp(formattingOf, patch) }}
+          onCopyRules={(targetIndexes, rules) => {
+            // "If the properties you are copying to already have their own
+            // conditional formatting rules, they will be overwritten by the
+            // new rules." A deep copy, so later edits do not share references;
+            // targets are POSITIONS, because two drafts can slug to one key.
+            onChange(drafts.map((d, i) => targetIndexes.includes(i)
+              ? { ...d, formatRules: JSON.parse(JSON.stringify(rules)) as typeof rules }
+              : d))
+          }}
           onClose={() => { setFormattingOf(null) }} />
       )}
     </div>

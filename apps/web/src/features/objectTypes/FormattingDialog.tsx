@@ -17,8 +17,8 @@
 
 import { useState } from 'react'
 import {
-  Button, Dialog, DialogBody, DialogFooter, HTMLSelect, InputGroup, Intent,
-  NumericInput, SegmentedControl, Switch, Tag,
+  Button, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
+  InputGroup, Intent, NumericInput, SegmentedControl, Switch, Tag,
 } from '@blueprintjs/core'
 import type {
   FormatRule, NumberFormatOptions, NumberType, PropertyDef, RuleCondition,
@@ -49,15 +49,22 @@ const defaultFormatter = (base: string): ValueFormatting | null => {
   return null
 }
 
-export function FormattingDialog({ property, properties, onChange, onClose }: {
+export function FormattingDialog({ property, propertyIndex, properties, onChange, onCopyRules, onClose }: {
   property: PropertyDef
   /** Every property of the type — a rule may read a different one. */
   properties: PropertyDef[]
   onChange: (patch: Partial<PropertyDef>) => void
+  /** This property's position in `properties`, for the copy dialog. */
+  propertyIndex?: number
+  /** Writes OTHER properties' rule sets — "If the properties you are copying
+   *  to already have their own conditional formatting rules, they will be
+   *  overwritten by the new rules." Absent hides the button. */
+  onCopyRules?: (targetIndexes: number[], rules: FormatRule[]) => void
   onClose: () => void
 }) {
   const rules = property.formatRules ?? []
   const [editing, setEditing] = useState<number | null>(null)
+  const [copying, setCopying] = useState(false)
 
   const setRules = (next: FormatRule[]) => { onChange({ formatRules: next }) }
   const move = (i: number, by: -1 | 1) => {
@@ -108,8 +115,21 @@ export function FormattingDialog({ property, properties, onChange, onClose }: {
             onChange({ formatRules: [...rules, freshRule(property)] })
             setEditing(rules.length)
           }}>Add a rule</Button>
+          {/* "select the Copy rules button to open the Copy rule dialog" —
+              directly under Add a rule in the capture. Nothing to copy is the
+              one state the capture cannot show; disabling is the inference. */}
+          {onCopyRules && (
+            <Button fill variant="outlined" icon="duplicate" disabled={rules.length === 0}
+              onClick={() => { setCopying(true) }}>Copy rules</Button>
+          )}
         </div>
 
+        {copying && onCopyRules && (
+          <CopyRulesDialog source={property} sourceIndex={propertyIndex ?? -1}
+            properties={properties} rules={rules}
+            onClose={() => { setCopying(false) }}
+            onPaste={(indexes) => { onCopyRules(indexes, rules); setCopying(false) }} />
+        )}
         {editing !== null && rules[editing] && (
           <RuleEditorDialog
             rule={rules[editing]}
@@ -513,6 +533,93 @@ function RangeInputs({ range, onChange }: {
   )
 }
 
+// ── the Copy rule dialog ────────────────────────────────────────────────────
+//
+// COPY RULES FROM (the source, fixed) → TO (a searched pick of the other
+// properties); the source's rules shown read-only; the footer states the
+// reference-retention semantics with the source's own name, the way the
+// capture's dynamic second line does (conditional-formatting-copy-rule.png).
+
+function CopyRulesDialog({ source, sourceIndex, properties, rules, onClose, onPaste }: {
+  source: PropertyDef
+  sourceIndex: number
+  properties: PropertyDef[]
+  rules: FormatRule[]
+  onClose: () => void
+  /** Positions in `properties` — two drafts may slug to one key, and an
+   *  unlabeled draft has none, so identity here is the index. */
+  onPaste: (targetIndexes: number[]) => void
+}) {
+  const [query, setQuery] = useState('')
+  const [targets, setTargets] = useState<Set<number>>(new Set())
+  const candidates = properties
+    .map((p, index) => ({ ...p, index }))
+    .filter((p) => p.index !== sourceIndex && p.label.trim() !== ''
+      && p.label.toLowerCase().includes(query.toLowerCase()))
+  const toggle = (index: number) => {
+    const next = new Set(targets)
+    if (next.has(index)) next.delete(index); else next.add(index)
+    setTargets(next)
+  }
+
+  return (
+    <Dialog isOpen onClose={onClose} icon="duplicate" title="Copy rule" style={{ width: 560 }}>
+      <DialogBody>
+        <div className="flex items-end gap-3">
+          <label className="flex flex-col gap-1 flex-1">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Copy rules from</span>
+            <InputGroup size="small" value={source.label} readOnly disabled />
+          </label>
+          <Icon icon="arrow-right" className="text-muted-foreground mb-2" />
+          <label className="flex flex-col gap-1 flex-1">
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">To</span>
+            <InputGroup size="small" placeholder="Search…" value={query} autoFocus
+              onChange={(e) => { setQuery(e.currentTarget.value) }} />
+          </label>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-3">
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground">Rules (evaluated from top to bottom)</p>
+            {rules.map((r, i) => (
+              <div key={i} className="rule-row">
+                <span className="rule-swatch" style={{
+                  background: r.formatting.type === 'intent'
+                    ? `var(--bp-intent-${r.formatting.intent ?? 'primary'})`
+                    : r.formatting.color,
+                }} />
+                <span className="flex-1 text-left">{ruleSummary(r,
+                  properties.find((p) => p.key === r.condition?.property)?.label)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            {candidates.map((p) => (
+              <Checkbox key={p.index} checked={targets.has(p.index)} label={p.label}
+                className="!mb-0" onChange={() => { toggle(p.index) }} />
+            ))}
+            {candidates.length === 0 && (
+              <p className="text-xs text-muted-foreground">No other property matches.</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+          <p><Icon icon="info-sign" size={12} /> Copied rules will continue referencing their original properties.</p>
+          <p>Rules referencing <b>{source.label}</b> will still reference <b>{source.label}</b> after being pasted onto other properties.</p>
+        </div>
+      </DialogBody>
+      <DialogFooter actions={
+        <>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button intent={Intent.PRIMARY} disabled={targets.size === 0}
+            onClick={() => { onPaste([...targets]) }}>Paste rules</Button>
+        </>
+      } />
+    </Dialog>
+  )
+}
+
 function RuleEditorDialog({ rule, property, properties, onClose, onCommit }: {
   rule: FormatRule
   property: PropertyDef
@@ -576,7 +683,14 @@ function RuleEditorDialog({ rule, property, properties, onClose, onCommit }: {
                 <HTMLSelect fill value={cond.property} onChange={(e) => {
                   const key = e.currentTarget.value
                   const target = properties.find((p) => p.key === key)
-                  setDraft({ ...draft, condition: seedCondition(key, target?.type) })
+                  // "To change the property a rule references, simply select
+                  // the rule and choose a new property" — the rest of the
+                  // condition survives when the new property still offers the
+                  // same comparison; only a type change reseeds.
+                  const keeps = comparisonsFor(target?.type).some(([c]) => c === cond.comparison)
+                  setDraft({ ...draft, condition: keeps
+                    ? { ...cond, property: key }
+                    : seedCondition(key, target?.type) })
                 }}>
                   {properties.map((p) => (
                     <option key={p.key} value={p.key}>

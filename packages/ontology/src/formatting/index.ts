@@ -80,7 +80,12 @@ export type StringOperator = 'is_exactly' | 'contains' | 'starts_with'
 
 /** A condition's operand: the api's two-member shape, except the constant is
  *  typed by the property it compares — a boolean rule stores a real boolean,
- *  or it can never match a typed column (738 admits all three). */
+ *  or it can never match a typed column (738 admits all three).
+ *
+ *  RECORDED SEAM (F3's shape): `propertyApiName` here holds a PROPERTY_ID,
+ *  because every row this module reads is keyed by property_id and 738
+ *  validates this exact path. The field keeps the api's name for the day an
+ *  api-shaped export exists; that exporter must translate, not copy. */
 export type ConditionOperand =
   | { constant: { value: string | number | boolean } }
   | { propertyType: { propertyApiName: string } }
@@ -362,7 +367,9 @@ const compare = (left: unknown, c: RuleCondition, row: Record<string, unknown>):
  *  Always true rule "as a fallback in case your other rules do not match" only
  *  works if the FIRST match wins. */
 export function matchingRule(
-  value: unknown,
+  // Kept in the signature for the callers' sake; a rule only ever reads the
+  // property its condition NAMES, out of the row.
+  _value: unknown,
   rules: FormatRule[] | null | undefined,
   ctx: FormatContext = {},
 ): FormatRule | null {
@@ -372,9 +379,14 @@ export function matchingRule(
     if (rule.kind === 'always_true') holds = true
     else if (!rule.condition) continue
     else {
-      // The condition may read a different property than the one it colours.
-      const read = rule.condition.property in row ? row[rule.condition.property] : value
-      holds = compare(read, rule.condition, row)
+      // The condition reads the property it NAMES, and only that. A key the
+      // row does not carry cannot be evaluated, so the rule does not match —
+      // falling back to the coloured value would silently invert the page's
+      // reference-retention rule the moment a reference dangles. A hidden
+      // property leaves the row by the Explorer's own rule, and a rule that
+      // reads one goes quiet rather than leaking it through a colour.
+      if (!(rule.condition.property in row)) continue
+      holds = compare(row[rule.condition.property], rule.condition, row)
     }
     if (rule.is_true === false) holds = !holds
     if (holds) return rule
