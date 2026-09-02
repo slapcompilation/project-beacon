@@ -1012,7 +1012,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (319) ───────────────────────────────────────────────────
+// ── FUNCTIONS (320) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2195,6 +2195,18 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
   { p_folder: string },
+  boolean
+>
+
+/**
+ *  What a conditional formatting rule compares against: "Compare against a
+ *  constant or a property reference" (conditional-formatting). The api's own
+ *  two-member operand shape, except that a comparison's constant is typed by
+ *  the property, so a number and a boolean are admitted where
+ *  formatting_operand_valid takes only a string. 738.
+ */
+export const formatConditionOperandValid = { apiName: 'format_condition_operand_valid', kind: 'function' } as FunctionType<
+  { j: Json },
   boolean
 >
 
