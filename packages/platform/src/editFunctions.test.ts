@@ -89,6 +89,15 @@ describe.skipIf(noDb)('edit functions', () => {
     }
     ticket = await mkType('Ticket')
     other = await mkType('Aircraft')
+    // 740 refuses a key that is no property — the batches below write
+    // `status`, so Ticket carries one, bound to its datasource like any
+    // non-key property must be.
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id)
+       select $1, 'status', 'Status', 'status', 'string', 'column', 'status', d.id
+         from public.object_type_datasources d where d.object_type_id = $1`, [ticket])
 
     const fn = (await one(
       `insert into public.functions (ontology_id, project_id, api_name, display_name)
@@ -100,7 +109,11 @@ describe.skipIf(noDb)('edit functions', () => {
        returning id`, [fn,
         JSON.stringify({ parameters: [{ name: 'ticketId', type: 'string', required: true }],
           returns: 'OntologyEdit[]' }),
-        JSON.stringify({ object_types: ['Ticket'], link_types: [] }),
+        // Imports as the shipped picker stores them: UUIDS. For as long as
+        // this fixture wrote api names here, action_function_to_run passing
+        // imports through raw looked correct and the converting twin looked
+        // empty — the camouflage 739 retires.
+        JSON.stringify({ object_types: [ticket], link_types: [] }),
         JSON.stringify({ object_types: ['Ticket'] })])).id
   }, 60_000)
   afterAll(async () => { await rollback(db) })
@@ -228,6 +241,9 @@ describe.skipIf(noDb)('edit functions', () => {
       'select public.action_function_to_run($1) as p', [action])).p as unknown as Record<string, unknown>
     expect(payload.version).toBe('1.0.0')
     expect(payload.api_name).toBe('escalateTicket')
+    // 739: imports STORE uuids; the wire to the guest speaks api names, the
+    // same boundary conversion function_to_run has carried since 501.
+    expect(payload.object_types).toEqual(['Ticket'])
     expect(payload.edits).toEqual(['Ticket'])
     expect(payload.inputs).toEqual({ ticketId: 'ticketId' })
   })
@@ -311,5 +327,36 @@ describe.skipIf(noDb)('edit functions', () => {
     const err = await refused(db, () => db.query(
       'select public.apply_action($1,$2::jsonb,$3)', [act, JSON.stringify({ ref: 'T-1' }), 'T-1']))
     expect(err).toContain('Actions:ValueSourceNotExecutable')
+  })
+
+  // 740: the three arms apply_action always had, now on the function path,
+  // plus the boundary translation — the guest speaks api names, storage
+  // speaks property_id, and for as long as every fixture used matching names
+  // the seam was invisible (F3, third appearance).
+  it('refuses what apply_action refuses, and translates what it accepts', async () => {
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id)
+       select $1, 'note_text', 'Note', 'noteText', 'string', 'column', 'note_text', d.id
+         from public.object_type_datasources d where d.object_type_id = $1`, [ticket])
+
+    expect(await refused(db, () => db.query(
+      'select public.apply_function_edits($1,$2::jsonb)',
+      [action, JSON.stringify([BATCH.create('Ticket', 'T-740', { nonsense: 'x' })])]),
+    )).toContain('Actions:UnknownProperty')
+
+    expect(await refused(db, () => db.query(
+      'select public.apply_function_edits($1,$2::jsonb)',
+      [action, JSON.stringify([BATCH.update('Ticket', 'T-740', { id: 'T-999' })])]),
+    )).toContain('Actions:CannotModifyPrimaryKey')
+
+    await db.query('select public.apply_function_edits($1,$2::jsonb)',
+      [action, JSON.stringify([BATCH.create('Ticket', 'T-740', { noteText: 'hello' })])])
+    const landed = (await one(
+      `select properties from public.object_edits
+        where object_type_id = $1 and primary_key = 'T-740'`, [ticket])).properties as unknown as Record<string, unknown>
+    expect(landed).toHaveProperty('note_text', 'hello')
+    expect(landed).not.toHaveProperty('noteText')
   })
 })
