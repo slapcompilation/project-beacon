@@ -41,6 +41,7 @@ export interface FunctionVersion {
   signature: Signature
   /** `{object_types: uuid[], link_types: uuid[]}` — what the isolate may read. */
   imports: { object_types: string[]; link_types: string[] }
+  edits?: { object_types: string[] }
   published_at: string
   /** What `signature_breaks()` found against the previous version (597). */
   breaking_changes: string[]
@@ -71,7 +72,7 @@ export function useFunctionVersions(functionId: string | null) {
     enabled: Boolean(functionId),
     queryFn: async (): Promise<FunctionVersion[]> => {
       const { data, error } = await supabase.from('function_versions')
-        .select('id, major, minor, patch, prerelease, source, signature, imports, published_at, breaking_changes')
+        .select('id, major, minor, patch, prerelease, source, signature, imports, edits, published_at, breaking_changes')
         .eq('function_id', functionId ?? '')
         .order('major', { ascending: false })
         .order('minor', { ascending: false })
@@ -111,12 +112,15 @@ export function usePublishVersion(functionId: string | null) {
     mutationFn: async (i: {
       major: number; minor: number; patch: number
       source: string; signature: Signature; objectTypes: string[]
+      /** api names — the audience is the provenance check, which speaks them. */
+      edits?: string[]
     }) => {
       const { data: me } = await supabase.auth.getUser()
       const { error } = await supabase.from('function_versions').insert({
         function_id: functionId, major: i.major, minor: i.minor, patch: i.patch,
         source: i.source, signature: i.signature,
         imports: { object_types: i.objectTypes, link_types: [] },
+        edits: { object_types: i.edits ?? [] },
         published_by: me.user?.id ?? null,
       })
       if (error) throw new Error(error.message)

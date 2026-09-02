@@ -35,6 +35,7 @@ import {
   VALUE_SOURCES, type ActionRuleRow, type ActionTypeRow, type ValueSource,
 } from '@/features/actionTypes/api'
 import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
+import { useFunctions, useFunctionVersions } from '@/features/functions/api'
 import { FormEditor } from '@/features/actionTypes/FormEditor'
 import { RunActionDialog } from '@/features/explorer/ActionsMenu'
 import { FrontendConsumers } from '@/features/actionTypes/FrontendConsumers'
@@ -125,7 +126,15 @@ export default function ActionTypesPage() {
 
 interface ParamDraft { label: string; baseType: PropertyType; required: boolean }
 interface PropDraft { propertyId: string; source: ValueSource; parameter: string; staticValue: string }
-interface RuleDraft { kind: string; objectTypeId: string; interfaceId: string; props: PropDraft[] }
+interface RuleDraft {
+  kind: string; objectTypeId: string; interfaceId: string; props: PropDraft[]
+  /** The Run function card (538): which function, pinned to which version,
+   *  whether the caret follows, and the input-to-parameter mapping. */
+  functionName?: string
+  functionVersionId?: string
+  autoUpgrade?: boolean
+  inputs?: { inputName: string; parameter: string }[]
+}
 
 /** Which target a kind takes, straight from `action_rule_kinds()`. */
 const targetsInterface = (kinds: { kind: string; targets: string }[], kind: string) =>
@@ -133,6 +142,86 @@ const targetsInterface = (kinds: { kind: string; targets: string }[], kind: stri
 
 const newParam = (): ParamDraft => ({ label: '', baseType: 'string', required: true })
 const newRule = (): RuleDraft => ({ kind: 'create_object', objectTypeId: '', interfaceId: '', props: [] })
+
+/** The Run function card (538/668): pick the edit function, pin its version,
+ *  choose whether the caret follows, and map its inputs to the action's
+ *  parameters — "Configure the inputs to match up to the action parameters".
+ *  Only functions whose pinned version returns an edit list are offered,
+ *  because an action runs a function FOR its edits. */
+function FunctionRuleCard({ ontologyId, rule, parameters, onChange }: {
+  ontologyId: string
+  rule: RuleDraft
+  parameters: { apiName: string; label: string }[]
+  onChange: (patch: Partial<RuleDraft>) => void
+}) {
+  const { data: functions = [] } = useFunctions(ontologyId)
+  const fn = functions.find((f) => f.api_name === rule.functionName)
+  const { data: versions = [] } = useFunctionVersions(fn?.id ?? null)
+  const editVersions = versions.filter((v) => v.signature.returns === 'OntologyEdit[]')
+  const chosen = editVersions.find((v) => v.id === rule.functionVersionId)
+  const inputNames = chosen?.signature.parameters.map((p) => p.name) ?? []
+  const mappings = rule.inputs ?? []
+  const mapped = (name: string) => mappings.find((m) => m.inputName === name)?.parameter ?? ''
+
+  return (
+    <div className="space-y-1.5 text-xs">
+      <div className="flex flex-wrap items-center gap-2">
+        <HTMLSelect value={rule.functionName ?? ''} onChange={(e) => {
+          onChange({ functionName: e.currentTarget.value, functionVersionId: undefined, inputs: [] })
+        }}>
+          <option value="">Function…</option>
+          {functions.map((f) => <option key={f.id} value={f.api_name}>{f.display_name}</option>)}
+        </HTMLSelect>
+        <HTMLSelect value={rule.functionVersionId ?? ''} disabled={!fn} onChange={(e) => {
+          onChange({ functionVersionId: e.currentTarget.value, inputs: [] })
+        }}>
+          <option value="">Version…</option>
+          {editVersions.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.major}.{v.minor}.{v.patch}{v.prerelease ? `-${v.prerelease}` : ''}
+            </option>
+          ))}
+        </HTMLSelect>
+        <Checkbox checked={rule.autoUpgrade ?? false} label="Auto upgrade" className="mb-0"
+          onChange={() => { onChange({ autoUpgrade: !(rule.autoUpgrade ?? false) }) }} />
+      </div>
+      {fn && editVersions.length === 0 && (
+        <p className="text-muted-foreground">
+          {fn.display_name} has no version returning an edit list — publish one whose
+          Returns is Ontology edit first.
+        </p>
+      )}
+      {(rule.autoUpgrade ?? false) && (
+        // 538's caret: non-breaking upgrades follow; a major stays pinned.
+        <p className="text-amber-600">
+          This action will follow new non-breaking versions automatically. A major
+          version change still requires editing this rule.
+        </p>
+      )}
+      {inputNames.length > 0 && (
+        <div className="space-y-1">
+          <span className="text-muted-foreground">Inputs</span>
+          {inputNames.map((name) => (
+            <div key={name} className="flex items-center gap-2">
+              <code>{name}</code>
+              <span className="text-muted-foreground">←</span>
+              <HTMLSelect value={mapped(name)} onChange={(e) => {
+                const next = mappings.filter((m) => m.inputName !== name)
+                if (e.currentTarget.value) next.push({ inputName: name, parameter: e.currentTarget.value })
+                onChange({ inputs: next })
+              }}>
+                <option value="">Parameter…</option>
+                {parameters.filter((p) => p.apiName).map((p) => (
+                  <option key={p.apiName} value={p.apiName}>{p.label}</option>
+                ))}
+              </HTMLSelect>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: ObjectTypeDef[] }) {
   const save = useSaveActionType()
@@ -157,8 +246,21 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
         required: p.required, exposed: true, editable: true, position: i,
       })),
       // An interface rule names an interface and no object type; the parameter
-      // it needs is generated by the save, not authored here.
-      rules: rules.filter((r) => r.objectTypeId || r.interfaceId).map((r, i) => {
+      // it needs is generated by the save, not authored here. A function rule
+      // names neither — for as long as this filter required a target, a
+      // function rule was silently DROPPED and the action saved rule-less.
+      rules: rules.filter((r) => r.kind === 'function' || r.objectTypeId || r.interfaceId).map((r, i) => {
+        if (r.kind === 'function') {
+          return {
+            kind: r.kind, position: i, object_type_id: null,
+            function_name: r.functionName ?? null,
+            function_version_id: r.functionVersionId ?? null,
+            auto_upgrade: r.autoUpgrade ?? false,
+            inputs: (r.inputs ?? []).filter((m) => m.inputName && m.parameter)
+              .map((m) => ({ input_name: m.inputName, parameter_api_name: m.parameter })),
+            properties: [],
+          }
+        }
         const onInterface = targetsInterface(kinds, r.kind)
         return {
           kind: r.kind, position: i,
@@ -231,7 +333,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                     </option>
                   ))}
                 </HTMLSelect>
-                {onInterface ? (
+                {r.kind === 'function' ? null : onInterface ? (
                   <HTMLSelect value={r.interfaceId}
                     onChange={(e) => { setRule(i, { interfaceId: e.currentTarget.value, props: [] }) }}>
                     <option value="">Interface…</option>
@@ -247,6 +349,11 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                   onClick={() => { setRules(rules.filter((_, idx) => idx !== i)) }} />
               </div>
 
+              {r.kind === 'function' && (
+                <FunctionRuleCard ontologyId={ontologyId} rule={r}
+                  parameters={named.map((np) => ({ apiName: toCamel(np.label), label: np.label }))}
+                  onChange={(patch) => { setRule(i, patch) }} />
+              )}
               {target && r.props.map((p, pi) => {
                 const set = (patch: Partial<PropDraft>) =>
                   { setRule(i, { props: r.props.map((x, xi) => (xi === pi ? { ...x, ...patch } : x)) }) }

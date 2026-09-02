@@ -55,6 +55,8 @@ export interface ActionRuleRow {
   object_type_id: string | null
   link_type_id: string | null
   function_name: string | null
+  function_version_id: string | null
+  auto_upgrade: boolean
   action_type_rule_properties: ActionRulePropertyRow[]
 }
 
@@ -121,6 +123,12 @@ export interface ActionDraft {
     kind: string; position: number; object_type_id: string | null
     /** Set instead of `object_type_id` on the three interface object rules. */
     interface_id?: string | null
+    /** The Run function card's four: which function, the pinned version, the
+     *  caret, and the input-to-parameter mapping (538/668). */
+    function_name?: string | null
+    function_version_id?: string | null
+    auto_upgrade?: boolean
+    inputs?: { input_name: string; parameter_api_name: string }[]
     properties: {
       /** A rule names an object type's property, or an interface's — never both.
        *  An interface property resolves onto a different property per
