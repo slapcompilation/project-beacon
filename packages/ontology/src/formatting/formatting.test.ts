@@ -194,7 +194,7 @@ describe('conditional formatting', () => {
 
   // "To color all planes in blue that are not A320, switch this to False."
   it('inverts a False rule', () => {
-    const rule = { ...isExactly('type', 'A320', 'primary'), isTrue: false }
+    const rule = { ...isExactly('type', 'A320', 'primary'), is_true: false }
     expect(matchingRule('A320', [rule], { row: { type: 'A320' } })).toBeNull()
     expect(matchingRule('A330', [rule], { row: { type: 'A330' } })).not.toBeNull()
   })
@@ -205,7 +205,7 @@ describe('conditional formatting', () => {
       condition: { property: 'type', comparison: 'string', operator: 'is_exactly', value: { constant: { value: 'a320' } } },
     }
     expect(matchingRule('A320', [sensitive], { row: { type: 'A320' } })).toBeNull()
-    expect(matchingRule('A320', [{ ...sensitive, condition: { ...sensitive.condition!, caseSensitive: false } }],
+    expect(matchingRule('A320', [{ ...sensitive, condition: { ...sensitive.condition!, case_sensitive: false } }],
       { row: { type: 'A320' } })).not.toBeNull()
     // "Use this to color all plane type values that Start with "A32"."
     const startsWith: FormatRule = {
@@ -227,6 +227,14 @@ describe('conditional formatting', () => {
     ]
     expect(matchingRule(true, wifi, { row: { wifi: true } })?.formatting.intent).toBe('success')
     expect(matchingRule(false, wifi, { row: { wifi: false } })?.formatting.intent).toBe('danger')
+    // A boolean rule stores a real boolean; the editor once stored the STRING
+    // 'true', whose strict comparison could never match a typed column while
+    // the preview — fed the same string — showed it matching.
+    const stringly = {
+      kind: 'standard', formatting: { type: 'intent', intent: 'success' },
+      condition: { property: 'wifi', comparison: 'boolean', value: { constant: { value: 'true' } } },
+    } as unknown as FormatRule
+    expect(matchingRule(true, [stringly], { row: { wifi: true } })).toBeNull()
 
     const nullRule: FormatRule = {
       kind: 'standard', formatting: { type: 'intent', intent: 'warning' },
@@ -240,7 +248,7 @@ describe('conditional formatting', () => {
   it('summarises a rule the way the card prints it', () => {
     expect(ruleSummary(isExactly('type', 'A320', 'primary'), 'Type')).toBe('Type is "A320".')
     expect(ruleSummary(colour('warning'))).toBe('Always true.')
-    expect(ruleSummary({ ...isExactly('type', 'A320', 'primary'), isTrue: false }, 'Type'))
+    expect(ruleSummary({ ...isExactly('type', 'A320', 'primary'), is_true: false }, 'Type'))
       .toBe('Type does not equal "A320".')
     expect(ruleSummary({
       kind: 'standard', formatting: { type: 'intent', intent: 'warning' },

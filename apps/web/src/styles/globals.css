@@ -1194,6 +1194,7 @@
 .gap-x-4 { column-gap:1rem; }
 .grid { display:grid; }
 .grid-cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)); }
+.grid-cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .h-1\.5 { height:0.375rem; }
 .h-16 { height:4rem; }
 .h-2 { height:0.5rem; }
@@ -2166,3 +2167,34 @@
   background-color:color-mix(in srgb, currentColor 12%, transparent);
   font-variant-numeric:tabular-nums;
 }
+
+/* A conditional formatting rule's row in the property pane: swatch, sentence,
+ * delete — the reorder gutter sits OUTSIDE it, per
+ * conditional-formatting-type-rules.png. */
+.rule-row {
+  display:flex; align-items:center; gap:10px; width:100%;
+  padding:6px 8px; border:1px solid var(--platform-card-border, #d3d8de);
+  border-radius:4px; background:transparent; cursor:pointer; font-size:12px;
+}
+.rule-swatch {
+  display:inline-block; width:16px; height:16px; border-radius:4px;
+  flex-shrink:0;
+}
+.rule-preview {
+  padding:10px; border:1px solid var(--platform-card-border, #d3d8de);
+  border-radius:4px; font-size:12px;
+}
+.link-quiet {
+  background:none; border:none; padding:0; cursor:pointer;
+  color:var(--bp-intent-primary); font-size:inherit;
+}
+.rule-open {
+  display:flex; align-items:center; gap:10px; flex:1;
+  background:none; border:none; padding:0; cursor:pointer; font-size:inherit;
+  color:inherit; text-align:left;
+}
+.rule-preview-head {
+  font-size:10px; font-weight:600; letter-spacing:0.06em;
+  color:#5f6b7c; margin:0 0 6px 0;
+}
+.rule-preview-table { padding-top:6px; }
