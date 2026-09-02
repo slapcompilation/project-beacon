@@ -11,6 +11,8 @@ import {
   Intent, Menu, MenuDivider, MenuItem, Popover, Tag,
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase/client'
 import {
   useActionFormEffective, useActionTypes, useApplyAction, useFormSections,
   type ActionParameterRow, type ActionTypeRow,
@@ -32,9 +34,30 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
 }) {
   const { data: actions } = useActionTypes(ontologyId)
   const [running, setRunning] = useState<ActionTypeRow | null>(null)
+  // A function rule targets no object type; where such an action belongs is
+  // documented only by the card's own provenance line, so it appears on the
+  // types its function DECLARES edits on. Inference, operator-approved.
+  const versionIds = actions.flatMap((a) =>
+    a.action_type_rules.filter((r) => r.kind === 'function' && r.function_version_id)
+      .map((r) => r.function_version_id as string))
+  const { data: provenance = {} } = useQuery({
+    queryKey: ['edit-provenance', objectTypeId, [...versionIds].sort().join(',')],
+    enabled: versionIds.length > 0,
+    queryFn: async (): Promise<Record<string, string[]>> => {
+      const [{ data: vs }, { data: me }] = await Promise.all([
+        supabase.from('function_versions').select('id, edits').in('id', versionIds),
+        supabase.from('object_types').select('api_name').eq('id', objectTypeId).single(),
+      ])
+      const mine = (me as { api_name: string } | null)?.api_name
+      return Object.fromEntries(((vs ?? []) as { id: string; edits: { object_types?: string[] } }[])
+        .map((v) => [v.id, mine !== undefined && (v.edits.object_types ?? []).includes(mine) ? [mine] : []]))
+    },
+  })
   const relevant = actions.filter((a) =>
     a.status !== 'deprecated'
-    && a.action_type_rules.some((r) => r.object_type_id === objectTypeId))
+    && a.action_type_rules.some((r) => r.object_type_id === objectTypeId
+      || (r.kind === 'function' && r.function_version_id !== null
+          && (provenance[r.function_version_id] ?? []).length > 0)))
   const overCap = targets.length > ACTION_CAP
 
   if (relevant.length === 0) return null
@@ -134,10 +157,23 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
   }, [parameters, form])
   const loose = parameters.filter((p) => (form?.parameters[p.api_name]?.section ?? null) === null)
 
+  const functionBacked = action.action_type_rules.some((r) => r.kind === 'function')
+
   const run = async () => {
     setBusy(true)
     try {
-      if (!targeted) {
+      if (functionBacked) {
+        // "The only way to update objects using a function is by configuring
+        // an action to use the function" — apply_action is SQL and cannot run
+        // TypeScript, so this door goes through the isolate.
+        const res = await supabase.functions.invoke('action-apply', {
+          body: { actionTypeId: action.id, parameters: values },
+        }) as { data: unknown; error: { message: string } | null }
+        if (res.error) throw new Error(res.error.message)
+        const body = res.data as { error?: string; written?: number } | null
+        if (body?.error !== undefined) throw new Error(body.error)
+        toast.success(`${action.label} applied — ${body?.written ?? 0} edit${body?.written === 1 ? '' : 's'}`)
+      } else if (!targeted) {
         await new Promise<void>((res, rej) => {
           apply.mutate({ actionTypeId: action.id, parameters: values, objectTypeIds: touched },
             { onSuccess: () => { res() }, onError: rej })

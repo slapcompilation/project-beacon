@@ -27,7 +27,22 @@ import {
 } from '@/features/functions/api'
 
 /** The base types a parameter may take, as the signature's own vocabulary. */
-const PARAM_TYPES = ['string', 'Integer', 'Long', 'Float', 'Double', 'Boolean', 'Date', 'Timestamp']
+// Two columns of functions/types-reference, two audiences: the VALUE is the
+// TypeScript v2 code column — what function_type_valid (539) accepts and what
+// authored source actually says — and the LABEL is the registry display
+// column a person reads. The old list mixed the two, so Boolean, Date and
+// Timestamp were refused at publish by the validator that cites the same
+// table.
+const SIGNATURE_TYPES: [string, string][] = [
+  ['string', 'String'], ['Integer', 'Integer'], ['Long', 'Long'],
+  ['Float', 'Float'], ['Double', 'Double'], ['boolean', 'Boolean'],
+  ['DateISOString', 'Date'], ['TimestampISOString', 'Timestamp'],
+]
+// "To be registered as edit functions... TypeScript v2 and Python functions
+// require explicitly returning a list of Ontology edits" — a return type, and
+// only a return type: v1's rationale for void is that an edit function cannot
+// simultaneously return another value.
+const RETURN_TYPES: [string, string][] = [...SIGNATURE_TYPES, ['OntologyEdit[]', 'Ontology edit']]
 
 export default function FunctionsPage() {
   const { ontology, isLoading } = useOmaOntology()
@@ -193,7 +208,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
                   const raw = inputs[p.name] ?? ''
                   if (raw === '') return [p.name, null]
                   if (['Integer', 'Long', 'Float', 'Double'].includes(p.type)) return [p.name, Number(raw)]
-                  if (p.type === 'Boolean') return [p.name, raw === 'true']
+                  if (p.type === 'boolean') return [p.name, raw === 'true']
                   return [p.name, raw]
                 }))
               run.mutate({ apiName, inputs: typed, version: versionString(latest) })
@@ -235,6 +250,7 @@ function PublishPanel({ functionId, latest }: {
   const [returns, setReturns] = useState(latest?.signature.returns ?? 'Integer')
   const [params, setParams] = useState<Signature['parameters']>(latest?.signature.parameters ?? [])
   const [imports, setImports] = useState<string[]>(latest?.imports.object_types ?? [])
+  const [edits, setEdits] = useState<string[]>(latest?.edits?.object_types ?? [])
 
   // "Patches are used to signal backwards compatible bug fixes… Minor versions…
   // do not require consumers' adjustments… Major versions… breaking changes."
@@ -258,7 +274,7 @@ function PublishPanel({ functionId, latest }: {
         <label className="flex flex-col gap-1">
           <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Returns</span>
           <HTMLSelect value={returns} onChange={(e) => { setReturns(e.currentTarget.value) }}>
-            {PARAM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+            {RETURN_TYPES.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
           </HTMLSelect>
         </label>
         <label className="flex flex-col gap-1">
@@ -274,6 +290,9 @@ function PublishPanel({ functionId, latest }: {
             publish.mutate({
               major: chosen.v[0], minor: chosen.v[1], patch: chosen.v[2],
               source, signature: { parameters: params, returns }, objectTypes: imports,
+              // The declaration mirrors @Edits: explicit, because static
+              // analysis "may fail to detect the object types being edited".
+              edits: returns === 'OntologyEdit[]' ? edits : [],
             })
           }}>Publish {chosen.v.join('.')}</Button>
       </div>
@@ -286,7 +305,7 @@ function PublishPanel({ functionId, latest }: {
               onValueChange={(v) => { setParams(params.map((x, j) => (j === i ? { ...x, name: v } : x))) }} />
             <HTMLSelect value={p.type}
               onChange={(e) => { setParams(params.map((x, j) => (j === i ? { ...x, type: e.currentTarget.value } : x))) }}>
-              {PARAM_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+              {SIGNATURE_TYPES.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
             </HTMLSelect>
             <Button variant="minimal" size="small" icon="cross"
               onClick={() => { setParams(params.filter((_, j) => j !== i)) }} />
@@ -297,6 +316,32 @@ function PublishPanel({ functionId, latest }: {
           Add input
         </Button>
       </div>
+
+      {returns === 'OntologyEdit[]' && (
+        // The biconditional (509): a version returning an edit list declares
+        // WHAT it edits, by api name — "the provenance consists only of the
+        // object types". Explicit like @Edits, since static analysis may fail.
+        <div className="space-y-1">
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Edits
+          </span>
+          <p className="text-xs text-muted-foreground">
+            The object types this function may edit at runtime.
+          </p>
+          <div className="flex flex-wrap gap-1">
+            {types.map((t) => (
+              <Tag key={t.api_name} interactive minimal={!edits.includes(t.api_name)}
+                intent={edits.includes(t.api_name) ? Intent.PRIMARY : Intent.NONE}
+                onClick={() => {
+                  setEdits(edits.includes(t.api_name)
+                    ? edits.filter((x) => x !== t.api_name) : [...edits, t.api_name])
+                }}>
+                {t.label}
+              </Tag>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* "the host answers three read operations and nothing else, and only for
           object types the published version declared as imports" — so an
