@@ -395,6 +395,14 @@
   --platform-sidebar-rule:  #1c2127;  /* dark-gray1 — a darker line on a lighter rail */
   --platform-card-border:   #404854;  /* dark-gray5 — the login card's 1px edge */
   --platform-star:          #f0a72b;  /* Gold, filled favourite (§5.1) */
+
+  /* Conditional formatting's four intents, from Blueprint's own palette —
+   * "Use Blueprint colors and intents or add your own custom color"
+   * (conditional-formatting). A rule's custom colour overrides these. */
+  --bp-intent-primary: #137cbd;  /* blue3 */
+  --bp-intent-success: #0f9960;  /* green3 */
+  --bp-intent-warning: #d9822b;  /* orange3 */
+  --bp-intent-danger:  #db3737;  /* red3 */
   --platform-welcome: linear-gradient(90deg, #5c8ad8 0%, #2d72d2 38%, #1544de 100%);
 }
 
@@ -2147,4 +2155,14 @@
 .vx-peeked {
   font-size:10px; font-family:ui-monospace, monospace; margin:0;
   max-height:120px; overflow:auto; flex:1; min-width:0;
+}
+
+/* A value a conditional formatting rule matched: coloured text on a tint of its
+ * own colour with a matching border, per conditional-formatting-cond-form-
+ * example.png. colour-mix keeps one declaration for any intent or custom hue. */
+.format-chip {
+  display:inline-block; padding:1px 6px; border-radius:3px;
+  border:1px solid currentColor;
+  background-color:color-mix(in srgb, currentColor 12%, transparent);
+  font-variant-numeric:tabular-nums;
 }

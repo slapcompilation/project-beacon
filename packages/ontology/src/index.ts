@@ -153,3 +153,13 @@ export type {
   MarkingKind, MarkingOrigin, MarkingPermission, CategoryVisibility,
   ResourceMarking, AccessLevel,
 } from './markings/index'
+
+// ── Property formatting — the base formatter and the rule set binding ───────
+export {
+  formatValue, matchingRule, ruleSummary,
+} from './formatting/index'
+export type {
+  ValueFormatting, FormatRule, RuleCondition, RuleFormatting, RuleComparison,
+  StringOperator, NumberType, NumberFormatOptions, DateFormat,
+  LocalizedDateFormat, Operand, FormatContext,
+} from './formatting/index'

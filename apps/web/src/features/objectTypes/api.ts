@@ -12,7 +12,7 @@ import { useAppStore } from '@/stores/app.store'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef,
   OntologyStatus, ObjectTypeStatus, OntologyVisibility, Deprecation,
-  LinkBackingKind, LinkCardinality,
+  LinkBackingKind, LinkCardinality, FormatRule, ValueFormatting,
 } from '@beacon/ontology'
 
 
@@ -39,6 +39,10 @@ export interface PropertyRow {
   shared_property_id: string | null
   value_type_id: string | null
   required: boolean
+  /** The rule set bound to the property, ordered; first match wins (738). */
+  format_rules: FormatRule[]
+  /** The base formatter, the api's five-member union (736). */
+  value_formatting: ValueFormatting | null
   visibility: 'prominent' | 'normal' | 'hidden'
   position: number
   is_primary_key: boolean
@@ -72,6 +76,7 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
     derivedAggregation: r.derived_aggregation,
     derivedFromPropertyId: r.derived_from_property_id,
     derivedLimit: r.derived_limit,
+    formatRules: r.format_rules, valueFormatting: r.value_formatting,
     visibility: r.visibility, position: r.position,
     isPrimaryKey: r.is_primary_key, isTitleKey: r.is_title_key,
     status: r.status, deprecationReason: r.deprecation_reason,
@@ -103,6 +108,12 @@ export function propertyToRow(p: PropertyDef, position: number) {
     shared_property_id: p.sharedPropertyId ?? null,
     value_type_id: p.valueTypeId ?? null,
     ...(p.searchable !== undefined ? { searchable: p.searchable, sortable: p.sortable ?? false, selectable: p.selectable ?? false } : {}),
+    // 735 made an absent key mean unchanged, which is the right engine rule and
+    // the wrong thing to lean on here: a formatting card that clears a rule set
+    // must be able to SAY so. Both are sent whenever the caller has an opinion,
+    // and a cleared one is sent as its empty value rather than omitted.
+    ...(p.formatRules !== undefined ? { format_rules: p.formatRules } : {}),
+    ...(p.valueFormatting !== undefined ? { value_formatting: p.valueFormatting } : {}),
     required: p.required, visibility: p.visibility ?? 'normal', position,
     is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
     // Absent means unchanged: the session's status pass only touches rows

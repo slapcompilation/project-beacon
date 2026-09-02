@@ -20,13 +20,12 @@ import {
 import { SaveDialog } from './SaveDialog'
 import { ActionsMenu } from './ActionsMenu'
 import { ExportMenu } from './ExportMenu'
+import { FormattedValue, valueText } from '@/features/formatting/FormattedValue'
 
-/** A jsonb cell, printed: null and undefined show as a dash, structures as JSON. */
-const cell = (v: unknown): string => {
-  if (v === null || v === undefined) return '—'
-  if (typeof v === 'object') return JSON.stringify(v)
-  return String(v as string | number | boolean)
-}
+/** A jsonb cell as bare text — the primary key, the export, anywhere a string
+ *  is what is wanted. A cell a user READS goes through FormattedValue, which
+ *  applies the property's base formatter and its rule set binding. */
+const cell = (v: unknown): string => valueText(v, undefined)
 
 const NUMERIC = new Set(['byte', 'short', 'integer', 'long', 'float', 'double', 'decimal', 'number'])
 const isNumeric = (p: PropertyRow) => NUMERIC.has(p.base_type)
@@ -355,8 +354,10 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
                         Title column" — the consumption chain's last hop. */}
                     {p.is_title_key
                       ? <Link to={`/objects/${type}/${encodeURIComponent(pk)}`}
-                          className="results-title-link">{cell(r[p.property_id])}</Link>
-                      : cell(r[p.property_id])}
+                          className="results-title-link">
+                          <FormattedValue value={r[p.property_id]} property={p} row={r} />
+                        </Link>
+                      : <FormattedValue value={r[p.property_id]} property={p} row={r} />}
                   </td>
                 ))}
               </tr>

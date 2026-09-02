@@ -17,6 +17,7 @@ import {
   useObjectViewFor, useObjectViewTabs, useObjectRecord, useObjectHistory,
 } from '@/features/objectView/api'
 import { EmbeddedModule } from '@/features/objectView/EmbeddedModule'
+import { FormattedValue } from '@/features/formatting/FormattedValue'
 
 export default function ObjectViewPage() {
   const { typeId = '', pk = '' } = useParams()
@@ -50,9 +51,6 @@ export default function ObjectViewPage() {
     </div>
   )
 }
-
-const fmt = (v: unknown): string =>
-  v == null ? '—' : typeof v === 'object' ? JSON.stringify(v) : String(v as string | number | boolean)
 
 function ObjectHeader({ typeLabel, icon, status, pk, toggle }: {
   typeLabel: string; icon: IconName; status: string; pk: string
@@ -139,7 +137,9 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
                   {prominent.map((p) => (
                     <div key={p.key} className="ov-prominent-card">
                       <p className="ov-prominent-label">{p.label}</p>
-                      <p className="ov-prominent-value">{fmt(record[p.key])}</p>
+                      <p className="ov-prominent-value">
+                        <FormattedValue value={record[p.key]} property={p} row={record} />
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -148,7 +148,7 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
                 {normal.map((p) => (
                   <div key={p.key} className="ov-prop">
                     <dt>{p.label}</dt>
-                    <dd>{fmt(record[p.key])}</dd>
+                    <dd><FormattedValue value={record[p.key]} property={p} row={record} /></dd>
                   </div>
                 ))}
               </dl>
