@@ -12,6 +12,7 @@
 import type { LinkCardinality, LinkBackingKind } from '../ontology/linkCardinality'
 
 import type { Deprecation, ObjectTypeStatus, OntologyStatus, OntologyVisibility } from '../ontology/status'
+import type { FormatRule, ValueFormatting } from '../formatting/index'
 
 /** The twenty-two base types from properties-overview's table. A closed set —
  *  an unknown value is a typo, not an extension. */
@@ -203,6 +204,11 @@ export interface PropertyDef {
   sortable?: boolean
   selectable?: boolean
   description?: string
+  /** The rule set bound to this property — "Rules (evaluated from top to
+   *  bottom)", first match wins. Empty is no binding. */
+  formatRules?: FormatRule[]
+  /** The base formatter: one per property, typed by its base type (736). */
+  valueFormatting?: ValueFormatting | null
   visibility?: 'prominent' | 'normal' | 'hidden'
   isPrimaryKey?: boolean
   isTitleKey?: boolean
