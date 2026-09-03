@@ -1044,7 +1044,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (316) ───────────────────────────────────────────────────
+// ── FUNCTIONS (317) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2169,12 +2169,8 @@ export const evalCriterion = { apiName: 'eval_criterion', kind: 'function' } as 
   unknown
 >
 
-/**
- *  The exploration reader addressed the way the generated client addresses
- *  it: by api name. Every gate the id form carries still applies.
- */
 export const evaluateObjectSetByApiName = { apiName: 'evaluate_object_set_by_api_name', kind: 'function' } as FunctionType<
-  { p_ontology: string; p_api_name: string; p_filters?: Json; p_limit?: number },
+  { p_ontology: string; p_api_name: string; p_filters?: Json; p_limit?: number; p_primary_key?: string },
   Json[]
 >
 
@@ -2711,6 +2707,18 @@ export const numberFormatOptionsValid = { apiName: 'number_format_options_valid'
 export const numberTypeValid = { apiName: 'number_type_valid', kind: 'function' } as FunctionType<
   { j: Json },
   boolean
+>
+
+/**
+ *  The merged state a reader currently sees for one object: the built index
+ *  row with the edit-log overlay replayed on top. What apply_action and
+ *  apply_function_edits capture as an edit's before-image, so a revert
+ *  restores what was actually visible (action-reverts: reverted, "that is,
+ *  undone"). 748.
+ */
+export const objectBeforeState = { apiName: 'object_before_state', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_primary_key: string },
+  { properties: Json }[]
 >
 
 export const objectCurrentValue = { apiName: 'object_current_value', kind: 'function' } as FunctionType<
