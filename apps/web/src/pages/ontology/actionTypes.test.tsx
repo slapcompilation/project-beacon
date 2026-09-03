@@ -80,8 +80,9 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
     executeFunction: () => Promise.resolve(
       entity.apiName === 'action_rule_kinds'
         ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'function']
+            // matches the live action_rule_kinds(): function IS executable (669)
             .map((kind) => ({ kind, targets: 'object_type',
-              executable: !['create_link', 'function'].includes(kind), note: `note for ${kind}` }))
+              executable: kind !== 'create_link', note: `note for ${kind}` }))
         : entity.apiName === 'submission_operators'
           ? [{ operator: 'is', arity: 'single', note: '' },
              { operator: 'includes', arity: 'multi', note: '' }]
