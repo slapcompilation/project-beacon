@@ -428,6 +428,27 @@ look finished too.
   cardinality`, `Vertex Promoted Graphs` and a whole `Graph publishing` Control
   Panel tab — and no Vertex RID attested anywhere in the mirror.
 
+- `link-reading.md` — how a link is READ: 30 pages across `api/`,
+  `object-explorer/`, `object-views/`, `object-link-types/`, `object-backend/`,
+  `ontologies/`, plus Quiver, Map, Vertex, Workshop and Functions; 21 images
+  opened and every skipped one named. Traversal is addressed by the **link's API
+  name**, returns a **page of whole far objects** with no edge on the wire and no
+  `totalCount`, and is a **left-semi join** — set-valued and deduplicating, which
+  the breadcrumb counts in `linked-objects-component.png` confirm arithmetically.
+  `searchAround` is an **ObjectSet constructor, not a `where` predicate** (I
+  enumerated all 15 union members and all 26 predicates), so a link filter is
+  composed with `intersect`/`subtract`. A **join dataset is indexed, not queried
+  live** — it registers, reindexes and migrates exactly as an object type does,
+  and `osv2-arch.png` has no arrow from Datasets to the read service. The public
+  API deliberately **cannot tell m2m from far-side-FK**, which makes our
+  `Ontology:LinkFilterBackingUnsupported` a distinction Foundry hides. Three
+  surfaces settled from screenshots: the standard Object View's linked panel shows
+  **this object's rows** with a count per link and a hop breadcrumb, the Explorer's
+  link-filter menu offers **Has X? / Filter by X? / far-type properties** in one
+  control, and a pivot **keeps prior filters as link-scoped chips**. One recorded
+  disagreement: `object-backend/overview` calls 100,000 the search-around limit
+  where `oss-limitations` calls it the Spark threshold and 10M the limit.
+
 Thirty-six readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
