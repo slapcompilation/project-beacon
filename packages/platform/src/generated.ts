@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (107) ────────────────────────────────────────────────
+// ── ACTION TYPES (110) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -505,6 +505,11 @@ export const indexJobSpec = { apiName: 'index_job_spec', kind: 'action' } as Act
   string
 >
 
+export const indexLinkType = { apiName: 'index_link_type', kind: 'action' } as ActionType<
+  { p_link: string; p_job: string },
+  unknown
+>
+
 export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } as ActionType<
   { p_object_type: string; p_job: string },
   unknown
@@ -519,6 +524,11 @@ export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } 
 export const lineageGraph = { apiName: 'lineage_graph', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_up?: number; p_down?: number },
   Json
+>
+
+export const linkIndexJobSpec = { apiName: 'link_index_job_spec', kind: 'action' } as ActionType<
+  { p_link: string },
+  string
 >
 
 /**
@@ -817,6 +827,11 @@ export const runIndexBuild = { apiName: 'run_index_build', kind: 'action' } as A
   string
 >
 
+export const runLinkIndexBuild = { apiName: 'run_link_index_build', kind: 'action' } as ActionType<
+  { p_links: string[]; p_force?: boolean },
+  string
+>
+
 export const runObjectDatasetBuild = { apiName: 'run_object_dataset_build', kind: 'action' } as ActionType<
   { p_object_dataset: string; p_force?: boolean },
   string
@@ -1044,7 +1059,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (317) ───────────────────────────────────────────────────
+// ── FUNCTIONS (321) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1514,6 +1529,11 @@ export const canEditVxTemplate = { apiName: 'can_edit_vx_template', kind: 'funct
  */
 export const canEditWorkbook = { apiName: 'can_edit_workbook', kind: 'function' } as FunctionType<
   { p_workbook: string },
+  boolean
+>
+
+export const canIndexLinkType = { apiName: 'can_index_link_type', kind: 'function' } as FunctionType<
+  { p_link: string },
   boolean
 >
 
@@ -2574,6 +2594,21 @@ export const linkHopIsMany = { apiName: 'link_hop_is_many', kind: 'function' } a
 export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as FunctionType<
   { p_link: string; p_from: string },
   string
+>
+
+export const linkTypeIndexReady = { apiName: 'link_type_index_ready', kind: 'function' } as FunctionType<
+  { p_link: string },
+  boolean
+>
+
+export const linkTypeIndexState = { apiName: 'link_type_index_state', kind: 'function' } as FunctionType<
+  { p_link: string },
+  string
+>
+
+export const linkTypeInputDatasets = { apiName: 'link_type_input_datasets', kind: 'function' } as FunctionType<
+  { p_link: string },
+  string[]
 >
 
 /**
