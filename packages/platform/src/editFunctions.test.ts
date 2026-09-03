@@ -40,6 +40,18 @@ describe.skipIf(noDb)('edit functions', () => {
 
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
+
+  /** The pair the edge function drives: preflight opens the application, the
+   *  apply names it (741/742). */
+  const applyEdits = async (act: string, edits: unknown,
+    // The fixture's action requires ticketId, and 741's preflight now enforces
+    // that on this path too — which is the point.
+    params: unknown = { ticketId: 'T-preflight' }) => {
+    const app = ((await one('select public.action_function_preflight($1,$2::jsonb) as p',
+      [act, JSON.stringify(params)])).p as unknown as { application_id: string }).application_id
+    return one('select public.apply_function_edits($1,$2::jsonb,$3) as n',
+      [act, JSON.stringify(edits), app])
+  }
   const count = async (sql: string, p: unknown[] = []): Promise<number> =>
     Number((await db.query(sql, p)).rows[0].n)
 
@@ -251,12 +263,11 @@ describe.skipIf(noDb)('edit functions', () => {
   // ── the apply ─────────────────────────────────────────────────────────────
 
   it('writes the published edit variants as the flowchart instructions', async () => {
-    const n = Number((await one('select public.apply_function_edits($1,$2::jsonb) as n', [
-      action, JSON.stringify([
-        BATCH.create('Ticket', 'T-1', { status: 'open' }),
-        BATCH.update('Ticket', 'T-2', { status: 'escalated' }),
-        BATCH.remove('Ticket', 'T-3'),
-      ])])).n)
+    const n = Number((await applyEdits(action, [
+      BATCH.create('Ticket', 'T-1', { status: 'open' }),
+      BATCH.update('Ticket', 'T-2', { status: 'escalated' }),
+      BATCH.remove('Ticket', 'T-3'),
+    ])).n)
     expect(n).toBe(3)
     const rows = (await db.query(
       `select primary_key, instruction from public.object_edits
@@ -269,25 +280,24 @@ describe.skipIf(noDb)('edit functions', () => {
     // Aircraft is a real, editable object type in the same ontology — the only
     // thing wrong with it is that this version did not declare it.
     expect(await count('select count(*) n from public.object_types where id = $1', [other])).toBe(1)
-    const err = await refused(db, () => db.query(
-      'select public.apply_function_edits($1,$2::jsonb)',
-      [action, JSON.stringify([BATCH.update('Aircraft', 'A-1', {})])]))
+    const err = await refused(db, () => applyEdits(action, [BATCH.update('Aircraft', 'A-1', {})]))
     expect(err).toContain('Functions:UndeclaredObjectTypeEdited')
   })
 
   it('refuses a link edit by name', async () => {
-    const err = await refused(db, () => db.query(
-      'select public.apply_function_edits($1,$2::jsonb)',
-      [action, JSON.stringify([BATCH.link('tickets',
-        { objectType: 'Ticket', primaryKey: 'T-1' }, { objectType: 'Ticket', primaryKey: 'T-2' })])]))
+    const err = await refused(db, () => applyEdits(action, [BATCH.link('tickets',
+      { objectType: 'Ticket', primaryKey: 'T-1' }, { objectType: 'Ticket', primaryKey: 'T-2' })]))
     expect(err).toContain('Actions:LinkEditsNotSupported')
   })
 
   it('refuses an output that is not the published shape', async () => {
     for (const bad of ['[{"renameObject":{"objectType":"Ticket","primaryKey":"T"}}]',
                        '[{"modifyObject":{"objectType":"Ticket"}}]']) {
-      const err = await refused(db, () => db.query(
-        'select public.apply_function_edits($1,$2::jsonb)', [action, bad]))
+      const err = await refused(db, () => (async () => {
+        const app = ((await one(`select public.action_function_preflight($1,'{"ticketId":"T-preflight"}'::jsonb) as p`, [action]))
+          .p as unknown as { application_id: string }).application_id
+        return db.query('select public.apply_function_edits($1,$2::jsonb,$3)', [action, bad, app])
+      })())
       expect(err).toContain('Actions:InvalidOutput')
     }
   })
@@ -341,22 +351,65 @@ describe.skipIf(noDb)('edit functions', () => {
        select $1, 'note_text', 'Note', 'noteText', 'string', 'column', 'note_text', d.id
          from public.object_type_datasources d where d.object_type_id = $1`, [ticket])
 
-    expect(await refused(db, () => db.query(
-      'select public.apply_function_edits($1,$2::jsonb)',
-      [action, JSON.stringify([BATCH.create('Ticket', 'T-740', { nonsense: 'x' })])]),
-    )).toContain('Actions:UnknownProperty')
+    expect(await refused(db, () => applyEdits(action, [BATCH.create('Ticket', 'T-740', { nonsense: 'x' })])))
+      .toContain('Actions:UnknownProperty')
 
-    expect(await refused(db, () => db.query(
-      'select public.apply_function_edits($1,$2::jsonb)',
-      [action, JSON.stringify([BATCH.update('Ticket', 'T-740', { id: 'T-999' })])]),
-    )).toContain('Actions:CannotModifyPrimaryKey')
+    expect(await refused(db, () => applyEdits(action, [BATCH.update('Ticket', 'T-740', { id: 'T-999' })])))
+      .toContain('Actions:CannotModifyPrimaryKey')
 
-    await db.query('select public.apply_function_edits($1,$2::jsonb)',
-      [action, JSON.stringify([BATCH.create('Ticket', 'T-740', { noteText: 'hello' })])])
+    await applyEdits(action, [BATCH.create('Ticket', 'T-740', { noteText: 'hello' })])
     const landed = (await one(
       `select properties from public.object_edits
         where object_type_id = $1 and primary_key = 'T-740'`, [ticket])).properties as unknown as Record<string, unknown>
     expect(landed).toHaveProperty('note_text', 'hello')
     expect(landed).not.toHaveProperty('noteText')
+  })
+
+  // 741/742: the submit arms and the application chain. Before these, an
+  // action with a failing criterion executed, a missing required parameter
+  // passed, prefill_current_user arrived unresolved, and revert after a
+  // function apply found nothing.
+  it('submits like any other action, and reverts like one', async () => {
+    // Missing required parameter — apply_action's own name.
+    expect(await refused(db, () =>
+      one('select public.action_function_preflight($1) as p', [action]),
+    )).toContain('Actions:MissingParameter')
+
+    // prefill_current_user resolves server-side and never overwrites.
+    await db.query(
+      `update public.action_type_parameters set type_classes = array['prefill_current_user']
+        where action_type_id = $1 and api_name = 'ticketId'`, [action])
+    const pre = (await one('select public.action_function_preflight($1) as p', [action]))
+      .p as unknown as { application_id: string; parameters: Record<string, unknown> }
+    expect(typeof pre.parameters.ticketId).toBe('string')
+    expect((pre.parameters.ticketId as string).length).toBeGreaterThan(0)
+    await db.query(
+      `update public.action_type_parameters set type_classes = '{}'
+        where action_type_id = $1 and api_name = 'ticketId'`, [action])
+
+    // The chain: no preflight, no apply; one preflight, one apply.
+    expect(await refused(db, () => db.query(
+      'select public.apply_function_edits($1,$2::jsonb,$3)',
+      [action, '[]', crypto.randomUUID()]),
+    )).toContain('Actions:ApplicationNotFound')
+
+    // Revert restores what a function apply changed.
+    await applyEdits(action, [BATCH.create('Ticket', 'T-742', { status: 'open' })])
+    const app2 = ((await one(`select public.action_function_preflight($1,'{"ticketId":"x"}'::jsonb) as p`,
+      [action])).p as unknown as { application_id: string }).application_id
+    await db.query('select public.apply_function_edits($1,$2::jsonb,$3)',
+      [action, JSON.stringify([BATCH.update('Ticket', 'T-742', { status: 'closed' })]), app2])
+    const edit = await one(
+      `select "before", application_id from public.object_edits
+        where object_type_id = $1 and primary_key = 'T-742' and instruction = 'modify'`, [ticket])
+    expect(edit.application_id).toBe(app2)
+    expect((edit.before as unknown as Record<string, unknown>).status).toBe('open')
+
+    await db.query('select public.revert_action($1)', [app2])
+    const latest = await one(
+      `select properties ->> 'status' as s from public.object_edits
+        where object_type_id = $1 and primary_key = 'T-742'
+        order by applied_at desc limit 1`, [ticket])
+    expect(latest.s).toBe('open')
   })
 })
