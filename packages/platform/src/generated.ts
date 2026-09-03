@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (102) ────────────────────────────────────────────────
+// ── ACTION TYPES (103) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -21,6 +21,18 @@ import type { ActionType, FunctionType, Json } from './client'
 export const abortTransaction = { apiName: 'abort_transaction', kind: 'action' } as ActionType<
   { p_transaction: string },
   void
+>
+
+/**
+ *  What apply_action runs before any rule, for the path that runs its rule in
+ *  the isolate: the application row, the two prefill type classes, resolved
+ *  requiredness, and the submission criteria — same expressions, same error
+ *  names. The edge function calls this BEFORE the guest runs, because the
+ *  parameters feed its arguments. 741.
+ */
+export const actionFunctionPreflight = { apiName: 'action_function_preflight', kind: 'action' } as ActionType<
+  { p_action_type: string; p_parameters?: Json },
+  Json
 >
 
 /**
@@ -58,13 +70,13 @@ export const applyActionType = { apiName: 'apply_action_type', kind: 'action' } 
 >
 
 /**
- *  Writes the edit batch an Ontology edit function returned, in one
- *  transaction: the published ObjectEdit variants become object_edits
- *  instructions, an edit outside the version's provenance fails the action,
- *  and link edits are refused by name.
+ *  Applies an edit function's batch as one action application: 741's
+ *  preflight opens the application, this consumes it exactly once, and every
+ *  edit carries the application id and apply_action's own before-snapshot, so
+ *  revert_action reads both paths the same way. 742.
  */
 export const applyFunctionEdits = { apiName: 'apply_function_edits', kind: 'action' } as ActionType<
-  { p_action_type: string; p_edits: Json },
+  { p_action_type: string; p_edits: Json; p_application: string },
   number
 >
 

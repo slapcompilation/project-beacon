@@ -65,12 +65,23 @@ Deno.serve(async (req) => {
     return reply(404, { error: 'Actions:NotFunctionBacked — this action has no function rule' })
   }
 
+  // The submit arms run BEFORE the guest, because the parameters feed its
+  // arguments: the application row, the two prefill type classes, resolved
+  // requiredness, the submission criteria (741). The apply below refuses
+  // without the application this opens, so the chain cannot be skipped.
+  const pre = await caller.rpc('action_function_preflight', {
+    p_action_type: actionTypeId, p_parameters: parameters,
+  })
+  if (pre.error) return reply(400, { error: pre.error.message })
+  const { application_id: applicationId, parameters: resolved } =
+    pre.data as { application_id: string; parameters: Record<string, unknown> }
+
   // "Configure the inputs to match up to the action parameters" — the mapping
   // is stored per input, so the function never sees a parameter name.
   const args: unknown[] = []
   for (const p of rule.signature.parameters) {
     const parameterName = rule.inputs[p.name]
-    const value = parameterName === undefined ? undefined : parameters[parameterName]
+    const value = parameterName === undefined ? undefined : resolved[parameterName]
     if (p.required && (value === undefined || value === null)) {
       return reply(400, {
         error: `Actions:InvalidParameter — ${parameterName ?? p.name} is required by ${rule.api_name}`,
@@ -103,9 +114,9 @@ Deno.serve(async (req) => {
   // "The entire function must succeed in order to generate the list of edits
   // which is passed to the actions service executing the atomic transaction."
   const applied = await caller.rpc('apply_function_edits', {
-    p_action_type: actionTypeId, p_edits: out.value,
+    p_action_type: actionTypeId, p_edits: out.value, p_application: applicationId,
   })
   if (applied.error) return reply(400, { error: applied.error.message })
 
-  return reply(200, { edits: applied.data, version: rule.version })
+  return reply(200, { edits: applied.data, written: applied.data, version: rule.version, application_id: applicationId })
 })
