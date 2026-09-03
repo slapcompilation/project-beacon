@@ -55,9 +55,15 @@ export function ontologyReader(
       return r.error ? { ok: false, error: r.error.message } : { ok: true, value: r.data }
     }
     if (op === 'page' || op === 'fetchOne') {
+      // "Gets a specific object with the given primary key" — a fetchOne
+      // without one is an author error, not the first row of the type (749).
+      if (op === 'fetchOne' && (payload.primaryKey === undefined || payload.primaryKey === null)) {
+        return { ok: false, error: 'Functions:FetchOneNamesPrimaryKey — fetchOne needs a primary key' }
+      }
       const r = await caller.rpc('evaluate_object_set_by_api_name', {
         p_ontology: ontologyId, p_api_name: objectType, p_filters: filters,
         p_limit: op === 'fetchOne' ? 1 : Number(payload.pageSize ?? 100),
+        ...(op === 'fetchOne' ? { p_primary_key: String(payload.primaryKey) } : {}),
       })
       if (r.error) return { ok: false, error: r.error.message }
       const rows = (r.data ?? []) as unknown[]

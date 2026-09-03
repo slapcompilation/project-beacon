@@ -372,4 +372,60 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect(await count(
       'select object_count n from public.object_type_indexes where object_type_id=$1', [t])).toBe(1)
   })
+
+  // 748/749 — what the isolate production demo falsified, held for good.
+
+  it('a revert restores the datasource value, because the before-image saw it', async () => {
+    // The demo's corruption: before was captured from the edit overlay alone,
+    // so a datasource-backed property snapshot as NULL and revert wrote NULL
+    // over real data. The before-image now reads the merged state.
+    const dsrc = (await one(
+      'select id from public.object_type_datasources where object_type_id=$1', [type])).id
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id)
+       values ($1,'city','City','city','string','column','city',$2)`, [type, dsrc])
+    await db.query('update public.object_types set edits_enabled = true where id = $1', [type])
+    await db.query('select public.run_index_build(array[$1]::uuid[], true)', [type])
+
+    const act = (await one(
+      `insert into public.action_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'idx-relabel','Idx relabel') returning id`, [ont, f.projectId])).id
+    const rule = (await one(
+      `insert into public.action_type_rules (action_type_id, kind, object_type_id, position)
+       values ($1,'modify_object',$2,0) returning id`, [act, type])).id
+    const prop = (await one(
+      `select id from public.object_type_properties
+        where object_type_id=$1 and property_id='city'`, [type])).id
+    await db.query(
+      `insert into public.action_type_rule_properties (rule_id, property_id, value_source, static_value)
+       values ($1,$2,'static','"EDITED"'::jsonb)`, [rule, prop])
+    await db.query(`select public.apply_action($1,'{}'::jsonb,'A')`, [act])
+
+    const edit = (await one(
+      `select "before", application_id from public.object_edits
+        where object_type_id=$1 and primary_key='A' and instruction='modify'
+        order by seq desc limit 1`, [type])) as
+      unknown as { before: { city: string }; application_id: string }
+    expect(edit.before.city, 'the before-image holds what the reader saw').toBe('ATH')
+
+    await db.query('select public.revert_action($1)', [edit.application_id])
+    await db.query('select public.run_index_build(array[$1]::uuid[], true)', [type])
+    const rows = await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"pk","value":{"type":"valuesFilter","values":["A"]}}]'::jsonb) e`,
+      [type])
+    expect((rows.rows[0].e as { city: string }).city, 'undone means the value comes back').toBe('ATH')
+  })
+
+  it('a fetch by primary key returns that object, not the first of the type', async () => {
+    // Run 2 of the demo: the mediator ignored fetchOne's key and every fetch
+    // returned the first row. The key is an engine-side filter now.
+    const row = (await db.query(
+      `select e from public.evaluate_object_set_by_api_name($1,'IdxThing','[]'::jsonb,1,'B') e`,
+      [ont])).rows[0].e as { pk: string; city: string }
+    expect(row.pk).toBe('B')
+    expect(row.city).toBe('SKG')
+  })
 })
