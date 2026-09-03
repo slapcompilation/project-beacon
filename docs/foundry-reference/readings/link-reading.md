@@ -1245,15 +1245,46 @@ supports a jump to the far type's explorer as the card's behaviour.
 
 1. **How does a join dataset's row become traversable — is the join table indexed as
    its own thing, or denormalised into both object types' indexes?**
-   `blocks: the read-path build.` Every page says a join-table link type is
-   registered, reindexed and migrated *like* an object type, and `osv2-arch.png`
-   shows only `Object Databases` as a read source, so it is indexed rather than
-   queried live — that much is settled. What no page states is the shape of the
-   index: whether the pairs live in a structure of their own that the semi-join
-   probes, or whether Funnel writes a key list onto each side's objects. Searched
-   `object-indexing/` (all seven pages), `object-databases/`, `object-backend/`,
-   `ontologies/oss-limitations`, and grepped the corpus for `join table`,
-   `many-to-many` and `m2m`. The api publishes no link-index resource either.
+   ~~`blocks: the read-path build.`~~ **ANSWERED by a five-angle cross-check,
+   2026-09-04** (whole-page reads of `object-indexing/`, `object-backend/`,
+   `object-databases/`, the api section enumerated, all 214 course lessons
+   grepped, an alternative-vocabulary sweep, and an adversarial pass told to
+   refute the pair-structure hypothesis). The page I missed on the first pass
+   answers it as clearly as the corpus ever does:
+
+   > "In many-to-many relationships, the Ontology requires the definition of a
+   > join table to define all of the links between objects based on their
+   > primary keys. These tables are indexed alongside the objects in the
+   > Ontology and use ontology volume."
+
+   — `ontologies/volume-usage.md`
+
+   > "In general, look-up tables have a constant size per record and grow
+   > linearly in volume with the number of links that are defined."
+
+   — `ontologies/volume-usage.md`
+
+   The join TABLE is the indexed unit, *alongside* — not into — the objects,
+   metered per link type at constant size per record, linear in the number of
+   links: the cost profile of a pair store. Corroborated structurally by
+   independent pages: a link type has its own Phonograph registration, table
+   RID, index RID and reindex status (`object-databases/object-storage-v1.md`);
+   a join-table m2m link type is its own OSv1→OSv2 migration unit with its own
+   Indexing Metadata section, and "Object Storage v2 is enforced for all object
+   types and join table link types" (`object-backend/osv1-osv2-migration.md`);
+   a link type can sit in a DIFFERENT storage generation than both of its
+   object types (`workshop/auto-refresh.md`) — impossible under
+   denormalisation; OSv2 tracks a per-link-type edit-offset stream applied to
+   live indexed data (`object-edits/how-edits-applied.md`); and links are the
+   documented escape from the 100,000-element array cap
+   (`object-indexing/data-restrictions.md`), which an on-document key list
+   would collide with. The denormalised-key-list hypothesis has ZERO textual
+   support anywhere in the corpus — "denormalized" appears only as a user-level
+   anti-pattern (`ontology/ontology-structural-guidance.md`). What remains
+   inference: that the index's internal layout is literally (sideA pk, sideB
+   pk) rows — but the backing join table is defined as exactly those pairs
+   (`object-link-types/link-type-metadata.md`) and the materialization keeps
+   its columns, so the build takes the pair store as the shape, recorded here.
 2. **Where does a per-link count badge come from?** `blocks: the linked-objects
    panel.` The badges are everywhere in the screenshots — `177`, `216`, `23,814`,
    `48220`, `102064` — and `listLinkedObjects` returns no `totalCount`, while
@@ -1291,12 +1322,20 @@ supports a jump to the far type's explorer as the card's behaviour.
    definition behind it, and `create-temporary-object-set` exists and expires in an
    hour. No page connects the two. Searched `object-views/generate-urls` and
    `object-explorer/generate-urls` for a linked-panel route and found neither.
-7. **What is an `intermediary link type`, precisely?** `blocks: nothing.`
-   `oss-limitations` names it as one of three features that force Spark regardless of
-   size. `create-link-type` describes object-backed links and `map/integrate-searcharounds`
-   describes link merge, and both involve an intermediary object; the terms are never
-   equated. Searched the corpus for `intermediary` and got Map, Vertex and this one
-   line.
+7. **What is an `intermediary link type`, precisely?** ~~`blocks: nothing.`~~
+   **ANSWERED by the same cross-check:** it is the object-backed link.
+
+   > "The object in the middle serves as the intermediary and provides
+   > additional metadata about the connection between the two entities, and
+   > backs the link."
+
+   — `object-link-types/create-link-type.md`
+
+   So `oss-limitations`' Spark-forcing "intermediary link types" are
+   object-backed links — resolving one takes a two-hop probe through the middle
+   object's own index, which coherently implies a plain join-table link has a
+   faster indexed structure of its own (a point in the pair-store answer to
+   question 1's favour).
 8. **Does `interfaceLinkSearchAround` behave differently at read time?**
    `blocks: nothing`, but it blocks the interfaces arc if that resumes. It is a
    distinct `ObjectSet` member taking an `interfaceLink` rather than a `link`, and
