@@ -17,6 +17,7 @@ import {
   useActionFormEffective, useActionTypes, useApplyAction, useFormSections,
   type ActionParameterRow, type ActionTypeRow,
 } from '@/features/actionTypes/api'
+import { useReindex } from '@/features/objectTypes/indexing'
 
 const ACTION_CAP = 1000
 
@@ -100,6 +101,7 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
   onClose: () => void
 }) {
   const apply = useApplyAction()
+  const reindex = useReindex()
   const [values, setValues] = useState<Record<string, string>>({})
   const [runError, setRunError] = useState<string | null>(null)
   const [prefills, setPrefills] = useState<Record<string, string> | null>(null)
@@ -208,6 +210,11 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
           written = await invokeOnce(values)
         }
         toast.success(`${action.label} applied — ${written} edit${written === 1 ? '' : 's'}`)
+        // An edit is invisible to reads until its index rebuilds — the SQL
+        // branch reindexes through useApplyAction, so this branch follows for
+        // the type in view. Types the function edits beyond it stay on the
+        // scheduler.
+        if (objectTypeId !== undefined && written > 0) reindex.mutate(objectTypeId)
       } else if (!targeted) {
         await new Promise<void>((res, rej) => {
           apply.mutate({ actionTypeId: action.id, parameters: values, objectTypeIds: touched },

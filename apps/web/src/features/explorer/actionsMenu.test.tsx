@@ -13,17 +13,25 @@ const edge = vi.hoisted(() => ({ bodies: [] as { parameters: Record<string, stri
 vi.mock('@/lib/supabase/client', () => {
   interface Chain extends PromiseLike<{ data: unknown[]; error: null }> {
     select: () => Chain; order: () => Chain; eq: () => Chain
+    single: () => Promise<{ data: unknown; error: null }>
   }
   const make = (): Chain => {
     const p = Promise.resolve({ data: [], error: null })
-    const chain: Chain = { select: () => chain, order: () => chain, eq: () => chain, then: p.then.bind(p) }
+    const chain: Chain = {
+      select: () => chain, order: () => chain, eq: () => chain, then: p.then.bind(p),
+      // the post-apply reindex reads its build job back
+      single: () => Promise.resolve({ data: { state: 'COMPLETED', error: null }, error: null }),
+    }
     return chain
   }
   return {
     supabase: {
       from: make,
       functions: {
-        invoke: (_name: string, opts: { body: { parameters: Record<string, string> } }) => {
+        invoke: (name: string, opts: { body: { parameters: Record<string, string> } }) => {
+          // the post-apply reindex fire-and-forgets 'search-index'; only the
+          // apply door is under test
+          if (name !== 'action-apply') return Promise.resolve({ data: null, error: null })
           edge.bodies.push(opts.body)
           if (edge.fail) {
             // What supabase-js actually hands back on a non-2xx: a generic
