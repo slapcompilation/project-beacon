@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (103) ────────────────────────────────────────────────
+// ── ACTION TYPES (107) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -33,6 +33,11 @@ export const abortTransaction = { apiName: 'abort_transaction', kind: 'action' }
 export const actionFunctionPreflight = { apiName: 'action_function_preflight', kind: 'action' } as ActionType<
   { p_action_type: string; p_parameters?: Json },
   Json
+>
+
+export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'action' } as ActionType<
+  { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number; p_application?: string },
+  { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
 >
 
 /**
@@ -184,6 +189,11 @@ export const commentOnApprovalRequest = { apiName: 'comment_on_approval_request'
 export const commitTransaction = { apiName: 'commit_transaction', kind: 'action' } as ActionType<
   { p_transaction: string },
   void
+>
+
+export const countObjectSet = { apiName: 'count_object_set', kind: 'action' } as ActionType<
+  { p_object_type: string; p_filters?: Json; p_application?: string },
+  number
 >
 
 /**
@@ -433,6 +443,11 @@ export const editApprovalRequest = { apiName: 'edit_approval_request', kind: 'ac
   void
 >
 
+export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'action' } as ActionType<
+  { p_object_type: string; p_filters?: Json; p_sort?: Json; p_limit?: number; p_offset?: number; p_application?: string },
+  Json[]
+>
+
 /**
  *  Queues a manual run. The effects are executed by beacon_runner on the next
  *  tick, as the owner; requested_by records who asked. Allowed while paused,
@@ -457,6 +472,11 @@ export const generateBackingDataset = { apiName: 'generate_backing_dataset', kin
 export const generateInterfaceParameters = { apiName: 'generate_interface_parameters', kind: 'action' } as ActionType<
   { p_action_type: string },
   number
+>
+
+export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'action' } as ActionType<
+  { p_object_type: string; p_filters?: Json; p_property?: string; p_buckets?: number; p_application?: string },
+  { bucket_min: number; bucket_max: number; object_count: number }[]
 >
 
 /**
@@ -1024,7 +1044,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (320) ───────────────────────────────────────────────────
+// ── FUNCTIONS (316) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1119,16 +1139,6 @@ export const actionRuleVersion = { apiName: 'action_rule_version', kind: 'functi
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
   Record<string, never>,
   string
->
-
-/**
- *  One shape for listogram, Single Statistic and Statistics Table:
- *  group_value plus Count/Sum/Average/Min/Max/Property Count/Unique Count.
- *  Unique count is exact, not estimated.
- */
-export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
-  { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
-  { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
 >
 
 /**
@@ -1926,14 +1936,6 @@ export const contourBoardKinds = { apiName: 'contour_board_kinds', kind: 'functi
   { kind: string; description: string; visualize: boolean; filter_rows: boolean; aggregate: boolean; manipulate_columns: boolean; remove_duplicates: boolean; built: boolean; note: string }[]
 >
 
-/**
- *  The Results count over the same WHERE the rows use.
- */
-export const countObjectSet = { apiName: 'count_object_set', kind: 'function' } as FunctionType<
-  { p_object_type: string; p_filters?: Json },
-  number
->
-
 export const countObjectSetByApiName = { apiName: 'count_object_set_by_api_name', kind: 'function' } as FunctionType<
   { p_ontology: string; p_api_name: string; p_filters?: Json },
   number
@@ -2165,15 +2167,6 @@ export const effectiveFileMarkings = { apiName: 'effective_file_markings', kind:
 export const evalCriterion = { apiName: 'eval_criterion', kind: 'function' } as FunctionType<
   { p_node: string; p_action: string; p_params: Json },
   unknown
->
-
-/**
- *  The exploration engine's row reader: documented filters in, index rows out
- *  as jsonb, hidden properties stripped, multi-sort applied in order.
- */
-export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'function' } as FunctionType<
-  { p_object_type: string; p_filters?: Json; p_sort?: Json; p_limit?: number; p_offset?: number },
-  Json[]
 >
 
 /**
@@ -2457,15 +2450,6 @@ export const healthThresholdPass = { apiName: 'health_threshold_pass', kind: 'fu
 export const healthThresholdSeconds = { apiName: 'health_threshold_seconds', kind: 'function' } as FunctionType<
   { t: Json },
   number
->
-
-/**
- *  Histogram buckets over a numeric or date property of the filtered set;
- *  bounds from the data, bucket count from the caller.
- */
-export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'function' } as FunctionType<
-  { p_object_type: string; p_filters?: Json; p_property?: string; p_buckets?: number },
-  { bucket_min: number; bucket_max: number; object_count: number }[]
 >
 
 export const holdsMarkingPermission = { apiName: 'holds_marking_permission', kind: 'function' } as FunctionType<

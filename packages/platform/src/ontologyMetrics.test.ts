@@ -110,6 +110,37 @@ describe.skipIf(noDb)('usage is a request counted once', () => {
     expect(Number(s.reads)).toBe(2)
   })
 
+  // 746/747 wired the producers: the object-set readers record themselves when
+  // the caller names itself. "A read is recorded when an application loads
+  // objects for a specified object type" — and one request is one read,
+  // however many objects come back, so four requests from one application land
+  // as one aggregated row with reads = 4.
+  it('a read through the object-set readers records itself when the caller names itself', async () => {
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: user, app_metadata: { role: 'admin', org_id: f.orgId } })])
+
+    await db.query(`select * from public.evaluate_object_set($1, p_application => 'object-explorer')`, [busy])
+    await db.query(`select public.count_object_set($1, '[]'::jsonb, 'object-explorer')`, [busy])
+    await db.query(`select * from public.aggregate_object_set($1, p_application => 'object-explorer')`, [busy])
+    await db.query(`select * from public.histogram_object_set($1, p_application => 'object-explorer')`, [busy])
+
+    const rows = await db.query(
+      `select reads, writes, user_id, day from public.ontology_usage
+        where object_type_id = $1 and application = 'object-explorer'`, [busy])
+    expect(rows.rows).toEqual([
+      { reads: 4, writes: 0, user_id: user, day: expect.anything() },
+    ])
+  })
+
+  it('a nameless read records nothing, which keeps every suite out of the metrics', async () => {
+    await db.query(`select * from public.evaluate_object_set($1)`, [busy])
+    const n = await one(
+      `select count(*)::int as n from public.ontology_usage
+        where object_type_id = $1 and application is null`, [busy])
+    expect(Number(n.n)).toBe(0)
+    await db.query(`select set_config('request.jwt.claims','',true)`)
+  })
+
   it('names one resource, never two', async () => {
     const err = await refused(db, () => db.query(
       `select public.record_ontology_usage($1,$2,'quiver',1,0)`, [busy, busy]))
