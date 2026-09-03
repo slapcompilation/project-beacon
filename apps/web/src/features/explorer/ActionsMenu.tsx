@@ -17,6 +17,7 @@ import {
   useActionFormEffective, useActionTypes, useApplyAction, useFormSections,
   type ActionParameterRow, type ActionTypeRow,
 } from '@/features/actionTypes/api'
+import { useReindex } from '@/features/objectTypes/indexing'
 
 const ACTION_CAP = 1000
 
@@ -81,7 +82,7 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
       </Popover>
       {running && (
         <RunActionDialog action={running} targets={targets} selectedRow={selectedRow ?? null}
-          onClose={() => { setRunning(null) }} />
+          objectTypeId={objectTypeId} onClose={() => { setRunning(null) }} />
       )}
     </>
   )
@@ -90,14 +91,19 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
 // Exported since F6.5/F9: the OMA's Apply reuses THIS dialog, so both apply
 // surfaces agree about what the form is — sections, defaults, overrides,
 // through the one resolver.
-export function RunActionDialog({ action, targets, selectedRow, onClose }: {
+export function RunActionDialog({ action, targets, selectedRow, objectTypeId, onClose }: {
   action: ActionTypeRow
   targets: string[]
   selectedRow: Record<string, unknown> | null
+  /** The type the targets belong to — how the selection finds its
+   *  object-reference parameter. Absent from the OMA's Apply. */
+  objectTypeId?: string
   onClose: () => void
 }) {
   const apply = useApplyAction()
+  const reindex = useReindex()
   const [values, setValues] = useState<Record<string, string>>({})
+  const [runError, setRunError] = useState<string | null>(null)
   const [prefills, setPrefills] = useState<Record<string, string> | null>(null)
   const [debounced, setDebounced] = useState<Record<string, string>>({})
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -116,8 +122,16 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
   const { data: form } = useActionFormEffective(action.id, debounced)
   const { data: sectionOrder = [] } = useFormSections(action.id)
 
+  const functionBacked = action.action_type_rules.some((r) => r.kind === 'function')
+  // "a `Demo Ticket` parameter of type Object reference has been created" —
+  // the selection reaches a function-backed action through this parameter.
+  const objectParam = objectTypeId !== undefined
+    ? action.action_type_parameters.find((p) => p.data_kind === 'object' && p.object_type_id === objectTypeId)
+    : undefined
+
   // prefill once, when the effective form first arrives: static values
-  // directly, object-property values from the one selected row
+  // directly, object-property values from the one selected row, and the one
+  // selected object into its object-reference parameter
   useEffect(() => {
     if (form === undefined || prefills !== null) return
     const next: Record<string, string> = {}
@@ -135,9 +149,10 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
         }
       }
     }
+    if (objectParam !== undefined && targets.length === 1) next[objectParam.api_name] = targets[0]
     setPrefills(next)
     if (Object.keys(next).length > 0) setValues((prev) => ({ ...next, ...prev }))
-  }, [form, action, selectedRow, targets, prefills])
+  }, [form, action, selectedRow, targets, prefills, objectParam])
 
   const targeted = needsTarget(action)
   const touched = action.action_type_rules
@@ -157,22 +172,49 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
   }, [parameters, form])
   const loose = parameters.filter((p) => (form?.parameters[p.api_name]?.section ?? null) === null)
 
-  const functionBacked = action.action_type_rules.some((r) => r.kind === 'function')
+  // invoke wraps every non-2xx as a generic FunctionsHttpError; the named
+  // error action-apply returned is the response body, on error.context.
+  const invokeOnce = async (parameters: Record<string, string>): Promise<number> => {
+    const res = await supabase.functions.invoke('action-apply', {
+      body: { actionTypeId: action.id, parameters },
+    }) as { data: unknown; error: { message: string; context?: unknown } | null }
+    if (res.error) {
+      const ctx = res.error.context
+      const named = ctx instanceof Response
+        ? await ctx.json().then((b: { error?: string; detail?: string }) =>
+            b.error !== undefined ? `${b.error}${b.detail !== undefined ? ` — ${b.detail}` : ''}` : null)
+          .catch(() => null)
+        : null
+      throw new Error(named ?? res.error.message)
+    }
+    const body = res.data as { error?: string; written?: number } | null
+    if (body?.error !== undefined) throw new Error(body.error)
+    return body?.written ?? 0
+  }
 
   const run = async () => {
     setBusy(true)
+    setRunError(null)
     try {
       if (functionBacked) {
         // "The only way to update objects using a function is by configuring
         // an action to use the function" — apply_action is SQL and cannot run
-        // TypeScript, so this door goes through the isolate.
-        const res = await supabase.functions.invoke('action-apply', {
-          body: { actionTypeId: action.id, parameters: values },
-        }) as { data: unknown; error: { message: string } | null }
-        if (res.error) throw new Error(res.error.message)
-        const body = res.data as { error?: string; written?: number } | null
-        if (body?.error !== undefined) throw new Error(body.error)
-        toast.success(`${action.label} applied — ${body?.written ?? 0} edit${body?.written === 1 ? '' : 's'}`)
+        // TypeScript, so this door goes through the isolate. One apply per
+        // selected object, the same reading of the selection as the SQL branch.
+        let written = 0
+        if (objectParam !== undefined && effTargets.length > 1) {
+          for (const pk of effTargets) {
+            written += await invokeOnce({ ...values, [objectParam.api_name]: pk })
+          }
+        } else {
+          written = await invokeOnce(values)
+        }
+        toast.success(`${action.label} applied — ${written} edit${written === 1 ? '' : 's'}`)
+        // An edit is invisible to reads until its index rebuilds — the SQL
+        // branch reindexes through useApplyAction, so this branch follows for
+        // the type in view. Types the function edits beyond it stay on the
+        // scheduler.
+        if (objectTypeId !== undefined && written > 0) reindex.mutate(objectTypeId)
       } else if (!targeted) {
         await new Promise<void>((res, rej) => {
           apply.mutate({ actionTypeId: action.id, parameters: values, objectTypeIds: touched },
@@ -190,8 +232,11 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
         toast.success(`${action.label} applied to ${effTargets.length} object${effTargets.length === 1 ? '' : 's'}`)
       }
       onClose()
-    } catch {
-      // useApplyAction already toasts the named error.
+    } catch (e) {
+      // The SQL branch's named error is also toasted by useApplyAction; the
+      // function branch has only this surface, so the dialog stays open and
+      // says what refused.
+      setRunError(e instanceof Error ? e.message : String(e))
     } finally {
       setBusy(false)
     }
@@ -223,7 +268,7 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
       <DialogBody>
         <div className="space-y-2">
           {action.description && <p className="text-xs text-muted-foreground">{action.description}</p>}
-          {targeted && (
+          {(targeted || (functionBacked && objectParam !== undefined && targets.length > 0)) && (
             <Tag minimal round>
               Applies to {targets.length} object{targets.length === 1 ? '' : 's'}
             </Tag>
@@ -267,7 +312,11 @@ export function RunActionDialog({ action, targets, selectedRow, onClose }: {
                 onChange={(e) => { setManualPk(e.currentTarget.value) }} />
             </label>
           )}
-          {apply.error && <Callout intent={Intent.DANGER} className="!text-[11px]">{apply.error.message}</Callout>}
+          {(runError !== null || apply.error) && (
+            <Callout intent={Intent.DANGER} className="!text-[11px]">
+              {runError ?? apply.error?.message}
+            </Callout>
+          )}
         </div>
       </DialogBody>
       <DialogFooter actions={
