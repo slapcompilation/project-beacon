@@ -68,17 +68,19 @@ export function useObjectViewTabs(viewId: string | null) {
 }
 
 /** One object's merged row, read through the same engine the Explorer uses —
- *  an exact-match filter on the primary key property. */
+ *  an exact-match filter on the primary key property. Applied, not executed:
+ *  since 746 a named read records itself in the usage ledger. */
 export function useObjectRecord(typeId: string | null, pkPropertyId: string | null, pk: string | null) {
   return useQuery({
     queryKey: keys.record(typeId ?? '', pk ?? ''),
     enabled: typeId !== null && pkPropertyId !== null && pk !== null,
     queryFn: async (): Promise<Record<string, unknown> | null> => {
-      const rows = await client(evaluateObjectSet).executeFunction({
+      const rows = await client(evaluateObjectSet).applyAction({
         p_object_type: typeId as string,
         p_filters: [{ type: 'propertyFilter', propertyType: pkPropertyId,
           value: { type: 'valuesFilter', values: [pk] } }] as unknown as Json,
         p_limit: 1, p_offset: 0,
+        p_application: 'object-views',
       })
       return (rows as Record<string, unknown>[]).at(0) ?? null
     },

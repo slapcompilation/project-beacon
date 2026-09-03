@@ -85,6 +85,9 @@ export function useTypeGroups() {
 }
 
 // ── the engine ─────────────────────────────────────────────────────────────
+// The readers are applied, not executed: since 746 a named read records
+// itself in the usage ledger, which makes them writes under the client's
+// volatility contract.
 
 const filterKey = (filters: ExplorerFilter[]) => JSON.stringify(filters)
 
@@ -93,8 +96,9 @@ export function useObjectSetCount(typeId: string | null, filters: ExplorerFilter
     queryKey: ['explorer', 'count', typeId, filterKey(filters)],
     enabled: typeId !== null,
     queryFn: async (): Promise<number> => {
-      return client(countObjectSet).executeFunction({
-        p_object_type: typeId as string, p_filters: filters as unknown as Json })
+      return client(countObjectSet).applyAction({
+        p_object_type: typeId as string, p_filters: filters as unknown as Json,
+        p_application: 'object-explorer' })
     },
   })
 }
@@ -106,9 +110,10 @@ export function useObjectSetRows(
     queryKey: ['explorer', 'rows', typeId, filterKey(filters), JSON.stringify(sort), limit],
     enabled: typeId !== null,
     queryFn: async (): Promise<ObjectRow[]> => {
-      const rows = await client(evaluateObjectSet).executeFunction({
+      const rows = await client(evaluateObjectSet).applyAction({
         p_object_type: typeId as string, p_filters: filters as unknown as Json,
-        p_sort: sort as unknown as Json, p_limit: limit, p_offset: 0 })
+        p_sort: sort as unknown as Json, p_limit: limit, p_offset: 0,
+        p_application: 'object-explorer' })
       return rows as ObjectRow[]
     },
   })
@@ -122,10 +127,11 @@ export function useObjectSetAggregate(
     queryKey: ['explorer', 'agg', typeId, filterKey(filters), groupBy, aggProperty, limit],
     enabled: typeId !== null,
     queryFn: async (): Promise<AggregateRow[]> => {
-      const rows = await client(aggregateObjectSet).executeFunction({
+      const rows = await client(aggregateObjectSet).applyAction({
         p_object_type: typeId as string, p_filters: filters as unknown as Json,
         p_group_by: groupBy ?? undefined, p_agg_property: aggProperty ?? undefined,
-        p_sort_by: 'count', p_desc: true, p_limit: limit })
+        p_sort_by: 'count', p_desc: true, p_limit: limit,
+        p_application: 'object-explorer' })
       return rows as AggregateRow[]
     },
   })
@@ -138,9 +144,10 @@ export function useObjectSetHistogram(
     queryKey: ['explorer', 'hist', typeId, filterKey(filters), property, buckets],
     enabled: typeId !== null && property !== null,
     queryFn: async (): Promise<HistogramBucket[]> => {
-      const rows = await client(histogramObjectSet).executeFunction({
+      const rows = await client(histogramObjectSet).applyAction({
         p_object_type: typeId as string, p_filters: filters as unknown as Json,
-        p_property: property as string, p_buckets: buckets })
+        p_property: property as string, p_buckets: buckets,
+        p_application: 'object-explorer' })
       return rows as HistogramBucket[]
     },
   })
