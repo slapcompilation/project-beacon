@@ -151,6 +151,18 @@ describe.skipIf(noDb)('the exploration engine', () => {
       value: { type: 'dateRangeFilter', dateRangeFilter: { start: '2026-02-15' } } }])).toBe(2)
   })
 
+  it('lists the linked objects over foreign-key backing, both directions (752)', async () => {
+    // A flight's one airline, and an airline's flights — whole far rows.
+    const mine = await db.query(
+      `select e from public.list_linked_objects($1,'F1','flight-to-airline') e`, [flight])
+    expect(mine.rows.map((r) => (r.e as { airline_id: string }).airline_id)).toEqual(['A1'])
+    const theirs = await db.query(
+      `select e from public.list_linked_objects($1,'A1','flight-to-airline') e`, [airline])
+    expect(theirs.rows.map((r) => (r.e as { flight_id: string }).flight_id)).toEqual(['F1', 'F2', 'F3'])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A1','flight-to-airline') as n`, [airline])).n)).toBe(3)
+  })
+
   it('filters on link presence over foreign-key backing, both ways', async () => {
     const has = { type: 'linkFilter', linkType: 'flight-to-airline',
       value: { type: 'presenceFilter', matchType: 'MUST_HAVE' } }

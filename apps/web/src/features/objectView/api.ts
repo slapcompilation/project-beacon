@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
-import { evaluateObjectSet, type Json } from '@beacon/platform'
+import { evaluateObjectSet, listLinkedObjects, countLinkedObjects, type Json } from '@beacon/platform'
 
 export interface ObjectView {
   id: string
@@ -84,6 +84,35 @@ export function useObjectRecord(typeId: string | null, pkPropertyId: string | nu
       })
       return (rows as Record<string, unknown>[]).at(0) ?? null
     },
+  })
+}
+
+/** THIS object's linked rows through one link type — whole far objects, a
+ *  page at a time. The api's shape: no totalCount rides along, so the badge
+ *  is the companion count below. Applied, not executed: a named read records
+ *  itself against the FAR type (752). */
+export function useLinkedObjects(typeId: string | null, pk: string | null, link: string, limit: number) {
+  return useQuery({
+    queryKey: ['linked-objects', typeId, pk, link, limit],
+    enabled: typeId !== null && pk !== null,
+    placeholderData: (prev) => prev,
+    queryFn: async (): Promise<Record<string, unknown>[]> => {
+      const rows = await client(listLinkedObjects).applyAction({
+        p_object_type: typeId as string, p_primary_key: pk as string, p_link: link,
+        p_limit: limit, p_offset: 0, p_application: 'object-views',
+      })
+      return rows as Record<string, unknown>[]
+    },
+  })
+}
+
+export function useLinkedCount(typeId: string | null, pk: string | null, link: string) {
+  return useQuery({
+    queryKey: ['linked-count', typeId, pk, link],
+    enabled: typeId !== null && pk !== null,
+    queryFn: (): Promise<number> => client(countLinkedObjects).executeFunction({
+      p_object_type: typeId as string, p_primary_key: pk as string, p_link: link,
+    }),
   })
 }
 

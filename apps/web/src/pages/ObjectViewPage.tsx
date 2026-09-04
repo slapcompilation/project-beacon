@@ -15,6 +15,7 @@ import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import { ActionsMenu } from '@/features/explorer/ActionsMenu'
 import {
   useObjectViewFor, useObjectViewTabs, useObjectRecord, useObjectHistory,
+  useLinkedObjects, useLinkedCount,
 } from '@/features/objectView/api'
 import { EmbeddedModule } from '@/features/objectView/EmbeddedModule'
 import { FormattedValue } from '@/features/formatting/FormattedValue'
@@ -95,6 +96,58 @@ function ConfiguredBody({ viewId }: { viewId: string }) {
   )
 }
 
+/** One link type's rows for THIS object: the far objects themselves, ten at a
+ *  time — the shape Workshop's widget documents ("Viewing 10 of 23,814 ·
+ *  Show more") — with the count beside the name. An unreadable backing shows
+ *  its named refusal rather than an empty list. */
+function LinkedSection({ typeId, pk, link, label, farId, farLabel, titleKey, pkKey }: {
+  typeId: string; pk: string; link: string; label: string
+  farId: string; farLabel: string; titleKey: string | null; pkKey: string | null
+}) {
+  const [limit, setLimit] = useState(10)
+  const { data: rows = [], error } = useLinkedObjects(typeId, pk, link, limit)
+  const { data: total } = useLinkedCount(typeId, pk, link)
+
+  return (
+    <div>
+      <div className="flex items-center gap-2">
+        <Icon icon="link" size={11} />
+        <span className="text-xs font-medium">{label}</span>
+        <span className="text-[11px] text-muted-foreground">{farLabel}</span>
+        {total !== undefined && <Tag minimal round className="!text-[10px]">{total}</Tag>}
+      </div>
+      {error ? (
+        <p className="text-[11px] text-muted-foreground mt-1">{error.message}</p>
+      ) : rows.length === 0 ? (
+        <p className="text-[11px] text-muted-foreground mt-1">No linked objects.</p>
+      ) : (
+        <div className="mt-1 space-y-0.5">
+          {rows.map((r) => {
+            const scalar = (v: unknown) =>
+              typeof v === 'string' || typeof v === 'number' ? String(v) : null
+            const farPk = (pkKey !== null ? scalar(r[pkKey]) : null) ?? ''
+            const title = (titleKey !== null ? scalar(r[titleKey]) : null) ?? farPk
+            return (
+              <Link key={farPk} to={`/objects/${farId}/${farPk}`}
+                className="flex items-center gap-2 text-xs no-underline link-quiet">
+                <Icon icon="cube" size={10} />
+                <span>{title}</span>
+                {title !== farPk && <span className="font-mono text-[10px] text-muted-foreground">{farPk}</span>}
+              </Link>
+            )
+          })}
+          {total !== undefined && total > rows.length && (
+            <Button size="small" variant="minimal" className="!text-[11px]"
+              onClick={() => { setLimit(limit + 10) }}>
+              Viewing {rows.length} of {total} · Show more
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
   const { data: typeRows = [] } = useObjectTypes()
   const types = typeRows.map(rowToObjectType)
@@ -161,13 +214,15 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
           {links.length === 0 ? (
             <p className="text-sm text-muted-foreground mt-1">This type has no link types.</p>
           ) : (
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="space-y-3 mt-2">
               {links.map((lt) => {
                 const farId = lt.sourceTypeId === typeId ? lt.targetTypeId : lt.sourceTypeId
+                const far = types.find((t) => t.id === farId)
                 return (
-                  <Link key={lt.id} to={`/explorer/${farId}`} className="no-underline">
-                    <Tag minimal interactive icon="link">{lt.label} → {labelOf(farId)}</Tag>
-                  </Link>
+                  <LinkedSection key={lt.id} typeId={typeId} pk={pk} link={lt.apiName}
+                    label={lt.label} farId={farId} farLabel={labelOf(farId)}
+                    titleKey={far?.properties.find((p) => p.isTitleKey)?.key ?? null}
+                    pkKey={far?.properties.find((p) => p.isPrimaryKey)?.key ?? null} />
                 )
               })}
             </div>

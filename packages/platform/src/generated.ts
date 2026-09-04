@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (110) ────────────────────────────────────────────────
+// ── ACTION TYPES (111) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -529,6 +529,17 @@ export const lineageGraph = { apiName: 'lineage_graph', kind: 'action' } as Acti
 export const linkIndexJobSpec = { apiName: 'link_index_job_spec', kind: 'action' } as ActionType<
   { p_link: string },
   string
+>
+
+/**
+ *  Lists the linked objects for a specific object and the given link type
+ *  (api list-linked-objects): a page of whole far objects, no totalCount —
+ *  count_linked_objects is the companion. FK and join-table backing;
+ *  object-backed refused. 752.
+ */
+export const listLinkedObjects = { apiName: 'list_linked_objects', kind: 'action' } as ActionType<
+  { p_object_type: string; p_primary_key: string; p_link: string; p_limit?: number; p_offset?: number; p_application?: string },
+  Json[]
 >
 
 /**
@@ -1059,7 +1070,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (321) ───────────────────────────────────────────────────
+// ── FUNCTIONS (322) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1954,6 +1965,11 @@ export const compileWorkbookTransform = { apiName: 'compile_workbook_transform',
 export const contourBoardKinds = { apiName: 'contour_board_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
   { kind: string; description: string; visualize: boolean; filter_rows: boolean; aggregate: boolean; manipulate_columns: boolean; remove_duplicates: boolean; built: boolean; note: string }[]
+>
+
+export const countLinkedObjects = { apiName: 'count_linked_objects', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_primary_key: string; p_link: string },
+  number
 >
 
 export const countObjectSetByApiName = { apiName: 'count_object_set_by_api_name', kind: 'function' } as FunctionType<
