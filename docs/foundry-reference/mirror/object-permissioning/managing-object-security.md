@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-permissioning/managing-object-security/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-permissioning/managing-object-security/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Manage object security
 
@@ -22,6 +22,10 @@ Some property values refer to data stored in additional resources outside of the
 Object and property security policies allow you to set view permissions on object instances and their properties to achieve cell-level permissions. These can be directly managed in the object type’s Ontology Manager view and are independent of the permissions on the backing data sources.
 
 The visibility of an object instance is governed by its object security policy, whereas the visibility of a property value is governed by its property security policy. Mandatory and classification based access controls, as well as granular access controls, can be applied to object and property security policies. Together, they allow for cell-level security in the Ontology.
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Granular row and column controls within an object or property security policy filter what a user can read. These controls do not extend to downstream outputs or exports. However, mandatory and classification-based controls within the same policy continue to apply to derived data. To keep row and column data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
+:::
 
 [Learn more about setting up object and property security policies.](/docs/foundry/object-permissioning/object-security-policies/)
 

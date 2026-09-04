@@ -276,10 +276,11 @@ From `action-types/action-log`:
 
 > "**Action RID:** Unique identifier for a single **action submission**"
 
-and from `action-types/getting-started`:
+and from `action-types/getting-started` (re-mirrored 2026-09-04; the sentence
+lost its doubled "paste" upstream, and the argument survives unchanged):
 
-> "Copy and paste the action RID from the **Ontology Manager** and paste it into
-> the **Action RID** field."
+> "Copy the action RID from the Ontology Manager and paste it into the Action
+> RID field."
 
 The first is an instance. The second is copied from Ontology Manager, where
 action *types* live — and `getting_started_add_RID.png` settles it by showing the

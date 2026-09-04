@@ -1,8 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/rules/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/rules/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Rules
 
 **Rules** define the logic of the action type that transform the parameters into Ontology edits or other effects. There are two main types of rules: ones that edit the Ontology, and ones that trigger another effect in Foundry.
+
+For a guided introduction to what the rules below let you build, review [explore other action types](/docs/foundry/action-types/explore-action-types/).
 
 ## Ontology rules
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/monitoring/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/monitoring/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Action monitoring
 
@@ -34,3 +34,5 @@ Action monitors support **Workflow Lineage**, **Workshop**, and **OSDK applicati
 
 * [Monitoring rules reference](/docs/foundry/monitoring-views/rules-reference/#action-rules)
 * [Monitoring views overview](/docs/foundry/monitoring-views/overview/)
+* [Action metrics](/docs/foundry/action-types/action-metrics/)
+* [Action log](/docs/foundry/action-types/action-log/)

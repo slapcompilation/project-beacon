@@ -102,7 +102,7 @@ to a field list the prose gives:
 > 4. Provide a clear name, description, and unique API name for your value type.
 
 > 5. Choose a [base type](/docs/foundry/object-link-types/base-types/) for your value type.
-> 6. (Optional) Define a constraint for your value type. Validators can be regular expressions for `String` types, enums, ranges, or other validation methods depending on the base type.
+> 6. (Optional) Define a constraint for your value type. Validation methods include regular expressions for `String` types, enumerated values, ranges, and other methods depending on the base type.
 
 > 7. (Optional but recommended) Provide an example preview value for your value type.
 
@@ -361,9 +361,13 @@ it is not written down anywhere as a sequence. Question 4.
 
 ## 5 — Binding: how a property uses one
 
-`use-value-type.md` in full, opening typo included:
+`use-value-type.md`'s opening (re-mirrored 2026-09-04: the old use-it-in-as
+typo is fixed upstream, the definition broadened to cover reusable
+constraints, and a FOURTH use case appeared — constraining action parameters,
+which our `action_type_parameters` has no value_type binding for; recorded as
+a gap, not built):
 
-> Once you have [created a value type](/docs/foundry/object-link-types/create-value-type/), you can use it in as a data type across Foundry. Value types can be supported for the use cases listed below.
+> Once you have [created a value type](/docs/foundry/object-link-types/create-value-type/), you can use it as a data type or reusable constraint across Foundry. Supported use cases include:
 
 > * Assigning a value type to an object type property.
 > * Assigning a value type to a shared property.
@@ -1102,7 +1106,7 @@ not free choices.
 
 > "5. Choose a [base type](/docs/foundry/object-link-types/base-types/) for your value type."
 
-> "6. (Optional) Define a constraint for your value type. Validators can be regular expressions for `String` types, enums, ranges, or other validation methods depending on the base type."
+> "6. (Optional) Define a constraint for your value type. Validation methods include regular expressions for `String` types, enumerated values, ranges, and other methods depending on the base type."
 
 **"depending on the base type"** — and the screenshot proves it is the picker
 that depends, not the user. For a String value type the Constraint type control

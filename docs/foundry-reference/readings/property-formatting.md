@@ -116,7 +116,10 @@ and time (long)" / "Date and time (short)"; the capture's dropdown says
 Date, Date and time, Date and time short, ISO instant, Relative to now,
 Time — with the relative cap:
 
-> "When formatting **Relative to now**, applications will only format in relative terms up to 24 hours ago. After this, it will render in **Date and time (short)** form with the day of the week: `Wed, Jul 22, 2020, 1:00 PM`."
+> "When formatting **Relative to now**, applications will only format in relative terms up to 24 hours ago. After this, it will render in **Date and time, short** form with the day of the week: `Wed, Jul 22, 2020, 1:00 PM`."
+
+*(Re-mirrored 2026-09-04: the page now names the fallback "Date and time,
+short" where it said "Date and time (short)" — a label spelling change only.)*
 
 — `object-link-types/value-formatting.md`
 

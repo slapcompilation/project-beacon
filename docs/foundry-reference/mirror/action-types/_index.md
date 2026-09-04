@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Action types
 
@@ -21,4 +21,4 @@ Rather than being an abstract data model, the Foundry Ontology maps each ontolog
 
 Any changes made to objects, property values, and links will be committed to the Ontology when the user takes the action and will be reflected in all user applications. Likewise, the same action logic and validations can be made available across all user-facing applications, ensuring consistent edits to the Ontology. The most up-to-date version of object data with user edits incorporated will be captured in an object type's writeback dataset.
 
-Get started by learning how to [create an action type](/docs/foundry/action-types/getting-started/), or learn about [rules](/docs/foundry/action-types/rules/), [parameters](/docs/foundry/action-types/parameter-overview/), and [submission criteria](/docs/foundry/action-types/submission-criteria/).
+Get started by learning how to [create an action type](/docs/foundry/action-types/getting-started/) and [explore other action types](/docs/foundry/action-types/explore-action-types/), or learn about [rules](/docs/foundry/action-types/rules/), [parameters](/docs/foundry/action-types/parameter-overview/), and [submission criteria](/docs/foundry/action-types/submission-criteria/).

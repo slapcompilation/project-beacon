@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/oss-limitations/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/oss-limitations/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Object Set Service limitations
 
@@ -81,8 +81,8 @@ When you perform a Search Around operation to traverse a link relationship betwe
 
 For example, when you search from a set of customer objects to find all related order objects through a link relationship:
 
-* The **starting set** is your customer objects (the objects you're searching from)
-* The **result set** is the order objects that are linked to those customers (the objects you're searching to)
+* The **starting set** is your customer objects (the objects you are searching from)
+* The **result set** is the order objects that are linked to those customers (the objects you are searching to)
 
 OSS implements Search Around operations using a left-semi join, which returns only the objects from the result set that have matching links, without duplicating data from the starting set. The 10 million object limit applies to this result set — the total collection of distinct objects returned after traversing the link relationship.
 

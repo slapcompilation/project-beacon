@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/struct-main-fields/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/struct-main-fields/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Struct main fields \[Beta]
 

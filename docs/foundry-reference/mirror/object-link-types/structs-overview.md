@@ -1,18 +1,19 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/structs-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/structs-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Structs
 
-A **struct** is an Ontology property [base type](/docs/foundry/object-link-types/base-types/) that allows users to create schema-based properties with multiple fields. Struct properties are created from struct type dataset columns. Struct property fields can have different data sources as long as the property is transformed into a single struct type column before being defined in the Ontology.
+A **struct** is an Ontology property [base type](/docs/foundry/object-link-types/base-types/) that lets a single property hold several fields instead of one value. You declare those fields when you define the property, and each field has its own name and type. You can model many common object properties this way. For example, a `Full Name` property can hold the fields `firstName` and `lastName`, and an `Address` property can hold `street`, `city`, `postalCode`, and `country`.
 
-Many common object properties can be modeled as structs. For example, a `Full Name` property with the fields `First Name` and `Last Name`, or an `Address` property that includes `Street`, `City`, `Postal Code`, and `Country` fields.
+A struct property is backed by a single datasource column whose type is itself a struct. In Ontology Manager, you select that column as the property's **Backing column** when you [create the struct property](/docs/foundry/object-link-types/create-struct-type/). The field values can start out in different datasources, as long as you combine them into a single struct type column before you define the property in the Ontology.
 
 ## Struct configuration
 
-The following is a list of struct property constraints and allowed configurations:
+Struct properties have the following constraints:
 
-* Structs have a depth of one and cannot be nested.
-* Structs must have at least 1 field.
-* Only the following field types are currently supported:
+* A struct property cannot contain another struct.
+* A struct field cannot be an array, although a struct property itself can hold an array of structs.
+* A struct property must have at least one field.
+* Struct property fields currently support only the following types:
   * `BOOLEAN`
   * `BYTE`
   * `DATE`
@@ -28,21 +29,21 @@ The following is a list of struct property constraints and allowed configuration
 
 ## Query semantics
 
-Structs are indexed similarly to [ElasticSearch object field types ↗](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/object), which means that arrays can have unintuitive behavior. For example, if you have an array of `Full Name` properties, an object containing `[{"firstName": "Harvey", "lastName": "Dent"}, {"firstName": "Two", "lastName": "Face"}]` would match a query for `"firstName": "Harvey" AND "lastName": "Face"`. The two conditions are treated independently, rather than requiring to match on the same struct within the array.
+Structs are indexed similarly to [ElasticSearch object field types ↗](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/object), which means that a query evaluates each field condition independently. When a struct property holds an array, a query can match an object even though no single struct in that array satisfies every condition.
+
+For example, consider a `Full Name` property that holds an array of values. If an object stores `[{"firstName": "Ada", "lastName": "Chen"}, {"firstName": "Blake", "lastName": "Moreau"}]`, a query for `"firstName": "Ada" AND "lastName": "Moreau"` matches that object. The first value satisfies the `firstName` condition and the second satisfies the `lastName` condition, so both conditions are met even though neither value meets both on its own.
 
 ## Current levels of support
 
-As support for struct property types expands, availability will vary across the Palantir platform.
-
-Structs are currently supported in the following applications and services:
+Support for struct properties is still expanding, so availability varies across the Palantir platform. Structs are currently supported in the following applications and services:
 
 * **[Ontology Manager](/docs/foundry/ontology-manager/overview/):** Define and edit structs.
-* **[Actions](/docs/foundry/action-types/overview/):** Use actions to [create and modify struct property values](/docs/foundry/action-types/actions-on-structs/).
+* **[Actions](/docs/foundry/action-types/overview/):** [Create and modify struct property values](/docs/foundry/action-types/actions-on-structs/).
 * **[Pipeline Builder](/docs/foundry/pipeline-builder/overview/):** Define and edit structs.
 * **[Workshop](/docs/foundry/workshop/overview/):** Display and use struct properties as variables.
 * **[Marketplace](/docs/foundry/marketplace/overview/):** Package and install struct properties.
-* **[Object Explorer](/docs/foundry/object-explorer/search-objects/):** Search for objects by their struct property values (struct field search is under development).
-* **[Ontology SDK](/docs/foundry/ontology-sdk/overview/):** Load struct properties and search for objects by their struct property values in Ontology SDK applications. Not all Ontology SDKs support struct properties. Refer to the OSDK [unsupported property types](/docs/foundry/ontology-sdk/unsupported-types/#object-types-unsupported-property-types) for more information.
-* **[Functions](/docs/foundry/functions/overview/):** Struct parameters and struct property edits are supported in TypeScript v2 and Python functions.
+* **[Object Explorer](/docs/foundry/object-explorer/search-objects/):** Search for objects by their struct property values. Struct field search is under development.
+* **[Ontology SDK](/docs/foundry/ontology-sdk/overview/):** Load struct properties and search for objects by their struct property values. Not every Ontology SDK supports struct properties, so refer to the [unsupported property types](/docs/foundry/ontology-sdk/unsupported-types/#object-types-unsupported-property-types) documentation.
+* **[Functions](/docs/foundry/functions/overview/):** TypeScript v2 and Python functions support struct parameters and struct property edits.
 
-Structs will not be supported in Object Storage v1 (Phonograph) and can currently only be created from datasets and Restricted Views.
+Structs will not be supported in Object Storage v1 (Phonograph). You can currently create struct properties only from datasets and restricted views.

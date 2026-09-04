@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 **Conditional formatting** enables the configuration of rules for any property and dictates how that property’s values will be rendered (e.g. coloring, alignment, etc.) in user facing applications. When you configure conditional formatting in the Ontology Manager, the formatting rules will apply in Object Explorer, Object Views, Quiver, and Workshop.
 

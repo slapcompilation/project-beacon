@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Set parameter default value
 

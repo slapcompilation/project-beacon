@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/permissions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -16,6 +16,10 @@ The ability to apply an action type depends on the configuration of the object t
 Use the **Check access** panel in the sidebar to check a user's access to a Workshop module, including access to dependent action types and their submission criteria. For more information, review the [check access panel documentation](/docs/foundry/security/checking-permissions/).
 :::
 
+:::callout{theme="warning" title="Read-time enforcement only"}
+Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/)) filter what a user can read when invoking an action. These controls do not extend to the action's write. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
+:::
+
 ### Submission criteria
 
 Action submission criteria allow for fine-grained control over who can run an action. Simple submission criteria can require a specific user ID or group ID and can be combined with information from parameters. For more information see the [submission criteria documentation](/docs/foundry/action-types/submission-criteria/).
@@ -23,6 +27,10 @@ Action submission criteria allow for fine-grained control over who can run an ac
 ### Read and write authorizations
 
 Read and write authorizations limit which marked data an action can read directly or receive as input from other logic and enforce minimum security for data it creates or modifies. For more information see the [read and write authorizations documentation](/docs/foundry/action-types/read-write-authorizations/).
+
+### Action log permissions
+
+If an action type is configured with an [action log](/docs/foundry/action-types/action-log/), the user submitting the action needs the appropriate permissions for the action log object type. The same requirement applies to any other object type the action creates or modifies. Without those permissions, the action fails at submission.
 
 ### Object edits permissions
 

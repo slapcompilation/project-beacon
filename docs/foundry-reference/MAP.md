@@ -44,7 +44,7 @@ stay findable.
 - `parameter-overview` — Parameters
 - `parameter-performance-considerations` — Performance considerations for parameter configuration
 - `parameters-default-value` — Set parameter default value
-- `parameters-filter` — Filter results of a parameter dropdown
+- `parameters-filter` — Filter results of a parameter dropdown menu
 - `parameters-override` — Overrides
 - `permissions` — Permissions
 - `read-write-authorizations` — Read and write authorizations

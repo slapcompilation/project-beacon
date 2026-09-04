@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-permissioning/object-security-policies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-permissioning/object-security-policies/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Object and property security policies
 
@@ -7,6 +7,10 @@ Object security policies allow you to configure view permissions on an object in
 The visibility of specific properties can be guarded using additional *property security policies*. These are identical to object security policies, except they only apply to a selection of properties. These are used to achieve *column-level security*.
 
 By default, object security policies are applied to all properties. When a property security policy includes a property, the user must pass both the object security policy and the property security policy to view the property value. The combination of object and property security policies is used to achieve *cell-level security*. If a user does not pass the object security policy, the object instance will not be viewable to that user. If they pass the object security policy but do not pass the property security policy, they will see a *null* value in place of the property value.
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Object and property security policies filter what a user can read. Users can never read object instances or property values they are not authorized to see. These controls do not extend to downstream outputs or exports. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
+:::
 
 ## Configure object and property security policies
 
