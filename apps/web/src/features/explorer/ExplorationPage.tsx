@@ -85,7 +85,8 @@ export default function ExplorationPage() {
     const chosen = charts ?? props.filter((p) => p.visibility === 'prominent').map((p) => p.property_id)
     return chosen
       .map((id) => props.find((p) => p.property_id === id))
-      .filter((p): p is PropertyRow => p !== undefined)
+      // a derived property has no computed value to chart yet (757)
+      .filter((p): p is PropertyRow => p !== undefined && p.source !== 'linked_objects')
   }, [charts, props])
 
   const { data: count } = useObjectSetCount(type?.id ?? null, filters)
@@ -140,7 +141,10 @@ export default function ExplorationPage() {
               : describe(f)}
           </Tag>
         ))}
-        <AddFilter props={props} typeLabel={type.label} relations={relations}
+        {/* A derived property has no computed value yet (757): it cannot be
+            filtered, charted or sorted, so the affordances exclude it. */}
+        <AddFilter props={props.filter((p) => p.source !== 'linked_objects')}
+          typeLabel={type.label} relations={relations}
           hasLinkFilter={filters.some((f) => f.type === 'linkFilter')} onAdd={addFilter} />
         {filters.length > 0 && (
           <Button variant="minimal" size="small" onClick={() => { setFilters([]) }}>Clear</Button>
@@ -164,7 +168,8 @@ export default function ExplorationPage() {
                   setCharts(chartProps.filter((x) => x.property_id !== p.property_id).map((x) => x.property_id))
                 }} />
             ))}
-            <AddChart props={props} charted={chartProps.map((p) => p.property_id)}
+            <AddChart props={props.filter((p) => p.source !== 'linked_objects')}
+              charted={chartProps.map((p) => p.property_id)}
               onAdd={(id) => { setCharts([...chartProps.map((p) => p.property_id), id]) }} />
           </div>
           <PreviewRail type={type.id} filters={filters}
@@ -318,7 +323,8 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
 }) {
   const { data: rows = [], isLoading } = useObjectSetRows(type, filters, sort, 100)
   // Strings sort only with the render hint; numeric and date always do.
-  const sortable = (p: PropertyRow) => p.base_type !== 'string' || p.sortable
+  const sortable = (p: PropertyRow) =>
+    p.source !== 'linked_objects' && (p.base_type !== 'string' || p.sortable)
   const cycle = (p: PropertyRow) => {
     const at = sort.find((s) => s.property === p.property_id)
     if (!at) setSort([...sort, { property: p.property_id, direction: 'asc' }])
