@@ -202,6 +202,62 @@ describe.skipIf(noDb)('the exploration engine', () => {
     await db.query(`delete from public.object_type_properties where id = $1`, [drv])
   })
 
+  it('a derived property computes at read time (758)', async () => {
+    // "calculated at runtime based on the values of other properties or links
+    // on objects" — a count over the FK link, and a get of the airline's key,
+    // both landing as computed keys on the evaluated row.
+    const cnt = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, derived_aggregation)
+       values ($1,'airline_n','Airline n','airlineN','integer','linked_objects','count')
+       returning id`, [flight])).id
+    await db.query(
+      `insert into public.derived_property_hops (property_id, position, link_type_id)
+       select $1, 1, l.id from public.link_types l where l.api_name = 'flight-to-airline'`, [cnt])
+    const got = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, derived_from_property_id)
+       select $1,'airline_ref','Airline ref','airlineRef','string','linked_objects', p.id
+         from public.object_type_properties p
+        where p.object_type_id = $2 and p.property_id = 'airline_id'
+       returning id`, [flight, airline])).id
+    await db.query(
+      `insert into public.derived_property_hops (property_id, position, link_type_id)
+       select $1, 1, l.id from public.link_types l where l.api_name = 'flight-to-airline'`, [got])
+
+    const linked = (await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"flight_id","value":{"type":"valuesFilter","values":["F1"]}}]'::jsonb) e`,
+      [flight])).rows[0].e as Record<string, unknown>
+    expect(linked.airline_n).toBe(1)
+    expect(linked.airline_ref).toBe('A1')
+    const orphan = (await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"flight_id","value":{"type":"valuesFilter","values":["F4"]}}]'::jsonb) e`,
+      [flight])).rows[0].e as Record<string, unknown>
+    expect(orphan.airline_n, 'F4 has no airline').toBe(0)
+    expect(orphan.airline_ref).toBeNull()
+    // And from the ONE side: how many flights each airline carries.
+    const fl = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, derived_aggregation)
+       values ($1,'flight_n','Flight n','flightN','integer','linked_objects','count')
+       returning id`, [airline])).id
+    await db.query(
+      `insert into public.derived_property_hops (property_id, position, link_type_id)
+       select $1, 1, l.id from public.link_types l where l.api_name = 'flight-to-airline'`, [fl])
+    const a1 = (await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"airline_id","value":{"type":"valuesFilter","values":["A1"]}}]'::jsonb) e`,
+      [airline])).rows[0].e as Record<string, unknown>
+    expect(a1.flight_n, 'A1 carries F1, F2, F3').toBe(3)
+
+    for (const id of [cnt, got, fl]) {
+      await db.query(`delete from public.derived_property_hops where property_id = $1`, [id])
+      await db.query(`delete from public.object_type_properties where id = $1`, [id])
+    }
+  })
+
   it('lists the linked objects over foreign-key backing, both directions (752)', async () => {
     // A flight's one airline, and an airline's flights — whole far rows.
     const mine = await db.query(
