@@ -189,6 +189,24 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
     expect(await count(ta, presence('linkidx_pairs', 'MUST_NOT_HAVE'))).toBe(0)
   })
 
+  it('an object lists its linked objects through the pair store (752)', async () => {
+    // "Lists the linked objects for a specific object and the given link
+    // type" — whole far rows, no totalCount; the badge is the companion.
+    const { rows } = await db.query(
+      `select e from public.list_linked_objects($1,'A1','linkidx_pairs') e`, [ta])
+    expect(rows.map((r) => (r.e as { pk: string }).pk)).toEqual(['B1', 'B2'])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A1','linkidx_pairs') as n`, [ta])).n)).toBe(2)
+    // Paged: the second page holds the second row.
+    const page = await db.query(
+      `select e from public.list_linked_objects($1,'A1','linkidx_pairs',1,1) e`, [ta])
+    expect((page.rows[0].e as { pk: string }).pk).toBe('B2')
+    // And from the far side back.
+    const back = await db.query(
+      `select e from public.list_linked_objects($1,'B3','linkidx_pairs') e`, [tb])
+    expect(back.rows.map((r) => (r.e as { pk: string }).pk)).toEqual(['A3'])
+  })
+
   it('an object-backed link still refuses, scoped to what is unbuilt', async () => {
     await db.query(
       `insert into public.link_types (ontology_id, project_id, source_object_type_id,
