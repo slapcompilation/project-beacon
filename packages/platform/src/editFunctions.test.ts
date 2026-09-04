@@ -284,10 +284,12 @@ describe.skipIf(noDb)('edit functions', () => {
     expect(err).toContain('Functions:UndeclaredObjectTypeEdited')
   })
 
-  it('refuses a link edit by name', async () => {
+  it('a link edit names a real link — a made-up one refuses by name', async () => {
+    // 753 lifted the blanket refusal (the store exists now); what remains is
+    // resolution: this ontology has no link called tickets between Tickets.
     const err = await refused(db, () => applyEdits(action, [BATCH.link('tickets',
       { objectType: 'Ticket', primaryKey: 'T-1' }, { objectType: 'Ticket', primaryKey: 'T-2' })]))
-    expect(err).toContain('Actions:LinkEditsNotSupported')
+    expect(err).toContain('Ontology:LinkTypeNotFound')
   })
 
   it('refuses an output that is not the published shape', async () => {
