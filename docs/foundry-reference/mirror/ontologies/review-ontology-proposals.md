@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/review-ontology-proposals/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/review-ontology-proposals/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Review ontology proposals
 

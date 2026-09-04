@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/marketplace-ontology-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/marketplace-ontology-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add object and link types to a Marketplace product
 

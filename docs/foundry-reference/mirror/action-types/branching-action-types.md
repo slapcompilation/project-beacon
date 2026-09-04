@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/branching-action-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/branching-action-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Branching action types
 
@@ -14,7 +14,11 @@ You can test actions in a Workshop module on a branch to validate that they have
 
 To run an action on a branch, all object types that are edited by the action type must be indexed on that branch. You can index object types through the individual object type page or through the action type page in Ontology Manager.
 
-![Action indexing banner on a branch.](./images/action-indexing-banner.png)
+When you edit an action type in Ontology Manager, a warning appears if the action type modifies object types that are not indexed on the branch.
+
+![Warning in Ontology Manager that the action type modifies object types that are not indexed on the branch.](./images/action-indexing-banner.png)
+
+If you run the action before these object types are indexed, the action does not apply its edits. A toast notification explains that the action is valid, but that one or more of the object types it edits is read-only on the branch. The notification links to Ontology Manager, where you can index the remaining object types before you run the action again.
 
 :::callout{theme="neutral"}
 Running actions on a branch is intended as a testing mechanism. Action edits on a branch will not be merged back into `main`.

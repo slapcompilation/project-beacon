@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Action metrics
 
@@ -17,7 +17,7 @@ You can also embed action metrics directly inside an operational application usi
 
 ## Action failure types
 
-Action metrics do not require action logs to be displayed. Unlike action logs, action metrics track failures.
+Action metrics do not require [action logs](/docs/foundry/action-types/action-log/) to be displayed. Unlike action logs, action metrics track failures.
 
 Action metrics have a variety of categories of failures that may be displayed. These categories are:
 

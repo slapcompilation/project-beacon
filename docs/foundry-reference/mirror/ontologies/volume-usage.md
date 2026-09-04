@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/volume-usage/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/volume-usage/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Ontology volume usage
 
@@ -9,7 +9,7 @@ Foundry’s Ontology is a fast-access storage layer that allows you to bind obje
 Ontology volume is recorded by measuring the size of the indexes that back the object type. Each object type has a number of objects and a number of properties per object. Each property can be of arbitrary size. The total size of the index is calculated by summing the size of each indexed property for every object of that object type.
 
 :::callout{theme="neutral"}
-It’s important to note that Ontology volume can be larger than dataset volume because Ontology data cannot be compressed, and Ontology indexing requires additional storage to facilitate faster queries.
+It is important to note that Ontology volume can be larger than dataset volume because Ontology data cannot be compressed, and Ontology indexing requires additional storage to facilitate faster queries.
 :::
 
 Every hour, the Foundry platform records a measurement of Ontology volume per object. When measuring Ontology volume over time, all hourly measurements are averaged over the given time period. Averaging over the course of one calendar month produces the *GB-Month* unit.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/branching-ontology/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/branching-ontology/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Branching the ontology
 

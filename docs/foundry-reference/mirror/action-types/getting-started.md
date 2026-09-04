@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started
 
 In this guide, we will create a simple action type for changing the priority on a ticket.
 
-We will configure submission criteria to make sure that the priority is `P0`, `P1` or `P2`, and that the ticket status is `Open`.
+We will configure submission criteria to make sure that the priority is `P0`, `P1`, or `P2`, and that the ticket status is `Open`.
 
 ## Prerequisites
 
@@ -28,21 +28,21 @@ Note that for a user to be able to take an action defined in an action type conf
 
 ## Create a new action type
 
-We start by creating a new action type for changing the ticket's priority. In the Ontology Manager, select **Action type** on the left sidebar, then choose **New Action type** at the top right of the view.
+We start by creating a new action type for changing the ticket's priority. In the Ontology Manager, select **Action types** on the left sidebar, then choose **New action type** at the top right of the view.
 
 ![Create a new action type](./images/actions_wizard.png)
 
-The creation wizard allows you to configure the most important features of an action type. Enter a **Display name** for your action type. Next, select the **Change object(s)** option and set it to **Modify**. From the following dropdown, select the `Demo Ticket` object type and add the `Priority` property by selecting **Add property**. Finally, select **Create** in the bottom right.
+The creation wizard allows you to configure the most important features of an action type. On the **Action type** step, open the **Object** tab, select the `Demo Ticket` object type, then choose **Modify object(s)** under **Object actions**. On the **Mapping** step, add the `Priority` property by selecting **Add property**. On the **Metadata** step, enter an **Action type name** for your action type. Continue to the final step and select **Create**.
 
 You can now see the full detailed view of your action type. You can make additional adjustments, like adding a **Description** in the **Overview** tab or adding additional properties to modify in the **Rules** tab.
 
 ## Edit parameters
 
-Select the **Forms** tab to get an overview of the parameters. The `Ticket` and `Priority` parameters have already been created based on the **Rule**.
+Select the **Parameters** tab to get an overview of the parameters. The `Ticket` and `Priority` parameters have already been created based on the **Rule**.
 
 ![Actions form](./images/actions_form.png)
 
-Select the `Priority` parameter to limit the values it can take on. Change the constraints from **User input** to **Multiple choice**. This will allow you to pick what values can be chosen for this parameter. Add `P0`, `P1` and `P2` as options. If you applied your action to an object now, you could change the priority of a ticket to `P0`, `P1`, or `P2`. You will now add submission criteria that will restrict you to only changing the priority for open tickets.
+Select the `Priority` parameter to limit the values it can take on. Change the constraints from **User input** to **Multiple choice**. This will allow you to pick what values can be chosen for this parameter. Add `P0`, `P1`, and `P2` as options. If you applied your action to an object now, you could change the priority of a ticket to `P0`, `P1`, or `P2`. You will now add submission criteria that will restrict you to only changing the priority for open tickets.
 
 ![Priority parameter](./images/actions_constraints.png)
 
@@ -56,7 +56,7 @@ Add a failure message so users can see why an action has failed. Your action def
 
 ## Add the action to an Object View
 
-Go to **Demo Ticket One** and edit its Object View. Add a new widget to the top, and choose the **Actions** widget. In the sidebar, select **Add Item.** Copy and paste the action RID from the Ontology Manager and paste it into the Action RID field. Name the label "Change Ticket Priority".
+Go to **Demo Ticket One** and edit its Object View. Add a new widget to the top, and choose the **Actions** widget. In the sidebar, select **Add Item**. Copy the action RID from the Ontology Manager and paste it into the Action RID field. Name the label "Change Ticket Priority".
 
 ![Add the action to an Object View](./images/getting_started_add_RID.png)
 
@@ -81,7 +81,7 @@ Visit an open ticket and select the **Change Ticket Priority** button we configu
 
 ![Changing ticket priority with action](./images/getting_started_apply_action.png)
 
-Pick a priority and select submit. The form will disappear and the object view will update with the new priority. Our submission criteria said that it should not be possible to run this action on a closed ticket—if we open Demo Ticket Two, which is closed, we see the following:
+Pick a priority and select **Submit**. The form will disappear and the object view will update with the new priority. Our submission criteria said that it should not be possible to run this action on a closed ticket. If we open Demo Ticket Two, which is closed, we see the following:
 
 ![Submission criteria prevents action from running on closed ticket](./images/getting_started_testing_validation.png)
 
@@ -98,6 +98,7 @@ There are two strategies for resolving conflicts:
 
 ## Next steps
 
+* [Explore the other action types you can build, including link, function, webhook, and scenario actions.](/docs/foundry/action-types/explore-action-types/)
 * [Learn more about action permissions.](/docs/foundry/action-types/permissions/)
 * [Create a function-backed action.](/docs/foundry/action-types/function-actions-getting-started/)
 * [Use an action elsewhere in the platform.](/docs/foundry/action-types/use-actions/)

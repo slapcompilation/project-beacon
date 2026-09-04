@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add value formatting
 
@@ -37,7 +37,7 @@ In the property editor:
 | Name                   | Description | Usage |
 | ---                    | --- | --- |
 | **Numeric formatting** | On/Off toggle. | Toggle this to remove/add numeric formatting. |
-| **Base type**	         | Contains various types of formatting available (Currency, Unit, Percentage, Prefix/Suffix, Fixed Values) as well as examples and descriptions of each type. |If `Capacity in Pounds` has an associated unit, select "Unit" from this dropdown. |
+| **Base type**	         | Contains various types of formatting available (Currency, Standard unit, Percentage, Prefix / suffix, Fixed values) as well as examples and descriptions of each type. |If `Capacity in Pounds` has an associated unit, select **Standard unit** from this dropdown. |
 | **Use grouping**	     | Adds locale-aware comma separator.	| Toggle this on to go from 123456 to 123,456. |
 | **Notation**	         | Contains Compact/Scientific and Engineer notations. | Choose compact to approximate values, like 123K. |
 | **Maximum fraction digits** | The most digits to show after the decimal point. Values with more decimals are rounded to this length. | Set to `2` to display `3.14159` as `3.14`. |
@@ -53,14 +53,14 @@ In the property editor:
 |Name   |Description    |Example    |
 |---    |---    |---    |
 |**Date**   |Only the date (no time)    |`Wed, Jul 22, 2020`  |
-|**Date and time (long)**   |Both the date and time, in long form   |`Wed, July 22, 2020, 1:00:00 PM` |
-|**Date and time (short)**  |Both the date and time, in short form  |`Jul 22, 2020, 1:00 PM`  |
+|**Date and time**   |Both the date and time, in long form   |`Wed, July 22, 2020, 1:00:00 PM` |
+|**Date and time, short**  |Both the date and time, in short form  |`Jul 22, 2020, 1:00 PM`  |
 |**ISO instant**    |Both the date and time (ISO 8601 format)   |`2020-07-22T13:00:00.000Z`   |
 |**Relative to now**    |The date relative to right now |`8 minutes ago`  |
 |**Time**   |Only the time (no date)    |`1:00 pm`    |
 
 :::callout{theme="neutral"}
-When formatting **Relative to now**, applications will only format in relative terms up to 24 hours ago. After this, it will render in **Date and time (short)** form with the day of the week: `Wed, Jul 22, 2020, 1:00 PM`.
+When formatting **Relative to now**, applications will only format in relative terms up to 24 hours ago. After this, it will render in **Date and time, short** form with the day of the week: `Wed, Jul 22, 2020, 1:00 PM`.
 :::
 
 <img src="./images/value-formatting-relative-to-now.png" alt="Relative to now" width="300" />
@@ -71,7 +71,7 @@ If you are formatting a timestamp, you can specify which timezone to render the 
 
 ### User ID formatting
 
-Value formatting can be applied to strings that are Foundry/Multipass user IDs or group IDs and convert them to display the user's first and last name or the group name by selecting the **Multipass username** option. This value formatting option is typically used when you have created an [Action](/docs/foundry/action-types/overview/) that edits a property and stores a user ID or group ID in one of the property fields. In the backing data, this information will be stored as the user's Foundry user ID or group ID, and the value formatting can be applied to render the user's name or the group instead of the ID.
+Value formatting can be applied to strings that are Foundry/Multipass user IDs or group IDs and convert them to display the user's first and last name or the group name by selecting the **Username or group name** option. This value formatting option is typically used when you have created an [Action](/docs/foundry/action-types/overview/) that edits a property and stores a user ID or group ID in one of the property fields. In the backing data, this information will be stored as the user's Foundry user ID or group ID, and the value formatting can be applied to render the user's name or the group instead of the ID.
 
 ## FAQ
 
