@@ -207,6 +207,42 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
     expect(back.rows.map((r) => (r.e as { pk: string }).pk)).toEqual(['A3'])
   })
 
+  it('a function-backed action links and unlinks, immediately and revertibly (753)', async () => {
+    // "For many-to-many links, the link and unlink methods are available" —
+    // the addLink lands in the pair store synchronously ("visible immediately
+    // after the action completes") and the revert appends the compensation.
+    const fnId = (await one(
+      `insert into public.functions (ontology_id, api_name, display_name)
+       values ($1,'linkidxEditFn','Link idx edit fn') returning id`, [ont])).id
+    const ver = (await one(
+      `insert into public.function_versions (function_id, major, minor, patch, source, signature, imports, edits)
+       values ($1,1,0,0,'export default function f(){return []}',
+               '{"parameters":[],"returns":"OntologyEdit[]"}'::jsonb,
+               '{"object_types":[],"link_types":[]}'::jsonb,
+               '{"object_types":["LinkIdxA","LinkIdxB"]}'::jsonb) returning id`, [fnId])).id
+    const act = (await one(
+      `insert into public.action_types (ontology_id, api_name, label, allow_revert)
+       values ($1,'linkidx-run','Link idx run',true) returning id`, [ont])).id
+    await db.query(
+      `insert into public.action_type_rules (action_type_id, kind, position, function_name, function_version_id)
+       values ($1,'function',0,'linkidxEditFn',$2)`, [act, ver])
+
+    const app = (await one(
+      `select (public.action_function_preflight($1,'{}'::jsonb) ->> 'application_id') as id`, [act])).id
+    await db.query(`select public.apply_function_edits($1, $2::jsonb, $3)`, [act, JSON.stringify([
+      { addLink: { linkTypeApiNameAtoB: 'linkidx_pairs',
+        aSideObject: { objectType: 'LinkIdxA', primaryKey: 'A2' },
+        bSideObject: { objectType: 'LinkIdxB', primaryKey: 'B3' } } }]), app])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A2','linkidx_pairs') as n`, [ta])).n),
+      'the added link is visible immediately').toBe(2)
+
+    await db.query('select public.revert_action($1)', [app])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A2','linkidx_pairs') as n`, [ta])).n),
+      'the revert takes it back').toBe(1)
+  })
+
   it('an object-backed link still refuses, scoped to what is unbuilt', async () => {
     await db.query(
       `insert into public.link_types (ontology_id, project_id, source_object_type_id,

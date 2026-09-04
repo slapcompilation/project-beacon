@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (111) ────────────────────────────────────────────────
+// ── ACTION TYPES (113) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -94,6 +94,11 @@ export const applyFunctionEdits = { apiName: 'apply_function_edits', kind: 'acti
 export const applyInterface = { apiName: 'apply_interface', kind: 'action' } as ActionType<
   { p_interface: Json; p_properties?: Json; p_link_constraints?: Json; p_action_constraints?: Json; p_extends?: Json },
   string
+>
+
+export const applyLinkEdit = { apiName: 'apply_link_edit', kind: 'action' } as ActionType<
+  { p_variant: string; p_body: Json; p_allowed: string[]; p_action: string; p_application: string },
+  void
 >
 
 /**
@@ -721,6 +726,11 @@ export const refreshContourPath = { apiName: 'refresh_contour_path', kind: 'acti
   string
 >
 
+export const replayLinkEditToStore = { apiName: 'replay_link_edit_to_store', kind: 'action' } as ActionType<
+  { p_link: string; p_instruction: string; p_a: string; p_b: string },
+  boolean
+>
+
 export const requestApprovalChanges = { apiName: 'request_approval_changes', kind: 'action' } as ActionType<
   { p_request: string },
   void
@@ -1070,7 +1080,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (322) ───────────────────────────────────────────────────
+// ── FUNCTIONS (323) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2610,6 +2620,11 @@ export const linkHopIsMany = { apiName: 'link_hop_is_many', kind: 'function' } a
 export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as FunctionType<
   { p_link: string; p_from: string },
   string
+>
+
+export const linkPairExists = { apiName: 'link_pair_exists', kind: 'function' } as FunctionType<
+  { p_link: string; p_a: string; p_b: string },
+  boolean
 >
 
 export const linkTypeIndexReady = { apiName: 'link_type_index_ready', kind: 'function' } as FunctionType<
