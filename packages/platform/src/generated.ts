@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (113) ────────────────────────────────────────────────
+// ── ACTION TYPES (115) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -119,6 +119,11 @@ export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } 
  */
 export const applyOneChange = { apiName: 'apply_one_change', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_op: string; p_fields: Json; p_ont: string },
+  void
+>
+
+export const applyRuleLinkEdit = { apiName: 'apply_rule_link_edit', kind: 'action' } as ActionType<
+  { p_rule: string; p_action: string; p_parameters: Json; p_application: string },
   void
 >
 
@@ -1078,6 +1083,11 @@ export const unsaveWorkbookTransform = { apiName: 'unsave_workbook_transform', k
 export const updateWorkingState = { apiName: 'update_working_state', kind: 'action' } as ActionType<
   { p_resolutions?: Json; p_branch?: string },
   number
+>
+
+export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as ActionType<
+  { p_link: string; p_a: string; p_b: string; p_instruction: string; p_action: string; p_application: string },
+  void
 >
 
 // ── FUNCTIONS (323) ───────────────────────────────────────────────────

@@ -18,6 +18,8 @@ import {
   type ActionParameterRow, type ActionTypeRow,
 } from '@/features/actionTypes/api'
 import { useReindex } from '@/features/objectTypes/indexing'
+import { useLinkTypes } from '@/features/objectTypes/hooks'
+import { rowToLinkType } from '@/features/objectTypes/api'
 
 const ACTION_CAP = 1000
 
@@ -54,9 +56,15 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
         .map((v) => [v.id, mine !== undefined && (v.edits.object_types ?? []).includes(mine) ? [mine] : []]))
     },
   })
+  // A link rule belongs on both of its link's sides (755).
+  const { data: linkRows } = useLinkTypes()
+  const myLinkIds = linkRows.map(rowToLinkType)
+    .filter((lt) => lt.sourceTypeId === objectTypeId || lt.targetTypeId === objectTypeId)
+    .map((lt) => lt.id)
   const relevant = actions.filter((a) =>
     a.status !== 'deprecated'
     && a.action_type_rules.some((r) => r.object_type_id === objectTypeId
+      || (r.link_type_id !== null && myLinkIds.includes(r.link_type_id))
       || (r.kind === 'function' && r.function_version_id !== null
           && (provenance[r.function_version_id] ?? []).length > 0)))
   const overCap = targets.length > ACTION_CAP

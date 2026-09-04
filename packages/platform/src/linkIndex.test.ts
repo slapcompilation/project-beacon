@@ -243,6 +243,37 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
       'the revert takes it back').toBe(1)
   })
 
+  it('a create-link rule runs, through the front door, and reverts (755)', async () => {
+    // "Create link(s): Can be used to create a many-to-many link between
+    // objects that are passed via object reference parameters."
+    await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'linkidx-pair-up', label: 'Pair up', ontology_id: ont, project_id: f.projectId,
+      parameters: [
+        { api_name: 'left', display_name: 'Left', data_kind: 'object', object_type_id: ta,
+          required: true, exposed: true, editable: true, position: 0 },
+        { api_name: 'right', display_name: 'Right', data_kind: 'object', object_type_id: tb,
+          required: true, exposed: true, editable: true, position: 1 }],
+      rules: [{ kind: 'create_link', position: 0, link_type_id: link,
+        source_parameter_api_name: 'left', target_parameter_api_name: 'right', properties: [] }],
+    })])
+    await db.query('select public.save_working_state()')
+    const act = (await one(
+      `select id from public.action_types where api_name='linkidx-pair-up'`)).id
+
+    await db.query(`select public.apply_action($1, '{"left":"A3","right":"B1"}'::jsonb)`, [act])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A3','linkidx_pairs') as n`, [ta])).n),
+      'the rule-created link is visible immediately').toBe(2)
+
+    const app = (await one(
+      `select id from public.action_applications where action_type_id=$1
+        order by applied_at desc limit 1`, [act])).id
+    await db.query('select public.revert_action($1)', [app])
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'A3','linkidx_pairs') as n`, [ta])).n),
+      'the revert takes it back').toBe(1)
+  })
+
   it('an object-backed link still refuses, scoped to what is unbuilt', async () => {
     await db.query(
       `insert into public.link_types (ontology_id, project_id, source_object_type_id,

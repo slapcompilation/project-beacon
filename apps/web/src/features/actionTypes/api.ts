@@ -57,6 +57,8 @@ export interface ActionRuleRow {
   function_name: string | null
   function_version_id: string | null
   auto_upgrade: boolean
+  source_parameter_id: string | null
+  target_parameter_id: string | null
   action_type_rule_properties: ActionRulePropertyRow[]
 }
 
@@ -116,7 +118,12 @@ export interface ActionDraft {
   description: string
   ontologyId: string
   parameters: {
-    api_name: string; display_name: string; base_type: PropertyType
+    api_name: string; display_name: string
+    /** A value parameter names a base type; an object reference names a type
+     *  instead (418's either-or, landed since 755). */
+    base_type: PropertyType | null
+    data_kind?: 'base_type' | 'object'
+    object_type_id?: string | null
     required: boolean; exposed: boolean; editable: boolean; position: number
   }[]
   rules: {
@@ -129,6 +136,11 @@ export interface ActionDraft {
     function_version_id?: string | null
     auto_upgrade?: boolean
     inputs?: { input_name: string; parameter_api_name: string }[]
+    /** A link rule's three (755): the many-to-many link and its two sides,
+     *  each an object reference parameter. */
+    link_type_id?: string | null
+    source_parameter_api_name?: string | null
+    target_parameter_api_name?: string | null
     properties: {
       /** A rule names an object type's property, or an interface's — never both.
        *  An interface property resolves onto a different property per
