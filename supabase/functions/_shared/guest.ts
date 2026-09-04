@@ -105,8 +105,8 @@ globalThis.createEditBatch = function () {
     },
     // "For many-to-many links, the link and unlink methods are available"; a
     // one-to-one or one-to-many link is edited with update on the foreign key,
-    // so these two only ever describe many-to-many — which this platform has
-    // no instance store for, and the action refuses them by name.
+    // so these two only ever describe many-to-many. Since 753 the action
+    // applies them to the pair store; an FK link still refuses by name.
     link: function (a, linkName, b) {
       edits.push({ addLink: { linkTypeApiNameAtoB: String(linkName), aSideObject: __ref(a), bSideObject: __ref(b) } })
       return this
