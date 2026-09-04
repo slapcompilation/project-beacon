@@ -11,8 +11,8 @@ import {
   NonIdealState, Popover, Spinner, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { useObjectTypes } from '@/features/objectTypes/hooks'
-import type { PropertyRow } from '@/features/objectTypes/api'
+import { useObjectTypes, useLinkTypes } from '@/features/objectTypes/hooks'
+import { rowToLinkType, type PropertyRow } from '@/features/objectTypes/api'
 import {
   useObjectSetAggregate, useObjectSetCount, useObjectSetHistogram, useObjectSetRows,
   type ExplorerFilter, type SortSpec,
@@ -67,6 +67,18 @@ export default function ExplorationPage() {
     .filter((p) => p.visibility !== 'hidden')
     .sort((a, b) => a.position - b.position), [type])
 
+  // The LINKED OBJECT TYPES rows of the search menu (filter-results): one
+  // relation per link on this type, named by the far type the way the
+  // capture's left panel names them.
+  const { data: linkRows } = useLinkTypes()
+  const relations = useMemo(() => linkRows.map(rowToLinkType)
+    .filter((lt) => lt.sourceTypeId === typeId || lt.targetTypeId === typeId)
+    .map((lt) => {
+      const farId = lt.sourceTypeId === typeId ? lt.targetTypeId : lt.sourceTypeId
+      return { linkApi: lt.apiName, linkLabel: lt.label,
+        farLabel: types.find((t) => t.id === farId)?.label ?? lt.label }
+    }), [linkRows, typeId, types])
+
   // "one chart shown for each prominent property on the selected object type".
   const [charts, setCharts] = useState<string[] | null>(null)
   const chartProps = useMemo(() => {
@@ -120,10 +132,16 @@ export default function ExplorationPage() {
       <div className="exploration-filterbar">
         {filters.map((f, i) => (
           <Tag key={i} onRemove={() => { removeFilter(i) }} minimal round className="!text-xs">
-            {describe(f)}
+            {/* the pill speaks the far type's label, the way the capture's
+                "Has Flight Delay Event" does */}
+            {f.type === 'linkFilter'
+              ? `${f.value.matchType === 'MUST_HAVE' ? 'Has' : 'Has no'} ${
+                relations.find((r) => r.linkApi === f.linkType)?.farLabel ?? f.linkType}`
+              : describe(f)}
           </Tag>
         ))}
-        <AddFilter props={props} onAdd={addFilter} />
+        <AddFilter props={props} typeLabel={type.label} relations={relations}
+          hasLinkFilter={filters.some((f) => f.type === 'linkFilter')} onAdd={addFilter} />
         {filters.length > 0 && (
           <Button variant="minimal" size="small" onClick={() => { setFilters([]) }}>Clear</Button>
         )}
@@ -370,12 +388,26 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
   )
 }
 
-// ── adding a filter, by property base type ─────────────────────────────────
+// ── the search menu: properties of the main type, and its relations ────────
+//
+// filter-results' one control: a left panel holding the main object type and
+// a LINKED OBJECT TYPES list, a right panel for the selected row. For a
+// relation the page names three filters — "Has Link", links to specific
+// objects ("Filter by Airline"), and far-type properties. The engine speaks
+// the first (the presence filter, the only kind generate-urls serialises);
+// the other two are shown for what they are: not built yet. The capture
+// shows one "Has X?" row whose editor offers both directions; ours offers
+// both up front, which is the same capability with one less step.
 
-function AddFilter({ props, onAdd }: {
-  props: PropertyRow[]; onAdd: (f: ExplorerFilter) => void
+function AddFilter({ props, typeLabel, relations, hasLinkFilter, onAdd }: {
+  props: PropertyRow[]
+  typeLabel: string
+  relations: { linkApi: string; linkLabel: string; farLabel: string }[]
+  hasLinkFilter: boolean
+  onAdd: (f: ExplorerFilter) => void
 }) {
   const [open, setOpen] = useState(false)
+  const [pane, setPane] = useState('__main')
   const [propId, setPropId] = useState('')
   const [mode, setMode] = useState<'keyword' | 'exact'>('keyword')
   const [text, setText] = useState('')
@@ -406,35 +438,82 @@ function AddFilter({ props, onAdd }: {
     setOpen(false); setText(''); setMin(''); setMax('')
   }
 
+  const rel = relations.find((r) => r.linkApi === pane) ?? null
+  const addPresence = (matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE') => {
+    if (rel === null) return
+    onAdd({ type: 'linkFilter', linkType: rel.linkApi,
+      value: { type: 'presenceFilter', matchType } })
+    setOpen(false); setPane('__main')
+  }
+
   return (
     <Popover isOpen={open} onInteraction={setOpen} content={
-      <div className="filter-popover space-y-2">
-        <HTMLSelect fill value={propId} onChange={(e) => { setPropId(e.currentTarget.value) }}>
-          <option value="">Property…</option>
-          {props.map((p) => <option key={p.property_id} value={p.property_id}>{p.display_name}</option>)}
-        </HTMLSelect>
-        {prop && (numeric || temporal) && (
-          <div className="flex gap-2">
-            <InputGroup size="small" placeholder={numeric ? 'min' : 'start (YYYY-MM-DD)'}
-              value={min} onChange={(e) => { setMin(e.currentTarget.value) }} />
-            <InputGroup size="small" placeholder={numeric ? 'max' : 'end (YYYY-MM-DD)'}
-              value={max} onChange={(e) => { setMax(e.currentTarget.value) }} />
-          </div>
-        )}
-        {prop && !numeric && !temporal && (
-          <>
-            <HTMLSelect fill value={mode} onChange={(e) => { setMode(e.currentTarget.value as 'keyword' | 'exact') }}>
-              <option value="keyword">Has keywords</option>
-              <option value="exact">Is exactly</option>
-            </HTMLSelect>
-            <InputGroup size="small" placeholder={mode === 'keyword' ? 'keywords…' : 'value…'}
-              value={text} onChange={(e) => { setText(e.currentTarget.value) }} />
-          </>
-        )}
-        <Button intent="primary" size="small" fill onClick={apply}
-          disabled={!prop || (!numeric && !temporal && text.trim() === '') || ((numeric || temporal) && min === '' && max === '')}>
-          Apply filter
-        </Button>
+      <div className="filter-menu">
+        <div className="filter-menu-left">
+          <button type="button" className={`filter-menu-row${pane === '__main' ? ' active' : ''}`}
+            onClick={() => { setPane('__main') }}>
+            <span>{typeLabel}</span>
+          </button>
+          {relations.length > 0 && <div className="filter-menu-head">Linked object types</div>}
+          {relations.map((r) => (
+            <button key={r.linkApi} type="button" title={r.linkLabel}
+              className={`filter-menu-row${pane === r.linkApi ? ' active' : ''}`}
+              onClick={() => { setPane(r.linkApi) }}>
+              <span>{r.farLabel}</span>
+              <Icon icon="chevron-right" size={10} />
+            </button>
+          ))}
+        </div>
+        <div className="filter-menu-right space-y-2">
+          {rel === null ? (
+            <>
+              <HTMLSelect fill value={propId} onChange={(e) => { setPropId(e.currentTarget.value) }}>
+                <option value="">Property…</option>
+                {props.map((p) => <option key={p.property_id} value={p.property_id}>{p.display_name}</option>)}
+              </HTMLSelect>
+              {prop && (numeric || temporal) && (
+                <div className="flex gap-2">
+                  <InputGroup size="small" placeholder={numeric ? 'min' : 'start (YYYY-MM-DD)'}
+                    value={min} onChange={(e) => { setMin(e.currentTarget.value) }} />
+                  <InputGroup size="small" placeholder={numeric ? 'max' : 'end (YYYY-MM-DD)'}
+                    value={max} onChange={(e) => { setMax(e.currentTarget.value) }} />
+                </div>
+              )}
+              {prop && !numeric && !temporal && (
+                <>
+                  <HTMLSelect fill value={mode} onChange={(e) => { setMode(e.currentTarget.value as 'keyword' | 'exact') }}>
+                    <option value="keyword">Has keywords</option>
+                    <option value="exact">Is exactly</option>
+                  </HTMLSelect>
+                  <InputGroup size="small" placeholder={mode === 'keyword' ? 'keywords…' : 'value…'}
+                    value={text} onChange={(e) => { setText(e.currentTarget.value) }} />
+                </>
+              )}
+              <Button intent="primary" size="small" fill onClick={apply}
+                disabled={!prop || (!numeric && !temporal && text.trim() === '') || ((numeric || temporal) && min === '' && max === '')}>
+                Apply filter
+              </Button>
+            </>
+          ) : hasLinkFilter ? (
+            // "You can have many PROPERTY filters, but only 1 LINK filter."
+            <p className="text-[11px] text-muted-foreground">
+              You can have many property filters, but only 1 link filter.
+            </p>
+          ) : (
+            <>
+              <Button size="small" fill onClick={() => { addPresence('MUST_HAVE') }}>
+                Has {rel.farLabel}?
+              </Button>
+              <Button size="small" fill onClick={() => { addPresence('MUST_NOT_HAVE') }}>
+                Has no {rel.farLabel}?
+              </Button>
+              <Button size="small" fill disabled>Filter by {rel.farLabel}?</Button>
+              <p className="text-[11px] text-muted-foreground">
+                Filtering by specific objects and by linked properties is not built yet.
+              </p>
+            </>
+          )}
+        </div>
       </div>
     }>
       <Button variant="minimal" size="small" icon="filter">Add filter</Button>
