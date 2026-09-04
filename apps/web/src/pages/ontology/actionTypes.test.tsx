@@ -79,10 +79,11 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
   client: (entity: { apiName: string }) => ({
     executeFunction: () => Promise.resolve(
       entity.apiName === 'action_rule_kinds'
-        ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'function']
-            // matches the live action_rule_kinds(): function IS executable (669)
-            .map((kind) => ({ kind, targets: 'object_type',
-              executable: kind !== 'create_link', note: `note for ${kind}` }))
+        ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'create_or_modify_object', 'function']
+            // matches the live action_rule_kinds(): function (669) and
+            // create_link (755) ARE executable; create_or_modify is not yet
+            .map((kind) => ({ kind, targets: kind === 'create_link' ? 'link_type' : 'object_type',
+              executable: kind !== 'create_or_modify_object', note: `note for ${kind}` }))
         : entity.apiName === 'submission_operators'
           ? [{ operator: 'is', arity: 'single', note: '' },
              { operator: 'includes', arity: 'multi', note: '' }]
@@ -137,10 +138,12 @@ describe('Action types', () => {
     expect(a.rules).toEqual([expect.objectContaining({ kind: 'create_object', object_type_id: 'ot1' })])
   })
 
-  it('refuses the four kinds apply_action cannot run, in the picker', async () => {
+  it('refuses the kinds apply_action cannot run, and offers the ones it can', async () => {
     renderPage()
-    expect((await screen.findByRole('option', { name: 'create link' })).hasAttribute('disabled')).toBe(true)
+    expect((await screen.findByRole('option', { name: 'create or modify object' })).hasAttribute('disabled')).toBe(true)
     expect(screen.getByRole('option', { name: 'modify object' }).hasAttribute('disabled')).toBe(false)
+    // 755: a link rule runs now.
+    expect(screen.getByRole('option', { name: 'create link' }).hasAttribute('disabled')).toBe(false)
   })
 
   it('draws the criteria tree under the tab the course names', async () => {

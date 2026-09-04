@@ -127,23 +127,21 @@ describe.skipIf(noDb)('actions', () => {
   // applied at all" and a function rule is — by the action runtime, which owns
   // the isolate. What apply_action can run is the SQL-runtime subset, and that
   // is still three.
-  it('has exactly six kinds apply_action can run, said by the registry', async () => {
+  it('has exactly nine kinds apply_action can run, said by the registry', async () => {
     // Three since 445; the three interface OBJECT rules joined them at 592/593,
-    // once the parameter kinds and the value encoding the api publishes were
-    // read. The two interface LINK rules did not, and still need a link
-    // instance store — registering a kind does not make it run.
+    // and the two LINK rules at 755, once the pair store existed for their
+    // edits. The two interface LINK rules still wait — the rule must name an
+    // interface link constraint, which no rule column points at.
     expect(await count(
-      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(7)
-    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(8)
+      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(9)
+    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(10)
     expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(13)
     // The ones still waiting, by name, so this fails loudly if one quietly flips.
     expect((await db.query(
       `select kind from public.action_rule_kinds() where not executable order by kind`)).rows
       .map((r) => (r as { kind: string }).kind)).toEqual([
-        'create_link',
         'create_link_on_object_of_interface',
         'create_or_modify_object',
-        'delete_link',
         'delete_link_on_object_of_interface',
       ])
   })

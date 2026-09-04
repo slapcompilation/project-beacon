@@ -71,6 +71,7 @@ const action: ActionTypeRow = {
   action_type_rules: [{
     id: 'r9', kind: 'function', position: 0, object_type_id: null, link_type_id: null,
     function_name: 'closeTicket', function_version_id: 'fv1', auto_upgrade: false,
+    source_parameter_id: null, target_parameter_id: null,
     action_type_rule_properties: [],
   }],
   action_type_parameters: [{
