@@ -1090,7 +1090,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (323) ───────────────────────────────────────────────────
+// ── FUNCTIONS (324) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2169,6 +2169,19 @@ export const derivedChain = { apiName: 'derived_chain', kind: 'function' } as Fu
 export const derivedPropertyProblems = { apiName: 'derived_property_problems', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  The correlated scalar subquery that computes one derived property for the
+ *  row aliased p_alias: the hop chain joined over the objects' indexes and
+ *  the pair stores, each hop gated by its type's restricted-view predicate,
+ *  terminated by the registry aggregation. NULL when the chain cannot be
+ *  computed (unbuilt index, untraversable backing, unfinished chain) — the
+ *  value then reads as NULL rather than failing the read. 758.
+ */
+export const derivedPropertySelect = { apiName: 'derived_property_select', kind: 'function' } as FunctionType<
+  { p_property: string; p_alias: string },
+  string
 >
 
 /**
