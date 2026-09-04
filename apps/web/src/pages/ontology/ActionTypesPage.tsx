@@ -434,7 +434,11 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                   <div key={pi} className="flex flex-wrap items-center gap-2">
                     <HTMLSelect value={p.propertyId} onChange={(e) => { set({ propertyId: e.currentTarget.value }) }}>
                       <option value="">Property…</option>
-                      {target.properties.map((op) => <option key={op.id} value={op.id ?? ''}>{op.label}</option>)}
+                      {/* "Derived properties are read-only and cannot be
+                          edited by functions or actions" (757). Interface
+                          properties carry no source and pass through. */}
+                      {target.properties.filter((op) => !('source' in op) || op.source !== 'linked_objects')
+                        .map((op) => <option key={op.id} value={op.id ?? ''}>{op.label}</option>)}
                     </HTMLSelect>
                     <HTMLSelect value={p.source} onChange={(e) => { set({ source: e.currentTarget.value as ValueSource }) }}>
                       {VALUE_SOURCES.map((v) => <option key={v} value={v}>{v.replace(/_/g, ' ')}</option>)}

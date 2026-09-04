@@ -151,6 +151,57 @@ describe.skipIf(noDb)('the exploration engine', () => {
       value: { type: 'dateRangeFilter', dateRangeFilter: { start: '2026-02-15' } } }])).toBe(2)
   })
 
+  it('a derived property refuses reads and edits by name, and warns on a bad hop (757)', async () => {
+    // Authorable since 576, storage-less since 743 — until compute exists,
+    // every read that would touch it names the refusal instead of crashing
+    // with an undefined-column error, and edits refuse with the page's own
+    // read-only rule.
+    const drv = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, derived_aggregation)
+       values ($1,'airline_count','Airline count','airlineCount','integer','linked_objects','count')
+       returning id`, [flight])).id
+    await db.query(
+      `insert into public.derived_property_hops (property_id, position, link_type_id)
+       select $1, 1, l.id from public.link_types l where l.api_name = 'flight-to-airline'`, [drv])
+
+    for (const call of [
+      [`select public.count_object_set($1,'[{"type":"propertyFilter","propertyType":"airline_count","value":{"type":"valuesFilter","values":["1"]}}]'::jsonb)`, flight],
+      [`select * from public.evaluate_object_set($1,'[]'::jsonb,'[{"property":"airline_count"}]'::jsonb)`, flight],
+      [`select * from public.aggregate_object_set($1,'[]'::jsonb,'airline_count')`, flight],
+      [`select * from public.histogram_object_set($1,'[]'::jsonb,'airline_count')`, flight],
+    ] as [string, string][]) {
+      const err = await refused(db, () => db.query(call[0], [call[1]]))
+      expect(err).toContain('Ontology:DerivedPropertyNotComputable')
+    }
+    // A plain read stays whole: the derived column is simply absent.
+    expect(await count([])).toBe(4)
+
+    // "Derived properties are read-only and cannot be edited by functions or
+    // actions" — the FK hop is traversable, so no warning; a modify refuses.
+    const act = (await one(
+      `insert into public.action_types (ontology_id, api_name, label)
+       select t.ontology_id, 'edit-derived', 'Edit derived'
+         from public.object_types t where t.id = $1 returning id`, [flight])).id
+    const rule = (await one(
+      `insert into public.action_type_rules (action_type_id, kind, object_type_id, position)
+       values ($1,'modify_object',$2,0) returning id`, [act, flight])).id
+    await db.query(
+      `insert into public.action_type_rule_properties (rule_id, property_id, value_source, static_value)
+       values ($1,$2,'static','9'::jsonb)`, [rule, drv])
+    await db.query(`update public.object_types set edits_enabled = true where id = $1`, [flight])
+    const err = await refused(db, () => db.query(
+      `select public.apply_action($1,'{}'::jsonb,'F1')`, [act]))
+    expect(err).toContain('Actions:DerivedPropertyReadOnly')
+    expect((await db.query(
+      `select count(*)::int n from public.ontology_warnings() w where w.subject = 'airline_count'`))
+      .rows[0].n, 'an FK hop is traversable — nothing to warn about').toBe(0)
+
+    await db.query(`delete from public.action_types where id = $1`, [act])
+    await db.query(`delete from public.derived_property_hops where property_id = $1`, [drv])
+    await db.query(`delete from public.object_type_properties where id = $1`, [drv])
+  })
+
   it('lists the linked objects over foreign-key backing, both directions (752)', async () => {
     // A flight's one airline, and an airline's flights — whole far rows.
     const mine = await db.query(
