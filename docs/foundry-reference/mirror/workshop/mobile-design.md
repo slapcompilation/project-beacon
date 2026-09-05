@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/mobile-design/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/mobile-design/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Design best practices
 
@@ -18,7 +18,7 @@ We recommend the following best practices for mobile design:
 
 A common pattern in desktop applications is to use collapsible panels (or sidebars) on the left and right side of your application. These are typically used to show configurable filters or details about an item in a table or list.
 
-Collapsible sections are problematic on mobile devices for a few reasons. It can be difficult to locate and tap on the control to toggle the section, and there usually isn't enough screen real estate available for collapsible sections to provide a natural user experience.
+Collapsible sections are problematic on mobile devices for a few reasons. It can be difficult to locate and tap on the control to toggle the section, and there usually is not enough screen real estate available for collapsible sections to provide a natural user experience.
 
 Instead, try using a [Flow layout](/docs/foundry/workshop/concepts-layouts/#section-layouts) to show a series of widgets that users can scroll through. Vertical scrolling is a natural way to show a large amount of content on a mobile device, and users can easily scroll through a range of widgets to find the information they need.
 
@@ -36,7 +36,7 @@ When adding a Button Group widget in a mobile application, we recommend selectin
 
 <img src="./images/mobile-design-button-large.png" alt="mobile large button" width="500px">
 
-When you need to display multiple button options to an end user, configure your Button Group to have a Menu button type. In a mobile application, this shows a top-level button which will open a bottom drawer to let the user select one of the nested buttons you've configured.
+When you need to display multiple button options to an end user, configure your Button Group to have a Menu button type. In a mobile application, this shows a top-level button which will open a bottom drawer to let the user select one of the nested buttons you have configured.
 
 <img src="./images/mobile-design-button-menu.png" alt="mobile button menu" width="300px">
 
@@ -64,7 +64,7 @@ For a step-by-step guide to creating this workflow, refer to the last step of th
 
 ## Scale your application using the Navigation Bar
 
-In desktop applications, it's common to use a tabbed layout to include many different pieces of functionality in a single interface. The combination of tabs and collapsible sections can be used to create complex, data-rich interfaces that enable open-ended analysis and show lots of information on the screen.
+In desktop applications, it is common to use a tabbed layout to include many different pieces of functionality in a single interface. The combination of tabs and collapsible sections can be used to create complex, data-rich interfaces that enable open-ended analysis and show lots of information on the screen.
 
 Mobile applications should usually be more tailored to the specific needs of your target user group than desktop applications. As a result, each top-level page in your mobile application should be fairly simple, typically just allowing users to browse and filter a set of objects, then navigate to another page to view details and take action.
 

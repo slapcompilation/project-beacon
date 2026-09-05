@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/monitoring-views/overview/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/monitoring-views/overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Monitoring views
 
@@ -38,6 +38,8 @@ To create a new monitoring view, navigate to the **Monitoring View** tab in the 
 In your new monitoring view, you can **Add monitoring rules** on the **Manage monitors** tab. First, select the resource type you are looking to monitor and then select a scope.
 
 With a **static** scope, you select a specific resource to monitor. With a **dynamic** scope, the monitor automatically updates as resources are added or removed, without requiring manual changes. Dynamic scopes include **Folder**, **Project**, **Workflow Lineage**, **Workshop**, and **OSDK application**, though availability varies by resource type. See the [supported scope table](#monitoring-views) for details.
+
+Some monitoring rules have multiple conditions joined by `AND`. For these composite rules, configure a threshold for each condition at every alert severity. The rule triggers only when all conditions reach that severity. If the conditions reach different severities, the rule triggers at the lowest severity reached by all conditions.
 
 ![Data Health application showing the monitoring rule creation wizard with dynamic scope options for action types.](./images/data-health-add-monitoring-rule.png)
 
@@ -133,6 +135,39 @@ For function and action type monitoring rules, pre-filters are automatically app
 :::callout{theme="neutral"}
 Pre-filtered run history navigation is currently available for function and action type resources only.
 :::
+
+## Monitoring status in Workflow Lineage
+
+While monitoring alerts inform you that a specific monitor is firing, you can also view monitoring coverage across a whole workflow. To do this, open the workflow as a graph in [Workflow Lineage](/docs/foundry/workflow-lineage/overview/), select the color legend, and choose **Monitoring status** under **Health**. Each node is colored by the highest severity among the monitors currently firing against that resource.
+
+![A Workflow Lineage graph colored by monitoring status, with the legend showing a count for each status.](./images/workflow-lineage-monitoring-status.png)
+
+### Monitoring status legend keys
+
+| Legend key | Meaning |
+| --- | --- |
+| `All monitors healthy` | The resource has monitors, and none of them are firing. |
+| `Low severity` | The highest firing severity on the resource is `Low`. |
+| `Medium severity` | The highest firing severity on the resource is `Medium`. |
+| `High severity` | The highest firing severity on the resource is `High`. |
+| `No monitors configured` | The resource can be monitored, but no monitoring rules target it. |
+| `Not applicable` | The resource cannot be the target of a monitoring rule. |
+
+Severity levels are the same `Low`, `Medium`, and `High` levels you set when you [configure monitors](#configure-monitors). Use `No monitors configured` to find gaps in coverage; a node with that key is a resource in your workflow that no monitoring view is watching.
+
+### How status is determined
+
+Three behaviors are worth understanding when reading the colors:
+
+* Only firing monitors affect the color. A resource with several monitors takes on the highest-severity level among those currently firing.
+* A monitoring rule that has not yet computed its status for the first time is treated as healthy, so a newly created rule will not color its target until it has run.
+* AIP Logic nodes take the status of their backing function. A monitor set on the function colors the Logic node that uses it.
+
+:::callout{theme="neutral"}
+Monitoring status is based on the highest severity alert in the monitoring views you have access to. A resource may have additional alerts that are not visible to you.
+:::
+
+The monitoring status color mode requires monitoring views to be available on your enrollment. If they are not available, the option does not appear in the Workflow Lineage color legend.
 
 ## Upgrade an existing check group to a monitoring view
 

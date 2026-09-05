@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-batch/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-batch/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Set up a batch deployment
 
@@ -10,7 +10,7 @@ Before creating a new batch deployment, there are two prerequisites:
 
 1. There must be an existing release inside the objective with the corresponding [environment tag](/docs/foundry/model-integration/objectives/#releases) of either staging or production.
 
-2. Select an input dataset to run through your models. Ideally this dataset should be carefully maintained and updating regularly—it represents the new information of the problem you're trying to solve.
+2. Select an input dataset to run through your models. Ideally this dataset should be carefully maintained and updating regularly—it represents the new information of the problem you are trying to solve.
 
 ## Create deployment
 

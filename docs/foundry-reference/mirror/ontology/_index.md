@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 ![Ontology overview header image.](./images/ontology-overview-header.png)
 

@@ -567,13 +567,25 @@ reference check that only makes sense if mappings are stored by reference.
 
 > Interface action type constraints are currently configured and mapped in Ontology Manager. Pipeline Builder does not currently support action type constraint mapping when implementing an interface.
 
-> End users cannot currently discover or invoke interface action type constraints from Foundry applications. Users can run the satisfying concrete action types directly through any application that supports them.
+> Foundry applications do not currently expose interface action type constraints directly to end users. Users can run the satisfying concrete action types through any application that supports them.
 
-> Interface action type constraints are not currently supported in the Ontology SDK. You cannot currently use an interface action type constraint in OSDK to discover or invoke the concrete action types that satisfy it.
+> You cannot invoke an interface action type constraint directly through the OSDK. Resolve the constraint mapping for the object type, then invoke the satisfying concrete action type.
 
 > Interface action type constraints define the expected shape of a concrete action type. They do not make object-type-specific action logic uniform. Review each satisfying action type's rules, submission criteria, permissions, and side effects to ensure they match the semantics described by the interface constraint.
 
-**A constraint is authoring-time metadata with no runtime.** Nothing invokes it.
+**A constraint is authoring-time metadata; nothing invokes it directly.** Drift,
+re-mirrored 2026-09-04: when this was read the page said constraints were *not
+currently supported in the Ontology SDK* at all, and this line said *no runtime*.
+The two limitation paragraphs were rewritten, and the OSDK half reversed:
+
+> "Custom applications can use the TypeScript OSDK to resolve the concrete action type for a constraint."
+
+— `interfaces/interface-action-type-constraints.md`
+
+Direct invocation is still excluded; *resolution* of the
+mapping is now a documented read. We have the write side only (`satisfyActionConstraint`
+in the generated client) and no resolver — an open gap, not a falsification,
+because no migration header claims an OSDK limit (450, 467, 468 checked).
 
 ---
 
@@ -1028,6 +1040,9 @@ does incidentally demonstrate that display name and API name are independent.
    because Foundry's own limitations section says end users cannot and OSDK cannot.
    Build the four tables (constraint, parameter constraint, action mapping,
    parameter mapping) and the five save-blocking validations; build no executor.
+   *(Re-mirrored 2026-09-04: the page now lets the OSDK RESOLVE a constraint to its
+   concrete action type, still never invoke one directly — see §6.5. The decision
+   stands for invocation; a resolver is a read we do not have yet.)*
 10. **Interface-level `visibility` is dropped.** The metadata reference is
     exhaustive by its own framing and omits it while the object-type and
     shared-property references both include it. Foundry has no such concept for

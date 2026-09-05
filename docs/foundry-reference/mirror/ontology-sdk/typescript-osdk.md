@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # TypeScript OSDK
 
@@ -928,7 +928,7 @@ Example API response:
 
 #### Apply batch action
 
-To apply a batch of actions, fill in the input parameter values. This will execute a series of action and return if the response was valid or invalid. Note that this does not return validations, only edits.
+To apply a batch of actions, fill in the input parameter values. This will execute a series of actions and return if the response was valid or invalid. Note that this does not return validations, only edits. Batch application is all-or-nothing: if any action in the batch fails, none of the edits in the batch are applied.
 
 Parameters:
 

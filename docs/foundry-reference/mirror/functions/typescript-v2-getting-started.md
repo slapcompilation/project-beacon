@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started with TypeScript v2 functions
 
@@ -11,6 +11,8 @@ Navigate to a project of your choice and create a new code repository by selecti
 ![Create a TypeScript v2 function code repository.](./images/tsv2-functions-create-repo.png)
 
 Once the repository has been created, navigate to the `typescript-functions/src/functions/helloWorld.ts` file.
+
+Before you can import Ontology types into a function, add your object types and link types through the **Resource imports** sidebar, then generate and install the Ontology SDK. Refer to [Generate the Ontology SDK](/docs/foundry/functions/typescript-v2-migration/#generate-the-ontology-sdk) for these steps.
 
 ## Write a function
 

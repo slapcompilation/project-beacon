@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-edits/how-edits-applied/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-edits/how-edits-applied/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # How user edits are applied
 

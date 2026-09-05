@@ -138,6 +138,19 @@ README** — and no file-resource kind exists at all (datasets carry
    caller: org membership for `all_can_discover`, org + markings for
    `require_marking_access`. Widening the projects SELECT policy itself
    would expose every column; the function is the carve-out, fail-closed.
+   *Drift, re-mirrored 2026-09-04:* `compass/use-project-details-panel` gained
+   an **Overview** section that enumerates what a cover-page-only viewer sees:
+
+   > "If you can see a project's cover page but not its contents, **Overview** shows a reduced **Metadata** section containing only the project's own **RID**, **Location**, and **Space**."
+
+   — `compass/use-project-details-panel.md`
+
+   Our tuple carries the RID and not Location or Space, so the client
+   comment's "all a non-member may see" is now narrower than the page; the
+   header of 676 claims only that the function returns the tuple, and stands.
+   The widening is additive (both columns exist on the read model) and is
+   **queued, not done in this docs pass**. Whether Description survives the
+   reduced view the sentence does not say — it reduces Metadata only.
 4. **The README.md file route is not built**, with its reason: no
    file-resource kind exists in our Compass — nothing can hold a file in a
    folder. Recorded; if a files arc ever lands, the callout's

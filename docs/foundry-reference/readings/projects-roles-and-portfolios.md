@@ -127,9 +127,13 @@ The ladder itself, quoted:
 
 And the boundary between discretionary and mandatory, stated in one sentence:
 
-> "Roles are a **discretionary** permission… However, **mandatory controls,
-> Organizations and Markings, will *always* prevent an ineligible user** from
-> accessing a resource, regardless of the user's role."
+> "Roles are a **discretionary** permission… However, **mandatory controls
+> (organizations, markings, and Classification-based Access Controls) will
+> *always* prevent an ineligible user** from accessing a resource, regardless
+> of the user's role."
+
+*(Re-mirrored 2026-09-04: the list of mandatory controls grew from two to
+three; the asymmetry is unchanged.)*
 
 ### Resource-level role grants
 

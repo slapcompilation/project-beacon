@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Pipeline management
 
@@ -7,10 +7,6 @@ This page outlines features and best practices for pipeline management in Pipeli
 ## Reusing logic across a pipeline
 
 Pipeline Builder supports reusing logic across a pipeline via [parameters](/docs/foundry/pipeline-builder/management-parameter-overview/) and [custom functions](/docs/foundry/pipeline-builder/management-create-custom-functions/). Parameters are values that can be used in multiple transforms in a pipeline. Custom functions include both custom expressions and custom transforms for reusing logic in a single location. Custom expressions allow you to save a single expression with optional parameters, while custom transforms allow you to save a series of transform boards as a single transform.
-
-:::callout{theme="neutral"}
-Reusable sub-graphs allow you to reuse the same transform board across multiple Pipeline Builder pipelines. This feature is in beta and can be enabled for your stack. Contact Palantir Support to request access.
-:::
 
 ## Large pipeline management
 

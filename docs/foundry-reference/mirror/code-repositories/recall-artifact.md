@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-repositories/recall-artifact/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-repositories/recall-artifact/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Recall an Artifact
 

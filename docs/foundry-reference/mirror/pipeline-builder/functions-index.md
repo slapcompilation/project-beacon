@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/functions-index/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/functions-index/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Functions index
 
@@ -10,7 +10,7 @@ Aggregations aggregate multiple row values into one. For example the 'sum' expre
 
 Generators produce multiple values from a single row. For example the 'explode\_array' expression
 
-Transforms are functions that operate on a whole table or multiple tables. For example the 'drop' transform.The following document will outline the available expressions and transforms.
+Transforms are functions that operate on a whole table or multiple tables. For example the 'drop' transform. The following document will outline the available expressions and transforms.
 
 ## Row level expressions
 

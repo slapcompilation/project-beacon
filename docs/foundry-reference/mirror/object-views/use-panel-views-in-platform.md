@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/use-panel-views-in-platform/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/use-panel-views-in-platform/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use panel Object Views
 

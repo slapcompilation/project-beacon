@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/intake-forms/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/intake-forms/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Intake forms
 
-Platform access is most commonly managed through SAML or OpenID Connect (OIDC) integrations with appropriate identity providers. Information and attributes about users and groups is inherited to the platform through these integrations. In cases where the available identity provider does not provide sufficient information about users that may be required for the effective management of platform access, administrators can set up authentication intake forms to capture, review, and supplement that information.
+Platform access is most commonly managed through SAML or OpenID Connect (OIDC) integrations with appropriate identity providers. Information and attributes about users and groups are inherited to the platform through these integrations. In cases where the available identity provider does not provide sufficient information about users that may be required for the effective management of platform access, administrators can set up authentication intake forms to capture, review, and supplement that information.
 
 ## Intake form management
 

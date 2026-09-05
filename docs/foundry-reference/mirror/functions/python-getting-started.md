@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started with Python functions
 
@@ -34,6 +34,8 @@ Even if you declare the type of an argument with the API type (for example, `Str
 :::
 
 For a full overview of types in Python functions see our [type reference documentation](/docs/foundry/functions/types-reference/).
+
+To add a Python package to your repository, use the **Libraries** side panel, as described in [discovering and using Python libraries](/docs/foundry/transforms-python/use-python-libraries/).
 
 ## Test in live preview
 

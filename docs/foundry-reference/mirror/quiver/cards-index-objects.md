@@ -1,6 +1,6 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-objects/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-objects/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Objects cards
+# Object cards
 
 Back to: [Index of cards](/docs/foundry/quiver/cards-index/)
 
@@ -32,12 +32,12 @@ Select the **Show data** and **Hide data** buttons to switch between the results
 
 Learn more about [adding data](/docs/foundry/quiver/getting-started/) to Quiver.
 
-### Browsing object set properties and linked sensors
+## Browsing object set properties and linked sensors
 
 Object properties and available [linked sensors](/docs/foundry/quiver/timeseries-overview/#adding-a-time-series-property) can be added and removed directly from the card header by selecting **Properties** from the top right corner. This simplifies the discovery of time series data stored on the object as a time series property or on linked objects as sensors. Adding or removing properties will add or remove columns from the object set card table view.
 
 ![Example of adding linked sensors to an object set card](./images/howto-object-set-drilldown-add-measures.png)
 
-Object set rows (individual objects in the object set) can be popped out as **object view** cards, and all properties values (cells in the table) can be popped out as either a time series plot or an [object property](/docs/foundry/quiver/card-object-property/) (metric) card. This pop out action shortens the process to drill down from an object set of many objects to a specific time series plot or property metric on a single object.
+Object set rows (individual objects in the object set) can be popped out as **object view** cards, and all property values (cells in the table) can be popped out as either a time series plot or an [object property](/docs/foundry/quiver/card-object-property/) (metric) card. This pop out action shortens the process to drill down from an object set of many objects to a specific time series plot or property metric on a single object.
 
 ![Red rectangle highlighting two blue pop out buttons in a table](./images/howto-object-set-pop-out-cell.png)

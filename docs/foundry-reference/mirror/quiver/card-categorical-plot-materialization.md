@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-categorical-plot-materialization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-categorical-plot-materialization/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Categorical plot from materialization
+# Categorical plot from dataset
 
-Create a categorical chart (bar, line, or scatter) using data from a materialization. In the editor, use the Data tab to select the input materialization, and define the groups as well as segments (optional). Use the Display tab to change the visualization type and other display options.
+Create a categorical chart (bar, line, or scatter) using data from a dataset. In the editor, use the **Data** tab to select the input dataset, and define the groups as well as segments (optional). Use the **Display** tab to change the visualization type and other display options.
 
 Supported aggregation metrics: min, max, sum, average, count, and unique count
 
 ## Input type
 
-Materialization
+Dataset
 
 ## Output type
 

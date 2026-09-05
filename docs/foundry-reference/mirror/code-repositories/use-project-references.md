@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-repositories/use-project-references/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-repositories/use-project-references/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use Project references
 
@@ -13,8 +13,8 @@ Project references add an increased layer of scrutiny for moving data between Pr
 2. When there is an input dataset from outside the Project scope, the code editor flags that the dataset must be added as a Project reference. By clicking the light bulb icon, the input dataset can be added as a Project reference.
    ![add-code](./images/reference-add-code.gif)
 3. References to datasets external to the Project can also be added from **Projects & files**.
-4. If the repository's language packages are out of date, it will not be possible to enforce Project scope until they have been updated. Code Repositories will flag that these need to updated and clicking the update button that appears will resolve this.
-5. You can only add a Project reference to a dataset from outside the Project scope as an input datast, not as an output dataset. Trying to output to a dataset outside of the Project scope will trigger a AccessOutsideProjectDenied error.
+4. If the repository's language packages are out of date, it will not be possible to enforce Project scope until they have been updated. Code Repositories will flag that these need to be updated and clicking the update button that appears will resolve this.
+5. You can only add a Project reference to a dataset from outside the Project scope as an input dataset, not as an output dataset. Trying to output to a dataset outside of the Project scope will trigger an `AccessOutsideProjectDenied` error.
 
 ## Project references and permissions
 

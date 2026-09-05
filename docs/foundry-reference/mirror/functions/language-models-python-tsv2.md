@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models-python-tsv2/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models-python-tsv2/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Language models in TypeScript v2 and Python functions
 

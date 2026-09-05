@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-vega-plot/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-vega-plot/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Vega Plots
 
@@ -312,7 +312,7 @@ Check the following:
 
 #### Vega plot object limit
 
-Vega plots in Quiver have a limit of 50,000 objects. If you need to visualize datasets exceeding this limit, consider using [object set charts](/docs/foundry/quiver/objects-chart-drilldown/) or [materialization charts](/docs/foundry/quiver/card-categorical-plot-materialization/), which are not scale-limited.
+Vega plots in Quiver have a limit of 50,000 objects. If you need to visualize datasets exceeding this limit, consider using [object set charts](/docs/foundry/quiver/objects-chart-drilldown/) or [dataset charts](/docs/foundry/quiver/card-categorical-plot-dataset/), which are not scale-limited.
 
 :::callout{theme="warning"}
 [Vega-Lite ↗](https://vega.github.io/vega-lite/docs/encoding.html) documentation and the [Vega editor ↗](https://vega.github.io/editor/#/) can be helpful tools to test and debug Vega specs. However, you **should not** enter any sensitive information in the editor tool as we cannot guarantee data security outside of the Palantir platform.

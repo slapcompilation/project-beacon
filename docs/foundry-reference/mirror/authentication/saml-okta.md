@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/saml-okta/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/saml-okta/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure SAML 2.0 integration for Okta
 

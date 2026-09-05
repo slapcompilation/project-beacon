@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-server-side-typescript/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-bootstrapping-server-side-typescript/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Bootstrap a new OSDK TypeScript application with a service user
 
@@ -41,11 +41,11 @@ Review and confirm the information you entered, then select **Create application
 ![Copy the server side client secret that appears in the pop-up and securely store it.](./images/oauth-client-secret-dialog.png)
 
 :::callout{theme="neutral"}
-If you lose your client secret, you can rotate and obtain a new secret on the **Permissions & OAuth** page. Keep in mind that this will break existing applications using this service user and secret.
+If you lose your client secret, you can rotate and obtain a new secret on the **OAuth & restrictions** page. Keep in mind that this will break existing applications using this service user and secret.
 :::
 
 :::callout{theme="neutral"}
-When [packaging confidential client applications for Marketplace](/docs/foundry/developer-console/marketplace-installation/#limitations), the client secret is not included. After installation, you must generate a new secret in the destination environment by navigating to **OAuth & scopes** and selecting **Rotate secret**.
+When [packaging confidential client applications for Marketplace](/docs/foundry/developer-console/marketplace-installation/#limitations), the client secret is not included. After installation, you must generate a new secret in the destination environment by navigating to **OAuth & restrictions** and selecting **Rotate secret**.
 :::
 
 Finally, select **Generate first version** to use your newly created OSDK.

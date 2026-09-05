@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/legacy-foundry-rules-setup-taurus/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/legacy-foundry-rules-setup-taurus/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Legacy Foundry Rules Setup (Taurus)
 

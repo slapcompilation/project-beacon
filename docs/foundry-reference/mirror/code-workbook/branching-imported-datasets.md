@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-workbook/branching-imported-datasets/ · mirrored 2026-08-26 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-workbook/branching-imported-datasets/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Choose imported dataset branch
 

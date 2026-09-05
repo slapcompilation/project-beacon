@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/visual-functions-create/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/visual-functions-create/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Create and use visual functions
 
 A [visual function](/docs/foundry/quiver/visual-functions-overview/) consists of one or more Quiver cards that load, combine, and transform data. Visual functions in Quiver do not impact the underlying data in Foundry or make any ontology change; rather, visual functions automatically apply a set of logical steps to data inputs within a Quiver analysis.
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/)) filter what a user can see in a visual function. These controls do not extend to the function's output, which can be embedded in dashboards, exported, or shared with users who lack access to the underlying data. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
+:::
 
 ## Create a function
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-lineage/node-coloring/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-lineage/node-coloring/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Node coloring
 
@@ -26,7 +26,7 @@ There are several built-in options for coloring graph nodes to give you more inf
 |**Files**	|Colors the nodes on the graph by files-related metrics: Average file size, count of files and dataset size	|
 |**Row count**	|Colors nodes by the number of rows in each dataset. If row count does not exist, it could be calculated in the dataset details helper or in the dataset view in Foundry (dataset app).	|
 |**Spark usage**	|Colors each node by Executor run/CPU time in a given period 	|
-|**User views**	|Colors nodes by the number of user views	|
+|**User views**	|Colors nodes by the total number of user views over the past four weeks	|
 |**Branch**	|Indicates the currently viewed branch of each node on the graph. 	|
 |**Code Status** |Indicates the code status for this node/dataset. <br> **CI running** means CI checks are currently running for this node. <br> **CI Failed** means that CI checks failed on this node. <br> **Out of date** means that the code is out of date for this node. <br> **Unavailable** means that the node/dataset is not a stemma backend or that the user is lacking permissions.	|
 |**Storage**	|Indicates where data is stored. Will be **Foundry** unless you are using [Virtual Tables](/docs/foundry/data-integration/virtual-tables/).	|

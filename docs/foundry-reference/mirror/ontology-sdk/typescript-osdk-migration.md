@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk-migration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-osdk-migration/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # TypeScript OSDK migration guide (1.x to 2.0)
 
@@ -120,6 +120,10 @@ const client = createClient(
 ```
 
 :::callout{theme="neutral"}
+For a complete walkthrough on setting up a backend service application using confidential OAuth with a service user, see [Bootstrap a back-end TypeScript application](/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript/).
+:::
+
+:::callout{theme="neutral"}
 If you install your Ontology’s OSDK through the CLI, your `$ontologyRid` will be exported from the root of the SDK package, which you can access as above. Otherwise, you need to pass in your known `ontologyRid` to where you construct the client. You can get this information from the Ontology Manager in Foundry. Select your desired ontology, navigate to the **Ontology configuration** tab, and copy your Ontology RID from the **Ontology metadata** section.
 :::
 
@@ -219,6 +223,24 @@ const objectResult: Result<Osdk.Instance<myObject>> =
 
 :::callout{theme="neutral"}
 You can also use the `fetchOne` method to have the object returned without the result wrapper.
+:::
+
+### Access object RIDs
+
+In TypeScript OSDK 2.0, object RIDs are not included by default when fetching objects. To access an object's RID, you need to explicitly request it by using the `$includeRid: true` option in your fetch call and typing the returned instance accordingly.
+
+#### TypeScript OSDK 2.0
+
+```typescript
+const objectWithRid: Osdk.Instance<myObject, "$rid"> =
+    await client(myObject).fetchOne("<primaryKey>", { $includeRid: true });
+
+// The RID is now available on the returned object
+const rid = objectWithRid.$rid;
+```
+
+:::callout{theme="neutral"}
+The `$includeRid` option can also be used with `fetchPage` and other fetch methods. Ensure you type the result with `Osdk.Instance<ObjectType, "$rid">` to access the `$rid` property on the returned objects.
 :::
 
 ### Load objects with paging

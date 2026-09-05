@@ -1,10 +1,26 @@
-<!-- source: https://palantir.com/docs/foundry/projects/use-project-details-panel/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/projects/use-project-details-panel/ · mirrored 2026-09-05 from Palantir Foundry docs -->
 
 # Use Project details panel
 
 You can open the resource details panel by selecting one of the right-hand side icons on the Project page.
 
 ![Main view of Project.](./images/project-details.png)
+
+## Overview
+
+The **Overview** panel gathers general information about the resource, including its resource identifier (RID). On a project's **Files** page and on folder pages, the details panel opens to **Overview** unless it is already showing another panel. To return to it later, select the information icon among the right-hand side icons. The icon's tooltip reads **Overview**.
+
+For a project, **Overview** shows a **Description**, the **Project point of contact**, and a **Metadata** section. Between **Description** and **Project point of contact**, three more sections can appear:
+
+* **Documentation:** A preview of the project's documentation, with an **Add**, **Edit**, or **View** button that opens the [documentation](#documentation) panel. You see this section when the project has documentation or when you can edit the project's metadata.
+* **Marketplace installation:** You see this section when a Marketplace installation created the project, or when the project contains installed Marketplace products.
+* **Classification:** You see this section when classification-based access control is enabled.
+
+The first field in **Metadata** is **RID**, the project's resource identifier. To copy it, select the copy button at the end of the read-only **RID** field.
+
+The remaining **Metadata** fields, in the order they appear, are **Location**, **Space**, **Iceberg storage**, **Tags**, **Portfolio**, **Status**, **Collections**, **Created**, **Last modified**, and **Views**. Fields are shown only when details are available.
+
+If you can see a project's cover page but not its contents, **Overview** shows a reduced **Metadata** section containing only the project's own **RID**, **Location**, and **Space**.
 
 ## Documentation
 

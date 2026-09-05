@@ -1,14 +1,15 @@
-<!-- source: https://palantir.com/docs/foundry/code-repositories/navigation/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-repositories/navigation/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Navigation
 
-There are five different tabs that you can select at the top of the Code Repositories interface:
+You can select the following tabs at the top of the Code Repositories interface:
 
 1. [Code tab](#code-tab)
 2. [Branches tab](#branches-tab)
-3. [Pull requests tab](#pull-requests-tab)
-4. [Checks tab](#checks-tab)
-5. [Settings tab](#settings-tab)
+3. [Tags tab](#tags-tab)
+4. [Pull requests tab](#pull-requests-tab)
+5. [Checks tab](#checks-tab)
+6. [Settings tab](#settings-tab)
 
 ## Code tab
 
@@ -93,11 +94,11 @@ Clicking the **Build** button at the top right corner of the Code Repositories i
 
 **Docs Helper**
 
-The **Docs** helper contains references for the available languages that you can write code in. For more detailed language-specific documentation that isn’t available in the in-product documentation, refer to the [supported languages](/docs/foundry/building-pipelines/supported-languages/).
+The **Docs** helper contains references for the available languages that you can write code in. For more detailed language-specific documentation that is not available in the in-product documentation, refer to the [supported languages](/docs/foundry/building-pipelines/supported-languages/).
 
 **SQL Scratchpad**
 
-The **SQL** helper lets you quickly test out SQL queries. Write a SQL query and click <img src="./images/sql-run-file.png" alt ="sql-run-file" width="60"> to preview the results of your query. You can also test out an existing query you’ve written in your repository by selecting the appropriate `.sql` file and clicking <img src="./images/sql-preview-file.png" alt ="sql-preview-file" width="110">.
+The **SQL** helper lets you quickly test out SQL queries. Write a SQL query and click <img src="./images/sql-run-file.png" alt ="sql-run-file" width="60"> to preview the results of your query. You can also test out an existing query you have written in your repository by selecting the appropriate `.sql` file and clicking <img src="./images/sql-preview-file.png" alt ="sql-preview-file" width="110">.
 
 To view queries marked as favorites, go to the <img src="./images/sql-tab2.png" alt ="sql-tab2" width="25"> tab. To view a history of queries ran in the **SQL** helper, go to the <img src="./images/sql-tab3.png" alt ="sql-tab3" width="25"> tab.
 
@@ -129,13 +130,13 @@ Each listed branch contains a summary with the following available functionaliti
 * The “Checks” column indicates whether or not the automatic code checks have passed for a branch.
 * The “Pull request” column tells you about any existing *Pull requests* in a branch and lets you create new *Pull requests*.
   To create a new *Pull request* that contains the changes on a branch, click the “Propose changes” button. This will create a new *Pull request* for merging your changes into the *master* branch by default. If you want to merge your changes into a branch other than *master*, select a different branch from the dropdown menu.
-  If you don’t see the button to create a new *Pull request*, it means that a *Pull request* already exists for a branch. Click on the “Open” / “Closed” / “Merged” button to open the full *Pull request*.
+  If you do not see the button to create a new *Pull request*, it means that a *Pull request* already exists for a branch. Click on the “Open” / “Closed” / “Merged” button to open the full *Pull request*.
 * Click “View code” next to a branch name to view the code on that branch.
 * To delete a branch, click the <img src="./images/trash.png" alt ="trash" width="25"> icon. **You should not delete any branches that you did not create. This can result in lost work for others.**
 
-### Tags
+## Tags tab
 
-The branches tab also lets you access a list of **tags**, which are like immutable branches. A tag can be used to mark a significant version of the code for future reference by giving it a version number or name. To create a new tag, navigate to the tags section of the branches tab and click the "New Tag" button. A tag can be created from the current version of a branch, or from any arbitrary commit.
+In the **Tags** tab, you can access a list of **tags**, which are like immutable branches. A tag can be used to mark a significant version of the code for future reference by giving it a version number or name. To create a new tag, select **New tag**. A tag can be created from the current version of a branch, or from any arbitrary commit.
 
 ![create-tag-dialog](./images/create-tag-dialog.png)
 

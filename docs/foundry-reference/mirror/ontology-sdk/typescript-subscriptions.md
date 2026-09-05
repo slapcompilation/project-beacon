@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-subscriptions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/typescript-subscriptions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Subscribe to changes in object sets with the TypeScript OSDK
 
@@ -16,6 +16,8 @@ This page provides documentation on how to receive real time updates about chang
 ## Overview
 
 The subscriptions feature in the TypeScript OSDK allows you to receive updates when objects in a specified object set are changed. This includes the addition and deletion of new objects, as well as changes to properties on objects in the object set.
+
+If you need direct access to the underlying WebSocket API—for example, to implement subscriptions in a language other than TypeScript or to have more control over the connection—see [Subscribe to changes in object sets via WebSocket](/docs/foundry/ontology-sdk/websocket-subscriptions/).
 
 The examples in the following sections use a `Country` object type with a `@subscribe-osdk-example/sdk` package name. Replace the example package name and object type with the package you created, and the object type you selected, respectively. Lastly, replace references to `population` with a property from your object type.
 

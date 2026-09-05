@@ -14,6 +14,13 @@ its Trash section already cited by 620/636). `projects/use-project-details-panel
 is **byte-identical to the compass copy** — the fourth double-mirrored slug
 found (`manage-roles-`, `ontology-best-practices-and-anti-patterns`, the
 `projects/` panel pair), confirmed by diffing past the source comments.
+
+*Re-mirrored 2026-09-04/05:* the page is 55 lines now — a new **Overview**
+section, read as a diff, quoted where it bears on a build in
+`project-documentation.md` Decision 3. The twins are byte-identical again only
+because I refreshed the `projects/` section by hand the next day; the first
+re-mirror changed one and not the other, and the drift gate does not know the
+two slugs are one page.
 `security/audit-log-categories` was read for its framing and its category
 grammar, not in full: it is 41KB of enrollment-audit vocabulary and a different
 mechanism (§4).

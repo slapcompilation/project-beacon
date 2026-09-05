@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-vpn-ingress/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-vpn-ingress/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure VPN ingress \[Beta]
 
@@ -29,10 +29,10 @@ To create a VPN connection, select **+ New VPN** and follow the steps below:
 You can enter the following details in the **VPN configuration** section:
 
 * **VPN Name:** Name your VPN to identify the ingress.
-* **Public IP address of your VPN gateway:** Enter the customer’s public VPN gateway address *or* the outside address when using NAT.
+* **Public IP address of your VPN gateway:** Enter the public VPN gateway address *or* the outside address when using NAT.
 * **Routing configuration:**
-  * **Static:** Enter the customer's private IP address spaces that may access Foundry in the **Allowed private CIDRs\*** text box.
-  * **Dynamic:** Enter the Border Gateway Protocol (BGP) Autonomous System Number (ASN) of the customer gateway in the **Autonomous System Number (ASN)** text box.
+  * **Static:** Enter the private IP address spaces that may access Foundry in the **Allowed private CIDRs** text box.
+  * **Dynamic:** Enter the Border Gateway Protocol (BGP) Autonomous System Number (ASN) of the  gateway in the **Autonomous System Number (ASN)** text box.
 
 ![The Add VPN connection popup window displays the steps necessary to configure an ingress VPN configuration.](./images/network-ingress-create-vpn-1.png)
 
@@ -75,7 +75,7 @@ To connect to Foundry, you will:
 
 #### Allow ingress into Foundry
 
-You can reference the existing [ingress configuration documentation](/docs/foundry/administration/configure-ingress/#configure-network-ingress-in-control-panel) to allow ingress from a customer's private CIDRs into Foundry.
+You can reference the existing [ingress configuration documentation](/docs/foundry/administration/configure-ingress/#configure-network-ingress-in-control-panel) to allow ingress from private CIDRs into Foundry.
 
 #### Override DNS in a VPN
 
@@ -100,7 +100,7 @@ curl -s https://<mycompany>.palantirfoundry.com/magritte-coordinator/api/ping > 
 
 ### Manage VPN state
 
-You can manage a VPN's state by navigating to your VPN list and selecting the **Actions** dropdown to **Disable** or **Delete** a VPN. There is a 24-hour grace period in which you can restore a VPN after you select **Delete**. Additionally, you can disable or enable a `Ready` VPN connection.
+You can manage a VPN's state by navigating to your VPN list and selecting the **Actions** dropdown menu to **Disable** or **Delete** a VPN. There is a 24-hour grace period in which you can restore a VPN after you select **Delete**. Additionally, you can disable or enable a `Ready` VPN connection.
 
 ![The VPNs tab displays the ability to Disable or Delete a VPN.](./images/network-ingress-vpn-actions.png)
 

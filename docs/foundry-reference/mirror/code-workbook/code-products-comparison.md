@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-workbook/code-products-comparison/ · mirrored 2026-08-26 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-workbook/code-products-comparison/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Comparison: Code Repositories vs. Code Workspaces vs. Code Workbook
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -27,7 +27,7 @@ Get started and build your first application with the course on [learn.palantir.
 
 ## Part II: Configure your initial view
 
-Let’s add and configure an Object Table widget for the `Flight Alert` objects:
+Add and configure an Object Table widget for the `Flight Alert` objects:
 
 1. On the right side of your module layout, select **Add widget**, then select the **Object table** widget from the widget selector that appears.
 2. In the configuration panel for the **Object table 1** widget, use the **Object set** dropdown menu to define the data that will be displayed in this widget. In the dropdown menu, select **+ New object set variable**, and in the variable definition popover that appears, choose the **Starting object set** dropdown menu and select **\[Example Data] Flight Alert**. If you cannot find **\[Example Data] Flight Alert**, contact Palantir Support.
@@ -65,7 +65,7 @@ The **Filter list 1 Filter output** is an object set filter variable. You can se
 
 ## Part IV: Configure a collapsible panel for the Object View
 
-Let’s add and configure an Object View widget for the active object in the Object Table widget.
+Add and configure an Object View widget for the active object in the Object Table widget.
 
 1. Select the section surrounding the object title on the right side of the screen and note the **Section toolbar** that appears at the top of your module. Choose the **Add** — **Right** option to add a new section to the right of the Object Table widget.
 
@@ -85,7 +85,7 @@ Let’s add and configure an Object View widget for the active object in the Obj
 The below section assumes that the **\[Example Data] De-escalate Flight Alert** action type has already been created. For details on how to create a new action type, see the [documentation on how to use Actions in Workshop](/docs/foundry/workshop/actions-use/).
 :::
 
-Now, let's add and configure a Resolve Alert button to allow users to write back to the Flight Alert data when they resolve an issue.
+Now, add and configure a Resolve Alert button to allow users to write back to the Flight Alert data when they resolve an issue.
 
 1. Select the section header above the newly configured Object View header. Choose the plus sign (**+**) on the right, then select the **Button Group** widget from the selector that appears.
 2. Next, configure the title and styling of the button. Under the **Button Configuration** header, select the first button, named **Button 1** by default. Within the button configuration, change **Text** to `Resolve Alert`, change **Intent** to `Success`, and change **Left icon** to `Small tick`.

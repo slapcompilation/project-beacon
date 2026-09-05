@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/mobile-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/mobile-getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -11,7 +11,7 @@ This tutorial focuses on the steps required to create a mobile Workshop applicat
 
 ## Part 1: Initial setup
 
-To start, we'll create a basic application that can be used to scroll through flights data using the following steps:
+To start, create a basic application that can be used to scroll through flights data using the following steps:
 
 1. Create a new Workshop module.
 
@@ -25,15 +25,15 @@ To start, we'll create a basic application that can be used to scroll through fl
 
     <img src="./images/mobile-tutorial-2.png" alt="add object set">
 
-5. Select **+ Add widget** and add an **Object list** widget to your application. Configure the widget to use your flights object set variable, then select properties to show in the list. In this case, we'll add the properties **Carrier Name**, **Origin City Name**, **Destination City Name**, **Departure**, and **Arrival** to the list.
+5. Select **+ Add widget** and add an **Object list** widget to your application. Configure the widget to use your flights object set variable, then select properties to show in the list. In this case, add the properties **Carrier Name**, **Origin City Name**, **Destination City Name**, **Departure**, and **Arrival** to the list.
 
     <img src="./images/mobile-tutorial-3.png" alt="add object list">
 
-At this point, you've created a basic application that can be used to scroll through flights data. In the next step, we'll add some interactivity to this application.
+At this point, you have created a basic application that can be used to scroll through flights data. In the next step, you will add some interactivity to this application.
 
 ## Part 2: Add filtering
 
-In this part of the tutorial, we'll add the ability to filter the list of flights. To provide the user with enough screen space to apply filters, we'll nest the filtering within a Workshop drawer.
+In this part of the tutorial, you will add the ability to filter the list of flights. To provide the user with enough screen space to apply filters, you will nest the filtering within a Workshop drawer.
 
 1. Select **Layout** in the left sidebar, then select the **+** and add a **New drawer** to the application. Update the drawer's title and name to "Filter flights" and set its icon to the filtering icon.
 
@@ -41,7 +41,7 @@ In this part of the tutorial, we'll add the ability to filter the list of flight
 
 2. Within the drawer, select **+ Add widget** and add a **Filter list** widget. Configure the Filter list's input data to be the Flights object set variable you created earlier.
 
-3. Under **Filters configuration**, select a few properties that users should be able to filter. In this case, we'll add filters on the **Origin City Name**, **Destination City Name**, and **Cancellation reason** properties.
+3. Under **Filters configuration**, select a few properties that users should be able to filter. In this case, add filters on the **Origin City Name**, **Destination City Name**, and **Cancellation reason** properties.
 
     <img src="./images/mobile-tutorial-5.png" alt="add filter list">
 
@@ -63,15 +63,15 @@ In this part of the tutorial, we'll add the ability to filter the list of flight
 
     <img src="./images/mobile-tutorial-9.png" alt="configure object set filter">
 
-At this point, you've added the ability for users to filter the list of flights based on a set of properties that you've configured. To avoid UI clutter, these filters show up in a full-page drawer so that users can easily configure multiple filters at once before returning to their filtered list.
+At this point, you have added the ability for users to filter the list of flights based on a set of properties that you have configured. To avoid UI clutter, these filters show up in a full-page drawer so that users can easily configure multiple filters at once before returning to their filtered list.
 
-Try opening the drawer and filtering to flights from *Denver, CO* that were canceled due to *Weather*. Close the drawer and you'll see that the list of flights has been updated appropriately.
+Try opening the drawer and filtering to flights from *Denver, CO* that were canceled due to *Weather*. Close the drawer and you will see that the list of flights has been updated appropriately.
 
-In the next step, we'll let users explore more details about a selected flight.
+In the next step, you will let users explore more details about a selected flight.
 
 ## Part 3: Add selected object view
 
-In this part of the tutorial, we'll enable users to navigate to a different page to view details when they select a flight from the list.
+In this part of the tutorial, you will enable users to navigate to a different page to view details when they select a flight from the list.
 
 1. Select **Layout** in the left sidebar, then select the **+** and add a **New page** to the application. Update the page's name to "Flight details". In the header for your new page, remove the section title.
 
@@ -83,21 +83,21 @@ In this part of the tutorial, we'll enable users to navigate to a different page
 
     <img src="./images/mobile-tutorial-11.png" alt="set flow layout" width="600px">
 
-4. Next, we'll show some of the current flight's properties:
+4. Next, show some of the current flight's properties:
 
 * Select the section in your new Flow layout and update its title to "Properties".
 * Select **+ Add widget** and add a Property list widget
 * Configure the property list widget to also use "Object list 1 Active object" as its input object set
-* Update the property list widget to use a stacked label layout and have 1 column, then select a few properties to surface. In this case, we'll show the **Operating carrier**, **Carrier Name**, **Cancelled**, and **Cancellation Reason**.
+* Update the property list widget to use a stacked label layout and have 1 column, then select a few properties to surface. In this case, show the **Operating carrier**, **Carrier Name**, **Cancelled**, and **Cancellation Reason**.
 
     <img src="./images/mobile-tutorial-12.png" alt="configure property list">
 
-5. Then, we'll show information about the origin and destination airports:
+5. Then, show information about the origin and destination airports:
 
 * Select **+ Add section** at the bottom of your Flow layout. Update the new section's title to "Origin Airport"
 * Select **+ Add widget** and add a Property list widget
 * Click **Select object set variable...** and then **+ New object set variable**. Start with the "Object list 1 Active object" variable, then **Search around** using the **\[Example Data] Origin Airport** link. Rename this new variable to "Active flight origin airport".
-* Update the property list widget to use a stacked label layout and have 1 column, then select a few properties to surface. In this case, we'll show the **Display Name**, **Number of Carriers**, **Number of Departing Flights**, **Number of Destinations** properties.
+* Update the property list widget to use a stacked label layout and have 1 column, then select a few properties to surface. In this case, show the **Display Name**, **Number of Carriers**, **Number of Departing Flights**, **Number of Destinations** properties.
 
 6. Repeat the above steps to add a section showing information about the destination airport as well.
 
@@ -107,9 +107,9 @@ In this part of the tutorial, we'll enable users to navigate to a different page
 
     <img src="./images/mobile-tutorial-14.png" alt="configure navigation" >
 
-At this point, you've added the ability to navigate to a different page to view details about each flight in the list. Try selecting a flight in your object list to navigate to the "Flight details" page you just created.
+At this point, you have added the ability to navigate to a different page to view details about each flight in the list. Try selecting a flight in your object list to navigate to the "Flight details" page you just created.
 
-Finally, we'll preview your mobile application in your desktop browser and on your phone.
+Finally, you will preview your mobile application in your desktop browser and on your phone.
 
 ## Part 4: View and use module
 

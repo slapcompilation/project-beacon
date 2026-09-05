@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/scim-enable/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/scim-enable/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Enabling SCIM on a Foundry authentication provider
 

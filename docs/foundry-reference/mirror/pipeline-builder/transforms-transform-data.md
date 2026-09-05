@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-transform-data/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-transform-data/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Transform data
 
@@ -16,9 +16,11 @@ In the transform page, search for a transform type by name or browse from a list
 
 ![Screenshot of transforms search page](./images/transforms-search@2x.png)
 
-For semi-structured datasets like JSON files, the search field includes file transforms that allow you to parse your dataset into table format.
+For semi-structured datasets like JSON or Microsoft Excel files, the search field includes file transforms that allow you to parse your dataset into table format.
 
 ![Screenshot of file transforms search page](./images/transforms-search-files@2x.png)
+
+Pipeline Builder lists file transforms, such as **Extract rows from an Excel file**, only when the selected node reads as files. If the dataset carries a schema, Pipeline Builder reads the node as tabular and lists table transforms instead, so file transforms do not appear in the search field. To parse Excel or other raw files, add the dataset as a schema-less input rather than as a table.
 
 [Learn more about datasets.](/docs/foundry/data-integration/datasets/#datasets)
 

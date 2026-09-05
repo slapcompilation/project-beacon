@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pivot-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pivot-table/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Pivot Table
 
@@ -79,17 +79,21 @@ This approach is useful for the following use cases:
 #### Basic structure
 
 :::callout{theme="neutral"}
-TypeScript V1 and TypeScript V2 use the same implementation for function-backed pivot tables. The following patterns and examples apply to both versions.
+TypeScript v1 and TypeScript v2 require the same output shape for a function-backed pivot table: an array of structs, where every struct contains a field named `values`. The struct declaration is the same in both versions; the imports and the function declaration differ, as shown in the tabs below.
 :::
 
-Below is an example of a TypeScript interface that can be used for a function-backed pivot table.
+Below is an example of a struct definition and function declaration that can be used for a function-backed pivot table.
 
-In this interface:
+In this struct definition:
 
 * `region`, `productType`, `productName`, and `year` are fields used for grouping.
 * `totalSales` and `estimatedSales` are the values displayed in the pivot table cells.
 
-```typescript
+Both versions declare the struct as a [custom type](/docs/foundry/functions/types-reference/#structcustom-type) using the `interface` keyword. [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/) registers the function with the `@Function()` decorator on a class method and imports `Integer` from `@foundry/functions-api`. [TypeScript v2](/docs/foundry/functions/typescript-v2-getting-started/) registers the function as the default export of the file and imports `Integer` from `@osdk/functions`.
+
+```typescript tab="TypeScript v1"
+import { Function, Integer } from "@foundry/functions-api";
+
 interface SalesData {
     region?: string;
     year?: string;
@@ -103,11 +107,35 @@ interface SalesData {
     }
 };
 
-@Function()
-public sales_function_backed_pivot_table(): SalesData[] {
-    // Your implementation here
-    ...
+export class MyFunctions {
+    @Function()
+    public salesFunctionBackedPivotTable(): SalesData[] {
+        // Your implementation here
+        return [];
+    }
+}
+```
+
+```typescript tab="TypeScript v2"
+import { Integer } from "@osdk/functions";
+
+interface SalesData {
+    region?: string;
+    year?: string;
+    productType?: string;
+    productName?: string;
+
+    // Values object containing the metrics
+    values: {
+        totalSales: Integer;
+        estimatedSales: Integer;
+    }
 };
+
+export default function salesFunctionBackedPivotTable(): SalesData[] {
+    // Your implementation here
+    return [];
+}
 ```
 
 #### Configuration
@@ -332,7 +360,7 @@ The Pivot Table widget has the following display and styling options:
 
 * **Layout:** Configures the pivot table's view based on a user's preference.
   * **Tabular:** Default pivot table view.
-  * **Stacked:** Provides a more compact view by merging all row groupings into a single column.
+  * **Stacked:** Provides a more compact view by combining all row groupings into a single column. When you configure more than one row grouping, each value of the top-level row grouping appears once on its own row instead of repeating alongside every row, with nested groupings indented beneath it.
     * **Customize stacked groupby label:** Enable to rename the groupby column.
 * **Fill Width:** When enabled, the pivot table expands to fill the available space within its parent container, automatically adjusting when container dimensions change.
 * **Table style:** Provides three options for pivot table cell and border styles.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-reference/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # API: ModelAdapter reference
 
@@ -570,7 +570,7 @@ Referencing an input by name will access the object that was passed in to `model
 Given the following `ModelAdapter` definition:
 
 ```python
-from palantir_models as pm
+import palantir_models as pm
 
 class ExampleModelAdapter(pm.ModelAdapter):
     ...
@@ -609,7 +609,7 @@ def compute(my_input_data, my_output_data_one, my_output_data_two, my_model):
     my_model_outputs = my_model.transform(my_input_data)
 ```
 
-The `my_input_df` object in the model adapter's `run_inference()` method, being a reference to the input named `"input_dataframe"` which is a tabular input of Pandas type, will be equal to a pandas representation of the `my_input_data` TransformInput that is passed in from the transform.
+The `my_input_df` object in the model adapter's `run_inference()` method, being a reference to the input named `"df_in"` which is a tabular input of Pandas type, will be equal to a pandas representation of the `my_input_data` TransformInput that is passed in from the transform.
 
 ### Outputs
 
@@ -620,7 +620,7 @@ Referencing an output by name will provide a writable object corresponding to th
 Given the following `ModelAdapter` definition:
 
 ```python
-from palantir_models as pm
+import palantir_models as pm
 
 class ExampleModelAdapter(pm.ModelAdapter):
     ...

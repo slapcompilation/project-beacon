@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/user-directory/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/user-directory/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Manage users within your enrollment
 

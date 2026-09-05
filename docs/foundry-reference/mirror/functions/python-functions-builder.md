@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-builder/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-builder/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use a Python function in Pipeline Builder
 
@@ -32,7 +32,7 @@ def full_name(first_name: str, last_name: str) -> str:
 
 When you [configure the transform](#use-your-function-in-a-pipeline-builder-pipeline), map the `first_name` and `last_name` parameters to the corresponding input columns. When the transform runs, Pipeline Builder evaluates `full_name` for each row and writes the returned string to a new output column.
 
-For the full list of supported input and output types and their Python equivalents, review the [types reference](/docs/foundry/functions/types-reference/).
+For the full list of supported input and output types and their Python equivalents, review the [types reference](/docs/foundry/functions/types-reference/). The [Ontology types](/docs/foundry/functions/types-reference/#ontology-types) in that reference are not supported in Pipeline Builder: a function that accepts or returns one of them cannot be imported and does not appear in the list of available functions.
 
 ### Return a struct
 

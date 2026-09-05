@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Transforms
 
@@ -18,7 +18,7 @@ We group expressions and transforms together in the same configuration interface
 
 ![Screenshot of configuration showing filter transform](./images/transforms-filter@2x.png)
 
-Other data structuring transforms, namely [**Join**](#join) and [**Union**](#union), have their own configuration panes and are marked with unique icons in the Pipeline Builder interface.
+Other data structuring transforms, namely [**Join**](#join), [**Union**](#union), and [**Split**](#split), have their own configuration panes and are marked with unique icons in the Pipeline Builder interface.
 
 ![Screenshot of operation selection menu](./images/transforms-transform@2x.png)
 
@@ -33,6 +33,16 @@ A join combines two datasets that have at least one matching column. Depending o
 A union combines two datasets to include all rows.
 
 The union transform requires all inputs have the same schema. If input schemas do not all match, the union will display an error message with a list of missing columns.
+
+### Split
+
+A split partitions a single input into two outputs based on a condition, sending rows that satisfy the condition to the **True** output and all remaining rows to the **False** output.
+
+:::callout{theme="neutral"}
+The split transform is only supported in standard batch (Spark-backed) and faster pipelines (DataFusion-backed). The **Split** option will not appear in streaming pipelines.
+:::
+
+Learn more about the [Split transform](/docs/foundry/pipeline-builder/transforms-split/).
 
 ### Null handling
 

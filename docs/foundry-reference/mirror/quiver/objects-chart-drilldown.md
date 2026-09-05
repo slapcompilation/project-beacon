@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-chart-drilldown/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-chart-drilldown/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Visualize objects with charts
 
@@ -48,7 +48,7 @@ The following object set chart aggregations have small accuracy limitations:
 | Standard deviation | The result of this metric is always approximate due to floating point arithmetic error accumulation. Cases where a very high mean is coupled with a very low standard deviation could produce inaccurate results. |
 | Variance | The result of this metric is always approximate due to floating point arithmetic error accumulation. Cases where a very high mean is coupled with a very low standard deviation could produce inaccurate results. |
 
-Note that these limits do not apply to charts built on transform tables or materializations.
+Note that these limits do not apply to charts built on transform tables or datasets.
 
 ## Filter with chart selections
 
@@ -59,7 +59,7 @@ In the example below, we select the `garage` category and then select **Drill do
 ![Filter a bar chart using selection.](./images/howto-object-set-chart-selection.gif)
 
 :::callout{theme="neutral"}
-Drill-down selection is only available for charts that take object sets as direct input. Charts that visualize [transform table](/docs/foundry/quiver/cards-transform-table/) or [materialization](/docs/foundry/quiver/cards-index-materializations/) outputs do not support drill-down capabilities.
+Drill-down selection is only available for charts that take object sets as direct input. Charts that visualize [transform table](/docs/foundry/quiver/cards-transform-table/) or [dataset](/docs/foundry/quiver/cards-index-datasets/) outputs do not support drill-down capabilities.
 :::
 
 ### Cross filtering
@@ -113,9 +113,9 @@ The [code function categorical plot](/docs/foundry/quiver/card-function-on-objec
 
 The [transform table](/docs/foundry/quiver/cards-transform-table/) is a powerful tool in Quiver for deriving new properties and joining to linked objects. Any columns present in your transform table can be visualized with the [categorical plot from transform table](/docs/foundry/quiver/card-transform-table-plot/) card.
 
-### Materializations
+### Datasets
 
-[Materializations](/docs/foundry/quiver/cards-index-materializations/) are another method of scalable data transformation in Quiver.  In particular, the [expression](/docs/foundry/quiver/card-expression/) card can be useful for deriving new pre-aggregation columns at scale using the powerful [expression language](/docs/foundry/contour/expressions-syntax/). The [join materialization](/docs/foundry/quiver/card-join-materializations/) card can be used to perform a left, inner, or right join between objects to support charting across links. Any columns present in a materialization can be visualized with the [categorical plot from materialization](/docs/foundry/quiver/card-categorical-plot-materialization/) card.
+[Datasets](/docs/foundry/quiver/cards-index-datasets/) are another method of scalable data transformation in Quiver.  In particular, the [expression](/docs/foundry/quiver/card-expression/) card can be useful for deriving new pre-aggregation columns at scale using the powerful [expression language](/docs/foundry/contour/expressions-syntax/). The [join datasets](/docs/foundry/quiver/card-join-datasets/) card can be used to perform a left, inner, or right join between objects to support charting across links. Any columns present in a dataset can be visualized with the [categorical plot from dataset](/docs/foundry/quiver/card-categorical-plot-dataset/) card.
 
 ## Vega charts
 

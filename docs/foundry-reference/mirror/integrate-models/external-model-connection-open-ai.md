@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-open-ai/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-open-ai/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Example: Integrate an Open AI model
 
@@ -105,7 +105,7 @@ Note that the URL and the configuration and credentials maps are completed using
 
 ### Select an egress policy
 
-The example below uses an egress policy that has been configured for `api.llm.palantir.tech` (Port 443).
+The example below uses an egress policy that has been configured for the host of your Open AI API endpoint (Port 443).
 
 ![Egress Policy Open AI in the modeling objectives application](./images/external-open-ai-egress-configuration.png)
 
@@ -119,7 +119,7 @@ Choose the published model adapter in the **Connect an externally hosted model**
 
 Define connection configurations as required by the [example Open AI model adapter](#example-open-ai-model-adapter).
 
-This adapter requires a URL of: `https://api.llm.palantir.tech/preview`
+This adapter requires the URL of your Open AI API endpoint.
 
 This adapter requires connection configuration of the following:
 

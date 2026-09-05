@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-qr-reader/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-qr-reader/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Widget: QR Code Reader
 

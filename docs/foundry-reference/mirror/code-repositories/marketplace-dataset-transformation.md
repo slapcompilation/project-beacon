@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-repositories/marketplace-dataset-transformation/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-repositories/marketplace-dataset-transformation/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add dataset transformation to a Marketplace product
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/pipeline-builder-llm/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/pipeline-builder-llm/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use LLM node in Pipeline Builder
 

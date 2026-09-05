@@ -38,13 +38,18 @@ The three types the page names, of which two land on engines we hold:
 
 plus Model development, which we have no counterpart for.
 
-## 2. Five tabs
+## 2. Six tabs
 
-> "There are five different tabs that you can select at the top of the Code Repositories interface:"
+> "You can select the following tabs at the top of the Code Repositories interface:"
 
 — `code-repositories/navigation.md`
 
-Code, Branches, Pull requests, Checks, Settings. The capture
+Code, Branches, Tags, Pull requests, Checks, Settings. **Drift, re-mirrored
+2026-09-04:** this section was "Five tabs" and the page said so — "There are
+five different tabs" — with tags a list inside the Branches tab. The page now
+promotes Tags to its own tab, third in the strip. Our `CodeRepositoriesPage`
+copies the five-tab layout and keeps tags under Branches; recorded as a
+falsification of the surface, not of 690's `code_tags`. The capture
 (`code-repositories/images/code-view.png`) draws the Code tab as six
 annotated areas and enumerates far more than the prose does: a breadcrumb
 `authoring › Example Code Repository ☆` over `File` and `Help` menus; the
@@ -112,7 +117,7 @@ depending on repository settings. Checks are per branch:
 
 And tags are the neat definition:
 
-> "The branches tab also lets you access a list of **tags**, which are like immutable branches. A tag can be used to mark a significant version of the code for future reference by giving it a version number or name."
+> "In the **Tags** tab, you can access a list of **tags**, which are like immutable branches. A tag can be used to mark a significant version of the code for future reference by giving it a version number or name."
 
 — `code-repositories/navigation.md`
 

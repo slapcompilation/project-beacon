@@ -124,6 +124,20 @@ operator was right that these pages do not have one. The answer is in
 `ri.compass.main.folder` — which 391 already recorded as the folder form — is
 also the project form.
 
+*Drift, re-mirrored 2026-09-04:* the sentences above are untouched; the page's
+"find the project RID" procedure was rewritten from three steps into three
+methods, and two of them name Compass affordances we do not draw:
+
+> "Select **Files** in the workspace navigation sidebar, then open the **Projects** tab. Right-click the project and select **Copy RID**. This listing contains only projects, so the value cannot belong to a folder inside one. Projects in personal folders are not listed, and **Copy RID** is unavailable for trashed projects."
+
+> "Open the project and select **Actions** above the file listing, then select **Copy RID**. If **Actions** is not visible, clear any selection in the listing."
+
+— `data-integration/foundry-s3-api.md`
+
+The third method reads the RID off the Project details panel's Metadata section,
+which both the old and the new text describe and our `ProjectsPage` details panel
+does not show. A pre-existing gap the re-read made visible, not a falsification.
+
 And the consequence is stated as a warning:
 
 > "Supplying the RID of a nested folder, a dataset, or any resource that is not

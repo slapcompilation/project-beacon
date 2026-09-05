@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/struct-variables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/struct-variables/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Struct variables
 
@@ -7,6 +7,8 @@ A **struct variable** is a composite variable containing fields of other Worksho
 ## Create a struct variable
 
 A struct variable can be initialized statically within Workshop, using an object's struct property, or with a function that returns a `CustomType`. Refer to the [custom types documentation](/docs/foundry/functions/types-reference/#structcustom-type) to learn more. If a field's type is not supported in Workshop, it will be ignored and omitted from the initialized variable.
+
+Struct and struct array variables can also be computed with an Ontology SQL query, where the fields are derived from the columns the query returns. Refer to the [SQL query variables](/docs/foundry/workshop/sql-query-variables/#struct-variables) documentation to learn more.
 
 <img src="./images/struct_creation.png" alt="Struct creation using a function" width="800" >
 
@@ -30,4 +32,4 @@ Widgets and variable transformation operations cannot use structs as a whole, so
 
 Struct and struct array variables can also be used as inputs to functions. When configuring a function that uses a struct as an input, the required fields of the struct input may be previewed by hovering over the `Preview schema` label. This enables builders to verify that the expected input schema matches that of the selected struct variable by referencing it to the struct variable's raw `Current value`.
 
-![An example of a struct as a function input](./images/struct_as_function_input.png)
+![An example of a struct as a function input.](./images/struct_as_function_input.png)

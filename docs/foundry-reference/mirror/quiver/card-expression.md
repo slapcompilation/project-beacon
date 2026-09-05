@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-expression/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-expression/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Expression
 
-Use the expression language to derive new columns or perform complex filtering. Advanced features available only in this card, such as [window functions](/docs/foundry/contour/expressions-syntax/) can be used to unlock new types of analysis in Quiver. To use, select either an object set, materialization card, or another Expression card.
+Use the expression language to derive new columns or perform complex filtering. Advanced features available only in this card, such as [window functions](/docs/foundry/contour/expressions-syntax/) can be used to unlock new types of analysis in Quiver. To use, select either an object set, dataset card, or another Expression card.
 
 <img src="./images/expression-panel.png" alt="Expression configuration panel" width="400">
 
@@ -29,11 +29,11 @@ AIP provides a suggestion which you can **Apply**.
 
 ## Input type
 
-Object set, Materialization
+Object set, Dataset
 
 ## Output type
 
-Materialization
+Dataset
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/marketplace-workshop/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/marketplace-workshop/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add Workshop application to a Marketplace product
 
@@ -54,7 +54,7 @@ Use `string` parameters to allow for customization of content like application t
 
 Use `boolean` parameters to show/hide content based on installer preferences. For example, you can use a `boolean` parameter to allow installers to show a specific chart in the application when relevant.
 
-Once you’ve created your installation parameters, you can connect the parameters to Workshop variables.
+Once you have created your installation parameters, you can connect the parameters to Workshop variables.
 
 ![connect to workshop variables](./images/marketplace-connect-variables.png)
 

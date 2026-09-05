@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/persisted-scenario/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/persisted-scenario/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Store scenario metadata as objects
 
@@ -57,3 +57,43 @@ Make the following adjustments in Workshop to display persistent scenarios:
 
 4. Replace the **Active Scenario** variable with an **Object-backed scenario** variable, and set its value to the **Active Object** from the **Object List** widget. You should update the variable selection in other widgets. <br><br>
    ![Persist scenario object backed scenario variable in the Workshop.](./images/persist-scenario-object-backed-scenario-variable.png) <br><br>
+
+## Control access to and govern persisted scenarios
+
+To control who can view and edit persisted scenarios and to govern review workflows, use object properties, [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [action submission criteria](/docs/foundry/action-types/submission-criteria/). These controls are available because each persisted scenario is represented by an object.
+
+For example, a team can configure a scenario approval workflow in which:
+
+* Scenario owners can view their scenarios and submit drafts for review.
+* Members of an [approvals group](/docs/foundry/security/users-and-groups/#groups) can view all scenarios and approve or reject scenarios that are in review.
+* Other users cannot view the persisted scenario objects.
+
+To do so:
+
+1. In Ontology Manager, add the following properties to the scenario object type:
+
+   * **Created By:** Identifies the scenario owner.
+   * **Status:** Tracks whether the scenario is `Draft`, `In review`, `Approved`, or `Rejected`.
+   * **Reviewed By:** Optionally records the reviewer.
+   * **Reviewed At:** Optionally records when the review occurred. <br><br>
+     ![Add properties for the persisted scenario object type in Ontology Manager.](./images/persist-scenario-add-properties.png) <br><br>
+     In the **Create Object** action, use action rules to set **Created By** to **Current user** and **Status** to the static value `Draft`. <br><br>
+     ![Set action rules for the create object action in Ontology Manager.](./images/persist-scenario-set-action-rules.png) <br><br>
+
+2. Navigate to the **Security** tab on the scenario object type, and configure an object security policy that allows access when either of the following conditions is true:
+
+   * The current user's ID matches the scenario object's **Created By** property.
+   * The current user's group IDs include the approvals group.
+
+   When defining the policy, reference the approvals group by its stable group ID rather than by its name, so the policy is unaffected if the group is renamed. Users must also have permission to view the scenario object type definition. <br><br>
+   ![Configure security policy for scenario object type.](./images/persist-scenario-configure-granular-policy.png) <br><br>
+
+3. Configure the scenario object type to **Only allow edits via actions**. Then create separate actions for each permitted status transition:
+
+   | Action | Result | Submission criteria |
+   | --- | --- | --- |
+   | **Submit for review** | Change `Draft` status to `In review`. | The current user matches **Created By**, and the current status is `Draft`. |
+   | **Approve scenario** | Approve the scenario, change `In review` status to `Approved`, and optionally populate **Reviewed By** and **Reviewed At**. | The current user's group IDs include the approvals group, and the current status is `In review`. |
+   | **Reject scenario** | Change `In review` status to `Rejected`, and optionally populate **Reviewed By** and **Reviewed At**. | The current user's group IDs include the approvals group, and the current status is `In review`. |
+
+   Optionally, for the **Approve scenario** action, add an **Apply Scenario** rule to the action so that approval and [merging the scenario](/docs/foundry/ontology/merge-scenario/) occur through the same governed action.

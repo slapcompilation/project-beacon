@@ -23,25 +23,48 @@ its Decisions block has not been read by a human.
 
 > "Roles are sets of permissions that grant different levels of access to
 > resources. Roles are a discretionary permission and generally granted at the
-> Project level to provide uniform capabilities on all resources within the
-> Project's scope. However, mandatory controls, Organizations and Markings,
+> project level to provide uniform capabilities on all resources within the
+> project's scope. However, mandatory controls (organizations, markings, and
+> [Classification-based Access Controls](/docs/foundry/security/classification-based-access-controls/))
 > will *always* prevent an ineligible user from accessing a resource,
 > regardless of the user's role."
+
+— `security/projects-and-roles.md`
 
 Two kinds, and the asymmetry is the whole design:
 
 | | examples | behaviour |
 |---|---|---|
-| **mandatory** | Organizations, Markings | **always prevent**, "regardless of the user's role" — a veto |
+| **mandatory** | Organizations, Markings, Classification-based Access Controls | **always prevent**, "regardless of the user's role" — a veto |
 | **discretionary** | Owner, Editor, Viewer, Discoverer | grant, within what the veto allows |
 
 A mandatory control can only subtract; a role can only add. Neither substitutes
 for the other, which is why access needs both.
 
+**Drift, re-mirrored 2026-09-04.** When this was read the sentence named two
+mandatory controls, *Organizations and Markings*; it now names three, and the
+page adds the clause the asymmetry table only implied:
+
+> "These controls also propagate through derivation, so downstream resources inherit the same requirements. Roles, by contrast, govern access to the resource itself; they do not extend to data after it has been read from the resource."
+
+— `security/projects-and-roles.md`
+
+Mandatory propagates, discretionary does not — which is what 401 asserts of
+markings and what no role grant here ever did. Classification-based Access
+Controls remain unbuilt; the page that carries the full model,
+`security/access-control-propagation`, was linked but in no sitemap and is
+fetched by hand in the same re-mirror.
+
 And the project is where the discretionary half is meant to live:
 
-> "**Projects** are the primary way to organize work in Foundry, and the
-> primary security boundary."
+> "**Projects** are the primary way to organize work in Foundry and the
+> primary boundary for [discretionary](/docs/foundry/security/access-control-propagation/#discretionary-controls)
+> role grants."
+
+— `security/projects-and-roles.md`
+
+*(Re-mirrored 2026-09-04: this sentence used to end *and the primary security boundary*; the page still says so further down — "Projects are the central
+security boundary in Foundry" — so 330's table comment stands.)*
 
 ## 2. The formula, published as a UI contract
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/query-functions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/query-functions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Queries
 
@@ -81,7 +81,7 @@ from ontology_sdk.ontology.objects import Aircraft
 def count_aircraft_taking_off_after(minimum_time_in_minutes: Double) -> Double:
     client = FoundryClient()
     aircraft_count = client.ontology.objects.Aircraft.where(
-        Aircraft.time_until_next_flight > minimum_time_in_minutes
+        Aircraft.object_type.time_until_next_flight > minimum_time_in_minutes
     ).count().compute()
 
     return aircraft_count
@@ -167,7 +167,7 @@ def call_query_function() -> Double:
     )
 ```
 
-For TypeScript v1 functions, Foundry must know which query functions you call from a published function. We automatically provide static analysis to try and detect queries that are called. However, this static analysis may occasionally miss certain calls leading to a runtime error instructing you to add the `@Uses` decorator. This decorator serves to augment the automatically detected query usage.
+For TypeScript v1 functions, Foundry must know which query functions and language model methods you call from a published function. We automatically provide static analysis to try and detect queries that are called. However, this static analysis may occasionally miss certain calls leading to a runtime error instructing you to add the `@Uses` decorator. This decorator serves to augment the automatically detected query usage. List language model methods in the same `queries` array.
 
 The following example demonstrates the usage of the `@Uses` decorator:
 

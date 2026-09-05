@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-variables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-variables/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Variables
 
@@ -22,10 +22,11 @@ The **Variables** panel does not support folders. To group variables alphabetica
   * **Static:** For manually set variable values
   * **Function:** For function-backed, dynamically computed variables
   * **Object set aggregation:** For variables derived from an aggregation of an object set
-  * **Object property:** For variables tied to a selected property value of single object
+  * **Object property:** For variables tied to a selected property value of a single object
     * **Note:** [Complex non-performant object properties](/docs/foundry/workshop/unsupported-object-properties/) are not supported as variables in Workshop.
   * **Object set definition:** Specifically for object set variables defined by selected object types, filters, and linked objects traversals
   * **Variable transformation:** For defining a variable value as a series of common operations, possibly referencing other variables; review the [variable transformations](/docs/foundry/workshop/variable-transformations/) documentation for more information.
+  * **SQL query:** For variables computed by running an Ontology SQL query against object sets and other variables in the module; review the [SQL query variables](/docs/foundry/workshop/sql-query-variables/) documentation for more information.
 * **Delete variable (trash icon):** Variables that are unused in a module (by widgets or downstream variables) can be deleted.
 * **New variable from current (object set variables only):** Next to the duplicate variable button, the **New variable from current** button allows you to create a new object set variable that automatically takes the current object set as its input. This is useful when you want to build upon an existing object set's configuration while maintaining a reference to the source variable.
 * **Variable definition configuration:** The main part of the screen where the specifics of a variable are configured. The options provided here will change based on the selected variable type and variable definition type and will feature on-screen instructions.

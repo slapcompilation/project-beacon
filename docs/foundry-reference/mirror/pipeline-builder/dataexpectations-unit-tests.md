@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-unit-tests/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-unit-tests/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Unit testing in Pipeline Builder
 

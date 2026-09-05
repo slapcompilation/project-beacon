@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/host-settings/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/host-settings/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # View and modify host settings
 

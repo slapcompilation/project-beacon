@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-filter/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-filter/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Filter object sets
 
@@ -40,7 +40,7 @@ In the example below, our original filter includes building objects constructed 
 
 ## Filtering on derived properties
 
-If you would like to filter on a property that is derived locally in your analysis, you can do this with either a [transform table](/docs/foundry/quiver/cards-transform-table/), or a [materialization](/docs/foundry/quiver/cards-index-materializations/).  These two options have scale and performance tradeoffs, but both support deriving properties locally and then filtering on these derived properties.
+If you would like to filter on a property that is derived locally in your analysis, you can do this with either a [transform table](/docs/foundry/quiver/cards-transform-table/), or a [dataset](/docs/foundry/quiver/cards-index-datasets/).  These two options have scale and performance tradeoffs, but both support deriving properties locally and then filtering on these derived properties.
 
 The example below uses the transform table to derive a new height property by subtracting a building's roof height from its ground elevation, then filters to where this new height property is greater than 50.
 

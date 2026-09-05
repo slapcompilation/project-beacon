@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/branches-propose-a-change/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/branches-propose-a-change/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Propose a change
 

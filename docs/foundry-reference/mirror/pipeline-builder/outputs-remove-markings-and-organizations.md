@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-remove-markings-and-organizations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-remove-markings-and-organizations/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Remove markings and organizations from outputs
 

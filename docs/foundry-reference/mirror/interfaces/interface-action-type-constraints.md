@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/interfaces/interface-action-type-constraints/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/interfaces/interface-action-type-constraints/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Interface action type constraints
 
@@ -86,8 +86,8 @@ For parameter constraints, mark a parameter as required only when every satisfyi
 
 Interface action type constraints are currently configured and mapped in Ontology Manager. Pipeline Builder does not currently support action type constraint mapping when implementing an interface. If your interface contains required action type constraints, implement and map the interface through Ontology Manager. Additional platform integrations are under active development.
 
-End users cannot currently discover or invoke interface action type constraints from Foundry applications. Users can run the satisfying concrete action types directly through any application that supports them.
+Foundry applications do not currently expose interface action type constraints directly to end users. Users can run the satisfying concrete action types through any application that supports them. Custom applications can use the TypeScript OSDK to resolve the concrete action type for a constraint.
 
-Interface action type constraints are not currently supported in the Ontology SDK. You cannot currently use an interface action type constraint in OSDK to discover or invoke the concrete action types that satisfy it.
+You cannot invoke an interface action type constraint directly through the OSDK. Resolve the constraint mapping for the object type, then invoke the satisfying concrete action type.
 
 Interface action type constraints define the expected shape of a concrete action type. They do not make object-type-specific action logic uniform. Review each satisfying action type's rules, submission criteria, permissions, and side effects to ensure they match the semantics described by the interface constraint.

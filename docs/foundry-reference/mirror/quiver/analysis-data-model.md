@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-data-model/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-data-model/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Data model
 
@@ -39,7 +39,7 @@ The full list of Quiver supported input and output types is provided below.
 | Pivot table | Tabular data resulting from a pivot table aggregation. |
 | Ontology SQL | A SQL query result from querying ontology object data. Can be converted to a transform table for further analysis. |
 | Transform table | A local table used for flexible, low scale analysis. Can be used to transform, edit, or convert between different data types. |
-| Materialization | A dataset-backed materialization of objects used for flexible, high scale analysis. |
+| Dataset | A dataset representation of objects used for flexible, high scale analysis. |
 | Time series | A time series consisting of (value, timestamp) "ticks".  Useful for high frequency, time-based analysis. |
 | Time series chart | An interactive, time-based chart that can visualize time series, time ranges, event sets, and points in time. |
 | Time series group | A group of time series that can be visualized or transformed together. |

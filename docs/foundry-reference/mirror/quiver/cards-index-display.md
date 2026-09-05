@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-display/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-display/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Display cards
 
@@ -8,7 +8,7 @@ Cards in this section do not have inputs or outputs, but exist for display purpo
 
 * [Text card](#text-card)
 
-### Text card
+## Text card
 
 Enables adding text to a Quiver canvas. The text card provides a plain text editor based on Markdown formatting syntax (via the [markdown-it ↗](https://github.com/markdown-it/markdown-it) library).
 

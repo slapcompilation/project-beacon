@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/triggers-reference/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/triggers-reference/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Trigger types reference
 
@@ -168,7 +168,10 @@ The schedule editor currently supports the following event types:
 * **New logic:** Occurs when the logic to compute a dataset is updated.
 * **Data updated:** Occurs when a transaction is committed that updates a dataset.
 * **Job succeeded:** Occurs when a job on a dataset is completed, regardless of whether a transaction was committed.
+* **Media set updated:** Occurs when an update is made to a media set. For [transactional](/docs/foundry/media-sets-advanced-formats/media-set-settings/#transaction-policies) media sets, this occurs when a transaction is committed; for transactionless media sets, this occurs eventually after an update, but not necessarily immediately.
 * **Schedule ran successfully:** Occurs when a scheduled build is completed successfully.
+* **Schedule run failed:** Occurs when a scheduled build fails.
+* **Table updated:** Occurs when a transaction is committed that updates a table.
 
 ## Compound trigger
 

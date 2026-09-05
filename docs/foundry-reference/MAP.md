@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**4329 pages across 116 sections.**
+**4332 pages across 116 sections.**
 
 ## action-types — 37 pages
 
@@ -2673,7 +2673,7 @@ stay findable.
 - `upgrade-to-use-rule-actions` — Upgrade to use rule Actions
 - `workshop-application` — Workshop application
 
-## functions — 83 pages
+## functions — 84 pages
 
 - `_index` — Functions
 - `add-dependencies` — Add npm dependencies
@@ -2708,6 +2708,7 @@ stay findable.
 - `language-models` — Language models in TypeScript v1 functions
 - `language-models-legacy` — Legacy language models within functions
 - `language-models-python-tsv2` — Language models in TypeScript v2 and Python functions
+- `local-sdks` — Local Ontology SDKs
 - `manage-functions` — Manage published functions
 - `marketplace-functions` — Functions in Marketplace
 - `media` — Media
@@ -3865,7 +3866,7 @@ stay findable.
 - `workshop` — Workshop
 - `workshop-community` — Workshop (Community)
 
-## quiver — 291 pages
+## quiver — 292 pages
 
 - `_index` — Quiver
 - `analysis-canvas` — Canvas mode
@@ -3896,7 +3897,7 @@ stay findable.
 - `card-boolean-formula` — Boolean formula
 - `card-boolean-parameter` — Boolean parameter
 - `card-categorical-formula-plot` — Categorical formula plot
-- `card-categorical-plot-materialization` — Categorical plot from materialization
+- `card-categorical-plot-materialization` — Categorical plot from dataset
 - `card-categorical-scatter-plot` — Categorical scatter plot
 - `card-ceiling` — Ceiling
 - `card-coalesce` — Coalesce
@@ -3941,7 +3942,7 @@ stay findable.
 - `card-event-statistics` — Event statistics
 - `card-expression` — Expression
 - `card-extract-time-series-bound` — Extract time series bound
-- `card-filter-materialization` — Filter materialization
+- `card-filter-materialization` — Filter dataset
 - `card-filter-object-set` — Filter object set
 - `card-filter-time-series` — Filter time series
 - `card-filter-transform-table` — Filter transform table
@@ -3959,7 +3960,7 @@ stay findable.
 - `card-integral` — Integral
 - `card-is` — Is
 - `card-is-not` — Is not
-- `card-join-materializations` — Join materializations
+- `card-join-materializations` — Join datasets
 - `card-join-to-linked-objects` — Join to linked objects
 - `card-join-to-transform-table` — Join to transform table
 - `card-joined-group-by` — Joined group by
@@ -3973,7 +3974,7 @@ stay findable.
 - `card-list` — List
 - `card-manual-entry-transform-table` — Manual entry transform table
 - `card-map` — Map
-- `card-materialization-sql` — Materialization SQL
+- `card-materialization-sql` — Dataset SQL
 - `card-media-property` — Media property
 - `card-month` — Month
 - `card-month-to-date` — Month to date
@@ -3984,7 +3985,7 @@ stay findable.
 - `card-number-array-aggregation` — Number array aggregation
 - `card-number-to-date` — Number to date
 - `card-numeric-aggregation` — Numeric aggregation
-- `card-numeric-aggregation-materialization` — Numeric aggregation (materialization)
+- `card-numeric-aggregation-materialization` — Numeric aggregation (dataset)
 - `card-numeric-formula` — Numeric formula
 - `card-numeric-parameter` — Numeric parameter
 - `card-numeric-range-parameter` — Numeric range parameter
@@ -3993,7 +3994,7 @@ stay findable.
 - `card-numerical-scatter-plot` — Numerical scatter plot
 - `card-object-property` — Object property
 - `card-object-selector` — Object selector
-- `card-object-set-materialization` — Object set materialization
+- `card-object-set-materialization` — Object set dataset
 - `card-object-view` — Object view
 - `card-on` — On
 - `card-on-or-after` — On or after
@@ -4019,7 +4020,7 @@ stay findable.
 - `card-segment-statistics` — Segment statistics
 - `card-select-columns` — Select columns
 - `card-set-math` — Set math
-- `card-set-math-materialization` — Set math (materialization)
+- `card-set-math-materialization` — Set math (dataset)
 - `card-shift-datetime` — Shift date/time
 - `card-shift-time-series` — Shift time series
 - `card-split` — Split
@@ -4064,7 +4065,7 @@ stay findable.
 - `card-transform-table-plot` — Categorical plot from transform table
 - `card-transform-table-row-selector` — Transform table row selector
 - `card-union-transform-table` — Union (transform table)
-- `card-unique-column-values-materialization` — Unique column values (materialization)
+- `card-unique-column-values-materialization` — Unique column values (dataset)
 - `card-unique-property-values` — Unique property values
 - `card-unique-values` — Unique values
 - `card-value-at-index` — Value at index
@@ -4086,15 +4087,16 @@ stay findable.
 - `cards-index` — Index of cards
 - `cards-index-array` — Array cards
 - `cards-index-boolean` — Boolean cards
-- `cards-index-charts` — Charts cards
+- `cards-index-charts` — Chart cards
+- `cards-index-datasets` — Dataset cards
 - `cards-index-datetime` — Date/Time cards
 - `cards-index-display` — Display cards
 - `cards-index-event-sets` — Event set cards
-- `cards-index-materializations` — Materializations cards
+- `cards-index-materializations` — Dataset cards
 - `cards-index-numeric` — Numeric cards
-- `cards-index-objects` — Objects cards
+- `cards-index-objects` — Object cards
 - `cards-index-string` — String cards
-- `cards-index-tables` — Tables cards
+- `cards-index-tables` — Table cards
 - `cards-index-time-series` — Time series cards
 - `cards-index-writeback` — Writeback cards
 - `cards-interpolation-usage` — Interpolation in Quiver
@@ -4247,9 +4249,10 @@ stay findable.
 - `sap-sync-setup` — SAP ERP
 - `uninstall-sap` — Uninstall the Palantir Foundry Connector 2.0 for SAP Applications or Remote Agent
 
-## security — 39 pages
+## security — 40 pages
 
 - `_index` — Security and governance
+- `access-control-propagation` — Access control propagation
 - `audit-log-categories` — Audit log categories
 - `audit-logs-overview` — Audit logs
 - `branching-restricted-views` — Branching restricted views
@@ -4271,7 +4274,7 @@ stay findable.
 - `overview` — Security and governance
 - `portfolios` — Portfolios
 - `project-constraints` — Project constraints
-- `projects-and-roles` — Projects & roles
+- `projects-and-roles` — Projects and roles
 - `property-security-markings` — Property security markings
 - `protect-data-connector-installation` — Protecting your on-premise data connector
 - `protect-foundry-installation` — Protecting your self-hosted Foundry installation
@@ -4620,7 +4623,7 @@ stay findable.
 - `scenarios-configure-domain` — Configure a domain
 - `scenarios-getting-started` — Getting started
 - `scenarios-load` — Load scenarios
-- `scenarios-overview` — Scenarios
+- `scenarios-overview` — Scenarios \[Legacy]
 - `scenarios-save` — Save scenarios
 - `state-saving` — State saving
 - `struct-variables` — Struct variables

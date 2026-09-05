@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-boolean/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-boolean/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Boolean cards
 
@@ -6,7 +6,7 @@ Back to: [Index of cards](/docs/foundry/quiver/cards-index/)
 
 Cards in this section return and display Boolean values.
 
-The following cards accept strings and return booleans:
+The following cards accept strings and return Booleans:
 
 * [Contains](/docs/foundry/quiver/card-contains/)
 * [Does not contain](/docs/foundry/quiver/card-does-not-contain/)
@@ -16,7 +16,7 @@ The following cards accept strings and return booleans:
 * [Is not](/docs/foundry/quiver/card-is-not/)
 * [String to Boolean](/docs/foundry/quiver/card-string-to-boolean/)
 
-The following cards accept numbers and return booleans:
+The following cards accept numbers and return Booleans:
 
 * [Equal to](/docs/foundry/quiver/card-equal-to/)
 * [Not equal to](/docs/foundry/quiver/card-not-equal-to/)
@@ -25,7 +25,7 @@ The following cards accept numbers and return booleans:
 * [Less than](/docs/foundry/quiver/card-less-than/)
 * [Less than or equal to](/docs/foundry/quiver/card-less-than-or-equal-to/)
 
-The following cards accept date/times and return booleans:
+The following cards accept date/times and return Booleans:
 
 * [Before](/docs/foundry/quiver/card-before/)
 * [On or before](/docs/foundry/quiver/card-on-or-before/)
@@ -35,7 +35,7 @@ The following cards accept date/times and return booleans:
 * [Not on](/docs/foundry/quiver/card-not-on/)
 * [Between (inclusive)](/docs/foundry/quiver/card-between-inclusive/)
 
-Additional boolean cards include:
+Additional Boolean cards include:
 
 * [Boolean parameter](/docs/foundry/quiver/card-boolean-parameter/)
 * [Coalesce](/docs/foundry/quiver/card-coalesce/)

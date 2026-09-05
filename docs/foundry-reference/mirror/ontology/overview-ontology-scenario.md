@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview-ontology-scenario/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview-ontology-scenario/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Scenarios \[Beta]
 
@@ -39,7 +39,7 @@ A scenario is auto-rebased every 10 minutes on top of its main or global branch.
 
 ## Functions on a scenario
 
-All functions, except AIP Logic functions, can be run on a scenario as is. If the function reads from the Ontology, it will read the state of the Ontology on the scenario. If the function makes Ontology edits, it will make those edits on the scenario. Contact Palantir Support if you want to use AIP Logic on a scenario.
+All functions, except AIP Logic functions, can be run on a scenario as is. If the function reads from the Ontology, it will read the state of the Ontology on the scenario. If the function makes Ontology edits, it will make those edits on the scenario. To use an AIP Logic function on a scenario, enable [staged writes](/docs/foundry/logic/staged-writes/) for that function and all nested Logic functions that it calls.
 
 ## Limitations
 

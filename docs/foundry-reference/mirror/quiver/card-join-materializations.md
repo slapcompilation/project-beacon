@@ -1,22 +1,22 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-join-materializations/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-join-materializations/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Join materializations
+# Join datasets
 
-Performs a left, inner or right join of two materialized object data sets. Select which columns of data you wish to retain from the source and joining materializations. Optionally, add a prefix to incoming columns to avoid name collisions with existing columns, or to annotate the joined columns.
+Performs a left, inner, or right join of two datasets. Select which columns of data you wish to retain from the source and joining datasets. Optionally, add a prefix to incoming columns to avoid name collisions with existing columns, or to annotate the joined columns.
 
 This is useful if you are trying to perform a visualization or calculation using properties across linked objects in the ontology. The native object set card [switch to linked object set](/docs/foundry/quiver/card-switch-to-linked-object-set/) will only perform a link traversal, resulting in the linked objects, but will not retain the original object information in the same row.
 
 Alternatively, at smaller scales (less than 50,000 objects), a [join to linked objects](/docs/foundry/quiver/card-join-to-linked-objects/) card can be used in the transform table.
 
-<img src="./images/join-materializations-panel.png" alt="Configuration panel for Join materializations" width="400">
+<img src="./images/join-materializations-panel.png" alt="Configuration panel for Join datasets" width="400">
 
 ## Input type
 
-Object Set, Materialization
+Object set, dataset
 
 ## Output type
 
-Materialization
+Dataset
 
 ## Usage information
 

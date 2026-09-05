@@ -105,7 +105,10 @@ From the glossary and `restricted-views`:
 > on the user's level of access."
 
 > "A restricted view is built on top of a backing dataset and cannot be used
-> as an input for transforms."
+> as an input for transforms or other batch derivation jobs that produce new
+> datasets."
+
+— `security/restricted-views.md`
 
 > "After creation, the restricted view can be used as the backing data source
 > for an object type in your Ontology."
@@ -141,8 +144,12 @@ Group IDs includes Group IDs; a column equals a specific value; the user's
 Markings satisfies a marking-IDs column (marking_org_policy.png). The review
 step shows the two-panel access-requirements diff with **Start inheriting** /
 stop-inheriting on the marking chip — a restricted view may sever an
-inherited marking because "the granular policy already controls which rows a
-user can see."
+inherited marking: "With appropriate permissions, you can un-mark (remove)
+Markings from the restricted view." (`security/restricted-views.md`). *Drift,
+re-mirrored 2026-09-04:* the reason I read for that, `manage-granular-policies`'
+*the granular policy already controls which rows a user can see*, is deleted
+and its opposite written in its place — see the drift section at the end. The
+mechanism stands; the rationale, and the copy our dialog built on it, do not.
 
 Marking-backed rows are documented as data: "Each cell must contain a STRING
 ARRAY of Marking IDs", the column annotated with typeclass
@@ -152,8 +159,10 @@ same column."
 Rules that bound the design: the backing dataset and the view live apart —
 "Typically, you will want to save your restricted view in a different Project from the input dataset"
 — the view is read-only, because
-"restricted views are read-only to protect the schema", there is no batch
-processing and no Postgres sync, and
+"The read-only property of a restricted view protects its schema and columns from alteration; this is an integrity property of the resource, not a confidentiality guarantee on the rows a user can read."
+(`platform-security-management/manage-restricted-views.md`, re-mirrored
+2026-09-04 — it used to say only *read-only to protect the schema*), there is
+no batch processing and no Postgres sync, and
 "To use granular policies on dataset-backed objects in Object Explorer, you must have *View ontology data source* permissions on the dataset to see any objects of this type."
 
 Branching: restricted views ride Global Branching — protection ("Branch
@@ -349,3 +358,58 @@ Recorded narrowings and follow-ups, all marked ours:
   teardown zombie that left every picker empty.
 - The access graph, emulation mode, and Data Lineage permissions coloring
   from checking-permissions remain unbuilt, recorded in section 6.
+
+## Drift — re-mirrored 2026-09-04, the propagation rewrite
+
+Three of this reading's pages changed the same way at once, and ten more
+mirrored pages gained an identical warning callout titled *Read-time
+enforcement only*. Every one of them links a page that was in no sitemap,
+`security/access-control-propagation`, fetched by hand on 2026-09-05. It is the
+full model, and it is short enough to state:
+
+> "Mandatory controls travel with data through derivation and downstream consumption. Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/)) filter what a user can read. These controls do not extend beyond that read."
+
+> "After the read, the rows that the user did receive are ordinary data. They carry no metadata, classification, or tag that subsequent code can use to re-apply the policy."
+
+> "In each case, the running user could not have read what they were not authorized to read; the access guarantee holds. What does not hold is propagation: the constraint that protected the source data does not constrain what happens with that data after the read."
+
+— `security/access-control-propagation.md`
+
+**What it changes on the pages read here.**
+
+The restricted-view rule widened and gained its boundary:
+
+> "The restricted view policy filters what a user can read. It does not extend to functions, actions, AIP Logic, OSDK responses, writeback operations, or exports."
+
+— `security/restricted-views.md`
+
+`manage-granular-policies` reversed its *Use Markings* advice. The sentence I
+quoted as the rationale for severing an inherited marking — *the granular
+policy already controls which rows a user can see* — is deleted, and in its
+place:
+
+> "A granular policy filters which rows a user can read; it does not extend to downstream outputs or exports."
+
+> "The two controls serve different purposes and should generally be used together. Do not remove an inherited marking on the assumption that the granular policy already controls access."
+
+— `platform-security-management/manage-granular-policies.md`
+
+and the FAQ answers the question the old bullet begged:
+
+> "Removing the marking trades a control that travels through derivation for one that does not. To keep data protected through downstream outputs and exports, keep the marking."
+
+— `security/access-control-propagation.md`
+
+**What it means for what was built.** The mechanism is untouched — 483's
+`restricted_view_marking_stops` behind the remove permission implements a
+sentence `restricted-views` still carries — and the model agrees with ours more
+than before: `object_set_where` is exactly a read-layer filter, functions read
+through the gated `evaluate_object_set_by_api_name` under the caller ("filter
+what a user can read when a function runs" — `functions/permissions.md`), and
+401 makes markings propagate. Two things are falsified, both copy, neither
+enforced: the step-2 text of `CreateRestrictedViewDialog` tells the user to
+un-mark *because* the policy *already controls which rows a user sees*, which
+is the deleted rationale; and the phrase *restricted views are read-only to protect the schema* is now bounded by the page as an integrity property, not a
+confidentiality one. The dialog rewording is **queued, not done in this docs
+pass**. Classification-based Access Controls, the third mandatory control the
+model names, remain unbuilt and were never claimed.

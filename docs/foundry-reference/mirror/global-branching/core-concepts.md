@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/global-branching/core-concepts/ · mirrored 2026-08-07 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/global-branching/core-concepts/ · mirrored 2026-09-05 from Palantir Foundry docs -->
 
 # Core concepts
 

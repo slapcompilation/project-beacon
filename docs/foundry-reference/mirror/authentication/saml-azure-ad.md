@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/saml-azure-ad/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/saml-azure-ad/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure SAML 2.0 integration for Entra ID (Azure AD)
 
@@ -40,7 +40,7 @@ You can define the following mappings for user attributes in **Attribute mapping
 
 ![Attribute mapping](./images/authentication-azure-attribute-mapping.png)
 
-If you'd like to configure provider groups, select **Add a group claim** under **User Attributes & Claims** in the Azure Portal. In Foundry, add `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` as a **Group attribute mapping**, with no **Group attribute pattern**.
+If you would like to configure provider groups, select **Add a group claim** under **User Attributes & Claims** in the Azure Portal. In Foundry, add `http://schemas.microsoft.com/ws/2008/06/identity/claims/groups` as a **Group attribute mapping**, with no **User groups’ attribute pattern**.
 
 ## Identity provider metadata
 

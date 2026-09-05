@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/marketplace/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/marketplace/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add Foundry Rules to a Marketplace product
 
@@ -6,7 +6,7 @@ Use [Foundry DevOps](/docs/foundry/devops/overview/) to include your Foundry Rul
 
 ## Supported features
 
-All Foundry Rules features are supported.
+All Foundry Rules features are supported, with the exception of the authored rules themselves. Because [objects cannot be packaged with Marketplace](/docs/foundry/object-link-types/marketplace-ontology-types/#unsupported-features), the `Rule` and `Proposal` objects and the rule logic they contain are not included in a product.
 
 ## Add Foundry Rules workflows to products
 

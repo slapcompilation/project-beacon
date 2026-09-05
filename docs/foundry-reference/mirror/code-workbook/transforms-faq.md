@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-workbook/transforms-faq/ · mirrored 2026-08-26 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-workbook/transforms-faq/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Transforms FAQ
 
@@ -215,7 +215,7 @@ public final class UnzipWithSpark {
                     // For each file in the zip file, write it to the output file system.
                     while ((entry = zis.getNextEntry()) != null) {
                         outputFileSystem.writeTo(
-                                Paths.get(entry.getName()),
+                                Paths.get(portableFile.getLogicalPath().toString(), entry.getName()),
                                 outputStream -> ByteStreams.copy(zis, outputStream));
                     }
                     return null;

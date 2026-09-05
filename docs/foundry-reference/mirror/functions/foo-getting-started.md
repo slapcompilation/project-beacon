@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/foo-getting-started/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/foo-getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started with functions on objects
 
@@ -30,25 +30,39 @@ You can also import ontology interfaces by selecting **Interfaces** under the **
 
 Choose **Confirm selection** to import the Ontology types into the project. Code Assist will automatically be restarted to regenerate code bindings to reflect the new object and link types you have imported.
 
-In your code, you may now import Ontology types from the `@foundry/ontology-api` package. If you are using a private Ontology, the package name will instead be `@foundry/ontology-api/<ontology-api-name>`.
+In a TypeScript v1 repository, you may now import Ontology types from the `@foundry/ontology-api` package. If you are using a private Ontology, the package name will instead be `@foundry/ontology-api/<ontology-api-name>`.
+
+In a TypeScript v2 repository, you are prompted to [generate and install the Ontology SDK](/docs/foundry/functions/typescript-v2-migration/#generate-the-ontology-sdk) after you import the Ontology types. Complete this step before you write your function; the imported types are only available in your code once the Ontology SDK is installed, and you import them from the `@ontology/sdk` package.
 
 :::callout{title="Private Ontologies"}
-If you are using a private Ontology, replace `@foundry/ontology-api` with `@foundry/ontology-api/your-private-ontology-api-name-here` in all the following examples.
+If you are using a private Ontology, replace `@foundry/ontology-api` with `@foundry/ontology-api/your-private-ontology-api-name-here` in all the following TypeScript v1 examples.
 :::
+
+The `@foundry/ontology-api` package applies to TypeScript v1 functions. In a TypeScript v2 repository, you must generate and install the Ontology SDK before you can import Ontology types from `@ontology/sdk`. Refer to [Generate the Ontology SDK](/docs/foundry/functions/typescript-v2-migration/#generate-the-ontology-sdk) for these steps.
 
 ### Add an object-backed function
 
 Next, write a function using an object type you just imported. Your code will depend on the object types, properties, and link types available to you. Switch back to the **Code** tab, and try importing one of the object types you just added:
 
-```typescript
+```typescript tab="TypeScript v1"
 import { Airport } from "@foundry/ontology-api";
 ```
 
-Then, write a function that takes that object as input:
+```typescript tab="TypeScript v2"
+import { Airport } from "@ontology/sdk";
+```
 
-```typescript
+Then, write a function that takes that object as input. In TypeScript v2, object type instances are wrapped in the `Osdk.Instance` type from the `@osdk/client` package, and each function is the default export of a file in `src/functions` named after the function.
+
+```typescript tab="TypeScript v1"
 @Function()
 public myObjectFunction(airport: Airport) {
+    airport.
+}
+```
+
+```typescript tab="TypeScript v2"
+export default function myObjectFunction(airport: Osdk.Instance<Airport>) {
     airport.
 }
 ```
@@ -59,9 +73,26 @@ Once Code Assist has started, simply type `airport.` to see autocomplete for the
 
 In this example, we use a [template string ↗](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#syntax) to combine the `city` and `country` fields on an Airport into a human-readable location:
 
-```typescript
-@Function()
-public airportLocation(airport: Airport): string {
+```typescript tab="TypeScript v1"
+import { Function } from "@foundry/functions-api";
+import { Airport } from "@foundry/ontology-api";
+
+export class MyFunctions {
+
+    @Function()
+    public airportLocation(airport: Airport): string {
+        return `${airport.city}, ${airport.country}`;
+    }
+}
+```
+
+```typescript tab="TypeScript v2"
+// src/functions/airportLocation.ts
+
+import { Airport } from "@ontology/sdk";
+import { Osdk } from "@osdk/client";
+
+export default function airportLocation(airport: Osdk.Instance<Airport>): string {
     return `${airport.city}, ${airport.country}`;
 }
 ```

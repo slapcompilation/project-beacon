@@ -66,7 +66,9 @@ picker, Help, **Open Foundry**, Log out.
 
 - title + one-line subtitle — "Scoped sessions / Limit a person's access to
   markings to a pre-defined set based on a defined focus of work"
-- **tabs** — `Settings` | `Session presets`
+- **tabs** — `Settings` | `Session presets` *(from the capture; the page's
+  prose, re-mirrored 2026-09-04, now says "open the **Scoped sessions**
+  settings for your Organization from the side panel" and names no tab)*
 - a stack of cards, each a **single labelled toggle with its explanation
   underneath**, not a form grid
 

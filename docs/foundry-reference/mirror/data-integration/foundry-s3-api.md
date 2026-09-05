@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-s3-api/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-s3-api/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # S3-compatible API for Foundry datasets
 
@@ -160,7 +160,7 @@ Review [Concepts: Authentication](#authentication) to understand the requirement
 ### Step 2: Grant permissions to your third-party application's service user
 
 :::callout{theme="warning"}
-Users should use [**Developer Console**](/docs/foundry/developer-console/oauth-clients/) to manage their application configuration. The **Control Panel** view only applies if **Developer Console** has not been enabled for the user.
+Users should use [**Developer Console**](/docs/foundry/developer-console/overview/#application-pages) to manage their application configuration. The **Control Panel** view only applies if **Developer Console** has not been enabled for the user.
 :::
 
 When you created the third-party application in the previous step, Foundry created a service user automatically. To access datasets via the S3 API, this service user must have sufficient permissions on the relevant projects and Markings.
@@ -221,9 +221,11 @@ Supplying the RID of a nested folder, a dataset, or any resource that is not its
 
 To find the RID of a project:
 
-1. Navigate to the project in Foundry and open it at its root level.
-2. Right-click the project and copy its RID, or open the [**Project details panel**](/docs/foundry/compass/use-project-details-panel/) to view the project's RID.
-3. Confirm that the copied value is the RID of the project itself and not a folder or resource within it.
+1. Use any of the following methods to copy the project's RID:
+   * Select **Files** in the workspace navigation sidebar, then open the **Projects** tab. Right-click the project and select **Copy RID**. This listing contains only projects, so the value cannot belong to a folder inside one. Projects in personal folders are not listed, and **Copy RID** is unavailable for trashed projects.
+   * Open the project and select **Actions** above the file listing, then select **Copy RID**. If **Actions** is not visible, clear any selection in the listing.
+   * Open the project and select an empty area of the page to clear any selection. The [Project details panel](/docs/foundry/compass/use-project-details-panel/) then describes the folder you are viewing rather than an item inside it. Copy the **RID** field from its **Metadata** section.
+2. The **Actions** menu and the details panel both apply to whichever folder you have open, so open the project at its root level. The details panel names the resource it describes, so you can use it to confirm that the value belongs to the project.
 
 The `projectRestrictions` value determines which datasets the credentials can reach; it does not control where files are written within a dataset. Because [S3 buckets correspond to Foundry datasets](#s3-buckets-correspond-to-foundry-datasets), you organize files inside a dataset using object keys (logical file paths) rather than by targeting a Foundry folder. To send files to a specific location, choose the destination dataset as the bucket and use a key prefix such as `logs/` to group files within it.
 

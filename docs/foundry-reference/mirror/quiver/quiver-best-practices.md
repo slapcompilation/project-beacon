@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/quiver-best-practices/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/quiver-best-practices/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Quiver best practices
 
@@ -38,14 +38,14 @@ When rendered as a sparkline, each time series cell in a table is computed and b
 
 To improve load performance and reduce costs, you can update the [view range setting](/docs/foundry/quiver/cards-transform-table/#view-range-options) of the sparkline to limit the size of the compute. By default, time series sparklines always load the "full extent" of the series, with all data included.
 
-### Materializations
+### Datasets
 
-If you are using transform tables without time series or data editing features, consider using [materializations](/docs/foundry/quiver/cards-index-materializations/) instead to improve performance. Materializations offload the computation from your browser and can lead to improved performance on operations such as table joins and aggregations. Materializations also do not have a 50,000-row limit, allowing you to easily work with large-scale datasets. You can switch from a materialization to a transform table at any time without losing the inputs and configurations already added. However, note that transform table operations will likely be slower since they are done in the browser.
+If you are using transform tables without time series or data editing features, consider using [datasets](/docs/foundry/quiver/cards-index-datasets/) instead to improve performance. Datasets offload the computation from your browser and can lead to improved performance on operations such as table joins and aggregations. Datasets also do not have a 50,000-row limit, allowing you to easily work with large-scale datasets. You can switch from a dataset to a transform table at any time without losing the inputs and configurations already added. However, note that transform table operations will likely be slower since they are done in the browser.
 
-You cannot switch from a transform table to a materialization.
+You cannot switch from a transform table to a dataset.
 
 :::callout{theme="neutral"}
-Materializations do not support time series operations; use a transform table if you need to analyze time series data.
+Datasets do not support time series operations; use a transform table if you need to analyze time series data.
 :::
 
 ## Object set search around

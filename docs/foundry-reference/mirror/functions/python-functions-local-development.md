@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-local-development/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-local-development/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Local development
 
@@ -23,7 +23,7 @@ You can carry out local development of Python functions repositories, allowing f
 
 ### Prerequisites
 
-* Ensure Java 17 is installed and that the environment variable `JAVA_HOME` points to the right Java installation. Java 17 can be downloaded from the [Oracle website ↗](https://www.oracle.com/java/technologies/downloads/#java17).
+* Ensure Java 21 is installed and that the environment variable `JAVA_HOME` points to the right Java installation. Java 21 can be downloaded from the [Oracle website ↗](https://www.oracle.com/java/technologies/downloads/#java21).
 
 :::callout{theme="neutral"}
 Setting the `JAVA_HOME` environment variable based on your operating system:

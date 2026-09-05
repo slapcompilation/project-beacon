@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/test-provider-integration/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/test-provider-integration/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Enable and test identity provider integration
 
@@ -15,7 +15,7 @@ To validate the configuration of your identity provider integration, you can cre
 Alternatively, navigate to the **SAML** or **OIDC** page in-platform and select **Test SAML** and then **Create new test**. There are two options for testing:
 
 * Select **Log in to Foundry** to test the integration yourself.
-* Use the clipboard to copy the login URL and send it to another person. You’ll be able to see the result in the summary view after they attempt to log in.
+* Use the clipboard to copy the login URL and send it to another person. You will be able to see the result in the summary view after they attempt to log in.
 
 ![Create test](./images/authentication-create-test.png)
 ![Test log in](./images/authentication-test-login-in.png)

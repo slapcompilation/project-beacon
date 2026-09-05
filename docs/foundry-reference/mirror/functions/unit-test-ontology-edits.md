@@ -1,12 +1,28 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-ontology-edits/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-ontology-edits/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Verify Ontology edits
 
 You can use the `verifyOntologyEditFunction()` API to verify edits performed by your function. You need to import it from `"@foundry/functions-testing-lib"`. This allows you to create unit tests around the workflows listed below.
 
+#### Singular and plural verification methods
+
+Each kind of edit can be verified with either a singular or a plural method. The singular method verifies one edit and takes a single value, while the plural method verifies several edits of the same kind and takes an array of those values. The two forms are not interchangeable, and using the wrong one is a type error.
+
+| Edit to verify        | Verify one edit                              | Verify several edits                              |
+| --------------------- | -------------------------------------------- | ------------------------------------------------- |
+| Object creation       | `.createsObject({ objectType, properties })` | `.createsObjects([{ objectType, properties }])`   |
+| Object property edits | `.modifiesObject({ object, properties })`    | `.modifiesObjects([{ object, properties }])`      |
+| Object deletion       | `.deletesObject(object)`                     | `.deletesObjects([object])`                       |
+| Link creation         | `.addsLink({ link, linkedObject })`          | `.addsLinks([{ link, linkedObject }])`            |
+| Link removal          | `.removesLink({ link, unlinkedObject })`     | `.removesLinks([{ link, unlinkedObject }])`       |
+
+The four link methods also accept a callback that receives the edits collected so far, which is useful when the object to link was created by the function under test. In that case, `.addsLink` and `.removesLink` return a single link from the callback, while `.addsLinks` and `.removesLinks` return an array. For an example, see [Verify edits on a newly created object](#verify-edits-on-a-newly-created-object).
+
+`.hasNoMoreEdits()` has no plural form, and because it does not return a result, it must come last in a chain of verifications.
+
 #### Verify object creation
 
-You can use the `.createsObjects` method to verify an object creation. Here is an example:
+You can use the `.createsObject` method to verify an object creation. To verify the creation of several objects in one call, use [`.createsObjects`](#verify-multiple-objects-were-created) instead. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -50,7 +66,7 @@ export class MyFunctions {
 
 #### Verify edits on a newly created object
 
-You can verify edits that are created involving a newly created object. For example, you may want to create a new `ExampleDataFlight` objects and verify that the link is created to the `new-flight-delay-0`. Here is an example:
+You can verify edits that are created involving a newly created object. For example, you may want to create a new `ExampleDataFlight` object and verify that the link is created to the `new-flight-delay-0`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -99,7 +115,7 @@ export class MyFunctions {
 
 #### Verify object property edits
 
-You can verify edits to the property using `.modifiesObjects`. Here is an example:
+You can verify edits to the property using `.modifiesObject`. To verify property edits on several objects in one call, pass an array to `.modifiesObjects`. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -316,7 +332,7 @@ export class MyFunctions {
 
 #### Verify multiple objects were created
 
-You can use the `.createsObjects` method and pass in a list to create multiple objects to test on. Here is an example:
+You can use the `.createsObjects` method and pass in an array of object specifications to verify that multiple objects were created. Here is an example:
 
 ```typescript
 import { MyFunctions } from ".."
@@ -397,9 +413,9 @@ import { Objects, ExampleDataObject } from "@foundry/ontology-api";
 test("multiple action edit", () => { 
     verifyOntologyEditFunction(() => myFunctions.multistageEdits("objectId", "objectName"))
         .createsObject({...})
-        .modifiesObjects({...})
-        .addsLinks({...})
-        .removesLinks({...})
+        .modifiesObjects([{...}])
+        .addsLinks([{...}])
+        .removesLinks([{...}])
         .deletesObject(...)
         .hasNoMoreEdits(); 
 });

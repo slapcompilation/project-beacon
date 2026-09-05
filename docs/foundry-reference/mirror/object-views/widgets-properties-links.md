@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Properties and links
 

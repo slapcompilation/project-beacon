@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/group-assignment/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/group-assignment/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Group assignment
 
@@ -40,7 +40,11 @@ Rule based groups help guarantee legibility and consistency in group membership,
 
 * Navigate to **Control Panel > Authentication > Authentication provider > Manage group assignment > Test rules** to validate rules against an existing user. This will show which rule(s) the user matches and the group(s) they will be assigned to at their next login. Note that only users who have already logged in with this provider can be simulated in the **Test rules** panel.
 * Rules are applied when a user logs in, regardless of whether they are an existing or new user. Rules *do not run retroactively* upon saving.
-* Regular expression correctness is a common point of failure when defining rule based groups. Non-matching patterns have a tendency to fail quietly while causing unanticipated user assignment.
+* Regular expression correctness is a common point of failure when defining rule based groups. Non-matching patterns have a tendency to fail quietly while causing unanticipated user assignment. Common causes include:
+  * Partial patterns: A pattern must match a provider group name or attribute value in full, not in part. The pattern `admin` does not match the group `admin-users`. Use `admin.*` instead.
+  * Unescaped special characters: An unescaped `.` matches any character, so the pattern `team.a` also matches `team-a`. Escape special characters that you want to match literally, as in `team\.a`.
+  * Unexpected capitalization: Matching is case-sensitive. Add `(?i)` to the start of a pattern to make it case-insensitive, so that `(?i)admin.*` matches both `Admin-Users` and `admin-users`.
+  * Inverted conditions: A condition that uses does not include pattern matching is satisfied when its pattern matches none of a user’s provider groups or attribute values, so a typo stops the condition from excluding anyone and assigns the group to every user who meets the rule’s other conditions.
 
 ![The Test rules interface when validating rules against an existing user](./images/rule-based-group-testing.png)
 

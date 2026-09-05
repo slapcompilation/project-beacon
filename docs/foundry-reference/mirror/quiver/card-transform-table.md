@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-transform-table/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-transform-table/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Transform table
 
@@ -18,7 +18,7 @@ Transform tables handle certain computations and visualizations differently than
 
 ## Input type
 
-Object set, transform table, event set, materialization, Materialization SQL, categorical chart, pivot table, time series chart, Ontology SQL, number array, string array, boolean array, time array
+Object set, transform table, event set, dataset, Dataset SQL, categorical chart, pivot table, time series chart, Ontology SQL, number array, string array, Boolean array, time array
 
 ## Output type
 

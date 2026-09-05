@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/functions-on-models/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/functions-on-models/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Functions on models
 
@@ -98,7 +98,7 @@ We first need to import the function:
 
 Then, write a function that takes a flight, prepares data for the model, and interprets the result of the model execution. The model is imported as an asynchronous function that respects the [model's input and output specification or API](/docs/foundry/integrate-models/model-adapter-api/). From this, TypeScript can ensure, at compile time, that the correct data structure is sent to and received from the model deployment.
 
-Note that if your model's API expects a single tabular input and output, the associated function will accept single TypeScript objects with properties corresponding to the columns specified for the input if the [**Enable row-wise processing** option](/docs/foundry/model-integration/model-functions-guide/#row-wise-publishing) is enabled, which is the default. The `predictFlightDelaysRowWise` function below demonstrates this pattern. Alternatively, consider [using an Object or ObjectSet directly in the model API](/docs/foundry/integrate-models/model-adapter-reference/#for-object-inputs) to facilitate use of your model with objects in functions.
+Note that if your model's API declares exactly one tabular input and exactly one tabular output, the associated function will accept single TypeScript objects with properties corresponding to the columns specified for the input if the [**Enable row-wise processing** option](/docs/foundry/model-integration/model-functions-guide/#row-wise-publishing) is enabled, which is the default. Model APIs that declare any additional input or output are not eligible for row-wise processing. The `predictFlightDelaysRowWise` function below demonstrates this pattern. Alternatively, consider [using an Object or ObjectSet directly in the model API](/docs/foundry/integrate-models/model-adapter-reference/#for-object-inputs) to facilitate use of your model with objects in functions.
 
 The `predictFlightDelays` function below returns a [`FunctionsMap`](/docs/foundry/functions/types-reference/#map), which is the TypeScript v1 type used to return a map keyed by objects or scalar values. In this example, it maps each `Flight` object to its predicted delay value.
 
@@ -111,7 +111,7 @@ public async predictFlightDelaysRowWise(flight: Flight): Promise<Double> {
     // Prepare the input to match the model function's API.
     // This model function expects a single flight.
     // If you'd like to process multiple flights at a time,
-    // edit your model function and uncheck "Enable row-wise processing".
+    // publish a new model function version with row-wise processing disabled.
 
     // Note you can also use an Object directly in the model API
     // to avoid tedious mapping between a model API and an object type's properties.

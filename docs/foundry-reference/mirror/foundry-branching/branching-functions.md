@@ -1,17 +1,21 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-branching/branching-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-branching/branching-functions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Branching functions
 
-You can develop, publish, and consume functions on a global branch. This is currently supported for TypeScript v1 functions and AIP Logic functions.
+You can develop, publish, and consume functions on a global branch. This is currently supported for TypeScript v1, TypeScript v2, and AIP Logic functions.
 
 :::callout{theme="warning"}
-You cannot modify TypeScript v2 or Python functions on a branch. To test one before merging into `main`, reference a specific function version on the branch. The function code can use only schemas that exist on `main`.
+You cannot modify Python functions on a branch. To test one before merging into `main`, reference a specific function version on the branch. The function code can use only schemas that exist on `main`.
 :::
 
 ## Developing functions
 
 :::callout{theme="neutral"}
-To use Global Branching for TypeScript v1, upgrade your repository template version to version `0.903.0` of the `functions-typescript` child template or higher. Review [the documentation on repository upgrades](/docs/foundry/code-repositories/repository-upgrades/#manual-branch-upgrade) for instructions.
+To use Global Branching for TypeScript v1, upgrade your repository template to version `0.903.0` or higher of the `functions-typescript` child template or higher. Review [the documentation on repository upgrades](/docs/foundry/code-repositories/repository-upgrades/#manual-branch-upgrade) for instructions.
+:::
+
+:::callout{theme="neutral"}
+To use Global Branching for TypeScript v2, upgrade your repository template to version `0.1299.0` or higher of the `typescript-functions` parent template or higher and enable a [local Ontology SDK](/docs/foundry/functions/local-sdks/).
 :::
 
 You can develop a function that depends on changes made to resources on your global branch, such as newly created or modified ontology entities.

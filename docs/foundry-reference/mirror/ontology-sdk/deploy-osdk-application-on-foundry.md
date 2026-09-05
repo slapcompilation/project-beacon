@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/deploy-osdk-application-on-foundry/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/deploy-osdk-application-on-foundry/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Host an OSDK application on Foundry
 

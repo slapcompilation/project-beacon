@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-publish-share/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-publish-share/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Publish and share a dashboard
 
@@ -22,6 +22,10 @@ To publish, use the **Publish** button in the top toolbar. You will be prompted 
 
 :::callout{theme="neutral"}
 Note that **the dashboard will inherit the permissions of the folder in which you save it**. For example, if you save it in your private folder it will not be accessible by any user unless you manually grant them access. The next section provides more details on how permissions work.
+:::
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/)) filter what each viewer can see in a dashboard. These controls do not extend to card exports, screen captures, or downstream visual functions. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
 :::
 
 Each time you re-publish a dashboard, a new version will be saved.

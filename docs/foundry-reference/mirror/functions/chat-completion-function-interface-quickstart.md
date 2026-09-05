@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Register an LLM using function interfaces \[Legacy]
 
@@ -94,7 +94,9 @@ To maintain platform security, you need to register the call to OpenAI as a webh
 
     <img src="./images/byom-tutorial-webhook-configuration-2.png" alt="Webhook configuration output configuration." width="450" >
 
-6. Test and save your webhook.
+6. Set the webhook to `Read API`. Webhooks marked with `Write API` may only be used in an `@OntologyEditFunction()`, so they cannot be called from the `@ChatCompletion()` function you write in the next section. Review [webhooks](/docs/foundry/functions/webhooks/) for more information about this option.
+
+7. Test and save your webhook.
 
 Now you have a REST source and a webhook that you can import into your TypeScript repository.
 

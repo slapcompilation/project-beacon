@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/embed-foundry-externally/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/embed-foundry-externally/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure the Content Security Policy for embedding
 
@@ -38,6 +38,6 @@ You can also embed external resources into Foundry applications. To do so, selec
 
 ## Manual configuration
 
-You can manually configure your Content Security Policy settings if your use case does not fall into the existing workflows. Navigate to the **Content Security Policy** section of Control Panel in your Foundry environment and select the manual configuration tab.
+You can manually configure your Content Security Policy settings if your use case does not fall into the existing workflows. Navigate to the **Content Security Policy** section of Control Panel in your Foundry environment and select the manual configuration tab. Check the browser [console](/docs/foundry/getting-help/debug-using-devtools/#console-tab), which reports CSP violations for blocked resources.
 
 ![Content Security Policy manual configuration](./images/csp-manual-configuration-page.png)

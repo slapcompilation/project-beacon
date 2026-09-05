@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/object-set-filter-variables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/object-set-filter-variables/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Object set filter variables
 
@@ -53,6 +53,17 @@ Only the following value types can be extracted:
 * String terms
   * An array variable should be configured to extract multiple values. If a non-array variable is configured, only the first filtered value will be extracted.
 
+### Apply extracted values to a different property
+
+Extraction writes values into the variables used in the default filter; it does not itself produce a filter on another property. The first use case above therefore requires a second step, where you reuse the extracted variables in a filter that targets the new property:
+
+1. On the initial object set filter variable, specify a default filter on the source property (`Email Date` in the example above) using variables for its values, and turn on **Update used variables on filter value changes**. When a user filters, the extracted values are written to those variables.
+2. Configure a second filter on the target property (`Call Date` in the example above) using the same variables. Either configure this as the default state of a second object set filter variable and apply that variable to the target object set, or configure the filter directly on the target object set variable.
+
+Because the second filter reads its values from the variables rather than from the original filter, it applies those values to the target property. Object set filter variables cannot be used as values within another filter, so extracted values must pass through supported primitive variables or lists of supported primitives, such as Date, Timestamp, Numeric, or String, to move between the two filters.
+
+If a user's filter no longer includes the source property, the variables used for extraction are cleared. A filter that relies only on those variables for its values is then dropped rather than matching no objects, so the dependent object set is no longer filtered on the target property.
+
 ### Limitations
 
 The filter value must match the shape of the default filter in order for extraction to occur. Review some known cases where this may happen:
@@ -61,3 +72,4 @@ The filter value must match the shape of the default filter in order for extract
 * The current filter value must match the inclusive less than or equal to (LTE), or greater than or equal to (GTE) behavior offered by the object set filter variable definition.
 * Negated filter values must also be negated in the filter variable's default configuration.
 * The [XY Chart widget](/docs/foundry/workshop/widgets-chart/) with a numerical axis does not currently support extraction.
+* Extraction matches the incoming filter to the default filter by property, so it updates variables only for properties present in both. Extraction alone does not produce a filter on a different property.

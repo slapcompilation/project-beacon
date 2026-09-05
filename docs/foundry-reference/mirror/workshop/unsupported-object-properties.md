@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/unsupported-object-properties/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/unsupported-object-properties/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Unsupported object property types
 

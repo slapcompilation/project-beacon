@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-table/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Object Table
 
@@ -53,7 +53,7 @@ For the Object Table widget, the core configuration options are the following:
 
 * **Selection**
   * **Active object:** This is the first of two output variables in the Object Table and outputs an object set of the currently active / highlighted object. This object set can then be used in downstream widgets within the current module.
-  * **Disable active object auto-selection:** By default, the first row in the table is automatically set as the active object at load time. Disabling this setting prevents this and results in an empty active object at load time. Note that auto-selection only triggers when the widget is visible; if the Object Table is within a collapsed section, auto-selection will not occur until the section is expanded and the widget becomes visible.
+  * **Disable active object auto-selection:** By default, the first row in the table is automatically set as the active object at load time. Disabling this setting prevents this and results in an empty active object at load time. Auto-selection normally occurs when the widget becomes visible; for example, if the Object Table is within a collapsed section, auto-selection does not occur until the section is expanded. If the widget uses **Eagerly mount** or **Never unmount** [display optimization](/docs/foundry/workshop/widget-display-optimization/), auto-selection may occur while the widget is hidden.
   * **Enable multi-select:** When enabled, this toggle allows multiple objects to be checked / selected in the table and output via the **Selected objects** object set variable.
   * **Selected objects:** This is the second of two output variables in the Object Table and outputs an object set of the currently checked / selected objects. This object set can then be used in downstream widgets within the current module. Note: this output variable will only be in use and populated if the **Enable multi-select** toggle is set to true.
   * **On active object selection:** This option enables module builders to configure Workshop events to trigger when a row is selected in the table (for example, causing a drawer with a more detailed object view to appear).
@@ -200,7 +200,7 @@ Within the **Function-Backed Property** option that appears in the Columns list,
 
 ![object\_table\_reference\_3](./images/object_table_reference_3.png)
 
-Next, confirm the function version and then configure the necessary inputs for the function. Let's choose **Use a runtime input** to pass only the objects currently displayed in the Object Table and thus optimize the performance of our function. Alternatively, you have the option to pass in an object set variable (that is, the same object set that backs the Object Table).
+Next, confirm the function version and then configure the necessary inputs for the function. Choose **Use a runtime input** to pass only the objects currently displayed in the Object Table and thus optimize the performance of your function. Alternatively, you have the option to pass in an object set variable (that is, the same object set that backs the Object Table).
 
 :::callout{theme="neutral"}
 The **Use a runtime input** option will dynamically pass only the objects currently displayed in the Object Table (rather than an entire object set) into a derived column function and provide faster performance. The additional **Use a variable input** option allows passing in an entire object set variable instead (such as the input object set variable that backs the Object Table), but may result in slower performance.
@@ -218,7 +218,7 @@ The end result will be the following Object Table that calculates the new derive
 
 ### Configure multiple function-backed properties
 
-Next, let's walk through a more advanced example to create a single function that produces multiple function-backed properties by using a custom return type. [Learn more about custom types.](/docs/foundry/functions/types-reference/#structcustom-type) There are several advantages to using a single function to return multiple function-backed properties, including increased performance and clearer organization of the related derived properties code.
+Next, walk through a more advanced example to create a single function that produces multiple function-backed properties by using a custom return type. [Learn more about custom types.](/docs/foundry/functions/types-reference/#structcustom-type) There are several advantages to using a single function to return multiple function-backed properties, including increased performance and clearer organization of the related derived properties code.
 
 In this example, use a function that takes in an `ObjectSet<FlightAlerts>`, traverses a `Departure Airport` link to retrieve a linked `Airport` object, and then returns three properties from that linked `Airport` object. This will enrich the data displayed in the Object Table to include relevant information from a linked object type.
 
@@ -359,7 +359,7 @@ In the new column that appears in the column list, select the **fx** icon to cho
 
 ![derived\_columns\_configuration\_1](./images/derived_columns_configuration_1.png)
 
-Next, configure the input parameters to the selected function. In this example, the function takes a single input parameter, an object set of Flight Alert objects called `flightAlerts`. Let's choose the **Use a runtime input** option to pass the function the objects currently displayed in the Object Table.
+Next, configure the input parameters to the selected function. In this example, the function takes a single input parameter, an object set of Flight Alert objects called `flightAlerts`. Choose the **Use a runtime input** option to pass the function the objects currently displayed in the Object Table.
 
 :::callout{theme="neutral"}
 The **Use a runtime input** option will dynamically pass only the objects currently displayed in the Object Table (rather than an entire object set) into the derived column function and thus provide faster performance. The additional **Use a variable input** option allows passing in an entire object set variable instead (such as the input object set variable that backs the Object Table), but may result in slower performance.

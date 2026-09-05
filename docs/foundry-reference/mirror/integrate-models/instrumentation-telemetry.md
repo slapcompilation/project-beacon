@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/instrumentation-telemetry/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/instrumentation-telemetry/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Instrumentation and telemetry in models
 
@@ -6,7 +6,7 @@ It is possible to emit certain types of telemetry from your models to allow for 
 
 The capabilities described on this page apply to core machine learning models. For language models, see the [language model adapters](/docs/foundry/integrate-models/language-models-adapters/) reference.
 
-To learn how to view telemetry emitted by your models, see our [AIP observability documentation](/docs/foundry/aip-observability/overview/).
+To learn how to view telemetry emitted by your models, see our [Ontology and AIP observability documentation](/docs/foundry/aip-observability/overview/).
 
 ## Supported telemetry types
 

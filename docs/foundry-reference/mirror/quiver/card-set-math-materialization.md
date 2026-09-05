@@ -1,18 +1,18 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math-materialization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math-materialization/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Set math (materialization)
+# Set math (dataset)
 
-Perform a union, intersection, or difference of two materializations.
+Perform a union, intersection, or difference of two datasets.
 
-<img src="./images/set-math-card-config.png" alt="Set math (materialization) config panel" width="400">
+<img src="./images/set-math-card-config.png" alt="Set math (dataset) config panel" width="400">
 
 ## Input type
 
-Materialization
+Dataset
 
 ## Output type
 
-Materialization
+Dataset
 
 ## Usage information
 

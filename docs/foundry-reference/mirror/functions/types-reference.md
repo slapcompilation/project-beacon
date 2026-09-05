@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/types-reference/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/types-reference/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Types reference
 
@@ -1105,7 +1105,7 @@ from ontology_sdk.ontology.object_sets import AirplaneObjectSet
 
 @function
 def filter_aircraft(aircraft: AirplaneObjectSet) -> AirplaneObjectSet:
-    return aircraft.where(Airplane.capacity > 200)
+    return aircraft.where(Airplane.object_type.capacity > 200)
 ```
 
 ### Interface
@@ -1605,4 +1605,62 @@ def create_polygon() -> Polygon:
             [-22.4, 37.7],
             [-22.4, 37.8]
         ]])
+```
+
+An [Ontology edit function](/docs/foundry/functions/edits-overview/) can set a `geoshape` property from a GeoJSON string, but the conversion step differs by language:
+
+* **TypeScript v1:** `GeoShape.fromGeoJson()` accepts a parsed GeoJSON geometry or geometry collection, so parse the string before passing it in.
+* **TypeScript v2:** `Geometry` is a plain GeoJSON object, so no conversion function is needed; assign the parsed value directly.
+* **Python:** Each concrete geometry class, such as `Polygon` or `LineString`, provides a `from_geo_json()` method that accepts the JSON string itself. The `GeoShape` type does not provide this method, so use the class that matches the geometry you expect.
+
+The following example sets the `geoshape` property of a `Region` object from a JSON string.
+
+```typescript tab="TypeScript v1"
+import { OntologyEditFunction, Edits, GeoShape } from "@foundry/functions-api";
+import { Region } from "@foundry/ontology-api";
+
+export class MyFunctions {
+    @Edits(Region)
+    @OntologyEditFunction()
+    public updateBoundary(region: Region, boundary: string): void {
+        region.boundary = GeoShape.fromGeoJson(JSON.parse(boundary));
+    }
+}
+```
+
+```typescript tab="TypeScript v2"
+import { Region } from "@ontology/sdk";
+import { Client, Osdk } from "@osdk/client";
+import { createEditBatch, Edits, Geometry } from "@osdk/functions";
+
+type RegionEdit = Edits.Object<Region>;
+
+function updateBoundary(
+    client: Client,
+    region: Osdk.Instance<Region>,
+    boundary: string
+): RegionEdit[] {
+    const batch = createEditBatch<RegionEdit>(client);
+
+    batch.update(region, { boundary: JSON.parse(boundary) as Geometry });
+
+    return batch.getEdits();
+}
+
+export default updateBoundary;
+```
+
+```python tab="Python"
+from functions.api import function, OntologyEdit, Polygon
+from ontology_sdk import FoundryClient
+from ontology_sdk.ontology.objects import Region
+
+@function(edits=[Region])
+def update_boundary(region: Region, boundary: str) -> list[OntologyEdit]:
+    ontology_edits = FoundryClient().ontology.edits()
+
+    editable_region = ontology_edits.objects.Region.edit(region)
+    editable_region.boundary = Polygon.from_geo_json(boundary)
+
+    return ontology_edits.get_edits()
 ```

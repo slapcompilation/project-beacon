@@ -161,6 +161,18 @@ String, Struct, Timestamp, **Time series set**. The definition types are
 a second enumeration: Static, Function, Object set aggregation, Object
 property, Object set definition, Variable transformation.
 
+*Drift, re-mirrored 2026-09-04:* the second enumeration has a seventh member:
+
+> "* **SQL query:** For variables computed by running an Ontology SQL query against object sets and other variables in the module; review the [SQL query variables](/docs/foundry/workshop/sql-query-variables/) documentation for more information."
+
+— `workshop/concepts-variables.md`
+
+685's CHECK on the definition type declares `Values from
+workshop/concepts-variables` and admits the six above, so it now refuses a
+documented value — stricter than Foundry. The type list is unchanged. A forward
+migration adding `SQL query` is **queued, not done in this docs pass**; whether
+anything could compute one is a separate question (we have no Ontology SQL).
+
 Two behaviours that are design, not detail:
 
 > "In both view and edit mode, Workshop variables will compute and recompute lazily only when displayed by a visible widget or layout."

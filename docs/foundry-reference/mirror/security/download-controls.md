@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/download-controls/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/download-controls/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Download controls
 
@@ -37,7 +37,11 @@ Foundry offers several capabilities to control and improve awareness around when
 
 In more advanced use cases, if users require additional privileges beyond the scope of the `Discoverer` role but are not authorized to download data, you can create a [custom role](/docs/foundry/platform-security-management/manage-roles/#creating-a-custom-role) based on an existing role to restrict specific operations that allow downloading data.
 
-**Limitation:** Not all download actions in Foundry are governed by roles. For example, downloading SAML metadata is managed in Control Panel.
+Download controls vary by enrollment. On enrollments configured to restrict downloads, removing a download operation, including `foundry-data-proxy:get-files` (**Download**), from a custom role can prevent downloads. On other enrollments, omitting the operation may not prevent downloads if the role still grants read access. Before relying on a custom role as a download control, contact Palantir Support to confirm how downloads are enforced for your enrollment.
+
+When download operations are enforced, review which platform workflows legitimately need to read underlying data. Enrollments that restrict downloads commonly remove download operations from the default roles in a custom [role set](/docs/foundry/platform-security-management/manage-roles/#role-sets). Administrators then grant those operations through a dedicated role, such as an `Exporter` role. Users need that dedicated role for any workflow that reads a resource's files, including on resources they own. For example, packaging a dataset with static data into a Marketplace product reads the underlying files. The user packaging that dataset needs the `foundry-data-proxy:get-files` operation, even if they hold the `Owner` role on it. For more information, see [Dataset packaging permissions](/docs/foundry/foundry-devops/manage-store-permissions/#dataset-packaging-permissions).
+
+**Limitation:** Not all download actions in Foundry are governed by roles. For example, downloading SAML metadata is managed in Control Panel. Enforcement of some download operations also depends on enrollment configuration, as described above.
 
 ### Use Checkpoints to remind users downloads are sensitive actions
 

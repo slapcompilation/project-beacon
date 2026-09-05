@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-create-backend-service-app-different-org/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-create-backend-service-app-different-org/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Create an application using a different Organization
 
@@ -35,7 +35,7 @@ Prepare your application for use in your organization with the following steps:
 
 2. Use the **Share application with organizations** interface to add your organization to the list and save your changes.
 
-![The application discovery list in Developer Console, with the Palantir organization added.](./images/developer-console-share-application.png)
+![The Share application with organizations interface in Developer Console, with the Palantir organization added.](./images/developer-console-share-application.png)
 
 ## Enable the application on your organization
 
