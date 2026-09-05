@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-time-series/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-time-series/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Time series cards
 
@@ -50,8 +50,8 @@ The following cards accept time series and return boundaries:
 
 The following cards return grouped time series:
 
-* [Event comparison plot](/docs/foundry/quiver/card-event-comparison-plot/) - this accepts a time series and event set as input
-* [Grouped time series](/docs/foundry/quiver/card-grouped-time-series-plot/) - this accepts a table as input
+* [Event comparison plot](/docs/foundry/quiver/card-event-comparison-plot/): Accepts a time series and event set as input
+* [Grouped time series](/docs/foundry/quiver/card-grouped-time-series-plot/): Accepts a table as input
 
 The following cards accept time series and return a single value (number, string, or date):
 

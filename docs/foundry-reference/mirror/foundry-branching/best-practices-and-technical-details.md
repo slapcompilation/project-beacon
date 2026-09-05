@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-branching/best-practices-and-technical-details/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-branching/best-practices-and-technical-details/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Integrations
 
@@ -13,7 +13,7 @@ The documentation below covers application-specific details for working with bra
 | Workshop | [Branching Workshop modules](/docs/foundry/workshop/branching-integration/) |
 | AIP Logic | [Branching AIP Logic](/docs/foundry/logic/branching-logic/) |
 | Automate | [Branching automations](/docs/foundry/automate/branching-automations/) |
-| TypeScript v1 functions | [Branching functions](/docs/foundry/functions/branching-functions/) |
+| TypeScript v1 and v2 functions | [Branching functions](/docs/foundry/functions/branching-functions/) |
 | Ontology | [Branching the ontology](/docs/foundry/ontologies/branching-ontology/) |
 | Ontology Actions | [Branching action types](/docs/foundry/action-types/branching-action-types/) |
 | Ontology Materializations | [Materializations](/docs/foundry/object-edits/materializations/#branching) |
@@ -30,5 +30,6 @@ The documentation below covers application-specific details for working with bra
 
 Not all resource types are yet supported in Global Branching; support for more resource types is in development. To note in particular:
 
-* **TypeScript v2 and Python functions:** Currently, you cannot modify TypeScript v2 or Python functions on a branch. You may reference a specific version of a function on a branch and test that version before merging it back to the `main` branch. However, the function code will only be able to leverage the schemas that exist on the `main` branch.
+* **TypeScript v2 functions:** TypeScript v2 functions support Global Branching when using a [local Ontology SDK](/docs/foundry/functions/local-sdks/). Repositories without a local SDK can reference a specific version of a function on a branch but cannot modify function code against branched schemas.
+* **Python functions:** Currently, you cannot modify Python functions on a branch. You may reference a specific version of a function on a branch and test that version before merging it back to the `main` branch. However, the function code will only be able to leverage the schemas that exist on the `main` branch.
 * **Ontology SDK:** The Ontology SDK is not currently branchable.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-rstudio-license/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-rstudio-license/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure RStudio® license
 
@@ -28,6 +28,10 @@ To add an RStudio® license to Foundry, follow the instructions below:
 
 :::callout{theme="neutral"}
 Foundry does not validate the license information but requires confirmation from Posit™ that it can be used. Foundry manages the license internally; if all the license seats have been used, the next new user will not be allowed to launch RStudio® in Foundry.
+:::
+
+:::callout{theme="neutral"}
+To release the license seat assigned to a user who has offboarded from your organization, contact Palantir Support.
 :::
 
 Access to a given license can be restricted to a subset of user groups from **License management**.

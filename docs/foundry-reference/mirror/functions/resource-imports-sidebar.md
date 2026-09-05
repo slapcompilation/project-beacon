@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/resource-imports-sidebar/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/resource-imports-sidebar/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Import resources into Code Repositories
 
@@ -38,7 +38,7 @@ To import resources using the sidebar:
 4. Use the **Select** button to add resources to your selection.
 5. Expand the cart panel to review your selection and confirm by choosing **Confirm selection**.
 
-After confirming your selection, Code Assist will be restarted to re-run the necessary code generation tasks to apply your changes.
+After confirming your selection, Code Assist will be restarted to re-run the necessary code generation tasks to apply your changes. Each imported resource is then exposed as a generated package, so you import it from a generated package path rather than a path relative to your own files. For example, Ontology types are imported from `@foundry/ontology-api`; the exact path depends on the resource type.
 
 ![Example resource selector dialog](./images/language-model-import-dialog.png)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-repositories/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-repositories/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Train a model in Code Repositories
 
@@ -60,7 +60,7 @@ def compute(training_data, model_output):
     )
 ```
 
-This logic is publishing to a `ModelOutput`. Foundry will automatically create a model resource at the provided path after you commit your changes. You can also configure the required resources for model training such as CPU, memory, and GPU requirements with the [`@configure` annotation](/docs/foundry/api-reference/transforms-python-library/api-configure/#transforms.api.configure).
+This logic is publishing to a `ModelOutput`. Foundry will automatically create a model resource at the provided path after you commit your changes. On enrollments that use [classification-based access controls (CBAC)](/docs/foundry/security/classification-based-access-controls/), transforms cannot create their own output resources, so create the model by selecting **+ New > Model** in the target folder before you build, set a file classification on it as required for newly created resources, then point your `ModelOutput` at that existing path. The same restriction applies to any `Output` datasets your transform declares; building a transform whose output does not yet exist fails with an error stating that dataset creation is not allowed when classification-based access control is enabled. You can also configure the required resources for model training such as CPU, memory, and GPU requirements with the [`@configure` annotation](/docs/foundry/api-reference/transforms-python-library/api-configure/#transforms.api.configure).
 
 ### (Optional) Log metrics and hyperparameters to a model experiment
 

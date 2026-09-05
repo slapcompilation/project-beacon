@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/saml-other-idp/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/saml-other-idp/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure SAML 2.0 integration for other identity providers
 
@@ -20,6 +20,6 @@ Add email domains associated with this SAML 2.0 integration under **Email domain
 
 Then, fill in the **Attribute mapping** block. This block determines which attributes from your identity provider will be used for the user attributes in Foundry: **Username**, **Email**, **First Name**, and so on. You can also configure Foundry to create groups based on identity provider attributes. You may need to additionally configure your provider to include group attributes in the SAML response. You can find this information from your identity provider.
 
-If you’re unsure, insert `dummy` as a temporary value to later correct when you reach the testing stage.
+If you are unsure, insert `dummy` as a temporary value to later correct when you reach the testing stage.
 
 Finish by saving your SAML 2.0 integration and [move on to multi-factor authentication](/docs/foundry/authentication/multi-factor-auth/).

@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/functions-use/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/functions-use/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use Functions in Workshop
 
 Within a Workshop module, functions can be used in a variety of ways. Function-backed actions enable modules to trigger complex sets of object edits and writeback. Widgets such as Metric Cards can display the output of functions in-module to help guide user decisions.
+
+:::callout{theme="info"}
+The function example on this page is shown in [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/), [TypeScript v2](/docs/foundry/functions/typescript-v2-getting-started/), and [Python](/docs/foundry/functions/python-getting-started/). Select the tab that matches how your function is written; the Workshop configuration steps that follow apply to all three, though a Python function exposes its inputs under their `snake_case` names. For a full comparison, review the [TypeScript v1 versus TypeScript v2 comparison](/docs/foundry/functions/language-feature-support/#typescript-v1-vs-typescript-v2).
+:::
 
 ## Function-backed actions in Workshop
 
@@ -20,13 +24,55 @@ Note that this example is illustrative and you may not be able to complete every
 
 First, take a look at the function that we will be calling from within our Workshop module. As seen below, the function is called `flightsForAircraftToDestination`. It accepts an `ExampleAircraft` object and a string representing the destination airport’s three-letter airport code as inputs, and then returns the count of flights that aircraft has to the target airport.
 
-```typescript
-@Function()
-public flightsForAircraftToDestination(aircraft: ExampleAircraft, destinationAirportCode: string): Integer {
-    return aircraft.flights.all()
-    .filter(flight => flight.destinationAirport === destinationAirportCode)
-    .length
+The three implementations differ in how they count. TypeScript v1 loads every linked flight with `.all()` and filters the resulting array in memory. TypeScript v2 and Python instead apply the filter to the linked object set and ask the Ontology for a count. The function therefore gets back a single number rather than every flight object. Because a function-backed variable recomputes whenever its inputs change, counting on the server keeps the variable responsive as the number of flights grows.
+
+TypeScript v1 registers the function with the `@Function()` decorator on a class method, TypeScript v2 registers it as the default export of a file, and Python registers it with the `@function` decorator.
+
+```typescript tab="TypeScript v1"
+import { Function, Integer } from "@foundry/functions-api";
+import { ExampleAircraft } from "@foundry/ontology-api";
+
+export class MyFunctions {
+    @Function()
+    public flightsForAircraftToDestination(aircraft: ExampleAircraft, destinationAirportCode: string): Integer {
+        return aircraft.flights.all()
+        .filter(flight => flight.destinationAirport === destinationAirportCode)
+        .length
+    }
 }
+```
+
+```typescript tab="TypeScript v2"
+import { Osdk } from "@osdk/client";
+import { Integer } from "@osdk/functions";
+import { ExampleAircraft } from "@ontology/sdk";
+
+export default async function flightsForAircraftToDestination(
+    aircraft: Osdk.Instance<ExampleAircraft>,
+    destinationAirportCode: string
+): Promise<Integer> {
+    const result = await aircraft.$link.flights
+        .where({ destinationAirport: { $eq: destinationAirportCode } })
+        .aggregate({ $select: { $count: "unordered" } });
+    return result.$count;
+}
+```
+
+```python tab="Python"
+from functions.api import function, Float
+from ontology_sdk.ontology.objects import ExampleAircraft, ExampleFlight
+
+@function
+def flights_for_aircraft_to_destination(
+    aircraft: ExampleAircraft,
+    destination_airport_code: str,
+) -> Float:
+    return (
+        aircraft.flights()
+        .where(ExampleFlight.object_type.destination_airport == destination_airport_code)
+        .count()
+        .compute()
+    )
 ```
 
 Next, begin the process of wiring up this function in your Workshop module. The aim is to pass in the function inputs from the module and then display the function output within a widget.

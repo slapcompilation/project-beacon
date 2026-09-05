@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -69,6 +69,10 @@ A `PERMISSION_DENIED` error with the code `FunctionRegistry:ReadOntologyFunction
 ### Object loading permissions
 
 When a function loads object data, either as a parameter or via an [Object search](/docs/foundry/functions/api-object-sets/), the permissions of the end user running the function determine which objects are loaded. In the case of object types secured using row-level permissions, this means that different users executing the same function may receive different results. This behavior is intended—users should only see the objects they have access to, and this behavior enables a single function to work for users with differing access to individual objects.
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/)) filter what a user can read when a function runs. These controls do not extend to the function's output. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
+:::
 
 ## Extended function execution
 

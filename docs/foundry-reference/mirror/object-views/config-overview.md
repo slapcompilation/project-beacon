@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configured Object View overview
 
@@ -18,10 +18,11 @@ Default configured Object Views are automatically created for each object type. 
 
 ### Permissions
 
-The permissions required to edit the Object View for an object type depend on whether the object type uses [Ontology roles](/docs/foundry/ontology-manager/ontology-roles-migration/):
+The permissions required to edit the Object View for an object type depend on the object type's permission model:
 
-* If the object type does not use Ontology roles, a user must have the `Object View Admin` application permission in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-permissions/), as well as the `Editor` role on any of the object type's input datasources.
-* If the object type uses Ontology roles, the user only requires the `Ontology Editor` role on the object type.
+* If the object type uses legacy datasource-derived permissions, a user must have the `Object View Admin` application permission in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-permissions/), as well as the `Editor` role on any of the object type's input datasources.
+* If the object type uses [Ontology roles](/docs/foundry/ontology-manager/ontology-roles-migration/), the user only requires the `Ontology Editor` role on the object type.
+* If the object type uses [project-based permissions](/docs/foundry/object-permissioning/ontology-permissions/), the user only requires the `Editor` role on the Compass project containing the object type.
 
 Unless you manually convert the Workshop module for an Object View tab to a standalone module through legacy configuration options, the Workshop module's permissions will be managed by the object type. This ensures that permissions between the module and the object type are kept aligned, so users with permission to edit or view the object type will also be able to edit or view all modules inside the Object View.
 

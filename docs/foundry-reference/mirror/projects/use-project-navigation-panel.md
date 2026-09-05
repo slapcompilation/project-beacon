@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/projects/use-project-navigation-panel/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/projects/use-project-navigation-panel/ · mirrored 2026-09-05 from Palantir Foundry docs -->
 
 # Use Project navigation panel
 

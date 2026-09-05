@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-import-linked/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-import-linked/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Search around to linked objects
 
@@ -28,6 +28,6 @@ The example below uses the **Join to linked objects** card to join Tea Tasting o
 
 ![Use the join to linked object set card to perform a join across an ontology link.](./images/howto-object-set-join-linked-objects.gif)
 
-## Join materializations
+## Join datasets
 
-If you would like to perform a join across linked objects but your scale is above 50k objects, you can use a [join materializations](/docs/foundry/quiver/card-join-materializations/) card.  With this card, you will need to define the property match conditions for the join (as opposed to natively using the ontology link), however it allows calculation and visualization across linked object types at scale.
+If you would like to perform a join across linked objects but your scale is above 50k objects, you can use a [join datasets](/docs/foundry/quiver/card-join-datasets/) card.  With this card, you will need to define the property match conditions for the join (as opposed to natively using the ontology link), however it allows calculation and visualization across linked object types at scale.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/navigation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/navigation/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Navigation
 
@@ -173,7 +173,7 @@ Click **Actions** to create a new branch, view details, or view changes made fro
 
 ### Create branch
 
-This option allows to you to start a new branch based off the selected  branch.
+This option allows you to start a new branch based off the selected branch.
 
 ![Screenshot of the create branch popover](./images/create-branch-prompt@2x.png)
 

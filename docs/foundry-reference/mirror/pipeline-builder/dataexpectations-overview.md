@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Data expectations
 
@@ -34,7 +34,7 @@ In the specific column selected, we check that every entry underneath is unique.
 
 If two columns are selected, we check that the combination of both columns are unique.
 
-In our example, we'll use `id` and `time` as two columns existing in our dataset.
+In this example, `id` and `time` are two columns that exist in the dataset.
 
 Example dataset:
 

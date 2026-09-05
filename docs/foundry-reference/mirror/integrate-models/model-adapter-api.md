@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-api/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-api/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Model adapter API
 
@@ -295,8 +295,8 @@ class ExampleModelAdapter(pm.ModelAdapter):
         return inputs, outputs
 
     def predict(self, input_dataframe, input_parameter):
-        outputs["prediction"] = self.model.predict(input_dataframe) * input_parameter
-        return outputs
+        input_dataframe["prediction"] = self.model.predict(input_dataframe) * input_parameter
+        return input_dataframe
     ...
 ```
 

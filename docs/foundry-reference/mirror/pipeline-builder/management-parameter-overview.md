@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-parameter-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-parameter-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Parameters
 
@@ -10,7 +10,7 @@ Create, edit, and delete parameters in the **Parameters** view, accessible from 
 
 Editing a parameter allows users to modify many transforms at once if a parameter is used in multiple transforms; editing parameter logic will result in a logic change across all transforms in which the parameter is used.
 
-It is possible to create a parameter without a value to use as a placeholder while working on a pipeline; when used in a transform, such parameters will resulte in errors to the transform, and the pipeline cannot be deployed until a value is added.
+It is possible to create a parameter without a value to use as a placeholder while working on a pipeline; when used in a transform, such parameters will result in errors to the transform, and the pipeline cannot be deployed until a value is added.
 
 ## Parameter types
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/configure-scoped-sessions/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/configure-scoped-sessions/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure scoped sessions
 
@@ -34,7 +34,7 @@ Then you would confirm that the research Markings are applied correctly througho
 
 ## Create scoped sessions
 
-You can create a scoped session by selecting **New scoped session** under the **Session presets** tab. Complete the form that pops up to create the new scoped session. After creation, you can edit the same set of details available during the creation process.
+To create a scoped session, open the **Scoped sessions** settings for your Organization from the side panel in [Control Panel](/docs/foundry/administration/control-panel/). Select **New scoped session**, then complete the form that appears. After creation, you can edit the same set of details available during the creation process.
 
 ![new scoped session dialog](./images/new_scoped_session_dialog.png)
 

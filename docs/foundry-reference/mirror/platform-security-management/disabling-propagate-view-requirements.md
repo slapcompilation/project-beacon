@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Migrate from and disable the "Propagate view requirements" setting \[Planned deprecation]
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/saml-getting-started/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/saml-getting-started/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -77,9 +77,11 @@ For each mapping, there is a toggle that lets you choose the behavior when an at
 
 You can also configure Foundry to create groups based on identity provider attributes (called "provider groups"), allowing you to mirror your existing group memberships in Foundry. You may need to additionally configure your provider to include group attributes in the SAML response.
 
-To set up a mapping for a provider group, check the box labeled **Import user groups from the identity provider** and enter the attribute key that will be sent with the SAML claim. When a user logs in, every value for the configured attributes will be mirrored as provider groups, and the user will be enrolled as a member. With this box unchecked, provider group membership will not be kept up to date on login. If you decide to keep this unchecked, we recommend enabling [SCIM](/docs/foundry/authentication/scim-overview/) to update provider group membership without requiring interactive login.
+To set up a mapping for a provider group, check the box labeled **Import user groups from the identity provider** and enter the attribute key that will be sent with the SAML claim in the **Group attribute mapping** field. When a user logs in, every value for the configured attributes will be mirrored as provider groups, and the user will be enrolled as a member. With this box unchecked, provider group membership will not be kept up to date on login. If you decide to keep this unchecked, we recommend enabling [SCIM](/docs/foundry/authentication/scim-overview/) to update provider group membership without requiring interactive login.
 
-Optionally, you can set a regex pattern to extract groups in cases where the groups are sent as a single value instead of a list. For instance, use `[^,]+` for comma-separated groups.
+Optionally, you can set a regex pattern in the **User groups’ attribute pattern** field to extract group names from each value of the configured attributes. The text matched by the pattern becomes the group name in Foundry, so the pattern should match the full group name.
+
+If each value contains only the group name, leave this field empty. For example, the three values `Engineering`, `Analysts`, and `Admins` create three provider groups with those names. Set a pattern when a single value contains more than one group name. For example, if the attribute arrives as the single value `Engineering,Analysts,Admins`, the pattern `[^,]+` creates the same three provider groups.
 
 ### Advanced settings
 

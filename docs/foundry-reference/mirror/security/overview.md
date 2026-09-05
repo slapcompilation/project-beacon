@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/overview/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 ![Security Overview](./images/6-Security.svg)
 
@@ -25,7 +25,7 @@ The Palantir platform has security as a core development philosophy. The Palanti
 
 The Palantir security model encompasses both authentication and authorization. Authentication verifies the identity of a user, while authorization grants access based on a user’s attributes and permissions.
 
-Data security in the Palantir platform is guaranteed through a combination of mandatory and discretionary controls. Mandatory controls propagate along with each unit of data or resource type, via Palantir's sophisticated provenance and lineage capabilities. Discretionary permissions are granted to users on individual resources, in the form of roles with different operations (for example, view or edit). In addition, granular row or column-level controls based on a user’s attributes can be put in place on resources too.
+Data security in the Palantir platform is provided through a combination of mandatory and discretionary controls, which differ in how they propagate. Mandatory controls ([markings](/docs/foundry/security/markings/), [Classification-based Access Controls](/docs/foundry/security/classification-based-access-controls/), and [organizations](/docs/foundry/security/orgs-and-spaces/)) travel with each unit of data through derivation, via Palantir's provenance and lineage capabilities. Discretionary controls are granted to users on individual resources. These include resource-level role grants (Owner, Editor, Viewer, Discoverer), and row or column filtering via granular policies on [restricted views](/docs/foundry/security/restricted-views/), [object security policies](/docs/foundry/object-permissioning/object-security-policies/), and [property security policies](/docs/foundry/security/property-security-markings/). Discretionary row and column controls filter what a user can read; they do not extend to downstream outputs or exports. For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
 
 Data and resources in the Palantir platform are organized in Projects. Users belong to Organizations, and are organized in groups managed within the platform or through external identity providers. Organizations are one form of mandatory controls applied to Projects that enforce strict silos between groups of users and resources. Therefore, users of one Organization cannot access the resources of another Organization unless sharing protocols have explicitly been configured.
 

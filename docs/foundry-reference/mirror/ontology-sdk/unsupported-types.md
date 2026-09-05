@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/unsupported-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/unsupported-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Unsupported types in OSDK
 
@@ -38,6 +38,13 @@ The following Java SDK property types are unsupported:
 
 If you use an action type with a parameter of a type mentioned below, the code generator will be unable to create your package. To resolve this, you must remove that action type from the SDK application until support is added for that type.
 
+### TypeScript SDK
+
+The following TypeScript SDK parameter types are unsupported:
+
+* `InterfaceObjectSet`
+* `MarkingList`
+
 ### Python SDK
 
 The following Python SDK parameter types are unsupported:
@@ -74,7 +81,6 @@ The following Python SDK function input types are unsupported:
 
 * `ObjectSet`
 * `AnonymousCustomType`
-* `ClassificationMarking`
 * `CustomType`
 * `GeoShape`
 * `Group`
@@ -95,7 +101,6 @@ The following Python SDK function output types are unsupported:
 
 * `ObjectSet`
 * `AnonymousCustomType`
-* `ClassificationMarking`
 * `CustomType`
 * `GeoShape`
 * `Group`

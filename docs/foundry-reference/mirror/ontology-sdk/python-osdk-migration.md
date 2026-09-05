@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk-migration/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk-migration/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Python OSDK migration guide (1.x to 2.x)
 
@@ -283,7 +283,11 @@ This section contains simple examples that illustrate how to map between Python 
 
 * You must include `.object_type` in the `where` expression when referencing the property that is being filtered on.
 * `.is_member_of` has been renamed to `.in_`.
-* `.starts_with` has been renamed to `.contains_all_terms_in_order_prefix_last_term`.
+* String filtering in Python OSDK 2.x supports the following methods on string properties:
+  * `.starts_with(...)`
+  * `.contains_any_term(...)`
+  * `.contains_all_terms(...)`
+  * `.contains_all_terms_in_order(...)`
 
 #### Filtering with Python OSDK 1.x (legacy)
 

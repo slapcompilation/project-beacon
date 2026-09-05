@@ -15,15 +15,20 @@ severity, and a filesystem resource to hold them.
 `monitoring-faq` (23), `check-groups` (165 — the Sunset page, read whole so
 its exclusion is a reading, not a guess).
 
-**Images: seven of fourteen parsed** — `data-health-add-monitoring-rule.png`,
+**Images: seven of fifteen parsed** — `data-health-add-monitoring-rule.png`,
 `troubleshoot-alerts.png`, `snooze-monitor-alert.png`,
 `snooze-monitor-alert-hover-details.png`, `run-history-redirect.png`,
 `alert-debug-page-overview.png`, `alert-debug-condition-breakdown.png` — the
-seven of the live product. The seven I skipped, named: `create-group.png`,
+seven of the live product. The eight I skipped, named: `create-group.png`,
 `check-groups.png`, `checkgroup-manage-permissions.png`, `cga-overview.png`,
 `cga-actions-toolbar.png`, `cga-snoozing-checks.png`, `cga-context-panel.png`
 — all on the check-groups page, whose own banner sunsets the product they
-capture.
+capture — and `workflow-lineage-monitoring-status.png`, which arrived with the
+2026-09-04 re-mirror of `overview` and I have not parsed.
+
+**Re-mirrored 2026-09-04, diffs read, pages not re-read whole:** `overview` is
+now 182 lines and `rules-reference` 665; the counts above are from the first
+read. What changed is in the *Drift* section before the Decisions.
 
 ## 1. What the product is
 
@@ -116,7 +121,10 @@ the shape explicit: "CONDITION — High if value is greater than 1, Medium if
 value is greater than 0"
 (`monitoring-views/images/alert-debug-condition-breakdown.png`). **A rule is a
 set of (severity, threshold) conditions over one metric**, and an alert fires
-at the highest severity whose condition holds.
+at the highest severity whose condition holds — *for single-condition rules*,
+which every rule was when this was read and every rule we built is. The
+re-mirror added composite rules, which break both halves of that sentence; see
+*Drift* below before extending `monitoring_rule_conditions`.
 
 ## 4. The rules catalogue, sorted by what our ledgers can answer
 
@@ -243,6 +251,75 @@ Visibility composes two permissions — the view's location and the resources:
   permissions) does not bind us — our ontology resources already live in
   projects.
 
+## Drift — re-mirrored 2026-09-04, diffs read against what was built
+
+`rules-reference` grew from 423 to 665 lines and `overview` from 147 to 182;
+`core-concepts` and `alert-debug-page` changed a sentence each. Four things
+touch what this reading claims or 661 built.
+
+**1. Composite rules exist, and the shape in Decision 2 cannot hold them.**
+
+> "Some monitoring rules have multiple conditions joined by `AND`. For these composite rules, configure a threshold for each condition at every alert severity. The rule triggers only when all conditions reach that severity. If the conditions reach different severities, the rule triggers at the lowest severity reached by all conditions."
+
+— `monitoring-views/overview.md`
+
+> "**Composite monitoring rule:** A monitoring rule with multiple conditions joined by `AND`. The rule triggers only when every condition reaches a configured severity. If the conditions reach different severities, the rule triggers at the lowest severity reached by all conditions."
+
+— `monitoring-views/core-concepts.md`
+
+> "Composite rules combine a failure-percentage threshold with a minimum run-count threshold. The rule triggers only when both conditions reach a configured severity, which prevents alerts based on too little data."
+
+— `monitoring-views/rules-reference.md`
+
+661's header says the comparator *is NOT per condition: every rule table prints exactly one*, its `monitoring_rule_conditions` is keyed `(rule_id, severity)`,
+and its evaluator fires *the highest severity whose condition holds*. All three
+were true of every table when read and are still true of the five rule types we
+ship — the only composite rules are the two new function rules, *Function
+failure rate in window* and *Non-user-facing function failure rate in window*,
+and function rules are the tranche §4 defers. So nothing built misbehaves; what
+is false is the universal. The function tranche must not be built on
+`(rule_id, severity)`: a composite rule is one threshold per condition per
+severity and fires at the *lowest* severity all conditions reach. The debug page
+agrees it is a different animal:
+
+> "The alert debug page currently supports function and action type resources with single-condition monitoring rules. Composite monitoring rules are not supported. Support for additional rule and resource types is planned."
+
+— `monitoring-views/alert-debug-page.md`
+
+**2. The dataset rule's comparator changed, and 661 has the old one.** The
+table row read "If value is greater than | Amount of time elapsed since the
+dataset was last updated | 1 day"; it now reads
+
+> "| **If value is greater than or equal to**   | Amount of time elapsed since a job last succeeded                                           | 1 day              |"
+
+— `monitoring-views/rules-reference.md`
+
+`monitoring_rule_comparator('time_since_job_last_succeeded')` returns `gt`,
+`evaluate_monitoring_rule` applies `>`, and the web's rule metadata prints
+"If value is greater than". A dataset whose job last succeeded exactly the
+threshold ago passes here and alerts in Foundry. 661 is applied and immutable;
+the fix is a forward migration replacing the comparator function plus the
+`RULE_META` row. **Queued, not done in this docs pass.**
+
+**3. Sync jobs failing is no longer a configurable count.** The struck-through
+paragraph in §4 described *consecutive index-build failures*; the rule is now
+
+> "Alerts with high severity when a foreground sync job for the object or link fails terminally on either the active pipeline or the replacement pipeline. A terminal failure means that the job will not be retried, either because the failure is not retryable or because the job encountered too many unrecoverable errors. This rule is non-configurable."
+
+— `monitoring-views/rules-reference.md`
+
+which removes the run-ledger prerequisite that blocked it — a terminal failure
+is a current-status fact `object_type_indexes` could carry. Still in the
+blocked tranche; the blocker changed shape.
+
+**4. Counts that went stale without a quote breaking.** "The three
+failure-count rules" for functions are now five (the two composite ones
+above); and `overview` gained a section, *Monitoring status in Workflow
+Lineage*, whose legend colours lineage nodes "by the highest severity among the
+monitors currently firing against that resource" — Workflow Lineage exists in
+neither `apps/web` nor a reading, so it joins the §6 exclusion, and its one
+screenshot is the fifteenth image named unparsed in the header.
+
 ## Decisions
 
 1. **A monitoring view is a filesystem resource**: `monitoring_views` rows
@@ -255,7 +332,11 @@ Visibility composes two permissions — the view's location and the resources:
    can answer, scope_kind `single | folder | project` (static single names a
    resource; folder is direct children only; project spans projects), and
    **one condition per severity** — `(severity, threshold)` pairs over one
-   comparator, the popover's shape, evaluated highest-first. Severity is the
+   comparator, the popover's shape, evaluated highest-first *(scoped
+   2026-09-04 to single-condition rules: a composite rule holds one threshold
+   per condition per severity and fires at the LOWEST severity all its
+   conditions reach — see Drift; do not build the function tranche on this
+   primary key)*. Severity is the
    monitors' own three-valued set `low | medium | high`, declared from
    overview.md — distinct from the checks' moderate/critical, both stay.
 3. **First tranche of rule families**: schedule (consecutive failures

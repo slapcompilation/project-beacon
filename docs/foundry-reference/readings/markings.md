@@ -418,7 +418,14 @@ Page now read in full, with `new_scoped_session_dialog.png` and
 
 A scoped session is an **admin-authored preset** — created under a tab literally
 labelled **Session presets** — holding a name, an optional description, and a set
-of markings. The dialog's footer states the invariant:
+of markings. *(Re-mirrored 2026-09-04: the prose no longer names that tab. It
+now reads "To create a scoped session, open the **Scoped sessions** settings for
+your Organization from the side panel in Control Panel. Select **New scoped
+session**, then complete the form that appears." The tab name above is from the
+capture, `new_scoped_session_dialog.png`'s era; our `ScopedSessionsSection`
+labels its list "Session presets" after it, and 404's header quotes the retired
+sentence. Label drift on the surface, recorded; the preset shape is unchanged.)*
+The dialog's footer states the invariant:
 
 > "People will only have access to these markings in this scoped session.
 > **Scoped sessions do not grant people membership to any markings.**"

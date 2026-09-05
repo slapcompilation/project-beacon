@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-workbook/workbooks-input-output-types/ · mirrored 2026-08-26 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-workbook/workbooks-input-output-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Inputs and outputs
 

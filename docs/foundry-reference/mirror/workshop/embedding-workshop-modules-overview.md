@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/embedding-workshop-modules-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/embedding-workshop-modules-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Embed Workshop modules
 
@@ -85,8 +85,6 @@ Similar to other "Foundry apps" widgets in Workshop, the provenance of embedded 
 ### Self-referential embedded modules
 
 By default, a module may not embed itself, either directly or through a chain of child modules. If a self-reference is configured without enabling the feature, the module will display a warning to builders and render nothing to viewers in order to prevent a possible infinite chain of embedded modules.
-
-To enable recursive or self-referential embedded modules for nested or hierarchical views, you must enable the **Enable self referential embedded modules in Workshop** feature flag. This feature should only be enabled with the understanding that misconfiguration—such as creating an invalid hierarchy that causes infinite recursion—can render the module unusable.
 
 :::callout{theme="warning"}
 Use caution when enabling self-referential embedded modules. Invalid hierarchies or circular references can cause infinite recursion and render the module unusable.

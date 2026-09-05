@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-workbook/pyspark-reference/ · mirrored 2026-08-26 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-workbook/pyspark-reference/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # PySpark reference
 

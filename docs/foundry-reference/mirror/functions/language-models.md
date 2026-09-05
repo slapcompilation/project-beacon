@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Language models in TypeScript v1 functions
 
@@ -39,11 +39,13 @@ At this stage, you can now write a function that uses the language model you imp
 Begin by adding the following import statement to your file:
 
 ```typescript
-import { Function } from "@foundry/functions-api";
+import { Function, Uses } from "@foundry/functions-api";
 import { Gpt41 } from "@foundry/languagemodelservice/models";
 ```
 
 Each language model will have generated methods available with strongly typed inputs and outputs. For example, the GPT-4.1 model provides `createChatCompletion`, `createChatVisionCompletion`, and `createChatCompletionStreamed` as different APIs to interact with the model. The list of capabilities could expand in later versions of the imported model.
+
+Foundry must know which model methods you call from a published function. Static analysis detects most calls automatically; a call that static analysis misses leads to a runtime error instructing you to add the `@Uses` decorator, which augments the automatically detected usage. Declare model methods under the decorator's `queries` key, as shown below and in the code snippets in the model details panel.
 
 In the following illustrative example, the provided GPT-4.1 model is used to run a simple sentiment analysis on a piece of text or image provided by a user. The function will classify the text as "Good", "Bad", or "Uncertain".
 
@@ -56,6 +58,7 @@ sure that the text is either good or bad. If the text is neutral, or you are una
 
 export class MyFunctions {
     @Function()
+    @Uses({ queries: [Gpt41.createChatCompletion] })
     public async llmFunction_createChatCompletion(userPrompt: string): Promise<string | undefined> {
         const response = await Gpt41.createChatCompletion({
             messages: [
@@ -76,6 +79,7 @@ export class MyFunctions {
     }
 
     @Function()
+    @Uses({ queries: [Gpt41.createChatVisionCompletion] })
     public async llmFunction_createChatVisionCompletion(
         userPrompt: string,
         pngBase64String: string,
@@ -108,12 +112,15 @@ export class MyFunctions {
 
 This function can then be used throughout the platform.
 
+The [`@Uses` decorator](/docs/foundry/functions/query-functions/#call-a-query-function) also applies to imported models. Declare these calls under `queries`, for example `@Uses({ queries: [Gpt41.createChatCompletion] })`.
+
 ## Embeddings
 
 Along with generative language models, Palantir also provides models that can be used to generate embeddings. A simple example is as follows:
 
 ```typescript
 @Function()
+@Uses({ queries: [Textembedding3large.createEmbeddings] })
 public async llmFunction_embeddings(inputs: string[]): Promise<Double[][]> {
     const response = await Textembedding3large.createEmbeddings({ inputs });
     return response.type === "ok" ? response.value.embeddings : [[]];

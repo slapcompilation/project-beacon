@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-transform-table/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-transform-table/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Transform tables
 
@@ -32,7 +32,7 @@ To add a transform card to the analysis, simply search for it using the [search 
 
 ## Transform table inputs
 
-A transform table can take in various types of inputs, including object sets, categorical charts, time series charts, time series plots, materializations, pivot tables, and other transform tables. Users can also manually input data to construct a transform table.
+A transform table can take in various types of inputs, including object sets, categorical charts, time series charts, time series plots, datasets, pivot tables, and other transform tables. Users can also manually input data to construct a transform table.
 
 To add a transform table to your analysis, select **Transform table** in the top **Tables** menu. This will open the editor panel, where you can select existing inputs that are eligible for your analysis.
 

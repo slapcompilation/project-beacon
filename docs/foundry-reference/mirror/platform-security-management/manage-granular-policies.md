@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-granular-policies/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-granular-policies/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Manage granular policies
 
@@ -25,7 +25,7 @@ We recommend the following guidelines when designing a granular policy:
 * **Leverage the pipeline:** To reduce the complexity of policies that do not fit well with the current data shape or fields, use the pipeline to compute columns that will make policy writing easier. Try to handle complexity in the pipeline rather than in the granular policy.
 * **Consider using a dedicated policy column:** Changes made to columns in the backing dataset referenced in your policy may break the policy assumptions. To protect a policy from this risk, consider separating out the logic that decides the policy and creating a dedicated column (or columns) for the policy to reference.
 * **Use attributes:** Attribute-based policies can often be the simplest option. Attributes can be pulled from SSO or posted via a user manager.
-* **Use Markings:** Apply a Marking to the backing dataset of your policy to guarantee its protection and ensure that it is only visible to users who have access to the Marking. You can stop inheriting the Marking in the resource since the granular policy already controls which rows a user can see. If the sensitive data has been marked at the source and the Marking has been correctly propagated, there should be no need for a new Marking when creating the resource.
+* **Use markings:** A granular policy filters which rows a user can read; it does not extend to downstream outputs or exports. A [marking](/docs/foundry/security/markings/) on the backing dataset propagates through derivation and keeps data protected as it flows downstream. The two controls serve different purposes and should generally be used together. Do not remove an inherited marking on the assumption that the granular policy already controls access. For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
 
 ## User attributes
 
@@ -99,3 +99,5 @@ One way to solve this problem is by introducing a step in the pipeline directly 
 
 * **Invariants:** Write a list of invariants that will force the downstream build to fail if they are not true. For example, assume that whenever an `event_occurred_in_state` has the value `NY`, another column in the dataset called `state_name` should have value `New York`. Have the transform check that this is true *before* surfacing this data to users.
 * **Statistics:** Define a set of statistics and the range they should always be within. For example, a granular policy may be used to enforce access controls mirroring an organization hierarchy; each user can only see data about individuals below them in the hierarchy. Have the transform assert that if more than 20% of the hierarchy changes from one day's build to the next, something is wrong. At this point, users responsible for policy management should check to ensure everything is correct before surfacing this data to users.
+
+These integrity checks protect the upstream data that the granular policy depends on so that the policy continues to filter rows correctly. They do not extend the policy to downstream outputs or exports. To keep data protected as it flows downstream, pair the granular policy with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/) on the underlying data. For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).

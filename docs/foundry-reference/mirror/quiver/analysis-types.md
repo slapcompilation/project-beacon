@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-types/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-types/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Analysis types
 
@@ -28,11 +28,11 @@ Key features include:
 * Parameterizing analyses to easily switch between different views of the data and results
 * Creating interactive dashboards that you can embed in operational applications such as [Workshop](/docs/foundry/workshop/overview/)
 * Embedding charts in reporting applications such as [Notepad](/docs/foundry/notepad/overview/)
-* Using [transform tables](/docs/foundry/quiver/cards-transform-table/) and [materializations](/docs/foundry/quiver/cards-index-materializations/) for more advanced transformations and aggregations
+* Using [transform tables](/docs/foundry/quiver/cards-transform-table/) and [datasets](/docs/foundry/quiver/cards-index-datasets/) for more advanced transformations and aggregations
 
 We recommend a quiver analysis when:
 
-* You need more advanced analytical operations such as Ontology SQL, transform tables, or materializations.
+* You need more advanced analytical operations such as Ontology SQL, transform tables, or datasets.
 * You want to build interactive dashboards to share with others.
 * You are working with both object and time series data in a single analysis.
 * You need to parameterize your analysis for different views of the data.

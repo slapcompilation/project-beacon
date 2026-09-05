@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/using-aip-analyst/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/using-aip-analyst/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Using AIP Analyst
 
@@ -67,7 +67,7 @@ General settings are application-wide preferences that apply across all your ana
 
 * **Appearance:** Set the color theme to light or dark.
 * **Notifications:** If enabled, AIP Analyst can send notifications when in the background, allowing you to ask questions and be informed when an analysis requires your attention. Your browser and system settings must also allow notifications.
-* **Unsaved analysis cost attribution:** Select the project that the cost of unsaved analyses is attributed to. Saved and embedded analyses are attributed based on their owning resource.
+* **Unsaved analysis cost attribution:** Select the project that the cost of unsaved analyses is attributed to. Saved and embedded analyses are attributed based on their owning resource. See [Compute usage with AIP Analyst](/docs/foundry/aip-analyst/compute-usage/#cost-attribution) for details on how usage is attributed.
 
 ## Tabs and branching
 
@@ -82,8 +82,8 @@ The analysis outline provides a structured summary of your session, displaying y
 You can use the outline to:
 
 * Navigate quickly through prior analysis steps.
-* Review token usage for each tool call.
-* Hide specific tool results by selecting the eye icon that appears when hovering over outline items.
+* Review token usage for each tool call. See [Monitor your usage](/docs/foundry/aip-analyst/compute-usage/#monitor-your-usage) for the other ways to track consumption.
+* Hide specific tool results by selecting the eye icon that appears when hovering over outline items. Hidden results are no longer resent to the model on later turns, which reduces [token usage](/docs/foundry/aip-analyst/compute-usage/#keep-context-small).
 
 ![An AIP Analyst outline.](./images/aip-analyst-outline.png)
 

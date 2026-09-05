@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/monitoring-views/core-concepts/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/monitoring-views/core-concepts/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -19,6 +19,7 @@ This page provides an introduction to the core concepts underlying monitoring vi
   * Resource type
   * Metric threshold tolerances
   * Severity level assignment
+* **Composite monitoring rule:** A monitoring rule with multiple conditions joined by `AND`. The rule triggers only when every condition reaches a configured severity. If the conditions reach different severities, the rule triggers at the lowest severity reached by all conditions.
 * **Monitoring view:** A collection of monitoring rules that a group of subscribers care about.
 * **Subscriber:** A user subscribed to a monitoring view.
 * **Alerts:** Notifications that can have low, medium, or high assignments and are sent to subscribers.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/authentication/saml-provider-update/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/authentication/saml-provider-update/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Update SAML provider in Control Panel
 
@@ -40,7 +40,7 @@ Follow these steps to perform an in-place SAML provider update:
 
 Follow these steps to perform an external-to-external SAML provider update:
 
-1. From Control Panel , navigate to the **Authentication** tab under **Enrollment Settings**. Under **Authentication providers**, select **Add provider** and add the new provider.
+1. From Control Panel, navigate to the **Authentication** tab under **Enrollment Settings**. Under **Authentication providers**, select **Add provider** and add the new provider.
 
    ![Add provider](./images/addProvider.png)
 

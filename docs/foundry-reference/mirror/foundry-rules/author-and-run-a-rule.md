@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-rules/author-and-run-a-rule/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-rules/author-and-run-a-rule/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Author and run a rule
 
@@ -18,7 +18,7 @@ The following steps will guide you through the process of authoring and running 
    * Select **Approve** to activate it as a rule. <br><br>
      ![Approving a Foundry rule proposal](./images/approve_rule_proposal.png) <br><br>
 
-4. **Build the rule writeback and rules output datasets:** Navigate to the output dataset that was created while [configuring the workflow](/docs/foundry/foundry-rules/configure-workflow/).
+4. **Build the rule writeback and rules output datasets:** Navigate to the output dataset that was created while [configuring the workflow](/docs/foundry/foundry-rules/configure-workflow/). The rule writeback dataset is the [writeback dataset or materialization](/docs/foundry/object-edits/materializations/#comparison-of-writeback-datasets-and-materialized-datasets) of the rule object type and holds the rules that the [transforms pipeline](/docs/foundry/foundry-rules/foundry-rules-workflow-configuration/#rule-execution) applies to your workflow inputs.
    * Choose **Actions**, then **Explore data lineage** to view the input datasets. <br><br>
      ![Navigate to Data Lineage for output dataset](./images/navigate_to_data_lineage.png) <br><br>
 

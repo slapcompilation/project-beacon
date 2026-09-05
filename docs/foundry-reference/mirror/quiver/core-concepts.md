@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -44,7 +44,7 @@ Graph mode is best for tabular analysis, while canvas mode is best for time seri
 
 In Quiver, objects from the [Ontology](/docs/foundry/ontology/overview/) are used as the primary data input for tabular analysis. Quiver natively supports many different cards for filtering, transforming, and visualizing objects data.
 
-For advanced transformations on objects data, such as deriving properties and joining between linked objects, users can also leverage Quiver’s suite of [transform table](/docs/foundry/quiver/cards-transform-table/), [materialization](/docs/foundry/quiver/cards-index-materializations/), and [function](/docs/foundry/functions/overview/) cards.
+For advanced transformations on objects data, such as deriving properties and joining between linked objects, users can also leverage Quiver’s suite of [transform table](/docs/foundry/quiver/cards-transform-table/), [dataset](/docs/foundry/quiver/cards-index-datasets/), and [function](/docs/foundry/functions/overview/) cards.
 
 [Learn more about object analysis.](/docs/foundry/quiver/objects-overview/)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-databricks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-databricks/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Example: Integrate a Databricks model
 

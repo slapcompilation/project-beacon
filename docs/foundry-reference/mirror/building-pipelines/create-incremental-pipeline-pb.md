@@ -1,10 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Create an incremental pipeline with Pipeline Builder
 
 In this tutorial, we will use Pipeline Builder to create a simple incremental pipeline with an output of a single dataset.
 
 The datasets used below are hypothetical examples to illustrate how incremental computation would be applicable.
+
+To write transformation logic in Python, you can use a [Python user-defined function](/docs/foundry/functions/python-functions-builder/) in Pipeline Builder, or author [incremental transforms](/docs/foundry/transforms-python/incremental-overview/) in Python code.
 
 :::callout{theme="neutral"}
 For incremental pipelines, you have the option to [force incremental behavior for outputs](./../pipeline-builder/breaking-changes.md#force-incremental-behavior-for-outputs) and fail the build if it cannot run incrementally.

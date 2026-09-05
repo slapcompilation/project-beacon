@@ -1,11 +1,11 @@
-<!-- source: https://palantir.com/docs/foundry/monitoring-views/alert-debug-page/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/monitoring-views/alert-debug-page/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Alert debug page
 
 The alert debug page provides a detailed diagnostic view for a monitor rule firing on a specific resource. To access the alert debug page, navigate to the **Troubleshoot alerts** tab in the **Data Health** application and select **View details** on an alert.
 
 :::callout{theme="neutral"}
-The alert debug page currently supports function and action type resources. Support for additional resource types is planned.
+The alert debug page currently supports function and action type resources with single-condition monitoring rules. Composite monitoring rules are not supported. Support for additional rule and resource types is planned.
 :::
 
 ![The alert debug page displays metrics, chart data, alert history, and diagnostic links for a monitor rule.](./images/alert-debug-page-overview.png)
@@ -62,6 +62,6 @@ The **Dive deeper** section provides links for further investigation of the moni
 * **Ontology Manager:** Opens the target resource overview in Ontology Manager.
 * **Code Repositories:** For function alerts, opens the source repository in Code Repositories. This link appears only when the function's source repository is known.
 
-## Unsupported resource types
+## Unsupported rules and resource types
 
-The alert debug page only provides detailed diagnostics for function and action type resources. If you open the page for a monitor rule on another resource type, it displays an empty state explaining that detailed diagnostics are not yet available. The **Troubleshoot alerts** tab continues to provide high-level alert information for these rules.
+The alert debug page only provides detailed diagnostics for function and action type resources with single-condition monitoring rules. If you open the page for a composite monitoring rule or a rule on another resource type, you are redirected to the **Troubleshoot alerts** tab. That tab provides high-level alert information for these rules.

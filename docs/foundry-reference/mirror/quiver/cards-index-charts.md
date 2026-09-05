@@ -1,6 +1,6 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-charts/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-charts/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Charts cards
+# Chart cards
 
 Back to: [Index of cards](/docs/foundry/quiver/cards-index/)
 
@@ -29,9 +29,9 @@ The following cards accept transform tables as an input:
 * [Categorical plot from transform table](/docs/foundry/quiver/card-transform-table-plot/)
 * [Vega plot](/docs/foundry/quiver/card-vega-plot/)
 
-The following cards accept materializations as an input:
+The following cards accept datasets as an input:
 
-* [Categorical plot from materialization](/docs/foundry/quiver/card-categorical-plot-materialization/)
+* [Categorical plot from dataset](/docs/foundry/quiver/card-categorical-plot-dataset/)
 
 The following cards accept categorical charts as an input:
 

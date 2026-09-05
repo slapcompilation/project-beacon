@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/connected-hubs/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/connected-hubs/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Connected hubs
 
@@ -74,7 +74,7 @@ After the hub permissions are configured, you can add Marketplace stores to the 
 
 ![The publishing whitelist for a connected Apollo hub.](./images/connected-hubs-whitelist.png)
 
-When a Marketplace store is on the publishing whitelist, cutting a new release of a product in that store will automatically publish it to all Apollo hubs that the store is configured for. Only products that use **[strict folder tracking](/docs/foundry/foundry-devops/folder-tracking/)** and have a **[Maven coordinate](/docs/foundry/foundry-devops/manage-products/#configure-a-maven-coordinate)** configured will be successfully published; products that do not meet these requirements will not block other products from publishing.
+When a Marketplace store is on the publishing whitelist, cutting a new release of a product in that store will automatically publish it to all Apollo hubs that the store is configured for. Only products that have a **[Maven coordinate](/docs/foundry/foundry-devops/manage-products/#configure-a-maven-coordinate)** configured will be successfully published; products that do not meet this requirement will not block other products from publishing.
 
 ### Publishing workflow
 

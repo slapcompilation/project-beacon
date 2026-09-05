@@ -147,6 +147,21 @@ Owner > Editor > Viewer > Discoverer, where "Each role can assign other users th
 same or lesser role." One is a lattice of capabilities; the other is a ladder.
 They are not the same mechanism and should not be modelled as one.
 
+*Drift, re-mirrored 2026-09-04 — the ladder is scoped to the default set.*
+`projects-and-roles` now says of project roles too:
+
+> "Roles are independent sets of operations rather than a strict hierarchy. In a customized role set, a more powerful role is not guaranteed to include every operation granted by another role."
+
+— `security/projects-and-roles.md`
+
+The page still orders the four defaults "from most powerful to least powerful"
+and keeps the same-or-lesser grant sentence, so 330's `role_rank()` and
+`has_resource_role`'s `>=` are right for the only role set we ship. What the
+new sentence forbids is building a *customized* project role set on that
+integer — the moment one exists, rank subsumption is the wrong test and roles
+become what space roles already are here: sets of operations. Recorded as a
+bound on `role_rank`, not a change to it.
+
 The right-hand panel completes it: "**Manage privileges** — Grant people
 **Contributor** to manage aspects of **Example**."
 

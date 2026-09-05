@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure the applications sidebar
 

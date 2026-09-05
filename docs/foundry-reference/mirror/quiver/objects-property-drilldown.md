@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-property-drilldown/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-property-drilldown/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Drill down on objects sets
 

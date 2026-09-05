@@ -1095,13 +1095,22 @@ only imply:
 
 > A change is marked as a merge conflict when it is edited on both `main` and the branch.
 
-> Workshop auto-merges changes that do not overlap. A change is only flagged as a merge conflict when the same widget, variable, section, or layout position was edited on both `main` and your branch; for those, you must pick a version manually as described below.
+> Workshop merges changes to separate configuration fields automatically. For example, if `main` changes a section title and your branch changes the section color, Workshop preserves both changes. A change is flagged as a merge conflict when the same configuration field, variable definition, or layout position was edited on both `main` and your branch. For conflicting changes, you must choose a version or manually combine the changes.
 
-**That is a three-way merge with element-level conflict units** — auto-resolution
+— `workshop/branching-integration.md`
+
+**That is a three-way merge with field-level conflict units** — auto-resolution
 of non-overlapping edits is only possible against a base. Migration 419 is the
 same algorithm with *field* as the element. Not finer-than-documented after all;
 the same shape at the granularity the Ontology Manager's own diff already renders
-(§10.2).
+(§10.2). *Drift, re-mirrored 2026-09-04:* when I read it the sentence said *Workshop auto-merges changes that do not overlap* and named the unit as *the same widget, variable, section, or layout position* — element-level, which I
+called finer than ours. The rewrite names the unit as the *configuration field*
+and gives the section-title/section-color example, which is exactly 419's unit
+and exactly `workingState.test.ts`'s "a field I never touched is not a
+conflict". Stronger, not overturned. The retired sentence survives in three
+immutable places — 426's header and its `COMMENT ON FUNCTION
+working_state_conflicts`, 429's header — and in `generated.ts`, which copies
+that comment; a forward migration may re-comment the function.
 
 Slate is the outlier, and its screenshot explains why rather than contradicting
 the above. `slate/applications-merging.md` says:

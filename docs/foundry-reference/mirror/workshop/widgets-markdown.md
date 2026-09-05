@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-markdown/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-markdown/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Markdown
 
@@ -60,8 +60,9 @@ For the Markdown widget, the core configuration options are the following:
 
 ## Syntax examples
 
-The following are some examples of supported Markdown syntax. Note that the highlight syntax `==text==` and tasklist are supported despite not being standard in typical Markdown implementations. A table showing supported Markdown syntaxes and their corresponding examples follows below.
-Markdown supports subheaders ranging from level 1 to level 6.
+The following are some examples of supported Markdown syntax. Note that the highlight syntax `==text==` and task lists are supported despite not being standard in typical Markdown implementations. A table showing supported Markdown syntax and corresponding examples follows below.
+
+Markdown supports headers ranging from level 1 to level 6.
 
 | Syntax type         | Markdown syntax                                       |
 |---------------------|-------------------------------------------------------|
@@ -69,29 +70,92 @@ Markdown supports subheaders ranging from level 1 to level 6.
 | Subheader           | `### sub header`                                      |
 | Italics             | `I *think* this`                                      |
 | Bold                | `**sentence** is`                                     |
-| Strikethrough       | `~pretty good~`                                       |
+| Bold and italic     | `***very important***`                                |
+| Strikethrough       | `~pretty good~` or `~~pretty good~~`                  |
 | Highlight           | `==great==`                                           |
 | Inline Code         | `` `share` ``                                         |
-| Code Block          | \`\`\` \n example code \n \`\`\`                      |
+| Code Block          | See [code blocks](#code-blocks) below                 |
 | Blockquote          | `> This is a blockquote`                              |
 | Unordered List      | `- Item 1`<br>`- Item 2`                              |
 | Ordered List        | `1. First item`<br>`2. Second item`                   |
+| Nested List         | Indent an item to align with the first character of the parent item |
 | Horizontal Rule     | `---` or `***`                                        |
 | Link                | `[title](https://palantir.com)`                        |
+| Bare URL            | `https://palantir.com`                                |
 | Image               | `![alt text](https://mydomain.palantir.com/image.png)`|
 | Task List           | `- [ ] Task 1`<br>`- [x] Task 2`                      |
-| Table               | See below for syntax                                  |
-
-Table Syntax Example
-
-```markdown
-| Header 1 | Header 2 |
-|----------|----------|
-| Row 1    | Data 1   |
-| Row 2    | Data 2   |
-```
+| Table               | See [tables](#tables) below                           |
 
 ![Visual representation of the Markdown examples presented.](./images/markdown_example_formatting.png)
+
+### Tables
+
+Separate the header row from the body rows with a row of hyphens. Add colons to the separator row to set per-column alignment:
+
+```markdown
+| Left aligned | Centered | Right aligned |
+| :----------- | :------: | ------------: |
+| Row 1        | Data 1   | 1.00          |
+| Row 2        | Data 2   | 22.50         |
+```
+
+Per-column alignment defined in table syntax takes precedence over the widget-level **Text alignment** setting.
+
+### Code blocks
+
+Wrap a code block in three backticks. Add a language identifier after the opening backticks to enable syntax highlighting:
+
+````markdown
+```python
+def get_flight_delay(alert_id):
+    return alerts[alert_id].delay_minutes
+```
+````
+
+### Text highlighting
+
+The `==text==` syntax applies a single, fixed highlight color. This color cannot be changed from Markdown syntax: there is no attribute, parameter, or alternate syntax that sets a highlight color, so `==text==` always renders in the default color.
+
+Because the widget does not render HTML, inline styles such as `<mark style="background-color: blue">text</mark>` also do not change the color. Instead, they display as literal text. See [Limitations](#limitations).
+
+To display highlights in other colors, use one of the following configuration-driven options, where the color is set in the widget configuration panel rather than in the Markdown text:
+
+* **Inline references:** Set a **Highlight color** for each referenced object type. Use this option when the highlighted text corresponds to an Ontology object. See [inline references](#inline-references).
+* **Annotations:** Set a **Highlight color** for each annotation layer. Use this option when the highlighted text is defined by start and end indices stored on annotation objects, or when users need to create highlights themselves. See [annotations](#annotations).
+
+Inline references support a statically defined color, a color inherited from an Ontology property with formatting configured, or conditional formatting rules based on object property values. Annotations support a statically defined color or conditional formatting rules. Conditional formatting can display different colors for objects of the same object type or annotation layer.
+
+### Combined example
+
+The following Markdown input combines several of the syntax types above. Paste it into the **Text** input of a Markdown widget to see the rendered result:
+
+```markdown
+# Flight delay summary
+
+## Status
+
+Newark airport has **two high-priority delays** and ==one unresolved alert==.
+The *estimated* recovery time is ~~90 minutes~~ 45 minutes.
+
+| Alert  | Delay (minutes) | Status      |
+| :----- | --------------: | :---------: |
+| A00150 |              45 | Unresolved  |
+| A00182 |              20 | Resolved    |
+
+> Delay figures are refreshed every 15 minutes.
+
+### Follow-up items
+
+- [x] Notify the gate agents
+- [ ] Update the passenger notice board
+  - [ ] Terminal A
+  - [ ] Terminal B
+
+Refer to the `flight-alert` object type for the full schema, or see the
+[status page](https://palantir.com) for live updates.
+
+---
+```
 
 ## Object references in the Markdown widget
 
@@ -101,11 +165,11 @@ As an advanced feature, the Markdown widget allows builders to tag subsets of Ma
 
 The format for creating one of these anchors is as follows:
 
-```
+```markdown
 :objectreference[$text_to_display]{objectType="$object_type_id" primaryKey="$object_primary_key"}
 ```
 
-Let's walk through an example where we're attempting to reference two Flight Alerts objects within a sentence. First, let's look at the desired end-state we'd like to appear on-screen for users. Note: each of the Flight Alert objects reference below is individually selectable by a user and will then become the output selected object set of the Markdown widget.
+The following example references two Flight Alerts objects within a sentence. First, look at the desired end-state that should appear on-screen for users. Note: each of the Flight Alert objects reference below is individually selectable by a user and will then become the output selected object set of the Markdown widget.
 
 ![Markdown object references configuration.](./images/markdown_object_references_config.png)
 
@@ -125,6 +189,18 @@ Beyond the syntax describe above for the Markdown input, builders can also confi
   * If **Highlight last selected** is chosen, selecting an object reference within the Markdown widget will result in the most recently selected anchor text being highlighted.
   * If **Highlight selected reference** is chosen, highlighting within the Markdown widget is based on the contents of the selected object set. This option works best when object references in the Markdown are 1:1 with the objects from another widget, and the selected object set of both widgets are the same.
 * **Event on selection:** This option enables module builders to configure Workshop events to trigger when an object reference is selected in the Markdown widget (for example, causing a drawer with a more detailed object view to appear).
+
+The `:objectreference` renderer uses the `objectType` and `primaryKey` attributes to resolve a reference. The highlight color is not part of the syntax: it is resolved from the **Highlight color** configured for the matching object type. To display two references in two different static colors, reference two different object types and configure a different **Highlight color** for each one, as in the following example:
+
+```markdown
+Two delays were reported at :objectreference[Newark]{objectType="airport" primaryKey="EWR"}:
+:objectreference[Alert A00150]{objectType="flight-alert" primaryKey="A00150"} and
+:objectreference[Alert A00182]{objectType="flight-alert" primaryKey="A00182"}.
+```
+
+With the above input, the `airport` reference and the two `flight-alert` references each display in the **Highlight color** set for their own object type. Adding a color attribute to the syntax itself has no effect, and references to object types that are not listed under **Object types** display as plain text.
+
+The color can also vary between individual objects of the same object type. To do this, set the object type's **Highlight color** to inherit from an Ontology property with formatting configured, or define conditional formatting rules based on property values.
 
 Object references in Markdown can also have standard Markdown formatting applied. The screenshot below contains a variety of examples of Markdown formatting, such as headings and tables embedded with objects.
 
@@ -168,4 +244,6 @@ Upon selection of the **Annotation** option, the following configuration will be
 
 ## Limitations
 
-The Markdown widget does not support rendering HTML. HTML provided to the Markdown widget will be rendered as text.
+The Markdown widget does not support rendering HTML. HTML provided to the Markdown widget will be rendered as text. This includes inline styles, so HTML cannot be used to control colors, fonts, or spacing in the rendered output.
+
+The `==text==` highlight syntax applies a single, fixed color that cannot be changed from Markdown. Colored highlights are instead configured on object types or annotation layers in the widget configuration panel. See [text highlighting](#text-highlighting).

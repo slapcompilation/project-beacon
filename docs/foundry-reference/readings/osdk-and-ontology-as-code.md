@@ -82,6 +82,20 @@ code, by design — the marking value is enforcement metadata, not application d
 That confirms migrations 399–407 belong entirely server-side and should never have
 a client representation.
 
+**Drift, re-mirrored 2026-09-04.** The property list above is unchanged, and the
+page gained a TypeScript list for *action parameters* that only Python had before:
+
+> "The following TypeScript SDK parameter types are unsupported:"
+
+— `ontology-sdk/unsupported-types.md`
+
+and the list under it holds two: `InterfaceObjectSet` and `MarkingList`.
+
+So the marking finding now holds twice over — a marking cannot be a client-side
+parameter either. In the same edit `ClassificationMarking` left the Python SDK's
+unsupported function input and output lists; it stays unsupported for Java and as
+a TypeScript function output. Nothing we built keys on either list.
+
 ## Where the ontology is authored — Foundry supports both
 
 This is the fork I would have got wrong by guessing.

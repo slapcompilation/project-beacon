@@ -1,12 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-unique-column-values-materialization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-unique-column-values-materialization/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Unique column values (materialization)
+# Unique column values (dataset)
 
-Retrieve all the unique values from a materialization column. Select an object set and a property to use.
+Retrieve all the unique values from a dataset column. Select an object set and a property to use.
 
 ## Input type
 
-Materialization
+Dataset
 
 ## Output type
 

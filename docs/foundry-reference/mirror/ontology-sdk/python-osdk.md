@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/python-osdk/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Python OSDK
 
@@ -40,6 +40,29 @@ Example API response:
     "numberOfReviews": 123,
     "restaurantName": "Restaurant Name"
 }
+```
+
+## Access object RID
+
+By default, the object RID is not included as an accessible attribute on loaded objects. To access an object's RID programmatically, pass `include_rid=True` to your loading method:
+
+```python
+# Load a single object with RID access
+result = client.ontology.objects.ExampleRestaurant.get("primaryKey", include_rid=True)
+object_rid = result.rid
+```
+
+The `include_rid=True` parameter can be used with other loading methods as well:
+
+```python
+# Iterate with RID access
+for restaurant in client.ontology.objects.ExampleRestaurant.iterate(include_rid=True):
+    print(restaurant.rid)
+
+# Page with RID access
+result = client.ontology.objects.ExampleRestaurant.page(page_size=30, include_rid=True)
+for restaurant in result.data:
+    print(restaurant.rid)
 ```
 
 ## Load pages of example restaurants
@@ -440,7 +463,7 @@ Example query:
 ```python
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
-ExampleRestaurantObjectSet = client.ontology.objects.ExampleRestaurant.where(~ExampleRestaurant.object_type.restaurantId.is_null() & (ExampleRestaurant.restaurantId == '<primaryKey>'))
+ExampleRestaurantObjectSet = client.ontology.objects.ExampleRestaurant.where(~ExampleRestaurant.object_type.restaurantId.is_null() & (ExampleRestaurant.object_type.restaurantId == '<primaryKey>'))
 ```
 
 #### Or filter
@@ -474,11 +497,13 @@ Example query:
 ```python
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
-numExampleRestaurant = client.ontology.objects.ExampleRestaurant
+numExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .where(~ExampleRestaurant.object_type.restaurant_name.is_null())
     .group_by(ExampleRestaurant.object_type.restaurant_name.exact())
     .count()
     .compute()
+)
 ```
 
 Example API response:
@@ -516,16 +541,20 @@ Example query:
 ```python
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
-numExampleRestaurant = client.ontology.objects.ExampleRestaurant
+numExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .approximate_distinct(ExampleRestaurant.object_type.restaurant_name)
     .compute()
+)
 
 # This is equivalent to the above, but uses metric_name as the name instead of the default "distinctCount"
-numExampleRestaurant = client.ontology.objects.ExampleRestaurant
+numExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .aggregate(
         {"metric_name": ExampleRestaurant.object_type.restaurant_name.approximate_distinct()}
     )
     .compute()
+)
 ```
 
 Example API response:
@@ -556,9 +585,11 @@ Parameters:
 Example query:
 
 ```python
-numExampleRestaurant = client.ontology.objects.ExampleRestaurant
+numExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .count()
     .compute()
+)
 ```
 
 Example API response:
@@ -599,16 +630,20 @@ Example query:
 ```python
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
-avgExampleRestaurant = client.ontology.objects.ExampleRestaurant
+avgExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .avg(ExampleRestaurant.object_type.number_of_reviews)
     .compute()
+)
 
 # This is equivalent to the above, but uses metric_name as the name instead of the default "avg"
-avgExampleRestaurant = client.ontology.objects.ExampleRestaurant
+avgExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .aggregate(
         {"metric_name": ExampleRestaurant.object_type.number_of_reviews.avg()}
     )
     .compute()
+)
 ```
 
 Example API response:
@@ -644,10 +679,12 @@ Example query:
 ```python
 from ontology_sdk.ontology.objects import ExampleRestaurant
 
-numExampleRestaurant = client.ontology.objects.ExampleRestaurant
+numExampleRestaurant = (
+    client.ontology.objects.ExampleRestaurant
     .group_by(ExampleRestaurant.object_type.restaurant_name.exact())
     .count()
     .compute()
+)
 ```
 
 Example API response:
@@ -668,3 +705,41 @@ Example API response:
     }]
 }
 ```
+
+#### Group by linked object properties
+
+For a many-to-one relationship, use `with_properties` to materialize the linked object's derived property. Then, group by the materialized property.
+
+The following example sums the number of reviews for Example Restaurants, grouped by a property on a linked object. Replace `linked_object` and `linked_property` with the link and property names from your own Ontology:
+
+:::callout{theme="neutral"}
+Derived properties are a beta feature. To use `with_properties` and the `derived` accessor, run your code inside the `AllowBetaFeatures` context described in [Beta features](/docs/foundry/ontology-sdk/python-osdk-migration/#beta-features).
+:::
+
+```python
+from ontology_sdk.ontology.objects import ExampleRestaurant
+
+restaurants = client.ontology.objects.ExampleRestaurant
+
+result = (
+    restaurants.with_properties(
+        linked_property=
+            ExampleRestaurant.object_type.derived.linked_object().linked_property.get()
+    )
+    .where(
+        ~ExampleRestaurant.object_type.derived.property("linked_property").is_null()
+    )
+    .group_by(
+        ExampleRestaurant.object_type.derived.property("linked_property").exact()
+    )
+    .aggregate({"sum": ExampleRestaurant.object_type.number_of_reviews.sum()})
+    .compute()
+    .to_dict()
+)
+```
+
+Key steps:
+
+1. Use `with_properties` to add a property by pulling it from a linked object via the derived accessor.
+2. Filter out rows where the property is null.
+3. Use the property as the grouping key in `group_by`, then aggregate.

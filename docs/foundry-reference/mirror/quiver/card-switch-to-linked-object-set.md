@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-switch-to-linked-object-set/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-switch-to-linked-object-set/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Switch to linked object set
 
@@ -26,4 +26,4 @@ Object set
 ## See also
 
 * [Join to linked objects](/docs/foundry/quiver/card-join-to-linked-objects/)
-* [Join materializations](/docs/foundry/quiver/card-join-materializations/)
+* [Join datasets](/docs/foundry/quiver/card-join-datasets/)

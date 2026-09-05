@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-edits/permission-checks/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-edits/permission-checks/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Permission checks when applying an Action
 

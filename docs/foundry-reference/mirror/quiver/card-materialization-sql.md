@@ -1,24 +1,24 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-materialization-sql/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-materialization-sql/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Materialization SQL
+# Dataset SQL
 
-The Materialization SQL card allows you to write SQL queries against materialization datasets in your analysis. The card uses SparkSQL syntax, functions, and operators.
+The Dataset SQL card allows you to write SQL queries against datasets in your analysis. The card uses SparkSQL syntax, functions, and operators.
 
 :::callout{theme="neutral"}
-The [Ontology SQL](/docs/foundry/quiver/card-ontology-sql/) card is the recommended approach for writing SQL against object sets. Use the Materialization SQL card as a fallback for cases when Ontology SQL is not suitable, such as for certain operations that are not supported by Ontology SQL.
+The [Ontology SQL](/docs/foundry/quiver/card-ontology-sql/) card is the recommended approach for writing SQL against object sets. Use the Dataset SQL card as a fallback for cases when Ontology SQL is not suitable, such as for certain operations that are not supported by Ontology SQL.
 :::
 
-The Materialization SQL card accepts any materialization card as input. You can also pass scalar values such as dates, numbers, strings, and booleans as inputs to parameterize your queries.
+The Dataset SQL card accepts any dataset card as input. You can also pass scalar values such as dates, numbers, strings, and Booleans as inputs to parameterize your queries.
 
-The Materialization SQL card also supports AIP-powered SQL generation. You can describe the analysis you want to perform in natural language, and the card will generate a SQL query for you.
+The Dataset SQL card also supports AIP-powered SQL generation. You can describe the analysis you want to perform in natural language, and the card will generate a SQL query for you.
 
 ## Input type
 
-Materialization, date, number, string, boolean
+Dataset, date, number, string, Boolean
 
 ## Output type
 
-Materialization
+Dataset
 
 ## Usage information
 

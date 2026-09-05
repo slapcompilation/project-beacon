@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-vega-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-vega-chart/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Vega Chart
 
@@ -59,19 +59,57 @@ The Vega Chart widget has three different configuration options which allow you 
 
 * **Function:** Specify a function that returns a list of structs that will be directly used as the data.
 
-  ```typescript
-  interface CompanyData {
-      name: string;
-      marketCap: Long;
-      logoUrl: string;
-  }
+:::callout{theme="warning"}
+The `Long` type does not mean the same thing in both TypeScript versions. In TypeScript v1, `Long` aliases `number`; in TypeScript v2, `Long` aliases `string`. A `marketCap` field typed as `Long` therefore reaches the chart as a string in TypeScript v2. Any Vega or Vega-Lite encoding that declares the field `quantitative` may not plot it as expected. Use `Double` when the value must be numeric on a chart axis, as `Double`, `Integer`, and `Float` alias `number` in both TypeScript versions. `Long` is imported from `@foundry/functions-api` in TypeScript v1 and from `@osdk/functions` in TypeScript v2. In Python, `Long` comes from `functions.api` and corresponds to `int`, so this difference does not apply; annotate the field with the `Long` alias rather than a bare `int`, which registers as `Integer`.
+:::
 
-  @Function()
-  public companyVegaData(): CompanyData[] {...}
-  ```
+The example below declares a [`CompanyData` custom type](/docs/foundry/functions/types-reference/#structcustom-type) and returns a list of those structs. The declaration form depends on the function version: [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/) uses a decorated class method, [TypeScript v2](/docs/foundry/functions/typescript-v2-getting-started/) uses the default export of the file, and [Python](/docs/foundry/functions/python-getting-started/) uses a module-level function with the `@function` decorator.
 
-  <br><br>
-  ![Vega function data](./images/vega-function-data.png) <br><br>
+```typescript tab="TypeScript v1"
+import { Function, Long } from "@foundry/functions-api";
+
+interface CompanyData {
+    name: string;
+    marketCap: Long;
+    logoUrl: string;
+}
+
+export class MyFunctions {
+    @Function()
+    public companyVegaData(): CompanyData[] {...}
+}
+```
+
+```typescript tab="TypeScript v2"
+import { Long } from "@osdk/functions";
+
+interface CompanyData {
+    name: string;
+    // Long is a string in TypeScript v2; use Double if this field drives a quantitative encoding.
+    marketCap: Long;
+    logoUrl: string;
+}
+
+export default function companyVegaData(): CompanyData[] {...}
+```
+
+```python tab="Python"
+from dataclasses import dataclass
+from functions.api import function, Long
+
+@dataclass
+class CompanyData:
+    name: str
+    market_cap: Long
+    logo_url: str
+
+@function
+def company_vega_data() -> list[CompanyData]:
+    ...
+```
+
+<br><br>
+![Vega function data](./images/vega-function-data.png) <br><br>
 
 You can have multiple data inputs that can be referenced in the specification by their configured names. The data will be automatically injected into the JSON spec, which you can see in the [Preview tab](#inline-editor-preview) of the editor. Note than you can also inline data into the JSON spec by matching the [above data formats](#vega-data-inputs).
 
@@ -87,7 +125,7 @@ The widget allows you to specify whether you want to use Vega-Lite or Vega for y
 
 ![Vega spec library selection](./images/vega-spec-library.png)
 
-If you are making a common plot, we recommend using Vega-Lite for its more concise grammar, and support for [selection parameters](#selection-parameters-vega-lite-only). For more complex visualizations, you can use Vega. See the [Vega-Lite ↗](https://vega.github.io/vega-lite/examples/) and [Vega ↗](https://vega.github.io/vega/examples/) examples for an idea of what both can support.
+If you are making a common plot, we recommend using Vega-Lite for its more concise grammar, and support for [selection parameters](#selection-parameters-vega-lite-only). For more complex visualizations, you can use Vega. See the [Vega-Lite ↗](https://vega.github.io/vega-lite/examples/) and [Vega ↗](https://vega.github.io/vega/examples/) examples for an idea of what both can support. The widget uses Vega-Lite `5.18`.
 
 ### Theme configuration
 

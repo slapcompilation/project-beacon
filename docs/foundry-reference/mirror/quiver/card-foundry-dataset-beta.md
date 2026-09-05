@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-foundry-dataset-beta/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-foundry-dataset-beta/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Foundry dataset (Beta)
 
-Add a Foundry dataset to your analysis.  This card can be used as an input to any cards that take a [materialization](/docs/foundry/quiver/cards-index-materializations/) as input.
+Add a Foundry dataset to your analysis.  This card can be used as an input to any cards that take a [dataset](/docs/foundry/quiver/cards-index-datasets/) as input.
 
 :::callout{theme="neutral" title="Beta"}
 The Foundry dataset card is in the [beta](/docs/foundry/platform-overview/development-life-cycle/) phase of development and may not be available on your enrollment. Functionality may change during active development. Contact the Palantir Support team if you would like to enable this on your enrollment.
@@ -14,7 +14,7 @@ Flow start
 
 ## Output type
 
-Materialization
+Dataset
 
 ## Usage information
 

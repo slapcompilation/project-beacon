@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Quiver
 
@@ -26,7 +26,7 @@ Quiver enables you to:
 
 * Leverage Quiver's [formula language](/docs/foundry/quiver/cards-formula-syntax/) for more advanced calculations.
 
-* Use [transform tables](/docs/foundry/quiver/cards-transform-table/) and [materializations](/docs/foundry/quiver/cards-index-materializations/) for more advanced transformations and aggregations.
+* Use [transform tables](/docs/foundry/quiver/cards-transform-table/) and [datasets](/docs/foundry/quiver/cards-index-datasets/) for more advanced transformations and aggregations.
 
 ## When to use Quiver
 

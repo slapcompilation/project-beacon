@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-numeric-aggregation-materialization/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-numeric-aggregation-materialization/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Numeric aggregation (materialization)
+# Numeric aggregation (dataset)
 
-Compute an aggregation on a numerical materialization column. Select an object set as input, choose the appropriate metric and property from available columns.
+Compute an aggregation on a numerical dataset column. Select an object set as input, choose the appropriate metric and property from available columns.
 
-<img src="./images/materializations-numeric-aggregations.png" alt="Configuration panel for numeric aggregation (materialization)" width="400">
+<img src="./images/materializations-numeric-aggregations.png" alt="Configuration panel for numeric aggregation (dataset)" width="400">
 
 ## Input type
 
-Materialization
+Dataset
 
 ## Output type
 

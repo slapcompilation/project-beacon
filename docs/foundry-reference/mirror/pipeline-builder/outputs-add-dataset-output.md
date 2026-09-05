@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-dataset-output/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-dataset-output/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add a dataset output
 
@@ -10,13 +10,13 @@ First, click **Add** next to the Dataset type in the outputs panel to the right 
 
 <img src="./images/outputs-output-types.png" alt="Output types" width="800">
 
-Now you've created a new output dataset. After the first build of your pipeline, your dataset output will be created in the same folder as your pipeline. For example, the `Vendor` dataset output of the Demo Pipeline would have the following file path: `/Palantir/Pipeline Builder/Demo Pipeline/Vendor`.
+Now you have created a new output dataset. After the first build of your pipeline, your dataset output will be created in the same folder as your pipeline. For example, the `Vendor` dataset output of the Demo Pipeline would have the following file path: `/Palantir/Pipeline Builder/Demo Pipeline/Vendor`.
 
 Rename your output dataset by clicking into the name field. Choose **Add column** to manually add columns to your output schema, or connect a transform node to use its output schema with **Use updated schema**.
 
 <img src="./images/outputs-configure-dataset@2x.png" alt="Configure dataset output initial state" width="800">
 
-Once you've added an output schema, use the **Search columns...** field to quickly find columns within the dataset. To view only the errors in your output schema, toggle the **Show errors only** button.
+Once you have added an output schema, use the **Search columns...** field to quickly find columns within the dataset. To view only the errors in your output schema, toggle the **Show errors only** button.
 
 <img src="./images/outputs-configure-dataset-errors@2x.png" alt="Configure dataset output with errors" width="800">
 

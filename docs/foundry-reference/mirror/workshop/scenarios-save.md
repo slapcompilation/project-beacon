@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-save/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-save/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Save scenarios
 
@@ -30,7 +30,7 @@ Then select your name or title property and add the type class `scenarios:scenar
 
 ![configure-scenario-name-type-class](./images/configure-scenario-name-typeclass.png)
 
-Your scenario object is now ready to store saved scenarios, but before you’ll be able to save scenarios to this object in Workshop, you will need to set up an Action that creates objects of this type.
+Your scenario object is now ready to store saved scenarios, but before you can save scenarios to this object in Workshop, you will need to set up an Action that creates objects of this type.
 
 ## Scenario Actions
 
@@ -122,7 +122,7 @@ When saving a new scenario, this will open the Create scenario action dialog.
 
 The name and scenario ID will be automatically filled in, and the user will have the opportunity to enter or change values for any additional action parameters.
 
-In this case, we’ve added a description field that the user may populate to save along with the scenario.
+In this case, the example includes a description field that the user may populate to save along with the scenario.
 
 ![create-scenario-action-dialogue](./images/create-scenario-action-dialogue.png)
 

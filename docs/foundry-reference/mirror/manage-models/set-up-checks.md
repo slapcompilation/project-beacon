@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-checks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-checks/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Set up checks for all submissions
 
@@ -58,6 +58,6 @@ You can archive an objective check with the “disable” icon next to the check
 
 You can filter models in an objective based on the status of a particular check or the overall submission. This can help when you want to see which models have passed all the checks for deployment, or if you must review all submissions with a specific check pending.
 
-Navigate to the **Models** tab on the left, then select the **All models** tab on top. Here, you can see a list of all model submissions along with their overall check status in the table. In the left panel, you can see a filter group under the label **Check status**. Here, you can select the check and its status you’d like to filter the submissions by.
+Navigate to the **Models** tab on the left, then select the **All models** tab on top. Here, you can see a list of all model submissions along with their overall check status in the table. In the left panel, you can see a filter group under the label **Check status**. Here, you can select the check and its status you would like to filter the submissions by.
 
 ![Filter models in an objective](./images/setup-filter-submissions-by-check.png)

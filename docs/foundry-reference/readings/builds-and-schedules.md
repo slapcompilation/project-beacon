@@ -123,6 +123,29 @@ The four event types, verbatim names: **New logic**, **Data updated**,
 **Job succeeded**, **Schedule ran successfully** — with Data updated defined
 as "Occurs when a transaction is committed that updates a dataset."
 
+**Drift, re-mirrored 2026-09-04: the list is seven now.** Under the same
+"The schedule editor currently supports the following event types:" the page
+adds three:
+
+> "* **Media set updated:** Occurs when an update is made to a media set. For [transactional](/docs/foundry/media-sets-advanced-formats/media-set-settings/#transaction-policies) media sets, this occurs when a transaction is committed; for transactionless media sets, this occurs eventually after an update, but not necessarily immediately."
+
+> "* **Schedule run failed:** Occurs when a scheduled build fails."
+
+> "* **Table updated:** Occurs when a transaction is committed that updates a table."
+
+— `building-pipelines/triggers-reference.md`
+
+This page is the enumeration of the set, and 495's `schedule_trigger_valid`
+admits exactly the four names above — so its header's claim that the grammar
+"is the documented one" no longer holds: the CHECK refuses three documented
+event types, which is being stricter than Foundry. *Schedule run failed* is
+backable today (`schedule_runs.outcome = 'Failed'` mirrors the `schedule_ran`
+watermark taken from `'Succeeded'`); *Media set updated* and *Table updated*
+name resources with no table here and fit the recorded-not-built pattern. A
+forward migration widening the validator is **queued, not done in this docs
+pass**; Decision 5 and the Built note below still say "four" as written on
+their dates.
+
 ## 5. The schedule editor
 
 From `building-pipelines/create-schedule.md`: the editor lives in Data

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-object-searches/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-object-searches/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Stub object searches and aggregations
 
@@ -56,3 +56,20 @@ objB.rid = 'ridB';
 whenObjectSet(Objects.search().ObjType([objA]).all()).thenReturn([objA]);
 whenObjectSet(Objects.search().ObjType([objB, objB]).all()).thenReturn([objA, objB]);
 ```
+
+#### Testing link traversals using stubs
+
+You can stub a `searchAround` traversal in the same way as any other object set search, including when you start from a single object and convert it with the search constructor. The traversal method name is generated from the [link type field name](/docs/foundry/functions/api-objects-links/#link-types), and you must give each object you pass to the search constructor a `rid` property.
+
+```typescript
+import { whenObjectSet } from "@foundry/functions-testing-lib";
+
+const objA = Objects.create().objectType('a');
+const objB = Objects.create().objectType('b');
+
+objA.rid = 'ridA';
+
+whenObjectSet(Objects.search().ObjType([objA]).searchAroundLinkField().all()).thenReturn([objB]);
+```
+
+For examples of setting link state on stub objects, review [Verify Ontology edits](/docs/foundry/functions/unit-test-ontology-edits/#verify-link-creation-to-an-object).

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/breaking-changes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/breaking-changes/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Breaking changes
 
@@ -7,7 +7,7 @@ Breaking changes occur when stateful functions are modified in streaming or incr
 * **Row level transform:** Only requires data in a single row to produce a result, for example `Multiply numbers` or `Filter`.
 * **Stateful function:** A transform that requires data across multiple rows to produce a result.
 
-There are four main stateful functions:
+There are five main stateful functions:
 
 * Aggregate (Aggregate over Window in Streaming)
 * Outer caching join (only in streaming)

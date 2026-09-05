@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Set math
 
@@ -35,4 +35,4 @@ If an object set in your analysis is not available to select in a Set math card,
 
 To combine objects that are currently of different types, first bring them to a common type before applying set math. For example, use a [Switch to linked object set](/docs/foundry/quiver/card-switch-to-linked-object-set/) card to traverse a link from one object type to the other. You can then apply set math to the resulting object sets.
 
-Alternatively, convert the object sets to [Datasets](/docs/foundry/quiver/card-object-set-materialization/) and use the [Set math (dataset)](/docs/foundry/quiver/card-set-math-materialization/) card, or convert the cards to [Transform tables](cards-transform-table.md#input-object-sets) and use the [Union (transform table)](/docs/foundry/quiver/card-union-transform-table/) card. Datasets and Transform tables allow for more flexible analytical operations.
+Alternatively, convert the object sets to [Datasets](/docs/foundry/quiver/card-object-set-dataset/) and use the [Set math (dataset)](/docs/foundry/quiver/card-set-math-dataset/) card, or convert the cards to [Transform tables](cards-transform-table.md#input-object-sets) and use the [Union (transform table)](/docs/foundry/quiver/card-union-transform-table/) card. Datasets and Transform tables allow for more flexible analytical operations.

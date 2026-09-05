@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/import-huggingface-models/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/import-huggingface-models/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Import a Hugging Face model
 
@@ -60,7 +60,7 @@ from huggingface_adapters.embedding_adapter import EmbeddingAdapter
     )
 ```
 
-#### Allowlist Hugging Face domains
+### Allowlist Hugging Face domains
 
 To download models from Hugging Face directly, you can allowlist the relevant domains in your Foundry enrollment by [configuring a network egress policy](/docs/foundry/administration/configure-egress/). The relevant domains to allowlist are:
 
@@ -111,6 +111,8 @@ def compute(export_control, egress, model_output, text_input):
     # model_output.publish(...)
 ```
 
-#### Usage in Foundry
+### Usage in Foundry
 
 Once you have access to the language model, either through a dataset or through the Hugging Face domains, you can integrate with it as a Palantir model by wrapping the language model with a [model adapter](/docs/foundry/integrate-models/model-adapter-overview/) as defined in the [model training in Code Repositories documentation](/docs/foundry/integrate-models/model-asset-code-repositories/).
+
+After `model_output.publish()` creates a model version, load the model with [`ModelInput`](/docs/foundry/integrate-models/transform-model-input/) to run inference in a downstream transform. For a complete transform example, including how to select the output specified in the model version's API, review [running inference in a Python transform](/docs/foundry/integrate-models/model-asset-code-repositories/#run-inference-in-python-transforms).

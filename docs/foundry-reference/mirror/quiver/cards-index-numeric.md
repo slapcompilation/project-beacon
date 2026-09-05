@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-numeric/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-numeric/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Numeric cards
 
@@ -48,7 +48,7 @@ Additional numeric cards include:
 * [Range end](/docs/foundry/quiver/card-range-end/)
 * [Coalesce](/docs/foundry/quiver/card-coalesce/)
 * [Code function value](/docs/foundry/quiver/card-code-function-value/)
-* [Numeric aggregation (materialization)](/docs/foundry/quiver/card-numeric-aggregation-materialization/)
+* [Numeric aggregation (dataset)](/docs/foundry/quiver/card-numeric-aggregation-dataset/)
 * [Number array aggregation](/docs/foundry/quiver/card-number-array-aggregation/)
 * [Array length](/docs/foundry/quiver/card-array-length/)
 * [Visual function metric](/docs/foundry/quiver/card-visual-function-metric/)

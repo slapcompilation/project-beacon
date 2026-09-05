@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-add-to-existing-typescript/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/how-to-add-to-existing-typescript/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add an OSDK package to an existing application
 

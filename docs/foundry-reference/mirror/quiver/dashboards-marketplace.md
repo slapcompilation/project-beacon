@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-marketplace/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-marketplace/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add Quiver dashboard to a Marketplace product
 
@@ -70,7 +70,7 @@ The feature's capabilities are still being actively developed. Do take note of t
 
 ### Unsupported cards and configurations
 
-Certain cards which derive their configuration from underlying data have limited support when packaging for Marketplace. See the pivot table and materialization sections below for more details.
+Certain cards which derive their configuration from underlying data have limited support when packaging for Marketplace. See the pivot table and dataset sections below for more details.
 
 ### Time series
 
@@ -94,6 +94,6 @@ The [pivot table card](/docs/foundry/quiver/card-pivot-table/) is available but 
 
 Additionally, if there is a Selected Object Set card downstream from a pivot table, its selected data will be cleared before packaging.
 
-### Materializations
+### Datasets
 
-Cards that use [Materialization](/docs/foundry/quiver/cards-index-materializations/) data types can be packaged, but with limitations. Column names remain unchanged during packaging and installation, so they will not be updated to reflect the installed object type. If the dashboard is installed with a different object type than it was packaged with, Materialization cards (and their downstream cards) within the dashboard may fail to load. Specifically, the property type API names or backing dataset column names must match those in the original object type, depending on whether `Rename column names to API names` is enabled.
+Cards that use [Dataset](/docs/foundry/quiver/cards-index-datasets/) data types can be packaged, but with limitations. Column names remain unchanged during packaging and installation, so they will not be updated to reflect the installed object type. If the dashboard is installed with a different object type than it was packaged with, Dataset cards (and their downstream cards) within the dashboard may fail to load. Specifically, the property type API names or backing dataset column names must match those in the original object type, depending on whether `Rename column names to API names` is enabled.

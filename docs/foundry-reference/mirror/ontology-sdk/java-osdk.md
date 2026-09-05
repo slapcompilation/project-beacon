@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/java-osdk/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/java-osdk/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Java OSDK
 
@@ -240,7 +240,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().containsAnyTerm("foo bar"));
 ```
 
@@ -279,7 +279,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().containsAllTerms("foo bar"));
 ```
 
@@ -313,7 +313,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().containsAllTermsInOrder("foo bar"));
 ```
 
@@ -354,7 +354,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().lt("Restaurant Name"));
 ```
 
@@ -372,7 +372,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().eq("Restaurant Name"));
 ```
 
@@ -406,7 +406,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(RestaurantFilter.restaurantName().isNull(true));
 ```
 
@@ -423,7 +423,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(
         RestaurantFilter.$not(
             RestaurantFilter.restaurantName().isNull(true)
@@ -444,7 +444,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(
         RestaurantFilter.$and(
             RestaurantFilter.restaurantName().isNull(false),
@@ -466,7 +466,7 @@ Example query:
 ```java
 RestaurantObjectSet result = client.ontology()
     .objects()
-    .Aircraft()
+    .Restaurant()
     .where(
         RestaurantFilter.$or(
             RestaurantFilter.restaurantName().isNull(false),
@@ -959,7 +959,7 @@ Example API response:
 
 #### Apply batch action
 
-To apply a batch of actions, fill in the input parameter values. This will execute a series of action and return if the response was valid or invalid. Note that this does not return validations, only edits.
+To apply a batch of actions, fill in the input parameter values. This will execute a series of actions and return if the response was valid or invalid. Note that this does not return validations, only edits. Batch application is all-or-nothing: if any action in the batch fails, none of the edits in the batch are applied.
 
 Parameters:
 

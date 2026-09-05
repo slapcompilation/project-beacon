@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-observability-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-observability-chart/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Observability Chart
 
@@ -15,7 +15,7 @@ The screenshot below shows an [observability dashboard](/docs/foundry/observabil
 
 ![An operational dashboard composed of four Observability Chart widgets, showing execution counts and P95 duration for an action and a function over the past seven days.](./images/observability-chart-example.png)
 
-The metrics shown here are the same near real-time metrics surfaced elsewhere in the platform—see [AIP observability metrics](/docs/foundry/aip-observability/metrics/) for more details. The Observability Chart widget lets you embed those metrics in a purpose-built Workshop application.
+The metrics shown here are the same near real-time metrics surfaced elsewhere in the platform. Review our [Ontology and AIP observability metrics documentation](/docs/foundry/aip-observability/metrics/) for more details. The Observability Chart widget lets you embed those metrics in a purpose-built Workshop application.
 
 ## Configuration options
 
@@ -70,5 +70,5 @@ Telemetry is only available while the underlying resource is reporting metrics. 
 
 * [Observability overview](/docs/foundry/observability/overview/)
 * [Data Health](/docs/foundry/observability/data-health/)
-* [AIP observability metrics](/docs/foundry/aip-observability/metrics/)
+* [Ontology and AIP observability metrics](/docs/foundry/aip-observability/metrics/)
 * [Metric Card widget](/docs/foundry/workshop/widgets-metric-card/)

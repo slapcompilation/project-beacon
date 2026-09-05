@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-edits/schema-migrations/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-edits/schema-migrations/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Manage schema changes
 
@@ -14,13 +14,13 @@ Object Storage v2 removes this restriction on schema changes to facilitate flexi
 
 In this example workflow, a user deletes the `Description` property from an object type that has existing user edits. Ontology Manager automatically identifies this as a breaking schema change and displays a warning that a migration is required, as seen in the screenshot below.
 
-![Breaking change warning](/docs/resources/foundry/object-edits/breaking_changes.png)
+![Breaking change warning](./images/breaking_changes.png)
 
 In addition to displaying a warning, Ontology Manager will present a **Migrations** tab in the **Review changes** interface when the user wants to save their changes to the Ontology. Ontology Manager will block the user from saving changes until they define a migration for the breaking change. This prevents the change from breaking other workflows.
 
 When the user navigates to the **Migrations** tab, the Ontology Manager displays the available migration options based on the type of breaking change, as shown below.
 
-![Review edits](/docs/resources/foundry/object-edits/edits_review.png)
+![Review edits](./images/edits_review.png)
 
 Once a schema change is specified and saved by a user in the Ontology Manager, a new schema version is created for the object type in the backend, and a corresponding [replacement Funnel batch pipeline](/docs/foundry/object-indexing/funnel-batch-pipelines/#funnel-batch-pipelines) is orchestrated to update the index of the object type. The new object type version will be queryable by the Object Set Service (OSS) and other consumers of the Ontology APIs as soon as the replacement pipeline is completed and the new version is declared to be fully [hydrated by object databases](/docs/foundry/object-indexing/funnel-batch-pipelines/#hydration).
 
@@ -111,7 +111,7 @@ Below is the full list of schema migrations that are currently supported in Obje
 * **Revert migration:** This migration instruction reverts a previously-applied schema migration. This instruction is generally used when a saved Ontology change is being reverted through the **History** section in the Ontology Manager.
   * To revert a migration, navigate to the **History** section in the Ontology Manager for the desired ontology, expand the **Migrations** section within the history event, open the **...** menu on the migration event, and select **Revert**. Once the migrations have been reverted, save the modifications within the Ontology Manager.
 
-![Revert migration](/docs/resources/foundry/object-edits/revert_migration.png)
+![Revert migration](./images/revert_migration.png)
 
 :::callout{theme="neutral"}
 You can only apply up to 500 schema migrations at a single time. If the number of schema changes exceeds this limit, the migration must be performed in batches. <br><br>
@@ -120,4 +120,4 @@ The current schema migration framework does not support applying migration instr
 
 * **Recovering from failed schema migrations:** When schema migrations fail to complete, an error message above the replacement pipeline on the **Datasources** tab will provide information to help recover your object type from indexing failure. If recovering from the failure requires staging additional schema migrations, the error message will present a **Fix schema migrations** option to stage the necessary migrations.
 
-![The Datasources tab displays an error message above the replacement pipeline with an option for recovering an object type from a failed schema migration.](/docs/resources/foundry/object-edits/schema-migration-recovery-ui.png)
+![The Datasources tab displays an error message above the replacement pipeline with an option for recovering an object type from a failed schema migration.](./images/schema-migration-recovery-ui.png)

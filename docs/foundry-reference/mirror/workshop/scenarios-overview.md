@@ -1,6 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
-# Scenarios
+# Scenarios \[Legacy]
+
+:::callout{theme="warning" title="Legacy"}
+Workshop scenarios are in the [legacy](/docs/foundry/platform-overview/development-life-cycle/) phase of development, and no additional development is expected. Full support remains available. We recommend using [Ontology scenarios](/docs/foundry/ontology/overview-ontology-scenario/) when building a new module or updating existing workflows.
+:::
 
 The **Scenarios** feature enables the creation and comparison of "what-if" analyses using the objects in the Ontology and the ontological concept of a *model*. To learn more about Palantir's high-level approach to connecting models with organizational outcomes, refer to [Models in the Ontology](/docs/foundry/ontology/models/).
 

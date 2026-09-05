@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-model-deployment/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-model-deployment/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Create a direct model deployment
 

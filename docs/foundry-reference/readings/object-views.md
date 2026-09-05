@@ -827,17 +827,31 @@ added ones in green `+` rows. **The diff is per field, not per tab.**
 
 ## 12. Permissions
 
-*(§20.2 first: the two models below are the REPLACED ones; the current
+*(§20.2 first: the first two models below are the REPLACED ones; the current
 project-based rule is edit access on the object type via the `Editor`
-project role.)*
+project role — and since the 2026-09-04 re-mirror the page says so itself, in
+a third bullet quoted last.)*
 
-> * If the object type does not use Ontology roles, a user must have the `Object View Admin` application permission in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-permissions/), as well as the `Editor` role on any of the object type's input datasources.
+> * If the object type uses legacy datasource-derived permissions, a user must have the `Object View Admin` application permission in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-permissions/), as well as the `Editor` role on any of the object type's input datasources.
 
 — `object-views/config-overview.md`
+
+*(Re-mirrored 2026-09-04: this bullet's condition read "does not use Ontology
+roles" when I first quoted it; the rule is the same, now named as the legacy
+model rather than by negation.)*
 
 > * If the object type uses Ontology roles, the user only requires the `Ontology Editor` role on the object type.
 
 — `object-views/config-overview.md`
+
+> * If the object type uses [project-based permissions](/docs/foundry/object-permissioning/ontology-permissions/), the user only requires the `Editor` role on the Compass project containing the object type.
+
+— `object-views/config-overview.md`
+
+The third bullet is new in the re-mirror and is the rule 718 built —
+`can_index_object_type`'s editor-on-the-type's-project (513) — so the page
+now agrees with the build without §20.2's detour through
+`branching-object-views`.
 
 > Unless you manually convert the Workshop module for an Object View tab to a standalone module through legacy configuration options, the Workshop module's permissions will be managed by the object type. This ensures that permissions between the module and the object type are kept aligned, so users with permission to edit or view the object type will also be able to edit or view all modules inside the Object View.
 
@@ -1103,6 +1117,14 @@ with its new value. The modern equivalent lives in Workshop:
 > can be added to Workshop modules or Workshop-backed object views to display edit histories.
 
 — `object-edits/user-edit-history.md`
+
+*Drift, re-mirrored 2026-09-04:* the head of that page — the part I read — gained a callout:
+
+> "Edit history records every edit to an object, regardless of how the edit was made. To capture the decision behind an edit instead, including the parameter values a user submitted and the context at the time of submission, enable [action log](/docs/foundry/action-types/action-log/) on the action type."
+
+— `object-edits/user-edit-history.md`
+
+Our per-object Edit History query already reads every `object_edits` row, so the behaviour matches; the comment beside it in `objectView/api.ts` says *action-stamped edits only*, which is narrower than the sentence and than the query. No action log exists here since 373 dropped the 333 table; the callout names the toggle a future one would hang from.
 
 ### 16.3 Visualization
 
@@ -1633,10 +1655,12 @@ should render the standard view first and treat the configured default as
 the editor's starting point until the operator rules otherwise.
 
 **20.2 §11-§12 encode the two REPLACED permission models.** My Permissions
-section is built from `config-overview`'s two bullets — ontology roles and
+section was built from `config-overview`'s two bullets — ontology roles and
 datasource-derived permissions — which `object-permissioning/ontology-permissions.md`
-says the project-based approach replaces. The current model was on a page
-I read:
+says the project-based approach replaces. *(Re-mirrored 2026-09-04: the page
+now carries a third bullet for project-based permissions, quoted in §12; the
+detour below is kept as the record of how the rule was found.)* The current
+model was on a page I read:
 
 > When the object type uses [ontology roles](/docs/foundry/object-permissioning/ontology-permissions-legacy/#ontology-roles) or [project-based permissions](/docs/foundry/object-permissioning/ontology-permissions/), the contributor or an approving reviewer only needs edit access on the object type. This is typically granted through the `Ontology Editor` role under ontology roles, or through the `Editor` project role under project-based permissions.
 

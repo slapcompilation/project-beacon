@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-ontology-output/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-ontology-output/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add an Ontology output
 
@@ -40,7 +40,7 @@ Select the transform node that you want to create the object from, then select *
 If your enrollment has multiple Ontologies, you need to select the Ontology that an object belongs to on object creation. Otherwise, the error message `An ontology must be specified to publish ontology type outputs` will be displayed. To set the Ontology, select **Set ontology** in the bottom panel or on the object, as shown below.
 :::
 
-<img src="./images/outputs-set-ontology.png" alt="Screenshot of where to set the Ontology if it's needed in your pipeline." width="800">
+<img src="./images/outputs-set-ontology.png" alt="Screenshot of where to set the Ontology if it is needed in your pipeline." width="800">
 
 ## Edit object type API names
 
@@ -281,6 +281,10 @@ You can configure granular security permissions on objects by using a **Restrict
 
 :::callout{theme="warning"}
 Object security policies in Pipeline Builder currently support a subset of features when compared with object security policies in Ontology Manager. See below for supported features.
+:::
+
+:::callout{theme="warning" title="Read-time enforcement only"}
+Row and column access controls (including [restricted views](/docs/foundry/security/restricted-views/) and [object security policies](/docs/foundry/object-permissioning/object-security-policies/)) filter what a user can read from a Pipeline Builder output. These controls do not extend to downstream outputs or exports. To keep data protected as it flows downstream, pair these controls with a [marking](/docs/foundry/security/markings/) or [Classification-based Access Control](/docs/foundry/security/classification-based-access-controls/). For the full model, see [Access control propagation](/docs/foundry/security/access-control-propagation/).
 :::
 
 To set up your granular security policies, go to the output object and select **Configure granular security**.

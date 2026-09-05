@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/aip-multimodal-and-embedding-models/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/aip-multimodal-and-embedding-models/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Process multimodal and embedding models
 

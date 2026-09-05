@@ -1,8 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/capabilities/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/capabilities/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Capabilities
 
 AIP Analyst uses tools to search, analyze, and present answers to your questions. Tools are grouped into categories in the **Tools** menu, where you can enable or disable an entire category or an individual tool. AIP Analyst can also adjust the enabled categories itself using the **Manage tools** tool.
+
+Most tools do not perform computation themselves; they call an existing Foundry system, and that system's compute model applies. For the resources each category consumes, see [Federated Foundry compute](/docs/foundry/aip-analyst/compute-usage/#federated-foundry-compute).
 
 ![The AIP Analyst tools menu.](./images/aip-analyst-tools.png)
 

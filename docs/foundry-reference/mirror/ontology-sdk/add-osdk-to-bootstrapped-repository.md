@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology-sdk/add-osdk-to-bootstrapped-repository/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk/add-osdk-to-bootstrapped-repository/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Add an OSDK to a bootstrapped repository
 
@@ -93,3 +93,22 @@ The following is an example `.npmrc` file:
 //hostname.palantirfoundry.com/artifacts/api/:\_authToken=${FOUNDRY_TOKEN}
 @osdk-package:registry=https://hostname.palantirfoundry.com/artifacts/api/repositories/ri.artifacts.main.repository.45660bd6-de33-442e-9f48-a0c02372b906/contents/release/npm
 ```
+
+For a repository bootstrapped in a local development environment, export the `FOUNDRY_TOKEN` environment variable in your terminal before running `npm install`:
+
+```bash
+export FOUNDRY_TOKEN=<your-token-value>
+```
+
+:::callout{theme="warning"}
+Ensure the variable name in your `.npmrc` file is exactly `${FOUNDRY_TOKEN}` with no spaces. A common mistake is using `${FOUNDRY TOKEN}` (with a space), which causes 403 or 401 authentication errors.
+:::
+
+:::callout{theme="neutral"}
+**Troubleshooting: npm 404 errors**
+
+If you receive a 404 error when running `npm install`, npm may be using a different registry. Inspect the following registry configurations and update any unintended overrides:
+
+* **Global registry:** Run `npm config get registry` to inspect the globally configured npm registry.
+* **Local overrides:** Review other `.npmrc` files in your project or parent directories that may override your settings.
+:::

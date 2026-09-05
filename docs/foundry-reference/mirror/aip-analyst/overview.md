@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/overview/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # AIP Analyst
 
@@ -26,6 +26,12 @@ In addition to running ad-hoc analyses, AIP Analyst can:
 
 * **Save analyses as Compass resources:** Return to your work later or share with collaborators using [analysis resources](/docs/foundry/aip-analyst/analysis-resources/).
 * **Embed in other applications:** Add a [Workshop widget](/docs/foundry/aip-analyst/workshop-widget/) for tighter integration inside a Workshop module, or use [URL parameters](/docs/foundry/aip-analyst/embed/) for iframe embedding in OSDK or other Foundry applications.
+
+## Resource consumption
+
+Because AIP Analyst is agentic, a single question can result in many model calls and many queries against Foundry. Usage comes from two sources: LLM tokens for the agent's own reasoning, and the compute of the Foundry system behind each tool call. That system might be the Ontology, a dataset, or a function.
+
+[Compute usage with AIP Analyst](/docs/foundry/aip-analyst/compute-usage/) covers what each [capability](/docs/foundry/aip-analyst/capabilities/) consumes, how usage is attributed to projects and resources, and how to monitor it. It also includes guidance on when to move work out of the agent's tool loop and into a function or a pro-code agent.
 
 ***
 

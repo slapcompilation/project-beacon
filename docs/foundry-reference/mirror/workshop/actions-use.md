@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/actions-use/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/actions-use/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use Actions in Workshop
 
@@ -26,13 +26,13 @@ To create, configure, or edit an action, a given Palantir Foundry user must belo
 For full details on defining actions, see the [actions documentation](/docs/foundry/action-types/overview/). The documentation below provides a brief notional example of action configuration focused on using actions within Workshop.
 :::
 
-Actions administrators can create, configure, and edit action types in the Ontology manager. To access, select **Ontology manager** from the Apps sidebar.  The **Action types** tab (seen in the screenshot below) provides a list of existing action types, which can be selected to be viewed and edited. The **New action type** button allows you to define a new action type from scratch. Alternatively, you can also create action types right from the object type which it should be based on. Navigate to the object type and select **Create new** in the action types box.
+Actions administrators can create, configure, and edit action types in the Ontology manager. To access, select **Ontology manager** from the Apps sidebar. The **Action types** tab (seen in the screenshot below) provides a list of existing action types, which can be selected to be viewed and edited. The **New action type** button allows you to define a new action type from scratch. Alternatively, you can also create action types right from the object type which it should be based on. Navigate to the object type and select **Create new action type** in the action types box.
 
 :::callout{theme="neutral"}
 Note that this example is illustrative and you may not be able to complete every step as written. Since your Foundry Ontology is customized to your needs and data, you may not have access to the ontology objects required to complete the tutorial.
 :::
 
-Select the **Create new** button on the object type to begin. In this example, we’ll be defining a “Modify Flight Destination” action that will allow users to modify the `Destination` property on an existing Flight object.
+Select the **Create new action type** button on the object type to begin. In this example, define a “Modify Flight Destination” action that will allow users to modify the `Destination` property on an existing Flight object.
 
 The creation wizard walks you through the most important steps to bootstrap your new action type. Enter a **Display name** and select **Modify** under the **Change object(s)** option to configure your action type. From the object dropdown, select your previously created `Flight` object and then select the `Comment` and `Destination` properties which this action type should modify.
 
@@ -42,19 +42,19 @@ The first tab of an action type definition is called **Overview** and allows you
 
 ![action\_type](./images/action_type.png)
 
-Next, select the **Rules** tab of this action type definition. This is where you’ll configure the core of your action type: its **Rules** or outputs / execution. After selecting the object type and the kind of changes you want this action type to perform, you can see the Rule configured as a modification rule as well as the added properties. You can add additional properties from the dropdown if needed.
+Next, select the **Rules** tab of this action type definition. This is where you will configure the core of your action type: its **Rules** or outputs / execution. After selecting the object type and the kind of changes you want this action type to perform, you can see the Rule configured as a modification rule as well as the added properties. You can add additional properties from the dropdown if needed.
 
-![action\_rules](./images/action_form.png)
+![The Rules tab of an action type definition, showing the modification rule and its added properties.](./images/action_rules.png)
 
-The **Form** tab lists the **Parameters** or inputs of your action type. The parameters have already been added automatically by the **Rules** section.
+The **Parameters** tab lists the parameters, or inputs, of your action type. The parameters have already been added automatically by the **Rules** section.
 
 ![action\_form](./images/action_form.png)
 
-Next, let’s configure some basic **Submission Criteria** for our action type. In this example, we want to confirm that the user has entered a valid three-character airport code (like `EWR`) for their modified destination. Navigate to the **Security & Submission Criteria** tab and select **Add a condition** in the **Submission Criteria** section. Use the **Parameter** condition template in this example to compare the `Destination` property with a regular expression like `^[A-Z]{3}$`; this lets us confirm that the value entered for our destination parameter is exactly three characters. To give the user more information about why a submission is potentially failing on a condition, add an error message at the bottom of the sidebar.
+Next, configure some basic **Submission Criteria** for your action type. In this example, the goal is to confirm that the user has entered a valid three-character airport code (like `EWR`) for their modified destination. Navigate to the **Security & Submission Criteria** tab and select **Add a condition** in the **Submission Criteria** section. Use the **Parameter** condition template in this example to compare the `Destination` property with a regular expression like `^[A-Z]{3}$`; this lets you confirm that the value entered for your destination parameter is exactly three characters. To give the user more information about why a submission is potentially failing on a condition, add an error message at the bottom of the sidebar.
 
 ![configure\_submission\_criteria](./images/configure_submission_criteria.png)
 
-To test the new action type, navigate back to the **Form** tab and use the preview of the form on the right side of your screen to test your action type. You can enter different values and select the **Submit** button. This only tests whether an action would be submittable and does not actually submit an action.
+To test the new action type, navigate back to the **Parameters** tab and use the preview of the form on the right side of your screen to test your action type. You can enter different values and select the **Submit** button. This only tests whether an action would be submittable and does not actually submit an action.
 
 ![action\_form](./images/action_form.png)
 
@@ -70,7 +70,7 @@ Your first action type is now saved, and we can head to Workshop to build a modu
 The below section assumes familiarity with building Workshop modules. See [this page](/docs/foundry/workshop/getting-started/) for a tutorial covering these topics.
 :::
 
-Within Workshop, actions can be exposed to users through a number of different widgets, including Button Groups and the Create Action panel. The example below begins with a Flight Inbox module and describes how to trigger actions via a Button Group from within this Workshop module.
+Within Workshop, actions can be exposed to users through a number of different widgets, including Button Groups and the [Inline Action widget](/docs/foundry/workshop/widgets-inline-action-form/). The example below begins with a Flight Inbox module and describes how to trigger actions via a Button Group from within this Workshop module.
 
 ![flight\_inbox](./images/flight_inbox.png)
 
@@ -80,15 +80,15 @@ The Button Group widget in Workshop allows a module builder to add one or more b
 
 #### Configuring an action in a Button Group
 
-After a Button Group is added to your Workshop module, single-clicking on the Button Group within your on-screen module will open the widget's configuration panel in the right-hand side of your screen. The core configuration options can be found in the **Widget setup** tab and are divided into three sections — **Layout**, **Style**, and **Buttons**. The **Layout** and **Style** sections control advanced display options, but this example focuses on the **Buttons** section, where a module builder can configure basic display options and determine how actions are applied when a button is selected.
+After a Button Group is added to your Workshop module, single-clicking on the Button Group within your on-screen module will open the widget's configuration panel in the right-hand side of your screen. The core configuration options can be found in the **Widget setup** tab and are divided into three sections — **Button type**, **Button configuration**, and **Display & formatting**. The **Button type** and **Display & formatting** sections control the button layout and advanced display options. This example focuses on the **Button configuration** section, where a module builder can configure basic display options and determine how actions are applied when a button is selected.
 
 ![button\_group](./images/button_group.png)
 
-Within the **Buttons** section of the above, you can adjust the **Text**, **Color**, **Left icon**, and **Right icon** options to control the display of the button. As an example, let's configure these four options for the "Modify Destination" action we intend to trigger from the button.
+Within the **Button configuration** section of the above, you can adjust the **Text**, **Color**, **Left icon**, and **Right icon** options to control the display of the button. As an example, configure these four options for the "Modify Destination" action we intend to trigger from the button.
 
 ![button\_config](./images/button_config.png)
 
-This above configuration will produce a button that looks like the below. Accurately labeling a button with appropriate text, color, and an icon will help users understand what will happen when they select it. You can choose a preset color (**primary**, **success**, **warning**, **danger**) or specify a custom color, including via a hex code.
+This above configuration will produce a button that looks like the below. Accurately labeling a button with appropriate text, color, and an icon will help users understand what will happen when they select it. You can choose a preset intent (**none**, **primary**, **success**, **warning**, or **danger**) or specify a custom color, including via a hex code.
 
 ![modify\_destination](./images/modify_destination.png)
 
@@ -96,10 +96,10 @@ Now that our button is labeled, we proceed to the **On click** section to connec
 
 ![on\_click](./images/on_click.png)
 
-Use **Parameter defaults** to set optional default values for action parameters. Select **Configure all parameters** to add or remove every parameter at once. Each parameter corresponds to an input in the action type definition, such as an object list, object reference, integer, or string. You have two options for each parameter:
+Use **Parameter defaults** to set optional default values for action parameters. Select **Add all parameters** to configure every parameter at once, or **Remove all parameters** to clear them. Each parameter corresponds to an input in the action type definition, such as an object list, object reference, integer, or string. You have two options for each parameter:
 
 * **Set a default value equal to a variable in the Workshop module**
-  * To do this we can select the **Selected Flight** parameter's "no default" value and set this instead to be the "Active object" variable output by our object table of flights. Once this is set, additional options will appear to set the parameter to be **Visible** (default value can be further modified by a user in the actions form), **Hidden** (the parameter is entirely hidden from the user in the actions form), or **Disabled** (parameter appears as read-only to the user in the actions form). In this example, let's keep the default option of **Visible.**
+  * To do this we can select the **Selected Flight** parameter's "no default" value and set this instead to be the "Active object" variable output by our object table of flights. Once this is set, additional options will appear to set the parameter to be **Visible** (default value can be further modified by a user in the actions form), **Hidden** (the parameter is entirely hidden from the user in the actions form), or **Disabled** (parameter appears as read-only to the user in the actions form). In this example, keep the default option of **Visible**.
 * **Leave no default**
   * Parameters with no default will initially appear as empty fields in the actions form, and the values will be input by the user.
   * In this example, we leave Modified Destination and Comment(s) fields without defaults.
@@ -136,6 +136,8 @@ Use these triggers to refresh data, navigate to another page, or update variable
 ### Trigger actions from the Media Uploader widget
 
 Actions can also be triggered when users upload files via the Media Uploader widget. This is useful for workflows that depend on newly uploaded media, such as processing, enrichment, or linking workflows.
+
+The Media Uploader widget is labeled **Media uploader (Legacy)** in the widget picker, and the media set destination is hidden when you configure a new one. To upload to media sets, use a Button Group to open an action form, or use the [Inline Action widget](/docs/foundry/workshop/widgets-inline-action-form/). Dataset and folder destinations remain available.
 
 When configuring the Media Uploader to trigger an action on upload, you can reference the uploaded file in the action's parameter configuration using the special file identifier value:
 

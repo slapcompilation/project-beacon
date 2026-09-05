@@ -4817,3 +4817,5 @@ https://palantir.com/docs/foundry/workshop/widgets-vega-chart/
 https://palantir.com/docs/foundry/workshop/widgets-video-preview/
 https://palantir.com/docs/foundry/workshop/widgets-visualization/
 https://palantir.com/docs/foundry/workshop/workshop-cross-app-interactivity/
+https://palantir.com/docs/foundry/functions/local-sdks/
+https://palantir.com/docs/foundry/security/access-control-propagation/

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-streaming-joins/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-streaming-joins/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Joins in streaming Pipeline Builder pipelines
 
@@ -61,7 +61,7 @@ Complete the following steps to join two streams in Pipeline Builder:
 5. Specify the cache time values and units. The cache time values and units control how long data is stored in the cache we use to join the two streams.
 
 :::callout{theme="neutral"}
-If you want a left or right join instead of an outer join, you can filter out records that have null values downstream of the join. For a right join, filter where the right side values are null; for a left join, filter where the right side values are null.
+If you want a left or right join instead of an outer join, you can filter out records that have null values downstream of the join. For a left join, filter out records where the left side values are null; for a right join, filter out records where the right side values are null.
 :::
 
 ### Architecture

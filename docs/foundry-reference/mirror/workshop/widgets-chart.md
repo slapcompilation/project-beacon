@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-chart/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Chart XY
 
@@ -83,6 +83,7 @@ Configuring a Layer is required to add data to the Chart XY widget. The followin
   * **Compare against Scenarios**
     * Enable this toggle to select the Scenario array variable to compare data from. This will compare the data in the table to values from the Scenarios in the array using the "segment by" axis of the chart.
     * If this option is enabled, you cannot segment by other properties.
+    * Scenarios compared within a single layer are assigned colors automatically, and the layer's **Color** setting applies to every scenario in the layer. To control the color of each scenario, configure a separate layer per scenario and enable **Load data from scenario** on each layer, as described in [Set a different color for each scenario](/docs/foundry/workshop/scenarios-getting-started/#set-a-different-color-for-each-scenario).
   * See the [Scenarios documentation](/docs/foundry/workshop/scenarios-overview/) for more information on Scenarios.
 
 ### Runtime configuration options
@@ -147,10 +148,81 @@ In addition to the configuration options for a layer described above, the main C
 
 Configuring a function-backed layer requires writing a function that returns either a `TwoDimensionalAggregation` or `ThreeDimensionalAggregation`.
 
-Below is a full example that returns a `TwoDimensionalAggregation` in order to chart one time series divided by another time series:
+:::callout{theme="info"}
+The code examples in this section are available in [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/), [TypeScript v2](/docs/foundry/functions/typescript-v2-getting-started/), and [Python](/docs/foundry/functions/python-getting-started/). Select the tab that matches your function version. The two worked examples that follow are shown in TypeScript only; Python authors should follow [Create a custom aggregation with Python functions](/docs/foundry/functions/python-functions-create-custom-aggregation/). TypeScript v1 defines each function as a method on an exported class, annotated with the `@Function()` decorator from `@foundry/functions-api`. TypeScript v2 defines each function as the default export of a file and imports types from `@osdk/functions`. For a full comparison, review the [TypeScript v1 versus TypeScript v2 comparison](/docs/foundry/functions/language-feature-support/#typescript-v1-vs-typescript-v2).
+:::
 
-```typescript
-import { Function, TwoDimensionalAggregation, ThreeDimensionalAggregation,
+### Aggregation return value shape
+
+Both aggregation types exist in every function version with the following type parameters: `TwoDimensionalAggregation<Key, Value>` and `ThreeDimensionalAggregation<Key, Segment, Value>`. However, TypeScript v1 wraps the buckets in an object under a `buckets` key while TypeScript v2 returns the bare array of buckets. Python keeps the wrapper and builds it from the `SingleBucket` and `NestedBucket` classes in `functions.api`. If you migrate a chart function from TypeScript v1 to TypeScript v2 and leave the `buckets` wrapper in place, the return value no longer matches the shape the widget expects.
+
+The following minimal function returns the same two-dimensional aggregation in each version:
+
+```typescript tab="TypeScript v1"
+import { Double, Function, TwoDimensionalAggregation } from "@foundry/functions-api";
+
+export class MyFunctions {
+    @Function()
+    public myTwoDimensionalAggregation(): TwoDimensionalAggregation<string, Double> {
+        return {
+            buckets: [
+                { key: "bucket1", value: 5.0 },
+                { key: "bucket2", value: 6.0 },
+            ],
+        };
+    }
+}
+```
+
+```typescript tab="TypeScript v2"
+import { Double, TwoDimensionalAggregation } from "@osdk/functions";
+
+function myTwoDimensionalAggregationFunction(): TwoDimensionalAggregation<string, Double> {
+    return [
+        { key: "bucket1", value: 5.0 },
+        { key: "bucket2", value: 6.0 },
+    ];
+}
+
+export default myTwoDimensionalAggregationFunction;
+```
+
+```python tab="Python"
+from functions.api import (
+    function,
+    Double,
+    TwoDimensionalAggregation,
+    SingleBucket
+)
+
+@function
+def my_two_dimensional_aggregation_function() -> TwoDimensionalAggregation[str, Double]:
+    return TwoDimensionalAggregation(
+        buckets=[
+            SingleBucket(key="bucket1", value=Double(5.0)),
+            SingleBucket(key="bucket2", value=Double(6.0)),
+        ]
+    )
+```
+
+A three-dimensional aggregation nests a second list of buckets inside each top-level bucket. In both TypeScript versions that nested list is held under a `value` key, so only the outer `buckets` wrapper disappears in TypeScript v2. In Python, each top-level bucket is a `NestedBucket` whose `buckets` argument holds the inner `SingleBucket` list. See the [aggregation types reference](/docs/foundry/functions/types-reference/#aggregation-types) for the full shape of each type.
+
+### Two-dimensional aggregation example
+
+In TypeScript v1, the result of a grouped aggregation is itself a `TwoDimensionalAggregation`, so `.groupBy(...).sum(...)` can be returned directly. This is not true in TypeScript v2: `.aggregate()` returns a flat array of rows, one row per group, and no helper converts those rows into a `TwoDimensionalAggregation`. Annotating an `.aggregate()` call with the aggregation type is a type error, so the function must build the return value from the rows itself. Read each group value from `row.$group.<groupByKey>` and the metric from `row.<propertyApiName>.sum`, which inherits the property's nullability and can therefore be undefined.
+
+Three further differences shape the TypeScript v2 example below:
+
+* TypeScript v1 bucket keys use `IRange<Timestamp>`; the TypeScript v2 equivalent is `Range<TimestampISOString>`. The `Range` function type is an object with `min` and `max` keys. Do not confuse it with the `$ranges` group-by input, which is an array of `[start, end]` tuples, or with the `$group` output of a range group-by, which uses `startValue` and `endValue`.
+* A `$duration` group value is a single scalar marking the start of its bucket rather than a range, so the example derives the end of each one-day bucket itself. That scalar is undefined for any object whose grouped property is null, so the example drops those rows before mapping them.
+* The `"unordered"` value in each `$select` entry means the result carries no defined row order, and two separate `.aggregate()` calls are not guaranteed to return their groups in the same order. The example therefore joins the numerator and denominator results on their group values rather than by position.
+
+The TypeScript v2 function has no class, so TypeScript v1's `private divide` method becomes a module-level function in the same file for TypeScript v2.
+
+Below is a full example that returns a `TwoDimensionalAggregation` to chart one time series divided by another time series:
+
+```typescript tab="TypeScript v1"
+import { Double, Function, TwoDimensionalAggregation, ThreeDimensionalAggregation,
          IRange, Timestamp } from "@foundry/functions-api";
 import { ObjectSet, MyObjectType } from "@foundry/ontology-api"
 
@@ -158,7 +230,7 @@ export class TimeseriesAggregations {
 
     @Function()
     public async percentOfTotal(objects:ObjectSet<MyObjectType>):
-                                Promise<TwoDimensionalAggregation<IRange<Timestamp>>> {
+                                Promise<TwoDimensionalAggregation<IRange<Timestamp>, Double>> {
         const numerators = await objects.groupBy(e => e.date.byDays())
                                         .sum(e => e.value);
         const denominators = await objects.groupBy(e => e.date.byDays())
@@ -167,9 +239,9 @@ export class TimeseriesAggregations {
         return this.divide(numerators, denominators);
     }
 
-    private divide(numerators:TwoDimensionalAggregation<IRange<Timestamp>>,
-                              denominators: TwoDimensionalAggregation<IRange<Timestamp>>):
-                              TwoDimensionalAggregation<IRange<Timestamp>> {
+    private divide(numerators:TwoDimensionalAggregation<IRange<Timestamp>, Double>,
+                              denominators: TwoDimensionalAggregation<IRange<Timestamp>, Double>):
+                              TwoDimensionalAggregation<IRange<Timestamp>, Double> {
 
         const percentage = numerators.buckets.map((bucket, i) => {
            const numerator = bucket.value;
@@ -185,10 +257,76 @@ export class TimeseriesAggregations {
 }
 ```
 
+```typescript tab="TypeScript v2"
+import { ObjectSet } from "@osdk/client";
+import { Double, Range, TimestampISOString, TwoDimensionalAggregation } from "@osdk/functions";
+import { MyObjectType } from "@ontology/sdk";
+
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+// A $duration group value marks only the start of its bucket, so the end of the
+// one-day bucket has to be derived before it can be used as a Range key.
+function toDayRange(start: Date): Range<TimestampISOString> {
+    const end = new Date(start.getTime() + ONE_DAY_IN_MS);
+    return { min: start.toISOString(), max: end.toISOString() };
+}
+
+function divide(
+    numerators: TwoDimensionalAggregation<Range<TimestampISOString>, Double>,
+    denominators: Map<string, Double>
+): TwoDimensionalAggregation<Range<TimestampISOString>, Double> {
+    return numerators.map(bucket => {
+        const numerator = bucket.value;
+        const denominator = denominators.get(bucket.key.min) ?? 0;
+        if (denominator === 0) {
+            return { key: bucket.key, value: 0 };
+        }
+        return { key: bucket.key, value: numerator / denominator };
+    });
+}
+
+async function percentOfTotal(
+    objects: ObjectSet<MyObjectType>
+): Promise<TwoDimensionalAggregation<Range<TimestampISOString>, Double>> {
+    const numeratorRows = await objects.aggregate({
+        $select: { "value:sum": "unordered" },
+        $groupBy: { date: { $duration: [1, "days"] } },
+    });
+    const denominatorRows = await objects.aggregate({
+        $select: { "total:sum": "unordered" },
+        $groupBy: { date: { $duration: [1, "days"] } },
+    });
+
+    const numerators = numeratorRows
+        .filter(row => row.$group.date != null)
+        .map(row => ({
+            key: toDayRange(new Date(row.$group.date!)),
+            value: row.value.sum ?? 0,
+        }));
+    // Keyed by bucket start rather than by row position, because the two
+    // aggregations are unordered and may return their groups in different orders.
+    const denominators = new Map<string, Double>(
+        denominatorRows
+            .filter(row => row.$group.date != null)
+            .map(row => [new Date(row.$group.date!).toISOString(), row.total.sum ?? 0]),
+    );
+
+    return divide(numerators, denominators);
+}
+
+export default percentOfTotal;
+```
+
+### Three-dimensional aggregation example
+
+TypeScript v1 produces a second aggregation dimension with `.segmentBy()`. TypeScript v2 has no separate segment clause; the closest available construct is a second key in the same `$groupBy` object, which is what the example below uses. A multi-key `$groupBy` groups on both keys at once rather than nesting a segment inside each date bucket. Once `$groupBy` holds more than one key, ordering is no longer allowed and every `$select` value must be `"unordered"`. The result remains a flat array of rows, one row per combination of group values. The TypeScript v2 example nests the rows under their date bucket before returning them and joins the numerator and denominator results on their group values rather than by position.
+
+TypeScript v1 `.topValues()` has no TypeScript v2 equivalent. In TypeScript v1, `.topValues()` returns the top 1,000 values quickly and becomes approximate above 1,000 distinct values, whereas `.exactValues()` returns exact values more slowly. The TypeScript v2 `"exact"` strategy is the analog of `.exactValues()` only. There is no approximate group-by in TypeScript v2, so substituting `"exact"` changes both the semantics and the performance of the aggregation. For boolean properties, where `.topValues()` was the only TypeScript v1 option, `"exact"` is a safe substitute.
+
 Below is a full example that returns a `ThreeDimensionalAggregation` which will chart a separate series for each value returned by `segmentBy()`:
 
-```typescript
-import { Function, TwoDimensionalAggregation, ThreeDimensionalAggregation,
+```typescript tab="TypeScript v1"
+import { Double, Function, TwoDimensionalAggregation, ThreeDimensionalAggregation,
          IRange, Timestamp } from "@foundry/functions-api";
 import { ObjectSet, MyObjectType } from "@foundry/ontology-api"
 
@@ -196,7 +334,7 @@ export class TimeseriesAggregations {
 
     @Function()
     public async percentOfTotalSegmented(objects:ObjectSet<MyObjectType>):
-                                         Promise<ThreeDimensionalAggregation<IRange<Timestamp>, string>> {
+                                         Promise<ThreeDimensionalAggregation<IRange<Timestamp>, string, Double>> {
         const numerators = await objects.groupBy(e => e.date.byDays())
                                         .segmentBy(e => e.groupId.topValues())
                                         .sum(e => e.value);
@@ -207,9 +345,9 @@ export class TimeseriesAggregations {
         return this.divideThreeDimensional(numerators, denominators);
     }
 
-    private divideThreeDimensional(numerators:ThreeDimensionalAggregation<IRange<Timestamp>, string>,
-                             denominators: ThreeDimensionalAggregation<IRange<Timestamp>, string>):
-                             ThreeDimensionalAggregation<IRange<Timestamp>, string> {
+    private divideThreeDimensional(numerators:ThreeDimensionalAggregation<IRange<Timestamp>, string, Double>,
+                             denominators: ThreeDimensionalAggregation<IRange<Timestamp>, string, Double>):
+                             ThreeDimensionalAggregation<IRange<Timestamp>, string, Double> {
 
         var percentage = numerators.buckets; //copy
         for (let i = 0; i < numerators.buckets.length; i++) {
@@ -223,5 +361,98 @@ export class TimeseriesAggregations {
     }
 }
 ```
+
+```typescript tab="TypeScript v2"
+import { ObjectSet } from "@osdk/client";
+import { Double, Range, ThreeDimensionalAggregation, TimestampISOString } from "@osdk/functions";
+import { MyObjectType } from "@ontology/sdk";
+
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+// A $duration group value marks only the start of its bucket, so the end of the
+// one-day bucket has to be derived before it can be used as a Range key.
+function toDayRange(start: Date): Range<TimestampISOString> {
+    const end = new Date(start.getTime() + ONE_DAY_IN_MS);
+    return { min: start.toISOString(), max: end.toISOString() };
+}
+
+// aggregate() returns one flat row per date and segment pair, so the rows have
+// to be regrouped before they match the nested three-dimensional shape.
+function nestSegmentsByDate(
+    rows: Array<{ date: Date; segment: string; value: Double }>
+): ThreeDimensionalAggregation<Range<TimestampISOString>, string, Double> {
+    const byDate = new Map<number, Array<{ key: string; value: Double }>>();
+    for (const row of rows) {
+        const segments = byDate.get(row.date.getTime()) ?? [];
+        segments.push({ key: row.segment, value: row.value });
+        byDate.set(row.date.getTime(), segments);
+    }
+    return Array.from(byDate, ([start, value]) => ({
+        key: toDayRange(new Date(start)),
+        value,
+    }));
+}
+
+function divideThreeDimensional(
+    numerators: ThreeDimensionalAggregation<Range<TimestampISOString>, string, Double>,
+    denominators: Map<string, Double>
+): ThreeDimensionalAggregation<Range<TimestampISOString>, string, Double> {
+    return numerators.map(bucket => ({
+        key: bucket.key,
+        value: bucket.value.map(segment => {
+            const denominator = denominators.get(`${bucket.key.min}|${segment.key}`) ?? 0;
+            return {
+                key: segment.key,
+                value: denominator === 0 ? 0 : segment.value / denominator,
+            };
+        }),
+    }));
+}
+
+async function percentOfTotalSegmented(
+    objects: ObjectSet<MyObjectType>
+): Promise<ThreeDimensionalAggregation<Range<TimestampISOString>, string, Double>> {
+    const numeratorRows = await objects.aggregate({
+        $select: { "value:sum": "unordered" },
+        $groupBy: {
+            date: { $duration: [1, "days"] },
+            groupId: "exact",
+        },
+    });
+    const denominatorRows = await objects.aggregate({
+        $select: { "total:sum": "unordered" },
+        $groupBy: {
+            date: { $duration: [1, "days"] },
+            groupId: "exact",
+        },
+    });
+
+    const numerators = nestSegmentsByDate(
+        numeratorRows
+            .filter(row => row.$group.date != null)
+            .map(row => ({
+                date: new Date(row.$group.date!),
+                segment: row.$group.groupId,
+                value: row.value.sum ?? 0,
+            })),
+    );
+    // Keyed by date and segment rather than by row position, because the two
+    // aggregations are unordered and may return their groups in different orders.
+    const denominators = new Map<string, Double>(
+        denominatorRows
+            .filter(row => row.$group.date != null)
+            .map(row => [
+                `${new Date(row.$group.date!).toISOString()}|${row.$group.groupId}`,
+                row.total.sum ?? 0,
+            ]),
+    );
+
+    return divideThreeDimensional(numerators, denominators);
+}
+
+export default percentOfTotalSegmented;
+```
+
+Python authors write the same charts with the `TwoDimensionalAggregation` and `ThreeDimensionalAggregation` classes from `functions.api`. The Python Ontology SDK also provides a bridge that TypeScript v2 does not, supported only when using v2 of the Python Ontology SDK. `TwoDimensionalAggregation.from_osdk()` and `ThreeDimensionalAggregation.from_osdk(result, "date", "groupId")` convert a grouped aggregation result into the bucket structure the widget expects. Both take the group-by property API names, which stay `camelCase` even where the surrounding Python identifiers are `snake_case`. See [Create a custom aggregation with Python functions](/docs/foundry/functions/python-functions-create-custom-aggregation/) for a Python example.
 
 For more examples, see the Functions documentation on [object set aggregations](/docs/foundry/functions/api-object-sets/) and [creating custom aggregations](/docs/foundry/functions/create-custom-aggregation/).

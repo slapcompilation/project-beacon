@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-event-sets/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-event-sets/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Event set cards
 
 Back to: [Index of cards](/docs/foundry/quiver/cards-index/)
 
-Cards in this section are used to visualize and analyze events in bulk. An *event* consists of a start and end timestamp, similar to a [time range](/docs/foundry/quiver/timeseries-ranges/), but can also be enriched with other data to support analysis. To learn more about common events-based workflows, see the [Analyze events data](/docs/foundry/quiver/timeseries-analyze-events-data/) page.
+Cards in this section are used to visualize and analyze events in bulk. An *event* consists of a start and end timestamp, similar to a [time range](/docs/foundry/quiver/timeseries-ranges/), but can also be enriched with other data to support analysis. To learn more about common event-based workflows, see the [Analyze events data](/docs/foundry/quiver/timeseries-analyze-events-data/) page.
 
 :::callout{theme="neutral"}
 It is no longer required to configure an object set with event capabilities in [Ontology Manager](/docs/foundry/ontology-manager/overview/) for event visualizations. Any object set with a timestamp property can be converted to an event set using the [event set from tabular data](/docs/foundry/quiver/card-event-set-from-tabular-data/) card.
@@ -25,7 +25,7 @@ The following cards accept a table and return an event set:
 
 The following cards accept a time series and return an event set:
 
-* [Linked event set](/docs/foundry/quiver/card-linked-event-set/) - this card also accepts an object as an input
+* [Linked event set](/docs/foundry/quiver/card-linked-event-set/): Also accepts an object as an input
 * [Time series search](/docs/foundry/quiver/card-time-series-search/)
 
 The following are available visualizations for events:

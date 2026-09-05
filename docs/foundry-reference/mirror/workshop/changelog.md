@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/changelog/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/changelog/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Changelog panel in Workshop
 
@@ -43,6 +43,8 @@ There are two options for selecting module versions:
 
 When rebasing is required before merging changes from a branch into `main`, the Changelog panel displays a visual notification dot and provides an option to begin the rebase.
 
+If you need to incorporate changes from `main`, follow the [rebasing and conflict resolution visual guide](/docs/foundry/workshop/branching-integration/#rebasing-and-conflict-resolution) to review diff icons, compare branch configurations, and resolve conflicts.
+
 During rebasing, the Changelog panel depicts changes being applied from your branch to the latest `main` version of the module and highlights merge conflicts. A change is marked as a conflict when it was modified both on `main` and on your branch. Common examples include:
 
 * A widget or variable was modified on both `main` and your branch.
@@ -51,10 +53,8 @@ During rebasing, the Changelog panel depicts changes being applied from your bra
 
 While resolving conflicts, you can switch the module between three states to evaluate outcomes in real time:
 
-* **Main:** The modification as it appears on `main`.
-* **Branch:** The modification as it appears on your branch.
-* **Modification:** Changes you make after beginning the rebase to reconcile differences.
+* **Latest main:** The configuration as it appears on `main`.
+* **Current branch:** The configuration as it appears on your branch.
+* **Current session:** Changes you make after beginning the rebase to reconcile differences.
 
 Once conflicts are resolved and you are satisfied with the module, save to finish rebasing. You can then safely merge your branch into `main`.
-
-For end-to-end guidance, see [Rebasing and conflict resolution](/docs/foundry/workshop/branching-integration/#rebasing-and-conflict-resolution).

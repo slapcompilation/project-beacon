@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/configure-notifications/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/configure-notifications/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Configure notifications
 
@@ -49,9 +49,9 @@ A new issue has been assigned to you: ${issue.description}.`;
 ```
 
 ```typescript tab="TypeScript v2"
-import { NotificationLink, Notification, User } from "@osdk/functions";
+import { NotificationLink, Notification } from "@osdk/functions";
 import { Issue } from "@ontology/sdk";
-import { type Osdk } from "@osdk/client";
+import type { Osdk } from "@osdk/api";
 
 export default function createIssueNotification(issue: Osdk.Instance<Issue>): Notification {
     // Link to the Issue object in the platform
@@ -164,8 +164,9 @@ import { NotificationLink, Notification } from "@osdk/functions";
 import { Users } from "@osdk/foundry.admin";
 import { Issue } from "@ontology/sdk";
 import { Client } from "@osdk/client";
+import type { Osdk } from "@osdk/api";
 
-export default async function createIssueReminderNotification(client: Client, issue: Issue): Promise<Notification> {
+export default async function createIssueReminderNotification(client: Client, issue: Osdk.Instance<Issue>): Promise<Notification> {
     const user = await Users.get(client, issue.assignee);
 
     const emailBody = `Hello, ${user.firstName},
@@ -244,7 +245,7 @@ The `Notification` API documented above allows you to return custom notification
 In the example below, the function returns both the user who reported the issue and the user who is currently assigned to the issue:
 
 ```typescript tab="TypeScript v1"
-import { Function, User, Users } from "@foundry/functions-api";
+import { Function, User, UserFacingError, Users } from "@foundry/functions-api";
 import { Issue } from "@foundry/ontology-api";
 
 export class NotificationFunctions {
@@ -269,14 +270,15 @@ export class NotificationFunctions {
 ```typescript tab="TypeScript v2"
 import { UserId, Principal } from "@osdk/functions";
 import { Users, Groups } from "@osdk/foundry.admin";
-import { Issue } from "ontology_sdk";
+import { Issue } from "@ontology/sdk";
 import { Client } from "@osdk/client";
+import type { Osdk } from "@osdk/api";
 
 /**
  * Given an Issue, returns users representing the current assignee for the Issue and the user
  * who originally reported the issue.
  */
-async function getIssueAssigneeAndReporter(client: Client, issue: Issue): Promise<UserId[]> {
+async function getIssueAssigneeAndReporter(client: Client, issue: Osdk.Instance<Issue>): Promise<UserId[]> {
     const user = await Users.get(client, issue.assignee);
     const issueReporter = await Users.get(client, issue.reporter);
 
@@ -286,7 +288,7 @@ async function getIssueAssigneeAndReporter(client: Client, issue: Issue): Promis
 /**
  * Given an Issue, returns the user who is the current assignee of the issue and the group that issue belongs to.
  */
-async function getIssueAssigneeAndGroups(client: Client, issue: Issue): Promise<Principal[]> {
+async function getIssueAssigneeAndGroups(client: Client, issue: Osdk.Instance<Issue>): Promise<Principal[]> {
     // To return both groups and users, return the Principal type.
 
     const user = await Users.get(client, issue.assignee);

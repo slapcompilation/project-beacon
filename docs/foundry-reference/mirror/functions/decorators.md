@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/decorators/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/decorators/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Decorators
 
@@ -15,13 +15,13 @@ The following documentation is specific to TypeScript v1 functions. For more [ro
   * [`@OntologyEditFunction()`](/docs/foundry/functions/api-ontology-edits/) for functions that will back an Action.
     * Object provenance information may be optionally specified with the `@Edits([object type])` decorator when using the[`@OntologyEditFunction()`](/docs/foundry/functions/api-ontology-edits/) method.
     * Object provenance information will be inferred on a best-efforts basis using the static analysis of code if the `@Edits([object type])` decorator is absent.
-  * `@Query({ apiName: "userDefinedAPIName"})` for read-only queries that you want to execute through [Foundry API](/docs/foundry/api/general/overview/introduction/). Note that this decorator should not be used in addition to the `@Function` decorator; it should be used on its own.
+  * [`@Query({ apiName: "userDefinedAPIName"})`](/docs/foundry/functions/query-functions/) for read-only queries that you want to execute through [Foundry API](/docs/foundry/api/general/overview/introduction/). Note that this decorator should not be used in addition to the `@Function` decorator; it should be used on its own.
 
 Here are examples of functions that are correctly exported in this way:
 
 ```typescript
 import { Function, OntologyEditFunction, Query, Integer, Edits } from "@foundry/functions-api";
-import { Employee } from "@foundry/ontology-api";
+import { Employee, Objects, ObjectSet } from "@foundry/ontology-api";
 
 export class MyUsefulFunctions {
     @Function()

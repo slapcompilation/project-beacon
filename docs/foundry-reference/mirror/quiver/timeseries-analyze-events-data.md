@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-analyze-events-data/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-analyze-events-data/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Analyze events data
 
@@ -29,7 +29,7 @@ To begin event analysis in Quiver, first construct an event set with the desired
 
 **Time series search:** The [time series search](/docs/foundry/quiver/card-time-series-search/) card creates event sets by defining and evaluating conditions against time series data. Events are created when the condition is met, such as when a threshold is exceeded, bounds are crossed, or a formula is satisfied. This approach is especially useful for [detecting and analyzing anomalies](/docs/foundry/quiver/timeseries-search-anomalies/) in time series data.
 
-**Other tabular data:** [Transform tables](/docs/foundry/quiver/cards-transform-table/) and [materializations](/docs/foundry/quiver/cards-index-materializations/) are also accepted as input to the [event set from tabular data](/docs/foundry/quiver/card-event-set-from-tabular-data/) card. Instead of selecting object properties for the start and end dates, select the appropriate columns.
+**Other tabular data:** [Transform tables](/docs/foundry/quiver/cards-transform-table/) and [datasets](/docs/foundry/quiver/cards-index-datasets/) are also accepted as input to the [event set from tabular data](/docs/foundry/quiver/card-event-set-from-tabular-data/) card. Instead of selecting object properties for the start and end dates, select the appropriate columns.
 
 ## Display options
 

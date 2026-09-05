@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/administration/enable-aip-features/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/administration/enable-aip-features/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Enable AIP features
 
@@ -66,7 +66,7 @@ AIP is only considered enabled for a resource when AIP is enabled for **all** or
 
 ## Enable LLMs
 
-Enrollment administrators must individually enable LLM usage under the **Model enablement** tab within the **AIP settings** extension of Control Panel.
+Enrollment administrators manage LLM usage under the **Model enablement** tab within the **AIP settings** extension of Control Panel. Enabling a model family includes accepting the applicable terms and conditions, including terms for the subprocessors that provide the models.
 
 <img src="./images/model-enablement.png" alt="Model enablement tab in AIP Settings Control Panel extension." width="700" />
 
@@ -78,7 +78,9 @@ Each model family in the Model enablement interface displays one of three states
 * **Disabled:** The model family is available on your enrollment but has not been activated by administrators. To enable it, select **Manage** and accept the terms and conditions.
 * **Disallowed:** The model family is restricted due to legal, geographical, or infrastructure constraints. Contact Palantir Support to discuss availability options.
 
-An enrollment administrator must accept the relevant terms and conditions for each model family before enabling it for use. Model families in a **disabled** state can be enabled directly through Control Panel, while **disallowed** models require manual configuration by Palantir Support before they can be used.
+Before initially enabling models from a subprocessor, an enrollment administrator must accept the applicable terms and conditions. Model families in a **disabled** state can be enabled directly through Control Panel, while **disallowed** models require manual configuration by Palantir Support before they can be used.
+
+When a subprocessor is enabled, Palantir may enable additional model families that meet the eligibility requirements under the accepted terms and conditions. Enabling additional model families does not incur additional costs. A new subprocessor requires separate administrator acceptance. Enrollment administrators can review and disable model families in Control Panel.
 
 ![Allow model family disclaimer and terms acceptance message.](./images/model-terms-acceptance.png)
 

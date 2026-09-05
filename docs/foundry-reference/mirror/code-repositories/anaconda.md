@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/code-repositories/anaconda/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/code-repositories/anaconda/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Use Anaconda in Foundry
 

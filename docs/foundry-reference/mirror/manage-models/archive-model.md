@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/archive-model/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/archive-model/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Archive models in an objective
 
@@ -22,5 +22,5 @@ Models that have been marked as a release are unable to be archived.
 ![Releases cannot be archived](./images/archive_no-archive.png)
 
 :::callout{theme="neutral" title="Clean up"}
-After archiving a model submission, don't forget to adjust or remove the build schedule of any configured metric management pipelines.
+After archiving a model submission, do not forget to adjust or remove the build schedule of any configured metric management pipelines.
 :::

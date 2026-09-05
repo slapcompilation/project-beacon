@@ -187,9 +187,39 @@ in a project, and `function_to_run` refuses a caller with no role on it.
 
 ## 8. Branching does not apply to us
 
-> "You can develop, publish, and consume functions on a global branch. This is currently supported for TypeScript v1 functions and AIP Logic functions."
+> "You can develop, publish, and consume functions on a global branch. This is currently supported for TypeScript v1, TypeScript v2, and AIP Logic functions."
 
-> "**TypeScript v2 and Python functions:** Currently, you cannot modify TypeScript v2 or Python functions on a branch."
+— `foundry-branching/branching-functions.md`
+
+> "To use Global Branching for TypeScript v2, upgrade your repository template to version `0.1299.0` or higher of the `typescript-functions` parent template or higher and enable a [local Ontology SDK](/docs/foundry/functions/local-sdks/)."
+
+— `foundry-branching/branching-functions.md`
+
+> "**TypeScript v2 functions:** TypeScript v2 functions support Global Branching when using a [local Ontology SDK](/docs/foundry/functions/local-sdks/). Repositories without a local SDK can reference a specific version of a function on a branch but cannot modify function code against branched schemas."
+
+> "**Python functions:** Currently, you cannot modify Python functions on a branch."
+
+— `global-branching/integrations.md`
+
+**Drift, re-mirrored 2026-09-05.** When §8 was written the page had one bullet
+for both languages — *you cannot modify TypeScript v2 or Python functions on a
+branch* — and the integrations table listed *TypeScript v1 functions* alone
+against Branching functions; it now reads *TypeScript v1 and v2 functions*. The
+v2 half reversed, conditioned on a *local Ontology SDK*. That page was linked
+but in no sitemap; fetched by hand the same day, it says what the condition is:
+
+> "TypeScript v2 functions support a **local Ontology SDK**, where the OSDK is automatically generated from your resource imports rather than manually versioned and installed as a separate package. This means SDK types are always up-to-date with the latest resource imports. Local SDKs are required for full [Global Branching](/docs/foundry/global-branching/overview/) support."
+
+> "When you tag a version of your function, the SDK is generated in CI and bundled with your function version, reflecting the state of the Ontology at the time of tagging."
+
+— `functions/local-sdks.md`
+
+So a branch-aware function version is one whose generated SDK reflects the
+*branch's* ontology at tag time. The title of this section still stands — our
+function versions carry no branch and nothing here builds one — but the sentence
+it rested on is gone for TypeScript. Open question, recorded rather than settled:
+whether a version tagged while a branch overlay (461–471) is checked out should
+bind to that branch's resource imports.
 
 Settled in PR #604 and not revisited here. The screenshots did correct one
 assumption: a branched version is a normal version number carrying a label —
@@ -352,8 +382,9 @@ not raise.
 All three confirm §8 — branching is v1-only — and the first says so in its own
 breadcrumb, reading "Typescript v1 Functions Repository". The IDE carries a
 **Foundry branch** selector separate from the git branch, and the Resource
-imports panel shows an object type that exists only on that branch. **No change:
-"You cannot modify TypeScript v2 or Python functions on a branch."**
+imports panel shows an object type that exists only on that branch. **No change
+when read; see the drift note in §8** — the sentence this leaned on, that you
+cannot modify TypeScript v2 functions on a branch, no longer holds upstream.
 
 The action image is not about branching at all, and it is the one worth keeping.
 It is the Run function rule in Ontology Manager, and it carries two things:

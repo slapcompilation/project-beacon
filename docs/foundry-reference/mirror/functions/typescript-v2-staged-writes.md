@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-staged-writes/ · mirrored 2026-08-22 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-staged-writes/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Staged writes \[Beta]
 

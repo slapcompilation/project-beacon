@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/embed/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/embed/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Embed AIP Analyst
 
@@ -28,6 +28,7 @@ Pre-fill the user's first message, or pre-load [context](/docs/foundry/aip-analy
 * **`objectRids`:** Load individual objects.
 * **`functionRids`:** Load individual functions.
 * **`actionTypeRids`:** Load individual action types.
+* **`autoSubmitActionTypeRids`:** Load individual action types and allow AIP Analyst to execute them without user approval.
 * **`notepadRids`:** Load Notepad documents.
 * **`initialMessage`:** Pre-populate the first user message when AIP Analyst loads.
 * **`autoStart`:** When `true` and `initialMessage` is set, AIP Analyst sends the initial message and begins analysis as soon as the page loads. Use this to embed "ask and answer" experiences that respond to context from the host application.

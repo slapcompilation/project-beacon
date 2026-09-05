@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-string-selector/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-string-selector/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # String Selector
 
@@ -16,7 +16,7 @@ The String Selector widget can be used to display string options in various sele
   * **Dynamic:** Select an existing or create a new string array variable to be used to generate options for the widget.
 * **Selection**
   * The widget can be set to either allow for a single option selection or multiple option selections.
-  * **Selected value:** Output variable of the widget, storing the user’s selected option(s). If the selection is set to **Single**, the output variable will be a string variable. If the selection is set to **Multiple**, the output variable will be a string array variable.
+  * **Selected value:** Output variable of the widget, storing the user’s selection. If the selection is set to **Single**, the output variable will be a string variable. If the selection is set to **Multiple**, the output variable will be a string array variable. The widget does not have its own default value setting; setting a default value for the output variable will result in the corresponding options being selected when this module is initially loaded.
   * **Selection display**
     * If the selection is set to **Single**, the widget may be displayed as either a dropdown or as radio buttons.
       * **Dropdown**

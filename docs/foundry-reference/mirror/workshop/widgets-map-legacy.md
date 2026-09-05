@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map-legacy/ · mirrored 2026-08-18 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map-legacy/ · mirrored 2026-09-04 from Palantir Foundry docs -->
 
 # Map \[Legacy]
 
@@ -233,7 +233,7 @@ To configure choropleth layers for H3 to support custom aggregations to display 
 1. `hex_index`: A unique identifier for each H3 hexagon. Example value: `82f25ffffffffff`
 2. `hex_geojson`: GeoJSON geometry of the H3 hexagon. Example value:
 
-```
+```json
 {"type":"Polygon","coordinates":[[[-114.88722592804382,-74.86647343694071],[-110.43933775312789,-76.04791578897344],[-103.98485051466383,-75.45226049628374],[-103.08914246618076,-73.75952697882984],[-107.50751324842204,-72.74554847287561],[-112.95182804024837,-73.26746640072781],[-114.88722592804382,-74.86647343694071]]]}
 ```
 
@@ -246,9 +246,13 @@ The configuration options for the Map \[Legacy] widget can then be applied as fo
     * **Choropleth boundary source & data configuration:** Select **Geojson**.
       * **GeoJSON geometry property type:** Select the property containing the GeoJSON geometry, in our example, `hex_geojson`.
 
-You can then configure a unction-backed property using the **Non-aggregated value configuration** option to aggregate object set inputs by H3 hexagons and display the values in the Map \[Legacy] widget. For example, the function below would compute the derived COVID test positivity rate per H3 hexagon in the input object set:
+:::callout{theme="neutral"}
+The function examples on this page are written in [TypeScript v1](/docs/foundry/functions/typescript-v1-getting-started/). TypeScript v2 and Python equivalents are not documented for the Map \[Legacy] widget. For the equivalent object-keyed function written in both TypeScript v1 and TypeScript v2, see [Function-based styling](/docs/foundry/map/integrate-functions/), which applies to the newer [Map](/docs/foundry/workshop/widgets-map/) widget. That contract covers the non-aggregated form only. The aggregated form on this page returns a map keyed by location or region ID, for which no TypeScript v2 equivalent is documented. To compare the two TypeScript versions, review the [TypeScript v1 versus TypeScript v2 comparison](/docs/foundry/functions/language-feature-support/#typescript-v1-vs-typescript-v2).
+:::
 
-```typescript
+You can then configure a function-backed property using the **Non-aggregated value configuration** option to aggregate object set inputs by H3 hexagons and display the values in the Map \[Legacy] widget. For example, the function below would compute the derived COVID test positivity rate per H3 hexagon in the input object set:
+
+```typescript tab="TypeScript v1"
 import { Function, Double, FunctionsMap} from "@foundry/functions-api";
 import { Objects, ObjectSet, CovidPositive, CovidTest, H3Hexagon} from "@foundry/ontology-api";
 
@@ -359,7 +363,7 @@ For **static layers**, the main configuration options are as follows:
 * **Simple aggregation:** Simple aggregation to represent the number of objects or another aggregation function (such as the sum or average of a property across the objects).
 * **Function aggregation:** Aggregated functions should return a map of **\<locationId, value>**. For cluster layers, the location ID would be a geo point or geohash, and for choropleth, it would be the region ID for each region. For example, the function below calculates the cost to volume ratio per country based on a set of input expenses:
 
-```typescript
+```typescript tab="TypeScript v1"
 @Function()
     public costToVolume(expenses: ObjectSet<Expense>): FunctionsMap<string, Double> {
         const map = new FunctionsMap<string, Double>();
@@ -389,7 +393,7 @@ For **static layers**, the main configuration options are as follows:
 
 * **Function-backed property:** Non-aggregated functions should return a map of `<object, value>`. For example, the function below would compute the derived COVID test positivity rate per country in the input object set:
 
-```typescript
+```typescript tab="TypeScript v1"
 @Function()
     public countryPositivityRate(countries: ObjectSet<Country>): FunctionsMap<Country, Double> {
         const positivityRatePerCountry = new FunctionsMap<Country, Double>();
