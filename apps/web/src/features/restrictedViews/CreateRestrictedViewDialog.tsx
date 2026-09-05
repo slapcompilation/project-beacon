@@ -98,7 +98,9 @@ export function CreateRestrictedViewDialog({ datasetId, datasetName, onClose }: 
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
               The view inherits the input dataset's markings. With the remove permission on a
-              marking, you can un-mark it here — the policy already controls which rows a user sees.
+              marking, you can un-mark it here. A granular policy filters which rows a user can
+              read; it does not extend to downstream outputs or exports — keep the marking to
+              protect data as it flows downstream.
             </p>
             {inputMarkings.length === 0 ? (
               <p className="text-xs text-muted-foreground">The input dataset carries no markings.</p>

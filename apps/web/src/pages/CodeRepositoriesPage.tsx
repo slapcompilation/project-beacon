@@ -1,8 +1,9 @@
 // Code Repositories — the repository list, and one repository in its tabs.
 //
-// "There are five different tabs that you can select at the top of the Code
-// Repositories interface" (code-repositories/navigation): Code, Branches,
-// Pull requests, Checks, Settings. The Code tab's own chrome follows the
+// "You can select the following tabs at the top of the Code Repositories
+// interface" (code-repositories/navigation): Code, Branches, Tags, Pull
+// requests, Checks, Settings — six since the 2026-09-04 re-mirror, when Tags
+// left the Branches tab for one of its own. The Code tab's own chrome follows the
 // capture (code-repositories/images/code-view.png): a branch dropdown on the
 // left of an action row reading Preview · Test · Commit · Build · Propose
 // changes, a Files tree, and the editor beside it.
@@ -152,6 +153,7 @@ function RepositoryView({ repo, onClose }: { repo: CodeRepository; onClose: () =
           className="ml-4">
           <Tab id="code" title="Code" />
           <Tab id="branches" title="Branches" />
+          <Tab id="tags" title="Tags" />
           <Tab id="pulls" title={`Pull requests ${String(openPrs.length)}`} />
           <Tab id="checks" title="Checks" />
           <Tab id="settings" title="Settings" />
@@ -164,6 +166,7 @@ function RepositoryView({ repo, onClose }: { repo: CodeRepository; onClose: () =
             onPickBranch={setBranchId} />
         )}
         {tab === 'branches' && <BranchesTab repo={repo} contents={contents} />}
+        {tab === 'tags' && <TagsTab repo={repo} contents={contents} />}
         {tab === 'pulls' && <PullRequestsTab repo={repo} contents={contents} />}
         {tab === 'checks' && <ChecksTab contents={contents} branchId={branch?.id ?? null}
           onPickBranch={setBranchId} />}
@@ -296,10 +299,7 @@ function CodeTab({ repo, contents, branchId, onPickBranch }: {
 
 function BranchesTab({ repo, contents }: { repo: CodeRepository; contents: RepositoryContents }) {
   const createBranch = useCreateBranch(repo.id)
-  const createTag = useCreateTag(repo.id)
   const [name, setName] = useState('')
-  const [tagName, setTagName] = useState('')
-  const [tagCommit, setTagCommit] = useState('')
 
   return (
     <div className="p-4 max-w-3xl space-y-4">
@@ -337,7 +337,19 @@ function BranchesTab({ repo, contents }: { repo: CodeRepository; contents: Repos
           })}
         </ul>
       </Card>
+    </div>
+  )
+}
 
+/** "In the Tags tab, you can access a list of tags, which are like immutable
+ *  branches." — its own tab since the page promoted it out of Branches. */
+function TagsTab({ repo, contents }: { repo: CodeRepository; contents: RepositoryContents }) {
+  const createTag = useCreateTag(repo.id)
+  const [tagName, setTagName] = useState('')
+  const [tagCommit, setTagCommit] = useState('')
+
+  return (
+    <div className="p-4 max-w-3xl space-y-4">
       <Card compact className="!p-0">
         <div className="cr-panel-head-row">
           <span className="cr-label">Tags</span>

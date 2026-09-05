@@ -148,8 +148,7 @@ README** — and no file-resource kind exists at all (datasets carry
    Our tuple carries the RID and not Location or Space, so the client
    comment's "all a non-member may see" is now narrower than the page; the
    header of 676 claims only that the function returns the tuple, and stands.
-   The widening is additive (both columns exist on the read model) and is
-   **queued, not done in this docs pass**. Whether Description survives the
+   **759 widened the tuple with `location` and `space`**, and the Discover card shows them under the RID. Whether Description survives the
    reduced view the sentence does not say — it reduces Metadata only.
 4. **The README.md file route is not built**, with its reason: no
    file-resource kind exists in our Compass — nothing can hold a file in a

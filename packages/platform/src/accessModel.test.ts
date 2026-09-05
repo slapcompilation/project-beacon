@@ -69,6 +69,24 @@ describe.skipIf(noDb)('access is a conjunction', () => {
     expect(await asAuthenticated(visibleProjects)).toBe(0)
   })
 
+  // "If you can see a project's cover page but not its contents, Overview shows
+  // a reduced Metadata section containing only the project's own RID,
+  // Location, and Space." — the discovery tuple carries exactly that (759).
+  it('a cover-page-only viewer reads the RID, the location and the space, and nothing else', async () => {
+    await db.query(
+      `update public.projects set cover_page = '# Open door', cover_page_discoverability = 'all_can_discover',
+             space_id = $2
+        where id = $1`, [f.projectId, f.spaceId])
+    const space = await one('select name, path from public.spaces where id = $1', [f.spaceId])
+    await claims(stranger, f.orgId)
+    const row = await asAuthenticated(async () => one(
+      `select rid, location, space from public.discoverable_cover_pages() where project_id = $1`, [f.projectId]))
+    expect(row.location).toBe(space.path)
+    expect(row.space).toBe(space.name)
+    expect(row.rid).toMatch(/^ri\.compass\.main\.folder\./)
+    expect(await asAuthenticated(visibleProjects)).toBe(0)
+  })
+
   it('answers the same to the owner and to the caller', async () => {
     // 560's bug: project_role is consulted BY a policy and reads an
     // RLS-guarded table, so as SECURITY INVOKER it answered `viewer` to the

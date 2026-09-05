@@ -141,9 +141,7 @@ admits exactly the four names above — so its header's claim that the grammar
 event types, which is being stricter than Foundry. *Schedule run failed* is
 backable today (`schedule_runs.outcome = 'Failed'` mirrors the `schedule_ran`
 watermark taken from `'Succeeded'`); *Media set updated* and *Table updated*
-name resources with no table here and fit the recorded-not-built pattern. A
-forward migration widening the validator is **queued, not done in this docs
-pass**; Decision 5 and the Built note below still say "four" as written on
+name resources with no table here and fit the recorded-not-built pattern. **759 widened the validator and the observer for *Schedule run failed*** and kept the two unbacked events refused, as above; Decision 5 and the Built note below still say "four" as written on
 their dates.
 
 ## 5. The schedule editor

@@ -47,9 +47,7 @@ plus Model development, which we have no counterpart for.
 Code, Branches, Tags, Pull requests, Checks, Settings. **Drift, re-mirrored
 2026-09-04:** this section was "Five tabs" and the page said so — "There are
 five different tabs" — with tags a list inside the Branches tab. The page now
-promotes Tags to its own tab, third in the strip. Our `CodeRepositoriesPage`
-copies the five-tab layout and keeps tags under Branches; recorded as a
-falsification of the surface, not of 690's `code_tags`. The capture
+promotes Tags to its own tab, third in the strip. Our `CodeRepositoriesPage` copied the five-tab layout and kept tags under Branches until 759's PR gave Tags its own tab; 690's `code_tags` was never in question. The capture
 (`code-repositories/images/code-view.png`) draws the Code tab as six
 annotated areas and enumerates far more than the prose does: a breadcrumb
 `authoring › Example Code Repository ☆` over `File` and `Help` menus; the

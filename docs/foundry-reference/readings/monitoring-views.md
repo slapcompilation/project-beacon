@@ -298,8 +298,7 @@ dataset was last updated | 1 day"; it now reads
 `evaluate_monitoring_rule` applies `>`, and the web's rule metadata prints
 "If value is greater than". A dataset whose job last succeeded exactly the
 threshold ago passes here and alerts in Foundry. 661 is applied and immutable;
-the fix is a forward migration replacing the comparator function plus the
-`RULE_META` row. **Queued, not done in this docs pass.**
+the fix is a forward migration replacing the comparator function plus the `RULE_META` row — **759, the same day**, with the other four comparators re-checked against the page and unchanged.
 
 **3. Sync jobs failing is no longer a configurable count.** The struck-through
 paragraph in §4 described *consecutive index-build failures*; the rule is now

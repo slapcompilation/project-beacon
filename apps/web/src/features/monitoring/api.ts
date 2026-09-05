@@ -90,7 +90,7 @@ export const RULE_META: Partial<Record<string, {
   },
   time_since_job_last_succeeded: {
     label: 'Time since job last succeeded', family: 'dataset',
-    comparator: 'If value is greater than', unit: 'seconds',
+    comparator: 'If value is greater than or equal to', unit: 'seconds',
   },
   automation_has_no_new_triggers: {
     label: 'Automation has no new triggers', family: 'automation',

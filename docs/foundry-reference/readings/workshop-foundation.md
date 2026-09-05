@@ -169,8 +169,7 @@ property, Object set definition, Variable transformation.
 
 685's CHECK on the definition type declares `Values from
 workshop/concepts-variables` and admits the six above, so it now refuses a
-documented value — stricter than Foundry. The type list is unchanged. A forward
-migration adding `SQL query` is **queued, not done in this docs pass**; whether
+documented value — stricter than Foundry. The type list is unchanged. **759 admits `sql_query`** and re-declares the seven; whether
 anything could compute one is a separate question (we have no Ontology SQL).
 
 Two behaviours that are design, not detail:
