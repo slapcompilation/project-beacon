@@ -47,13 +47,18 @@ export interface Project {
 }
 
 /** The discovery tuple — everything discoverable_cover_pages() returns, which
- *  is deliberately all a non-member may see of a marked project. */
+ *  is all a non-member may see of a marked project: the cover page, and the
+ *  reduced Metadata the details panel shows a cover-page-only viewer —
+ *  "only the project's own RID, Location, and Space" (759). */
 export interface DiscoverableProject {
   projectId: string
   rid: string
   name: string
   description: string
   coverPage: string
+  /** The containing space's path — where the project lives. */
+  location: string
+  space: string
 }
 
 /** One grant row: a user or a group, never both (migration 481). */
@@ -160,13 +165,15 @@ export function useDiscoverableCoverPages() {
     staleTime: 60_000,
     queryFn: async (): Promise<DiscoverableProject[]> => {
       const res = (await supabase.rpc('discoverable_cover_pages')) as {
-        data: { project_id: string; rid: string; name: string; description: string; cover_page: string }[] | null
+        data: { project_id: string; rid: string; name: string; description: string; cover_page: string;
+                location: string | null; space: string | null }[] | null
         error: { message: string } | null
       }
       if (res.error) throw new Error(res.error.message)
       return (res.data ?? []).map((r) => ({
         projectId: r.project_id, rid: r.rid, name: r.name,
         description: r.description, coverPage: r.cover_page,
+        location: r.location ?? '', space: r.space ?? '',
       }))
     },
   })

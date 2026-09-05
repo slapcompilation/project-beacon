@@ -1110,7 +1110,7 @@ and exactly `workingState.test.ts`'s "a field I never touched is not a
 conflict". Stronger, not overturned. The retired sentence survives in three
 immutable places — 426's header and its `COMMENT ON FUNCTION
 working_state_conflicts`, 429's header — and in `generated.ts`, which copies
-that comment; a forward migration may re-comment the function.
+that comment; 759 re-commented the function and the generated client followed.
 
 Slate is the outlier, and its screenshot explains why rather than contradicting
 the above. `slate/applications-merging.md` says:

@@ -2189,12 +2189,14 @@ export const derivedPropertySelect = { apiName: 'derived_property_select', kind:
  *  organization whose cover page admits the caller — all_can_discover needs
  *  the organization alone, require_marking_access composes
  *  resource_file_access, the same org-and-markings predicate the read policy
- *  uses. Returns only the discovery tuple; the row policy stays untouched.
- *  NULL discoverability discovers nothing.
+ *  uses. Returns the discovery tuple and, since 759, the reduced Metadata the
+ *  details panel shows a cover-page-only viewer — "only the project's own
+ *  RID, Location, and Space" (compass/use-project-details-panel). The row
+ *  policy stays untouched. NULL discoverability discovers nothing.
  */
 export const discoverableCoverPages = { apiName: 'discoverable_cover_pages', kind: 'function' } as FunctionType<
   Record<string, never>,
-  { project_id: string; rid: string; name: string; description: string; cover_page: string }[]
+  { project_id: string; rid: string; name: string; description: string; cover_page: string; location: string; space: string }[]
 >
 
 /**
@@ -2752,7 +2754,9 @@ export const modelStudioTrainers = { apiName: 'model_studio_trainers', kind: 'fu
 /**
  *  The one comparator each rules-reference table prints for its type ("If
  *  value is greater than [or equal to]") — a property of the metric, never of
- *  a condition row.
+ *  a condition row. time_since_job_last_succeeded reads "greater than or
+ *  equal to" since the 2026-09-04 re-mirror (759); it was "greater than" when
+ *  661 read it.
  */
 export const monitoringRuleComparator = { apiName: 'monitoring_rule_comparator', kind: 'function' } as FunctionType<
   { p_type: string },
@@ -3788,8 +3792,9 @@ export const workbookSchemaColumns = { apiName: 'workbook_schema_columns', kind:
 
 /**
  *  Every field both I and someone else have moved since I started. Everything
- *  not listed auto-merges: "Workshop auto-merges changes that do not
- *  overlap." The rows here are what the Update-and-merge dialog asks about.
+ *  not listed auto-merges: "Workshop merges changes to separate configuration
+ *  fields automatically." The rows here are what the Update-and-merge dialog
+ *  asks about.
  */
 export const workingStateConflicts = { apiName: 'working_state_conflicts', kind: 'function' } as FunctionType<
   { p_branch?: string },

@@ -1794,7 +1794,7 @@
 .sl-kind-unbuilt { opacity:.55; }
 .sl-kind-picked { border-color:hsl(var(--primary)); }
 
-/* ── Code Repositories: five tabs, and the Code tab's own chrome (690). ── */
+/* ── Code Repositories: six tabs, and the Code tab's own chrome (690). ── */
 .cr-header {
   display:flex; align-items:center; gap:8px; flex-shrink:0;
   padding:5px 10px; border-bottom:1px solid hsl(var(--border));

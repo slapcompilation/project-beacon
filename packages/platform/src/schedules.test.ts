@@ -124,4 +124,19 @@ describe.skipIf(noDb)('schedules', () => {
     await tick('2026-08-13 07:02+00')
     expect((await runs()).length).toBe(before)
   })
+
+  // "* **Schedule run failed:** Occurs when a scheduled build fails." — the
+  // fifth event type 759 admitted after the page grew from four to seven.
+  it('a failed run is an event of its own — schedule_run_failed', async () => {
+    const trig = { type: 'event', event: 'schedule_run_failed', schedule_id: sched }
+    expect((await one(`select public.schedule_trigger_valid($1::jsonb) as v`, [JSON.stringify(trig)])).v).toBe(true)
+    // the two documented events with no backing resource here stay refused
+    expect((await one(`select public.schedule_trigger_valid('{"type":"event","event":"table_updated","table_id":"x"}'::jsonb) as v`)).v).toBe(false)
+    const base = (await one(`select public.schedule_observe($1::jsonb, '{}'::jsonb) as s`, [JSON.stringify(trig)])).s as unknown as Record<string, { satisfied: boolean }>
+    expect(Object.values(base).every((x) => !x.satisfied)).toBe(true)
+    await db.query(`insert into public.schedule_runs (schedule_id, outcome) values ($1, 'Failed')`, [sched])
+    const after = (await one(`select public.schedule_observe($1::jsonb, $2::jsonb) as s`,
+      [JSON.stringify(trig), JSON.stringify(base)])).s as unknown as Record<string, { satisfied: boolean }>
+    expect(Object.values(after).some((x) => x.satisfied)).toBe(true)
+  })
 })

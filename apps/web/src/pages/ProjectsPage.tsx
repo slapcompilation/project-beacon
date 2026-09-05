@@ -139,6 +139,13 @@ function DiscoverableStrip({ visibleIds }: { visibleIds: string[] }) {
             <RequestAccessDialog projectId={open.projectId} projectName={open.name}
               isOpen={requesting} onClose={() => { setRequesting(false) }} />
           </div>
+          {/* The reduced Metadata a cover-page-only viewer gets: "only the
+              project's own RID, Location, and Space" (use-project-details-panel). */}
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border text-[11px] text-muted-foreground">
+            <span>RID</span><span className="font-mono truncate">{open.rid}</span>
+            {open.location && <><span>Location</span><span className="font-mono truncate">{open.location}</span></>}
+            {open.space && <><span>Space</span><span className="truncate">{open.space}</span></>}
+          </div>
           <div className="px-3 py-3"><DocMarkdown text={open.coverPage} /></div>
         </Card>
       )}

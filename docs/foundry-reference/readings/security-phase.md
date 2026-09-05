@@ -410,6 +410,5 @@ what a user can read when a function runs" — `functions/permissions.md`), and
 enforced: the step-2 text of `CreateRestrictedViewDialog` tells the user to
 un-mark *because* the policy *already controls which rows a user sees*, which
 is the deleted rationale; and the phrase *restricted views are read-only to protect the schema* is now bounded by the page as an integrity property, not a
-confidentiality one. The dialog rewording is **queued, not done in this docs
-pass**. Classification-based Access Controls, the third mandatory control the
+confidentiality one. The dialog copy was rewritten alongside 759 to say what the page says now. Classification-based Access Controls, the third mandatory control the
 model names, remain unbuilt and were never claimed.
