@@ -177,7 +177,7 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Properties</span>
             <div className="flex-1" />
             <ActionsMenu ontologyId={type.ontologyId ?? ''} objectTypeId={typeId}
-              targets={[pk]} selectedRow={record ?? null} />
+              targets={[pk]} selectedRow={record ?? null} application="object-views" />
           </div>
           {isLoading ? <Spinner size={SpinnerSize.SMALL} /> : record === null ? (
             <p className="text-sm text-muted-foreground">

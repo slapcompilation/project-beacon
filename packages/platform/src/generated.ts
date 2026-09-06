@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (116) ────────────────────────────────────────────────
+// ── ACTION TYPES (117) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -44,11 +44,14 @@ export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'acti
  *  Apply an action: evaluate the submission criteria tree, validate required
  *  parameters, run create/modify/delete rules in order, append to the edit
  *  log with the action recorded on each edit. The next index build merges the
- *  result. The other four rule kinds refuse by name rather than half-working.
- *  Invoker — the edit lands through object_edits' own policy.
+ *  result. The two interface link rule kinds refuse by name rather than
+ *  half-working. Invoker — the edit lands through object_edits' own policy.
+ *  p_application is the calling application's name for the usage ledger: one
+ *  write per resource this request edited, nothing when the caller does not
+ *  name itself (762).
  */
 export const applyAction = { apiName: 'apply_action', kind: 'action' } as ActionType<
-  { p_action_type: string; p_parameters?: Json; p_primary_key?: string },
+  { p_action_type: string; p_parameters?: Json; p_primary_key?: string; p_application?: string },
   number
 >
 
@@ -78,10 +81,13 @@ export const applyActionType = { apiName: 'apply_action_type', kind: 'action' } 
  *  Applies an edit function's batch as one action application: 741's
  *  preflight opens the application, this consumes it exactly once, and every
  *  edit carries the application id and apply_action's own before-snapshot, so
- *  revert_action reads both paths the same way. 742.
+ *  revert_action reads both paths the same way. 742. Note the two arguments
+ *  that look alike: p_application is that application's id,
+ *  p_application_name is the calling application's name for the usage ledger
+ *  (762).
  */
 export const applyFunctionEdits = { apiName: 'apply_function_edits', kind: 'action' } as ActionType<
-  { p_action_type: string; p_edits: Json; p_application: string },
+  { p_action_type: string; p_edits: Json; p_application: string; p_application_name?: string },
   number
 >
 
@@ -734,6 +740,19 @@ export const recordOntologyUsage = { apiName: 'record_ontology_usage', kind: 'ac
 >
 
 /**
+ *  One write per resource an edit request touched: "one write represents one
+ *  edit request … Many objects edited in bulk at once will only be recorded
+ *  as a single write" (ontology-manager/view-usage). The resources come from
+ *  the object_edits and link_edits rows the request actually wrote, so a rule
+ *  that logged nothing records nothing. Nameless callers record nothing
+ *  (746); Ontology Manager is refused by the recorder (579). 762.
+ */
+export const recordWriteUsage = { apiName: 'record_write_usage', kind: 'action' } as ActionType<
+  { p_application: string; p_application_id: string },
+  void
+>
+
+/**
  *  "You can also refresh a path from your analysis to get the latest version
  *  of its underlying datasets" (contour/core-concepts) — and nothing
  *  refreshes it automatically: "there is no way to automatically update a
@@ -791,10 +810,13 @@ export const retryApprovalRequest = { apiName: 'retry_approval_request', kind: '
  *  not the applier, an application already reverted or not revertible, and
  *  any object edited since. Side effects are NOT reverted: the page states
  *  that a revert "will not revert side effects, such as notifications or
- *  webhooks".
+ *  webhooks". p_application is the application being reverted;
+ *  p_application_name is the calling application's name for the usage ledger,
+ *  whose write is recorded against the resources that application edited
+ *  (762).
  */
 export const revertAction = { apiName: 'revert_action', kind: 'action' } as ActionType<
-  { p_application: string },
+  { p_application: string; p_application_name?: string },
   number
 >
 

@@ -530,5 +530,6 @@ function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () =
   // The Ontology Manager has no selection: a create-or-modify action runs
   // untargeted here, its object reference parameter being the selection —
   // blank means create (760).
-  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} explicitSelection={false} />
+  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} explicitSelection={false}
+    application="ontology-manager" />
 }

@@ -86,7 +86,7 @@ afterEach(() => { cleanup(); edge.bodies.length = 0; edge.fail = true })
 
 const renderDialog = (targets: string[]) => render(
   <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-    <RunActionDialog action={action} targets={targets} selectedRow={null}
+    <RunActionDialog action={action} targets={targets} selectedRow={null} application="object-explorer"
       objectTypeId="ot1" onClose={() => {}} />
   </QueryClientProvider>,
 )

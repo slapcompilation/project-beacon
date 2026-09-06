@@ -31,9 +31,11 @@ const needsTarget = (a: ActionTypeRow, explicitSelection: boolean) =>
   a.action_type_rules.some((r) => r.kind === 'modify_object' || r.kind === 'delete_object'
     || (r.kind === 'create_or_modify_object' && explicitSelection))
 
-export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow, explicitSelection = true }: {
+export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow, application, explicitSelection = true }: {
   ontologyId: string
   objectTypeId: string
+  /** Which application this menu is hosted by, for the usage ledger (762). */
+  application: string
   /** Selected primary keys — or every loaded one when nothing is selected. */
   targets: string[]
   /** The one selected row's data, when exactly one is selected — what an
@@ -98,7 +100,7 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow, ex
       </Popover>
       {running && (
         <RunActionDialog action={running} targets={targets} selectedRow={selectedRow ?? null}
-          explicitSelection={explicitSelection}
+          explicitSelection={explicitSelection} application={application}
           objectTypeId={objectTypeId} onClose={() => { setRunning(null) }} />
       )}
     </>
@@ -108,10 +110,12 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow, ex
 // Exported since F6.5/F9: the OMA's Apply reuses THIS dialog, so both apply
 // surfaces agree about what the form is — sections, defaults, overrides,
 // through the one resolver.
-export function RunActionDialog({ action, targets, selectedRow, objectTypeId, onClose, explicitSelection = true }: {
+export function RunActionDialog({ action, targets, selectedRow, objectTypeId, onClose, application, explicitSelection = true }: {
   action: ActionTypeRow
   targets: string[]
   selectedRow: Record<string, unknown> | null
+  /** The application making the edit, for the usage ledger (762). */
+  application: string
   /** The type the targets belong to — how the selection finds its
    *  object-reference parameter. Absent from the OMA's Apply. */
   objectTypeId?: string
@@ -199,7 +203,7 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
   // error action-apply returned is the response body, on error.context.
   const invokeOnce = async (parameters: Record<string, string>): Promise<number> => {
     const res = await supabase.functions.invoke('action-apply', {
-      body: { actionTypeId: action.id, parameters },
+      body: { actionTypeId: action.id, parameters, application },
     }) as { data: unknown; error: { message: string; context?: unknown } | null }
     if (res.error) {
       const ctx = res.error.context
@@ -240,7 +244,7 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
         if (objectTypeId !== undefined && written > 0) reindex.mutate(objectTypeId)
       } else if (!targeted) {
         await new Promise<void>((res, rej) => {
-          apply.mutate({ actionTypeId: action.id, parameters: values, objectTypeIds: touched },
+          apply.mutate({ actionTypeId: action.id, parameters: values, objectTypeIds: touched, application },
             { onSuccess: () => { res() }, onError: rej })
         })
       } else {
@@ -251,7 +255,7 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
           const params = objectParam !== undefined ? { ...values, [objectParam.api_name]: pk } : values
           await new Promise<void>((res, rej) => {
             apply.mutate({ actionTypeId: action.id, parameters: params,
-              primaryKey: pk, objectTypeIds: touched },
+              primaryKey: pk, objectTypeIds: touched, application },
               { onSuccess: () => { res() }, onError: rej })
           })
         }
