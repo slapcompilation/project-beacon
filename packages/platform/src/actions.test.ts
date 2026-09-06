@@ -481,6 +481,50 @@ describe.skipIf(noDb)('actions', () => {
         where object_type_id = $1 and property_id = 'tags'`, [type]))).toMatch(/check/)
   })
 
+  // ── 762: the write half of the usage ledger ───────────────────────────────
+  // "A write is recorded when an application makes edits to objects of this
+  // type as the result of an Action … one write represents one edit request …
+  // Many objects edited in bulk at once will only be recorded as a single
+  // write." The doors are asked here because this is where an apply happens.
+  it('records one write per resource an edit request touched, and only for a caller that names itself (762)', async () => {
+    await db.query(
+      `update public.ontologies set metrics_enabled = true,
+              metrics_enabled_at = now() - interval '90 days' where id = $1`, [ont])
+    const writesBy = async (app: string) => Number((await one(
+      `select coalesce(sum(writes), 0) as n from public.ontology_usage
+        where object_type_id = $1 and application = $2`, [type, app])).n)
+
+    // a caller that does not name itself edits and records nothing (746's rule)
+    await db.query(`select public.apply_action($1, '{"ticketId":"W-1","severity":"high"}'::jsonb)`, [action])
+    expect(await count(`select count(*) n from public.ontology_usage where object_type_id = $1`, [type])).toBe(0)
+
+    // "any object type or link type usage happening in Ontology Manager is not
+    // included" — the recorder drops the name the OMA's Apply dialog passes
+    await db.query(
+      `select public.apply_action($1, '{"ticketId":"W-2","severity":"high"}'::jsonb, null, 'ontology-manager')`, [action])
+    expect(await count(`select count(*) n from public.ontology_usage where object_type_id = $1`, [type])).toBe(0)
+
+    // a named request: one write, and no read
+    await db.query(
+      `select public.apply_action($1, '{"ticketId":"W-3","severity":"high"}'::jsonb, null, 'object-explorer')`, [action])
+    expect(await writesBy('object-explorer')).toBe(1)
+    expect(await count(
+      `select coalesce(sum(reads), 0) n from public.ontology_usage where object_type_id = $1`, [type])).toBe(0)
+
+    // a revert is an edit request against what it puts back
+    const app = (await one(
+      `select id from public.action_applications where action_type_id = $1
+        order by applied_at desc limit 1`, [action])).id
+    await db.query(`select public.revert_action($1, 'object-explorer')`, [app])
+    expect(await writesBy('object-explorer')).toBe(2)
+
+    // the summary counts them, and Active users sees the one caller
+    const s = await one(`select * from public.ontology_usage_summary($1, 30)`, [type])
+    expect(Number(s.writes)).toBe(2)
+    expect(Number(s.active_users)).toBe(1)
+    await db.query(`update public.ontologies set metrics_enabled = false where id = $1`, [ont])
+  })
+
   // ── 444: deletion takes the children ──────────────────────────────────────
   it('deletes a staged action whole, children included', async () => {
     await db.query(`select public.delete_ontology_resource('action_type', $1)`, [action])

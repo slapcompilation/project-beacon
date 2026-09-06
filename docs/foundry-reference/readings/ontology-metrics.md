@@ -135,6 +135,20 @@ colleagues.
    instrumentation.** That asymmetry is worth stating because it decides the
    order: the ledger and the write half are one change, the read half is
    wherever `evaluate_object_set` and the index reads live.
+
+   *Half right, corrected by building it (762).* The order ran the other way —
+   the read half shipped first (746/747/752) and the write half sat unbuilt for
+   three days — and the reason is the part this decision missed: the edit path
+   knows **what** was edited but not **who by**, in the sense the page means.
+   Every write door had the object types, the link types, the user and the
+   application *row*, and no application *name*; `apply_action` had no argument
+   for one and `action_applications` no column. So the write half was not
+   *sourced from the edit path we already have* — it was the same instrumenting
+   the read half needed, one argument per door, plus the plumbing to three web
+   surfaces and the edge function. What the edit path did supply, and what made
+   the recorder correct rather than approximate, is the *resources*: 762 reads
+   them off the `object_edits` and `link_edits` rows the request actually
+   wrote, so a rule that logged nothing records nothing.
 8. **`application` is free text, deliberately.** Not because the vocabulary is
    unknown — the platform half is closed at 40 and the portal draws it — but
    because the other 35 of 75 are **promoted apps built by customers**. Any
@@ -152,6 +166,50 @@ colleagues.
    IDs" cannot count an absent one. So reads and Active users can disagree in a
    way that is correct, and a surface showing both should not treat one as a
    sanity check on the other.
+
+10. **BUILT (762/763/764) — the write half.** `record_write_usage(application,
+   application_id)` records one write per resource an edit request touched,
+   spliced into the three doors that write edits: `apply_action`,
+   `apply_function_edits` and `revert_action`. Four things decided its shape,
+   and each is a sentence rather than a preference:
+
+   - **The unit is the request.** "one write represents one edit request …
+     Many objects edited in bulk at once will only be recorded as a single
+     write" — the same shape as a read, and the reason the recorder counts
+     once per (request, resource) rather than once per `object_edits` row.
+   - **One write per resource the request touched**, because the page counts
+     writes "on objects of this type": a request editing two types is one
+     request and two writes, one against each.
+   - **The resources come from what was written**, not from the rule loop —
+     `apply_action` counts a no-op unlink in the integer it returns while
+     `write_link_edit` logs nothing for it (755), so a recorder keyed off that
+     count would record a write that never happened.
+   - **A link edit is a write against the link type** — INFERENCE, marked:
+     the page says metrics cover "object types and link types" and defines a
+     write over objects. `ontology_usage.link_type_id` had carried an index
+     and an RLS arm since 579 with nothing to write it. **Residual:** both
+     summary readers still take an object type only, so these rows have no
+     surface yet.
+   - **A revert is a write** — inference: the page never mentions reverts, and
+     a revert is an edit request that writes compensating rows. Its rows carry
+     no application id, so the resources come from the application it reverted.
+
+   The Ontology Manager's exclusion needed no new code: 579's recorder already
+   returns on the literal `ontology-manager`, and the OMA's Apply dialog — the
+   same one the Explorer and the Object View host — now says that is what it
+   is. The three surfaces are indistinguishable at the database and are told
+   apart by what they *say*, which is the only thing the page's rule can key on.
+
+   **Two defects the doing produced, both caught before the push.** The
+   signature change is DROP + CREATE, and `pg_get_functiondef` carries neither
+   the ACL nor the COMMENT: the grants were remembered and the comments were
+   not, so three functions came back undocumented and 763 restored them. Worse,
+   762's splice anchor spanned two statements — the window close and the
+   RETURN — and the replacement kept only the RETURN, so both apply doors
+   opened 606's edit window and never closed it, which quietly disabled 605's
+   only-edits-via-actions guard for the rest of any transaction. The platform
+   suite failed on it the first time it ran; 764 restored the close and records
+   the rule: to insert before an anchor, keep the anchor in the replacement.
 
 ## Questions
 

@@ -189,6 +189,9 @@ export interface ApplyInput {
   /** The object types the rules touch — their indexes are stale the moment the
    *  edit lands, so the count only moves once they rebuild. */
   objectTypeIds: string[]
+  /** Which application is making the edit, for the usage ledger (762). The
+   *  Ontology Manager names itself and is excluded by the recorder. */
+  application: string
 }
 
 /** "The toast below is your only opportunity to revert the action" — so the
@@ -217,6 +220,7 @@ export function useApplyAction() {
       p_action_type: i.actionTypeId,
       p_parameters: i.parameters,
       ...(i.primaryKey ? { p_primary_key: i.primaryKey } : {}),
+      p_application: i.application,
     }),
     onSuccess: (_n, i) => {
       for (const id of new Set(i.objectTypeIds)) reindex.mutate(id)
@@ -225,7 +229,9 @@ export function useApplyAction() {
         toast.success('Edits successfully applied.', application === null ? undefined : {
           action: {
             label: 'Revert',
-            onClick: () => { revert.mutate({ application, objectTypeIds: i.objectTypeIds }) },
+            onClick: () => {
+              revert.mutate({ application, objectTypeIds: i.objectTypeIds, applicationName: i.application })
+            },
           },
         })
       })
@@ -239,8 +245,12 @@ export function useApplyAction() {
 export function useRevertAction() {
   const reindex = useReindex()
   return useMutation({
-    mutationFn: (i: { application: string; objectTypeIds: string[] }) =>
-      client(revertAction).applyAction({ p_application: i.application }),
+    // `application` is the action_applications id being reverted;
+    // `applicationName` is the calling application, for the ledger (762).
+    mutationFn: (i: { application: string; objectTypeIds: string[]; applicationName: string }) =>
+      client(revertAction).applyAction({
+        p_application: i.application, p_application_name: i.applicationName,
+      }),
     onSuccess: (_n, i) => {
       toast.success('Edits successfully reverted')
       for (const id of new Set(i.objectTypeIds)) reindex.mutate(id)

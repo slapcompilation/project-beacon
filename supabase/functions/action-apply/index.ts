@@ -50,8 +50,13 @@ Deno.serve(async (req) => {
   const auth = req.headers.get('authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return reply(401, { error: 'sign in first' })
 
-  const { actionTypeId, parameters = {} } =
-    await req.json() as { actionTypeId?: string; parameters?: Record<string, unknown> }
+  // `application` is what the calling surface says it is, for the usage
+  // ledger (762): the recorder drops 'ontology-manager' and records nothing at
+  // all when the caller does not name itself.
+  const { actionTypeId, parameters = {}, application } =
+    await req.json() as {
+      actionTypeId?: string; parameters?: Record<string, unknown>; application?: string
+    }
   if (!actionTypeId) return reply(400, { error: 'actionTypeId is required' })
 
   const caller = createClient(SUPABASE_URL, ANON_KEY, {
@@ -115,6 +120,7 @@ Deno.serve(async (req) => {
   // which is passed to the actions service executing the atomic transaction."
   const applied = await caller.rpc('apply_function_edits', {
     p_action_type: actionTypeId, p_edits: out.value, p_application: applicationId,
+    p_application_name: application ?? null,
   })
   if (applied.error) return reply(400, { error: applied.error.message })
 
