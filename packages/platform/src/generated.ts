@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (115) ────────────────────────────────────────────────
+// ── ACTION TYPES (116) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -477,6 +477,20 @@ export const executeAutomationNow = { apiName: 'execute_automation_now', kind: '
 export const generateBackingDataset = { apiName: 'generate_backing_dataset', kind: 'action' } as ActionType<
   { p_object_type: string; p_name: string; p_folder?: string },
   string
+>
+
+/**
+ *  What a create-or-modify rule card compiles into (760): the object
+ *  reference parameter its "Modify existing selected" chip is, generated
+ *  after the type when the author named none; and, for "Auto-generated
+ *  primary key", a hidden string parameter carrying generate_uuid mapped onto
+ *  the primary key — the way
+ *  object-link-types/create-ontology-objects-from-gaia shows Foundry doing
+ *  it. Idempotent: a re-save adds nothing.
+ */
+export const generateCreateOrModifyParameters = { apiName: 'generate_create_or_modify_parameters', kind: 'action' } as ActionType<
+  { p_action_type: string },
+  number
 >
 
 export const generateInterfaceParameters = { apiName: 'generate_interface_parameters', kind: 'action' } as ActionType<
@@ -1090,7 +1104,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (324) ───────────────────────────────────────────────────
+// ── FUNCTIONS (325) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2822,6 +2836,17 @@ export const objectCurrentValue = { apiName: 'object_current_value', kind: 'func
 export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 'function' } as FunctionType<
   { p_dataset: string },
   string
+>
+
+/**
+ *  Whether a reader currently sees an object with this primary key: the built
+ *  index row with the edit log replayed over it, per
+ *  object-edits/how-edits-applied's four steps. What a create-or-modify rule
+ *  asks before choosing its edit (760).
+ */
+export const objectExists = { apiName: 'object_exists', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_primary_key: string },
+  boolean
 >
 
 /**

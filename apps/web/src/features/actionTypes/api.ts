@@ -59,6 +59,11 @@ export interface ActionRuleRow {
   auto_upgrade: boolean
   source_parameter_id: string | null
   target_parameter_id: string | null
+  /** A create-or-modify rule (760): the object reference parameter its card's
+   *  "Modify existing selected" chip is, and the "Or create a new object with"
+   *  choice beside it. */
+  object_parameter_id: string | null
+  create_new_object_with: 'auto_generated_primary_key' | 'user_submitted_primary_key' | null
   action_type_rule_properties: ActionRulePropertyRow[]
 }
 
@@ -141,6 +146,8 @@ export interface ActionDraft {
     link_type_id?: string | null
     source_parameter_api_name?: string | null
     target_parameter_api_name?: string | null
+    object_parameter_api_name?: string | null
+    create_new_object_with?: 'auto_generated_primary_key' | 'user_submitted_primary_key' | null
     properties: {
       /** A rule names an object type's property, or an interface's — never both.
        *  An interface property resolves onto a different property per

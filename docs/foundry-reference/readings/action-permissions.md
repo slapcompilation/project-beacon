@@ -232,7 +232,10 @@ and the ordering, which matters if we ever build them:
 this confirms the position rather than changing it.~~ **FALSE — corrected by
 the 2026-08-24 gap sweep, which executed the claim**: the kinds marked
 `executable = false` are `create_or_modify_object`, `create_link`,
-`delete_link` and the two interface link kinds — all Ontology rules. No
+`delete_link` and the two interface link kinds — all Ontology rules *(as of
+that sweep; 755 flipped the two link kinds and 760 create-or-modify, so on
+2026-09-06 only the two interface link kinds remain — see
+`api-action-type.md` §3.1)*. No
 side-effect kind (notification, webhook, schedule) is registered at all;
 they arrive with their machinery, per the emit-only rule. The sweep also
 found the third "Other rule" unrecorded anywhere: the **Schedule rule**

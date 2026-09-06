@@ -350,6 +350,11 @@ interface it implements.
 Eight. Absent: `create_or_modify_object`, the function rule, and **both interface
 link rules** — which do not appear anywhere in the action-type API.
 
+*(Re-read 2026-09-06: the union is nine on the current api page — `applyScenario`
+joined it in the 2026-08-19 refetch, as `api-action-type.md` §2 records. The
+absence of create-or-modify holds, and 760 built it as the kind that compiles
+to `createObject` or `modifyObject` at apply time — `api-action-type.md` §3.1.)*
+
 **This is not a falsification, and mistaking it for one would be the error.** It
 is the scope split CLAUDE.md's two-vocabularies table warns about, in a form that
 table does not cover: not two spellings of one idea, but **what the Ontology

@@ -31,6 +31,7 @@ describe.skipIf(noDb)('actions', () => {
   let ont: string
   let type: string
   let pid: string
+  let statusPid: string
   let action: string
   let org: string
   let claims: string
@@ -73,6 +74,14 @@ describe.skipIf(noDb)('actions', () => {
     await db.query('update public.object_types set edits_enabled = true where id = $1', [type])
     pid = (await one(`select id from public.object_type_properties
                        where object_type_id = $1 and property_id = 'ticket_id'`, [type])).id
+    // A non-key property names the datasource it comes from, so it joins after
+    // the save that made the datasource (760's cases modify it).
+    statusPid = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, backing_column, datasource_id, required)
+       values ($1, 'status', 'Status', 'status', 'string', 'column', 'status',
+               (select id from public.object_type_datasources where object_type_id = $1), false)
+       returning id`, [type])).id
   })
   afterAll(async () => { await rollback(db) })
 
@@ -127,21 +136,21 @@ describe.skipIf(noDb)('actions', () => {
   // applied at all" and a function rule is — by the action runtime, which owns
   // the isolate. What apply_action can run is the SQL-runtime subset, and that
   // is still three.
-  it('has exactly nine kinds apply_action can run, said by the registry', async () => {
+  it('has exactly ten kinds apply_action can run, said by the registry', async () => {
     // Three since 445; the three interface OBJECT rules joined them at 592/593,
-    // and the two LINK rules at 755, once the pair store existed for their
-    // edits. The two interface LINK rules still wait — the rule must name an
-    // interface link constraint, which no rule column points at.
+    // the two LINK rules at 755, once the pair store existed for their edits,
+    // and create-or-modify at 760, once the merged object could be asked
+    // whether it exists. The two interface LINK rules still wait — the rule
+    // must name an interface link constraint, which no rule column points at.
     expect(await count(
-      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(9)
-    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(10)
+      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(10)
+    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(11)
     expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(13)
     // The ones still waiting, by name, so this fails loudly if one quietly flips.
     expect((await db.query(
       `select kind from public.action_rule_kinds() where not executable order by kind`)).rows
       .map((r) => (r as { kind: string }).kind)).toEqual([
         'create_link_on_object_of_interface',
-        'create_or_modify_object',
         'delete_link_on_object_of_interface',
       ])
   })
@@ -197,6 +206,178 @@ describe.skipIf(noDb)('actions', () => {
       `select count(*) n from public.object_edits
         where object_type_id = $1 and primary_key = 'T-9'
           and instruction = 'create' and action_type_id = $2`, [type, action])).toBe(1)
+  })
+
+  // "3. Create or modify object(s): Can be used to modify an existing object
+  // based on an object reference parameter. If an object is not selected, a
+  // new object will be created with either an automatically generated unique
+  // ID, or with a user submitted primary key." — 760, through the front door.
+  it('a create-or-modify rule creates when nothing is selected and modifies when it is (760)', async () => {
+    // The Gaia card: "Modify existing selected" through an object parameter,
+    // "Or create a new object with" → Auto-generated primary key.
+    const upsert = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'upsert-ticket', label: 'Upsert ticket', ontology_id: ont,
+      parameters: [
+        { api_name: 'ticket', display_name: 'Ticket', data_kind: 'object', object_type_id: type, required: false, position: 0 },
+        { api_name: 'status', display_name: 'Status', base_type: 'string', required: true, position: 1 },
+      ],
+      rules: [{
+        kind: 'create_or_modify_object', position: 0, object_type_id: type,
+        object_parameter_api_name: 'ticket', create_new_object_with: 'auto_generated_primary_key',
+        properties: [{ property_id: statusPid, value_source: 'parameter', parameter_api_name: 'status' }],
+      }],
+    })])).id
+    await db.query('select public.save_working_state()')
+    expect((await one(`select create_new_object_with as w, object_parameter_id is not null as p
+                        from public.action_type_rules where action_type_id = $1`, [upsert])))
+      .toEqual({ w: 'auto_generated_primary_key', p: true })
+
+    // nothing selected: a create — "Foundry will automatically generate a unique ID"
+    expect(await count(`select public.apply_action($1, '{"status":"open"}'::jsonb) n`, [upsert])).toBe(1)
+    const created = await one(`select primary_key, properties from public.object_edits
+                                where action_type_id = $1 and instruction = 'create'`, [upsert])
+    expect(created.primary_key).toMatch(/^[0-9a-f-]{36}$/)
+    expect((created.properties as unknown as Record<string, string>).status).toBe('open')
+
+    // selected through the parameter: a modify of that object, with its before-image
+    expect(await count(`select public.apply_action($1, $2::jsonb) n`,
+      [upsert, JSON.stringify({ ticket: created.primary_key, status: 'closed' })])).toBe(1)
+    const modified = await one(`select properties, "before" from public.object_edits
+                                 where action_type_id = $1 and instruction = 'modify'`, [upsert])
+    expect((modified.properties as unknown as Record<string, string>).status).toBe('closed')
+    expect((modified.before as unknown as Record<string, string>).status).toBe('open')
+    expect(await count(`select count(*) n from public.object_edits where action_type_id = $1`, [upsert])).toBe(2)
+
+    // a key that names no object is not a create — "the parameter value must be
+    // the primary key of an object found within an object set"
+    expect(await refused(db, () => db.query(
+      `select public.apply_action($1, '{"ticket":"NOPE","status":"x"}'::jsonb)`, [upsert]))).toMatch(/Actions:ObjectNotFound/)
+
+    // the parameter named but blank: the caller's selection still stands — a
+    // modify of the selected object, not a second create
+    expect(await count(`select public.apply_action($1, '{"status":"reopened"}'::jsonb, $2) n`,
+      [upsert, created.primary_key])).toBe(1)
+    expect(await count(`select count(*) n from public.object_edits where action_type_id = $1 and instruction = 'create'`, [upsert])).toBe(1)
+    expect(await count(`select count(*) n from public.object_edits
+                         where action_type_id = $1 and instruction = 'modify' and primary_key = $2`, [upsert, created.primary_key])).toBe(2)
+  })
+
+  it('a create-or-modify rule with a user-submitted key takes it from its properties, and the selection from the caller (760)', async () => {
+    // No object parameter: "Modify existing selected" is the caller's selection
+    // (the Explorer's p_primary_key); "a user submitted primary key" is the
+    // mapped key, the create_object contract unchanged.
+    const upsert = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'upsert-ticket-keyed', label: 'Upsert ticket, keyed', ontology_id: ont,
+      parameters: [
+        { api_name: 'ticketId', display_name: 'Ticket', base_type: 'string', required: false, position: 0 },
+        { api_name: 'status', display_name: 'Status', base_type: 'string', required: true, position: 1 },
+      ],
+      rules: [{
+        kind: 'create_or_modify_object', position: 0, object_type_id: type,
+        create_new_object_with: 'user_submitted_primary_key',
+        properties: [
+          { property_id: pid, value_source: 'parameter', parameter_api_name: 'ticketId' },
+          { property_id: statusPid, value_source: 'parameter', parameter_api_name: 'status' },
+        ],
+      }],
+    })])).id
+    await db.query('select public.save_working_state()')
+
+    // no key submitted and nothing selected: the create has no key
+    expect(await refused(db, () => db.query(
+      `select public.apply_action($1, '{"status":"open"}'::jsonb)`, [upsert]))).toMatch(/Actions:CreateNeedsPrimaryKey/)
+    // the submitted key creates
+    expect(await count(`select public.apply_action($1, '{"ticketId":"T-760","status":"open"}'::jsonb) n`, [upsert])).toBe(1)
+    expect(await count(`select count(*) n from public.object_edits
+                         where action_type_id = $1 and instruction = 'create' and primary_key = 'T-760'`, [upsert])).toBe(1)
+    // the caller's selection modifies it; the mapped key stands aside
+    expect(await count(`select public.apply_action($1, '{"ticketId":"other","status":"closed"}'::jsonb, 'T-760') n`, [upsert])).toBe(1)
+    expect(await count(`select count(*) n from public.object_edits
+                         where action_type_id = $1 and instruction = 'modify' and primary_key = 'T-760'
+                           and properties = '{"status":"closed"}'::jsonb`, [upsert])).toBe(1)
+  })
+
+  it('the save generates the card into parameters, and a modify finds a required property on the merged object (760)', async () => {
+    // A type whose title is required: the create must carry it, the modify
+    // through the object parameter may leave it out — the required-properties
+    // fallback reads the key the rule edits, not the caller's (760 fixed that).
+    // its own dataset — a datasource backs one object type (417)
+    const home = await one(
+      `select d.organization_id, d.project_id from public.datasets d
+         join public.object_type_datasources o on o.dataset_id = d.id where o.object_type_id = $1`, [type])
+    const ds2 = (await one(`insert into public.datasets (organization_id, project_id, api_name, name)
+                            values ($1,$2,'task760ds','task760ds') returning id`, [home.organization_id, home.project_id])).id
+    const br2 = (await one(`insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`, [ds2])).id
+    const task = (await one(`select public.save_object_type($1::jsonb, $2::jsonb) as id`, [
+      JSON.stringify({ api_name: 'Task760', label: 'Task 760', ontology_id: ont,
+        datasources: [{ dataset_id: ds2, branch_id: br2 }] }),
+      JSON.stringify([
+        { property_id: 'task_id', display_name: 'Task Id', api_name: 'taskId', base_type: 'string',
+          source: 'column', backing_column: 'task_id', is_primary_key: true, is_title_key: true, required: true },
+      ]),
+    ])).id
+    await db.query('select public.save_working_state()')
+    await db.query('update public.object_types set edits_enabled = true where id = $1', [task])
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, backing_column, datasource_id, required)
+       select $1, v.pid, v.dn, v.an, 'string', 'column', v.pid,
+              (select id from public.object_type_datasources where object_type_id = $1), v.req
+         from (values ('title', 'Title', 'title', true), ('status', 'Status', 'status', false)) as v(pid, dn, an, req)`,
+      [task])
+    const prop = async (p: string) =>
+      (await one(`select id from public.object_type_properties where object_type_id = $1 and property_id = $2`, [task, p])).id
+
+    // no object parameter named, auto-generated key: the save generates both
+    const upsert = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'upsert-task', label: 'Upsert task', ontology_id: ont,
+      parameters: [
+        { api_name: 'title', display_name: 'Title', base_type: 'string', required: false, position: 0 },
+        { api_name: 'status', display_name: 'Status', base_type: 'string', required: true, position: 1 },
+      ],
+      rules: [{
+        kind: 'create_or_modify_object', position: 0, object_type_id: task,
+        create_new_object_with: 'auto_generated_primary_key',
+        properties: [
+          { property_id: await prop('title'), value_source: 'parameter', parameter_api_name: 'title' },
+          { property_id: await prop('status'), value_source: 'parameter', parameter_api_name: 'status' },
+        ],
+      }],
+    })])).id
+    await db.query('select public.save_working_state()')
+    const generated = await one(
+      `select pa.api_name as obj, pa.data_kind as kind, pa.exposed as exposed,
+              (select count(*) from public.action_type_parameters g
+                where g.action_type_id = r.action_type_id and 'generate_uuid' = any (g.type_classes) and not g.exposed) as hidden
+         from public.action_type_rules r join public.action_type_parameters pa on pa.id = r.object_parameter_id
+        where r.action_type_id = $1`, [upsert])
+    expect(generated).toEqual({ obj: 'task760', kind: 'object', exposed: true, hidden: '1' })
+
+    // the create carries the required title
+    expect(await count(`select public.apply_action($1, '{"title":"first","status":"open"}'::jsonb) n`, [upsert])).toBe(1)
+    const key = (await one(`select primary_key from public.object_edits
+                             where action_type_id = $1 and instruction = 'create'`, [upsert])).primary_key
+    expect(key).toMatch(/^[0-9a-f-]{36}$/)
+
+    // a second card mapping only the status: modifying the object it selects
+    // passes because the required title is found on the merged object — an
+    // object no index has built — while creating through it is refused
+    const close = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'close-task', label: 'Close task', ontology_id: ont,
+      parameters: [{ api_name: 'status', display_name: 'Status', base_type: 'string', required: true, position: 0 }],
+      rules: [{
+        kind: 'create_or_modify_object', position: 0, object_type_id: task,
+        create_new_object_with: 'auto_generated_primary_key',
+        properties: [{ property_id: await prop('status'), value_source: 'parameter', parameter_api_name: 'status' }],
+      }],
+    })])).id
+    await db.query('select public.save_working_state()')
+    expect(await count(`select public.apply_action($1, $2::jsonb) n`,
+      [close, JSON.stringify({ task760: key, status: 'closed' })])).toBe(1)
+    expect((await one(`select properties from public.object_edits where action_type_id = $1`, [close])).properties)
+      .toEqual({ status: 'closed' })
+    expect(await refused(db, () => db.query(
+      `select public.apply_action($1, '{"status":"x"}'::jsonb)`, [close]))).toMatch(/Actions:RequiredPropertyMissing/)
   })
 
   // "by default, new object types only allow edits via actions" — so the same
