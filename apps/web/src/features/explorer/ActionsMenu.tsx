@@ -143,8 +143,13 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
   const functionBacked = action.action_type_rules.some((r) => r.kind === 'function')
   // "a `Demo Ticket` parameter of type Object reference has been created" —
   // the selection reaches a function-backed action through this parameter.
+  // A create-or-modify rule names the parameter its chip is (760); otherwise
+  // the first object parameter of the type.
+  const ruleParamId = action.action_type_rules.find((r) =>
+    r.kind === 'create_or_modify_object' && r.object_type_id === objectTypeId && r.object_parameter_id !== null)?.object_parameter_id
   const objectParam = objectTypeId !== undefined
-    ? action.action_type_parameters.find((p) => p.data_kind === 'object' && p.object_type_id === objectTypeId)
+    ? (action.action_type_parameters.find((p) => p.id === ruleParamId)
+       ?? action.action_type_parameters.find((p) => p.data_kind === 'object' && p.object_type_id === objectTypeId))
     : undefined
 
   // prefill once, when the effective form first arrives: static values

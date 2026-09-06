@@ -345,13 +345,18 @@ describe.skipIf(noDb)('actions', () => {
       }],
     })])).id
     await db.query('select public.save_working_state()')
+    // the chip is a parameter named after the type; the key row is the Unique
+    // Identifier mapping type, which names no parameter (761)
     const generated = await one(
       `select pa.api_name as obj, pa.data_kind as kind, pa.exposed as exposed,
+              (select rp.value_source from public.action_type_rule_properties rp
+                 join public.object_type_properties p on p.id = rp.property_id
+                where rp.rule_id = r.id and p.is_primary_key) as key_source,
               (select count(*) from public.action_type_parameters g
-                where g.action_type_id = r.action_type_id and 'generate_uuid' = any (g.type_classes) and not g.exposed) as hidden
+                where g.action_type_id = r.action_type_id and 'generate_uuid' = any (g.type_classes)) as minted
          from public.action_type_rules r join public.action_type_parameters pa on pa.id = r.object_parameter_id
         where r.action_type_id = $1`, [upsert])
-    expect(generated).toEqual({ obj: 'task760', kind: 'object', exposed: true, hidden: '1' })
+    expect(generated).toEqual({ obj: 'task760', kind: 'object', exposed: true, key_source: 'unique_identifier', minted: '0' })
 
     // the create carries the required title
     expect(await count(`select public.apply_action($1, '{"title":"first","status":"open"}'::jsonb) n`, [upsert])).toBe(1)

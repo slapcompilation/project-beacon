@@ -480,13 +480,13 @@ export const generateBackingDataset = { apiName: 'generate_backing_dataset', kin
 >
 
 /**
- *  What a create-or-modify rule card compiles into (760): the object
- *  reference parameter its "Modify existing selected" chip is, generated
+ *  What a create-or-modify rule card compiles into (760, corrected 761): the
+ *  object reference parameter its "Modify existing selected" chip is, named
  *  after the type when the author named none; and, for "Auto-generated
- *  primary key", a hidden string parameter carrying generate_uuid mapped onto
- *  the primary key — the way
- *  object-link-types/create-ontology-objects-from-gaia shows Foundry doing
- *  it. Idempotent: a re-save adds nothing.
+ *  primary key", the key row mapped to the Unique Identifier mapping type — a
+ *  value source, not a parameter
+ *  (action-types/images/build-schedule-run-rid-property.png). Idempotent: a
+ *  re-save adds nothing.
  */
 export const generateCreateOrModifyParameters = { apiName: 'generate_create_or_modify_parameters', kind: 'action' } as ActionType<
   { p_action_type: string },
@@ -1177,10 +1177,11 @@ export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' 
 
 /**
  *  Where a rule property's value comes from: the 418 set plus
- *  schedule_run_rid — the contextual source trigger-schedule-build exposes
- *  ("allowing you to write it into a string property of an edited object").
- *  The capture's Unique Identifier mapping type is a recorded residual, not a
- *  member.
+ *  schedule_run_rid (668) and unique_identifier (761) — the two contextual
+ *  sources the MAP TO menu in
+ *  action-types/images/build-schedule-run-rid-property.png adds to the
+ *  prose's four. Unique Identifier generates the value at apply time and
+ *  names nothing.
  */
 export const actionRuleValueSources = { apiName: 'action_rule_value_sources', kind: 'function' } as FunctionType<
   Record<string, never>,

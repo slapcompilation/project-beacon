@@ -75,7 +75,9 @@ notes from that menu:
   contextual source like `current_user`/`current_time`, naming nothing.
 - **Unique Identifier** is a mapping type our set lacks — recorded as a
   residual, not built here (it is the form's generate_uuid cousin on the
-  RULE side).
+  RULE side). *Closed by 761 (2026-09-06): `unique_identifier` joined
+  `action_rule_value_sources()` as the key row of a create-or-modify rule's
+  "Auto-generated primary key" — see `api-action-type.md` §3.1.*
 
 The same capture shows **Required inputs** on the rule — the parameterized-
 schedule half ("If the selected schedule is parameterized, you must provide a

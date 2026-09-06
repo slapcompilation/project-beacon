@@ -527,5 +527,8 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
 // resolver, and the two apply surfaces can no longer disagree about what the
 // form is. With nothing selected, the dialog collects the target key itself.
 function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () => void }) {
-  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} />
+  // The Ontology Manager has no selection: a create-or-modify action runs
+  // untargeted here, its object reference parameter being the selection —
+  // blank means create (760).
+  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} explicitSelection={false} />
 }
