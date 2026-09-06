@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**4332 pages across 116 sections.**
+**4346 pages across 118 sections.**
 
 ## action-types — 37 pages
 
@@ -2574,6 +2574,12 @@ stay findable.
 - `overview` — Developer Console
 - `permissions` — Permissions
 
+## devops — 3 pages
+
+- `_index` — Product delivery
+- `core-concepts` — Core concepts
+- `overview` — Product delivery
+
 ## devops-release-management — 3 pages
 
 - `_index` — Release management
@@ -2641,6 +2647,20 @@ stay findable.
 - `rebasing-and-conflict-resolution` — Branching Workshop modules
 - `side-effects-on-branches` — Branching action types
 - `supported-functionality` — Integrations
+
+## foundry-devops — 11 pages
+
+- `_index` — Foundry DevOps
+- `create-products` — Create a product
+- `export-import-products` — Export and import products
+- `folder-tracking` — Track a source folder
+- `input-presets` — Input presets
+- `manage-products` — Manage products
+- `manage-store-permissions` — Manage store permissions
+- `manage-store-tags` — Manage store tags
+- `overview` — Foundry DevOps
+- `package-multiple-products` — Package multiple products
+- `supported-resources` — Supported resources
 
 ## foundry-rules — 28 pages
 
