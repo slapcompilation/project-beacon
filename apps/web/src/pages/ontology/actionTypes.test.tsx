@@ -79,11 +79,13 @@ vi.mock('@/lib/supabase/ontologyClient', () => ({
   client: (entity: { apiName: string }) => ({
     executeFunction: () => Promise.resolve(
       entity.apiName === 'action_rule_kinds'
-        ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'create_or_modify_object', 'function']
-            // matches the live action_rule_kinds(): function (669) and
-            // create_link (755) ARE executable; create_or_modify is not yet
+        ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'create_or_modify_object', 'function',
+           'create_link_on_object_of_interface']
+            // matches the live action_rule_kinds(): function (669), create_link
+            // (755) and create_or_modify_object (760) execute; the interface
+            // link kinds still wait
             .map((kind) => ({ kind, targets: kind === 'create_link' ? 'link_type' : 'object_type',
-              executable: kind !== 'create_or_modify_object', note: `note for ${kind}` }))
+              executable: kind !== 'create_link_on_object_of_interface', note: `note for ${kind}` }))
         : entity.apiName === 'submission_operators'
           ? [{ operator: 'is', arity: 'single', note: '' },
              { operator: 'includes', arity: 'multi', note: '' }]
@@ -140,7 +142,9 @@ describe('Action types', () => {
 
   it('refuses the kinds apply_action cannot run, and offers the ones it can', async () => {
     renderPage()
-    expect((await screen.findByRole('option', { name: 'create or modify object' })).hasAttribute('disabled')).toBe(true)
+    expect((await screen.findByRole('option', { name: 'create link on object of interface' })).hasAttribute('disabled')).toBe(true)
+    // 760: the create-or-modify rule runs now.
+    expect(screen.getByRole('option', { name: 'create or modify object' }).hasAttribute('disabled')).toBe(false)
     expect(screen.getByRole('option', { name: 'modify object' }).hasAttribute('disabled')).toBe(false)
     // 755: a link rule runs now.
     expect(screen.getByRole('option', { name: 'create link' }).hasAttribute('disabled')).toBe(false)

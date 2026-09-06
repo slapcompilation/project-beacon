@@ -147,6 +147,11 @@ interface RuleDraft {
   linkTypeId?: string
   sourceParameter?: string
   targetParameter?: string
+  /** A create-or-modify rule (760): "Modify existing selected" — the selection,
+   *  or an object reference parameter a form supplies it through — and the
+   *  card's "Or create a new object with" choice. */
+  objectParameter?: string
+  createNewObjectWith?: 'auto_generated_primary_key' | 'user_submitted_primary_key'
 }
 
 const isLinkKind = (kind: string) => kind === 'create_link' || kind === 'delete_link'
@@ -300,6 +305,9 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
           kind: r.kind, position: i,
           object_type_id: onInterface ? null : r.objectTypeId,
           interface_id: onInterface ? r.interfaceId : null,
+          object_parameter_api_name: r.kind === 'create_or_modify_object' ? (r.objectParameter || null) : null,
+          create_new_object_with: r.kind === 'create_or_modify_object'
+            ? (r.createNewObjectWith ?? 'auto_generated_primary_key') : null,
           properties: r.props.filter((p) => p.propertyId).map((p) => ({
             property_id: onInterface ? null : p.propertyId,
             interface_property_id: onInterface ? p.propertyId : null,
@@ -427,6 +435,28 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                   )}
                 </div>
               )}
+              {r.kind === 'create_or_modify_object' && r.objectTypeId !== '' && (
+                // The rule card's two rows (configure-milsym-action-type.png):
+                // "Modify existing selected" — the selection, or the object
+                // reference parameter a form supplies it through — and "Or
+                // create a new object with" its primary-key source.
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-muted-foreground">Modify existing selected</span>
+                  <HTMLSelect value={r.objectParameter ?? ''}
+                    onChange={(e) => { setRule(i, { objectParameter: e.currentTarget.value }) }}>
+                    <option value="">a parameter generated after the type</option>
+                    {named.filter((np) => np.kind === 'object' && np.objectTypeId === r.objectTypeId).map((np) => (
+                      <option key={toCamel(np.label)} value={toCamel(np.label)}>via {np.label}</option>
+                    ))}
+                  </HTMLSelect>
+                  <span className="text-muted-foreground">Or create a new object with</span>
+                  <HTMLSelect value={r.createNewObjectWith ?? 'auto_generated_primary_key'}
+                    onChange={(e) => { setRule(i, { createNewObjectWith: e.currentTarget.value as RuleDraft['createNewObjectWith'] }) }}>
+                    <option value="auto_generated_primary_key">Auto-generated primary key</option>
+                    <option value="user_submitted_primary_key">User submitted primary key</option>
+                  </HTMLSelect>
+                </div>
+              )}
               {target && r.props.map((p, pi) => {
                 const set = (patch: Partial<PropDraft>) =>
                   { setRule(i, { props: r.props.map((x, xi) => (xi === pi ? { ...x, ...patch } : x)) }) }
@@ -497,5 +527,8 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
 // resolver, and the two apply surfaces can no longer disagree about what the
 // form is. With nothing selected, the dialog collects the target key itself.
 function ApplyDialog({ action, onClose }: { action: ActionTypeRow; onClose: () => void }) {
-  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} />
+  // The Ontology Manager has no selection: a create-or-modify action runs
+  // untargeted here, its object reference parameter being the selection —
+  // blank means create (760).
+  return <RunActionDialog action={action} targets={[]} selectedRow={null} onClose={onClose} explicitSelection={false} />
 }

@@ -23,10 +23,15 @@ import { rowToLinkType } from '@/features/objectTypes/api'
 
 const ACTION_CAP = 1000
 
-const needsTarget = (a: ActionTypeRow) =>
-  a.action_type_rules.some((r) => r.kind === 'modify_object' || r.kind === 'delete_object')
+/** Which actions apply per selected object. A create-or-modify rule does only
+ *  when something IS selected — "If an object is not selected, a new object
+ *  will be created" — so with no explicit selection it runs once, untargeted,
+ *  rather than once per loaded object (760). */
+const needsTarget = (a: ActionTypeRow, explicitSelection: boolean) =>
+  a.action_type_rules.some((r) => r.kind === 'modify_object' || r.kind === 'delete_object'
+    || (r.kind === 'create_or_modify_object' && explicitSelection))
 
-export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: {
+export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow, explicitSelection = true }: {
   ontologyId: string
   objectTypeId: string
   /** Selected primary keys — or every loaded one when nothing is selected. */
@@ -34,6 +39,9 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
   /** The one selected row's data, when exactly one is selected — what an
    *  object-property default prefills from. */
   selectedRow?: Record<string, unknown> | null
+  /** Whether `targets` is a selection the user made, or the loaded set standing
+   *  in for one. */
+  explicitSelection?: boolean
 }) {
   const { data: actions } = useActionTypes(ontologyId)
   const [running, setRunning] = useState<ActionTypeRow | null>(null)
@@ -90,6 +98,7 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
       </Popover>
       {running && (
         <RunActionDialog action={running} targets={targets} selectedRow={selectedRow ?? null}
+          explicitSelection={explicitSelection}
           objectTypeId={objectTypeId} onClose={() => { setRunning(null) }} />
       )}
     </>
@@ -99,7 +108,7 @@ export function ActionsMenu({ ontologyId, objectTypeId, targets, selectedRow }: 
 // Exported since F6.5/F9: the OMA's Apply reuses THIS dialog, so both apply
 // surfaces agree about what the form is — sections, defaults, overrides,
 // through the one resolver.
-export function RunActionDialog({ action, targets, selectedRow, objectTypeId, onClose }: {
+export function RunActionDialog({ action, targets, selectedRow, objectTypeId, onClose, explicitSelection = true }: {
   action: ActionTypeRow
   targets: string[]
   selectedRow: Record<string, unknown> | null
@@ -107,6 +116,7 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
    *  object-reference parameter. Absent from the OMA's Apply. */
   objectTypeId?: string
   onClose: () => void
+  explicitSelection?: boolean
 }) {
   const apply = useApplyAction()
   const reindex = useReindex()
@@ -133,8 +143,13 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
   const functionBacked = action.action_type_rules.some((r) => r.kind === 'function')
   // "a `Demo Ticket` parameter of type Object reference has been created" —
   // the selection reaches a function-backed action through this parameter.
+  // A create-or-modify rule names the parameter its chip is (760); otherwise
+  // the first object parameter of the type.
+  const ruleParamId = action.action_type_rules.find((r) =>
+    r.kind === 'create_or_modify_object' && r.object_type_id === objectTypeId && r.object_parameter_id !== null)?.object_parameter_id
   const objectParam = objectTypeId !== undefined
-    ? action.action_type_parameters.find((p) => p.data_kind === 'object' && p.object_type_id === objectTypeId)
+    ? (action.action_type_parameters.find((p) => p.id === ruleParamId)
+       ?? action.action_type_parameters.find((p) => p.data_kind === 'object' && p.object_type_id === objectTypeId))
     : undefined
 
   // prefill once, when the effective form first arrives: static values
@@ -157,12 +172,12 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
         }
       }
     }
-    if (objectParam !== undefined && targets.length === 1) next[objectParam.api_name] = targets[0]
+    if (objectParam !== undefined && targets.length === 1 && explicitSelection) next[objectParam.api_name] = targets[0]
     setPrefills(next)
     if (Object.keys(next).length > 0) setValues((prev) => ({ ...next, ...prev }))
-  }, [form, action, selectedRow, targets, prefills, objectParam])
+  }, [form, action, selectedRow, targets, prefills, objectParam, explicitSelection])
 
-  const targeted = needsTarget(action)
+  const targeted = needsTarget(action, explicitSelection)
   const touched = action.action_type_rules
     .map((r) => r.object_type_id).filter((id): id is string => id !== null)
 
@@ -230,9 +245,12 @@ export function RunActionDialog({ action, targets, selectedRow, objectTypeId, on
         })
       } else {
         // One apply per selected object — the set is what the button meant.
+        // The object-reference parameter, when the action has one, names the
+        // same object as the primary key, per target (760).
         for (const pk of effTargets) {
+          const params = objectParam !== undefined ? { ...values, [objectParam.api_name]: pk } : values
           await new Promise<void>((res, rej) => {
-            apply.mutate({ actionTypeId: action.id, parameters: values,
+            apply.mutate({ actionTypeId: action.id, parameters: params,
               primaryKey: pk, objectTypeIds: touched },
               { onSuccess: () => { res() }, onError: rej })
           })

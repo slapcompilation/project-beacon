@@ -123,7 +123,7 @@ export default function ExplorationPage() {
             onClick={() => { setPerspective('results') }}>Results</Button>
         </ButtonGroup>
         <ActionsMenu ontologyId={type.ontology_id} objectTypeId={type.id} targets={actionTargets}
-          selectedRow={selectedRow} />
+          selectedRow={selectedRow} explicitSelection={selected.size > 0} />
         <ExportMenu rows={loadedRows} pks={actionTargets} typeLabel={type.label} props={props} />
         <Button intent="primary" icon="floppy-disk" onClick={() => { setSaving(true) }}>Save</Button>
       </div>
