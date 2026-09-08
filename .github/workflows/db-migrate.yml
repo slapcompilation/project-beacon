@@ -16,7 +16,9 @@ name: DB migrate
 #   • a migration edited after it was applied fails the job, on PR and on main
 #   • dormant without SUPABASE_DB_URL, so a fork never blocks on a missing secret
 #
-# On PRs it only reports (`--status`) — applying belongs to merge, not review.
+# On PRs it reports (`--status`) and RUNS THE SUITE, but does not apply:
+# applying belongs to merge, verifying belongs to review. Before this, neither
+# happened on a PR — see the note on the test step.
 
 on:
   pull_request:
@@ -33,9 +35,12 @@ on:
   workflow_dispatch:
 
 # Queue, never cancel: interrupting a run mid-migration is the one thing worse
-# than a slow one.
+# than a slow one. The group is deliberately NOT per-ref — there is one
+# database, so a PR's suite and main's migrate must not meet on it. Per-ref,
+# they did: "never mutate the database between merging and main's CI finishing"
+# was a rule a person had to remember, and this is the same rule mechanically.
 concurrency:
-  group: supabase-db-${{ github.ref }}
+  group: supabase-db
   cancel-in-progress: false
 
 jobs:
@@ -74,12 +79,36 @@ jobs:
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
           pnpm gen:client:check
 
+      # A PR cannot be verified against a schema it has not reached. In this
+      # repo migrations are applied locally before the branch is pushed, so the
+      # normal state here is "pending: none" and the suite below is meaningful.
+      # If something IS pending, say which and stop: a green suite against the
+      # previous schema is worse than no suite, and that is what the step after
+      # this one used to be.
+      - name: The schema under test is the schema this PR expects
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          if pnpm db:status | grep -q '^pending: none'; then
+            echo "schema is current"
+          else
+            echo "::error::Migrations are pending, so this PR's suite would run against the previous schema."
+            pnpm db:status
+            exit 1
+          fi
+
       # Runs Palantir's own published transaction example against our engine and
       # compares against the answer the page states, inside a transaction it
-      # rolls back. After applying, not on PRs: a PR that adds a migration and a
-      # check for it would otherwise fail against the un-migrated schema.
-      # The engine tests build a fixture and roll back; the audits read the
-      # database as it is. Both skip cleanly without the secret.
+      # rolls back. The engine tests build a fixture and roll back; the audits
+      # read the database as it is. Both skip cleanly without the secret.
+      #
+      # This used to be `if: github.event_name != 'pull_request'`, and the
+      # reason given was that a PR adding a migration would fail against the
+      # un-migrated schema. Measured on #937: the PR check named
+      # "lint + type-check + test" reported green having run `Test Files 60
+      # skipped (60)` — `ci.yml` carries no SUPABASE_DB_URL, so every database
+      # test skips there. So the merge gate was blind to every database change,
+      # including, on that very PR, the 13 cases written for it. The schema
+      # question is now answered by the step above rather than by not looking.
       - name: Platform tests and audits
-        if: github.event_name != 'pull_request'
         run: pnpm --filter @beacon/platform test

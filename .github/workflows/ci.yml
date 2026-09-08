@@ -36,6 +36,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # This carries NO SUPABASE_DB_URL, on purpose: a fork must not need a
+      # secret to run. The consequence is that every `@beacon/platform` suite
+      # skips here — `Test Files 60 skipped (60)` — so this step proves the
+      # TypeScript packages and nothing about the database. The database suites
+      # run in db-migrate.yml, which has the secret and serializes on it.
       - run: pnpm turbo lint type-check test
 
       # A plausible quote reads exactly like a real one, and CLAUDE.md's
