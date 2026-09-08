@@ -152,9 +152,16 @@ interface RuleDraft {
    *  card's "Or create a new object with" choice. */
   objectParameter?: string
   createNewObjectWith?: 'auto_generated_primary_key' | 'user_submitted_primary_key'
+  /** An interface link rule (769): "Select the interface link constraint
+   *  defined on the interface." Its two ends are generated, not authored. */
+  interfaceLinkConstraint?: string
 }
 
 const isLinkKind = (kind: string) => kind === 'create_link' || kind === 'delete_link'
+
+/** The two interface link kinds, which name a constraint rather than a link
+ *  type and write no properties of their own. */
+const isInterfaceLinkKind = (kind: string) => kind.endsWith('_link_on_object_of_interface')
 
 /** Which target a kind takes, straight from `action_rule_kinds()`. */
 const targetsInterface = (kinds: { kind: string; targets: string }[], kind: string) =>
@@ -279,7 +286,9 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
       // function rule was silently DROPPED and the action saved rule-less.
       // A link rule's target is its link.
       rules: rules.filter((r) => r.kind === 'function'
-        || (isLinkKind(r.kind) ? r.linkTypeId : (r.objectTypeId || r.interfaceId))).map((r, i) => {
+        || (isLinkKind(r.kind) ? r.linkTypeId
+          : isInterfaceLinkKind(r.kind) ? (r.interfaceId && r.interfaceLinkConstraint)
+          : (r.objectTypeId || r.interfaceId))).map((r, i) => {
         if (isLinkKind(r.kind)) {
           return {
             kind: r.kind, position: i, object_type_id: null,
@@ -308,7 +317,10 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
           object_parameter_api_name: r.kind === 'create_or_modify_object' ? (r.objectParameter || null) : null,
           create_new_object_with: r.kind === 'create_or_modify_object'
             ? (r.createNewObjectWith ?? 'auto_generated_primary_key') : null,
-          properties: r.props.filter((p) => p.propertyId).map((p) => ({
+          interface_link_constraint_api_name: isInterfaceLinkKind(r.kind)
+            ? (r.interfaceLinkConstraint ?? null) : null,
+          // A link rule writes no properties of its own — it writes the link.
+          properties: isInterfaceLinkKind(r.kind) ? [] : r.props.filter((p) => p.propertyId).map((p) => ({
             property_id: onInterface ? null : p.propertyId,
             interface_property_id: onInterface ? p.propertyId : null,
             value_source: p.source,
@@ -395,11 +407,21 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
                     {m2mLinks.map((lt) => <option key={lt.id} value={lt.id}>{lt.label}</option>)}
                   </HTMLSelect>
                 ) : onInterface ? (
-                  <HTMLSelect value={r.interfaceId}
-                    onChange={(e) => { setRule(i, { interfaceId: e.currentTarget.value, props: [] }) }}>
-                    <option value="">Interface…</option>
-                    {interfaces.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
-                  </HTMLSelect>
+                  <>
+                    <HTMLSelect value={r.interfaceId}
+                      onChange={(e) => { setRule(i, { interfaceId: e.currentTarget.value, props: [], interfaceLinkConstraint: '' }) }}>
+                      <option value="">Interface…</option>
+                      {interfaces.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
+                    </HTMLSelect>
+                    {isInterfaceLinkKind(r.kind) && r.interfaceId !== '' && (
+                      <HTMLSelect value={r.interfaceLinkConstraint ?? ''}
+                        onChange={(e) => { setRule(i, { interfaceLinkConstraint: e.currentTarget.value }) }}>
+                        <option value="">Link constraint…</option>
+                        {(interfaceRows.find((x) => x.id === r.interfaceId)?.interface_link_constraints ?? [])
+                          .map((c) => <option key={c.id} value={c.api_name}>{c.display_name}</option>)}
+                      </HTMLSelect>
+                    )}
+                  </>
                 ) : (
                   <HTMLSelect value={r.objectTypeId} onChange={(e) => { setRule(i, { objectTypeId: e.currentTarget.value, props: [] }) }}>
                     <option value="">Object type…</option>
@@ -490,12 +512,13 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
               })}
               {onInterface && r.interfaceId !== '' && (
                 <p className="text-xs text-muted-foreground">
-                  A parameter naming {r.kind === 'create_object_of_interface'
-                    ? 'the object type to create' : 'the object to edit'} is generated
-                  with this rule — you do not add it.
+                  {isInterfaceLinkKind(r.kind)
+                    ? 'Both ends are generated with this rule — the source as an interface reference, the destination from the constraint\u2019s target. Which concrete link keeps the constraint is declared on each implementing object type.'
+                    : `A parameter naming ${r.kind === 'create_object_of_interface'
+                        ? 'the object type to create' : 'the object to edit'} is generated with this rule — you do not add it.`}
                 </p>
               )}
-              {target && (
+              {target && !isInterfaceLinkKind(r.kind) && (
                 <Button variant="minimal" size="small" icon="add"
                   onClick={() => { setRule(i, { props: [...r.props, { propertyId: '', source: 'parameter', parameter: '', staticValue: '' }] }) }}>
                   Map a property
