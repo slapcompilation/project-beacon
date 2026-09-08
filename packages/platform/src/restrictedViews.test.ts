@@ -249,6 +249,31 @@ describe.skipIf(noDb)('restricted views', () => {
       expect(await linked('MUST_HAVE')).toBe(2)
     })
 
+    // ── 773: and the lister asks whether you may read what you pivot FROM ──
+    // Pivoting the other way: the near side is the RESTRICTED type. This arm
+    // reads no near index at all — link_cond is just `o.sale_id = 'S1'` — so
+    // the far-side and intermediary gates cannot catch it. Only asking whether
+    // the caller may read S1 can.
+    const linkedFrom = async (pk: string) => Number((await one(
+      'select public.count_linked_objects($1,$2,$3) as n', [saleType, pk, 'tag-sale771'])).n)
+
+    it('lists no links from an object the caller may not read', async () => {
+      await claims(owner, 'admin')
+      expect(await linkedFrom('S1')).toBe(1)   // owner owns S1
+      expect(await linkedFrom('S2')).toBe(0)   // and cannot read S2
+      await claims(rep, 'limited_access')
+      expect(await linkedFrom('S1')).toBe(0)   // rep cannot read S1 — was 1
+      expect(await linkedFrom('S2')).toBe(1)
+    })
+
+    it('and the rows agree with the badge, because the badge counts the rows', async () => {
+      await claims(rep, 'limited_access')
+      const rows = (await db.query(
+        'select * from public.list_linked_objects($1,$2,$3,100,0,null)',
+        [saleType, 'S1', 'tag-sale771'])).rows
+      expect(rows).toHaveLength(0)
+    })
+
     it('and its negation is not an oracle for the rows it hides', async () => {
       // The sharper half: ungated, MUST_NOT_HAVE turns the leak into a positive
       // oracle. Gated, a link to an invisible object reads as no link at all.

@@ -1463,16 +1463,23 @@ answer it.
    plain has-link case and the courses are exhausted, so CLAUDE.md rule 3 says
    ask. The gate is built and the suite proves it; what is wanted is a human
    read of the chain, not a rebuild.
-2. **`list_linked_objects` does not gate its NEAR side.** Its far side is gated
-   (it calls `object_set_where(far, '[]')`), but it pivots from `p_primary_key`
-   on the subject type without applying that type's policy, so a caller who may
-   not read the near row still gets the far rows it points at.
-   `count_linked_objects` inherits it. Measured, not inferred. Unfixed.
+2. **CLOSED by 773.** `list_linked_objects` did not gate its NEAR side: its far
+   side is gated (it calls `object_set_where(far, '[]')`), but it pivoted from
+   `p_primary_key` on the subject type without applying that type's policy, so a
+   caller who may not read the near row still got the far rows it points at.
+   `count_linked_objects` inherited it. It now returns no rows rather than
+   raising — an error would itself confirm the object exists, and the api masks
+   access as absence. This needed none of Decision 1's chain: every other reader
+   already applies the subject type's policy, so it was an internal
+   inconsistency rather than a decision.
 3. **`restricted_view_predicate` fails OPEN.** It is invoker-rights and reads
    `object_type_datasources`, `restricted_views` and `datasets` under RLS, so a
    caller who cannot see those rows gets NULL — "no policy" — rather than an
    error. Every reader on the path is SECURITY DEFINER, so it cannot bite today.
-4. **`derived_property_select`'s object-backed hop does not gate its
-   intermediary**, though `object_set_where` now does.
+4. **CLOSED by 773.** `derived_property_select`'s object-backed hop joined the
+   intermediary store as `m<step>` and gated only the far hop alias;
+   `list_linked_objects` read the same store the same way. Both now carry it,
+   so all three readers agree: every index a reader joins carries its own
+   type's policy.
 5. **Only the foreign-key arm is exercised against a restricted view.** The
    join-table and object-backed arms carry the same gate and no test.
