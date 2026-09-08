@@ -654,7 +654,9 @@ ${unused.length} page(s) named in a reading's header that no quotation rests on:
   for (const u of unused.slice(0, 20)) console.warn(`  ${u.name}  —  ${u.claim}`)
   if (unused.length > 20) console.warn(`  …and ${unused.length - 20} more`)
   console.warn('\nA page listed as read and never quoted is usually a page that was listed.')
-  console.warn('Either quote what it contributed, or say in the header that it was skimmed.')
+  console.warn('Quote what it contributed. Saying in the header that it was skimmed does')
+  console.warn('NOT clear this — the check is whether a quotation rests on the page, and')
+  console.warn('that is deliberate: a prose excuse is what a listed page produces.')
 }
 
 if (misattributed.length > 0) {
