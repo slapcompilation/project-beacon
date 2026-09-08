@@ -1353,8 +1353,12 @@ supports a jump to the far type's explorer as the card's behaviour.
    side. Which end of each edge is the source is INFERENCE, marked in 765: the
    page's prerequisite sentence does not say, and the manifest example plus
    417's foreign-key rule do. `object_set_where` and `list_linked_objects`
-   both walk it now, in either direction; the derived-property evaluator (758)
-   still does not, and 757's untraversable-hop warning still fires for one.
+   both walk it now, in either direction, and so does the derived-property
+   evaluator (767): the same two hops become one link in its chain, with the
+   middle object's index standing where a pair store stands for a join table.
+   757's untraversable-hop warning narrowed with it, and now names only a link
+   that declares no backing at all — a warning nobody can act on teaches people
+   to ignore the list.
 8. **Does `interfaceLinkSearchAround` behave differently at read time?**
    `blocks: nothing`, but it blocks the interfaces arc if that resumes. It is a
    distinct `ObjectSet` member taking an `interfaceLink` rather than a `link`, and
