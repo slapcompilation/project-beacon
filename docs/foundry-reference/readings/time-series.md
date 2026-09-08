@@ -171,9 +171,16 @@ masks access as absence on this path. The sync's FK to `datasets` — not to
    `array_element_allowed` excludes `time_series` but not it. `base-types`
    words it differently on purpose — a property as a *reference to* a
    geotemporal series — and it belongs to the geospatial product, unread here.
-5. **A TSP is Searchable by default**, because render-hint defaults gate only
-   `vector`. `object_set_where`'s range arms would emit `o.<col> >= 5` against a
-   series id. Not fixed in this slice; named so it is not discovered.
+5. **A range filter on a series id emits `o.<col> >= 5`** — but this is NOT a
+   time series defect, and describing it as one here was wrong. Measured after
+   the fact: `object_set_where` emits exactly the same thing for a plain
+   `string` property, because nothing compares a value-filter kind to the
+   property's base type for ANY base type. A TSP is Searchable by default
+   (render-hint gating covers only `vector`), so it inherits the general gap
+   rather than creating one. The fix belongs to the filter grammar, not here,
+   and it needs its own reading: what Foundry does when a filter kind and a
+   property type disagree is not something any page consulted for this slice
+   says.
 6. Unbuilt and named: derived series and codex templates, the Time Series
    Catalog, alerting, function-backed series, sensor object types, multi-sync
    TSPs and qualified series ids, interpolation and units formatting.
