@@ -1372,3 +1372,107 @@ supports a jump to the far type's explorer as the card's behaviour.
    `oss-limitations` lists interface Search Arounds among the Spark-forcing features.
    No page describes what it resolves to. `actions-on-interfaces.md` and
    `api-interface-type.md` in this directory may already cover it; I did not check.
+
+---
+
+## The far side of a link filter, and its security (2026-09-08)
+
+**Read for this section, whole:** `security/access-control-propagation`,
+`object-permissioning/object-security-policies`, `ontology/derived-properties`,
+`object-link-types/derived-properties`, `functions/permissions`,
+`functions/api-object-sets`, `ontologies/oss-limitations`,
+`platform-security-management/manage-restricted-views`,
+`ontology-manager/restore-changes`, `questions-answers/functions`, plus
+`api/general-overview-errors` and the object-set endpoint specs. A
+sentence-level grep of the whole mirror pairing link words with permission words
+returns 22 hits, and every one is about *editing* resources or about *datasource*
+permissions — none about a link-filtered read. The courses are silent too: one
+search-around hit across 214 lessons, with no security content.
+
+**The question.** When an object set is filtered by a link — "has a link of type
+L" — is the object at the FAR end subject to its own security? If not, a near
+object's presence in the result discloses a far object the caller may not read.
+
+**No page states it for a plain link filter.** That is the finding, and it is
+said plainly rather than papered over. What the pages do settle is the layer and
+the adjacent case, and both point one way.
+
+The layer:
+
+> **Object security policies:** Row-level filtering for ontology object instances, evaluated at the object set layer.
+
+— `security/access-control-propagation.md`. A traversal *is* an object set:
+`searchAround` and `interfaceLinkSearchAround` are members of the `ObjectSet`
+union, and the api has no link-filter primitive at all, so a link filter must be
+composed from them.
+
+The adjacent case is stated outright, twice, and it is a link walk:
+
+> Derived properties are then available for further operations, such as filtering, sorting, or aggregating within the same request. Derived properties use the security of all objects involved in the calculation, so they do not expose information a user would otherwise be unable to see.
+
+— `ontology/derived-properties.md`, repeated as "the security context of all
+objects involved in the calculation" on `object-link-types/derived-properties`,
+and corroborated by the policy tester refusing to simulate it: "You cannot test
+derived property visibility, as this also relies on the user's visibility on the
+derived property's source object."
+
+Two further sentences narrow the gap. An aggregate over a restricted view is
+already per-caller — "it is possible that each user may see different rows and
+aggregates in restricted views" (`platform-security-management/manage-restricted-views`)
+— and *has link* is an aggregate over the far side. And a search-around is
+permission-relevant on the far side by configuration: "The third-party
+application token must be given access to all the object types and backing
+datasets used for `searchArounds`" (`questions-answers/functions`).
+
+**The best counter-argument, recorded because it exists.**
+`ontology-manager/restore-changes` offers to "hide changes to object and link
+types that you do not have access to view", and defaults to *not* hiding them —
+existence without detail. That is about ontology TYPES in a restore dialog, not
+object instances in a read, so it does not carry; but it is the one place
+Foundry chooses disclosure-of-existence, and a future reader should meet it here
+rather than discover it as a contradiction.
+
+**The hinge sentence is silent.** `ontologies/oss-limitations` calls a search
+around "a left-semi join, which returns only the objects from the result set
+that have matching links" without saying which snapshot of the far side the
+semi-join runs against. That is exactly the question, and the page does not
+answer it.
+
+## Decisions (2026-09-08) — NOT YET READ BY A HUMAN
+
+1. **The far side is gated** (771). Every link arm of `object_set_where` applies
+   the far type's own row-level policy inside its `EXISTS`. Grounded on the
+   chain above, marked as INFERENCE, and consistent with our own
+   `derived_property_select`, which has gated its hops since it was written —
+   so this makes two readers agree rather than inventing a rule.
+2. **This is not "stricter than Foundry".** That rule is about REFUSING; a gate
+   returns fewer rows, which is the documented mechanism — "returns only the
+   rows or fields the user is authorized to see". No save is blocked and no
+   configuration rejected, so it has none of the shape 733 correctly labelled a
+   scoped divergence.
+3. **The intermediary is gated too.** An object-backed walk reads a THIRD object
+   type the caller never named — the intermediary, aliased `m`. An earlier draft
+   gated only the far type.
+4. **One function with a default, not an overload** (772). 771 chose an overload
+   to keep the COMMENT and then deleted the generated entity, because
+   `generate-client.mjs` skips any name with more than one `pg_proc` row.
+
+## Questions (2026-09-08)
+
+1. **Does the operator agree with Decision 1?** The mirror does not cover the
+   plain has-link case and the courses are exhausted, so CLAUDE.md rule 3 says
+   ask. The gate is built and the suite proves it; what is wanted is a human
+   read of the chain, not a rebuild.
+2. **`list_linked_objects` does not gate its NEAR side.** Its far side is gated
+   (it calls `object_set_where(far, '[]')`), but it pivots from `p_primary_key`
+   on the subject type without applying that type's policy, so a caller who may
+   not read the near row still gets the far rows it points at.
+   `count_linked_objects` inherits it. Measured, not inferred. Unfixed.
+3. **`restricted_view_predicate` fails OPEN.** It is invoker-rights and reads
+   `object_type_datasources`, `restricted_views` and `datasets` under RLS, so a
+   caller who cannot see those rows gets NULL — "no policy" — rather than an
+   error. Every reader on the path is SECURITY DEFINER, so it cannot bite today.
+4. **`derived_property_select`'s object-backed hop does not gate its
+   intermediary**, though `object_set_where` now does.
+5. **Only the foreign-key arm is exercised against a restricted view.** The
+   join-table and object-backed arms carry the same gate and no test.

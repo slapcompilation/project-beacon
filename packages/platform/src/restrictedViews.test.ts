@@ -19,6 +19,7 @@ describe.skipIf(noDb)('restricted views', () => {
   let saleType = ''
   let rv = ''
   let fields: unknown
+  let ont = ''
 
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
@@ -48,7 +49,7 @@ describe.skipIf(noDb)('restricted views', () => {
     await claims(owner, 'admin')
     await db.query(`insert into public.project_role_grants (project_id, user_id, role, organization_id)
                     values ($1,$2,'owner',$3)`, [f.projectId, owner, f.orgId])
-    const ont = (await one(
+    ont = (await one(
       `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
        values ($1,'rvtest485','RV',false) returning id`, [f.spaceId])).id
 
@@ -180,4 +181,82 @@ describe.skipIf(noDb)('restricted views', () => {
     expect(await checkPolicy({ match: 'all', rules: [marking, marking, marking, marking] }))
       .toContain('Policies:PolicyOverweight')
   })
+
+  // ── 771: a link filter may not reveal a far object you cannot see ─────────
+  // The near type is plain and its rows are all visible; the FAR type is the
+  // restricted one. Before 771 the link arms joined the far index with no
+  // policy on it, so a near object matched because of a far object the caller
+  // could not read — the near row is returned and the far row never is, which
+  // is the disclosure.
+  describe('the far side of a link filter carries its own policy', () => {
+    let tagType = ''
+
+    const linked = async (matchType: string) =>
+      Number((await one('select public.count_object_set($1, $2::jsonb) as n', [
+        tagType,
+        JSON.stringify([{ type: 'linkFilter', linkType: 'tag-sale771',
+                          value: { type: 'presenceFilter', matchType } }]),
+      ])).n)
+
+    beforeAll(async () => {
+      await claims(owner, 'admin')
+      // The group-membership test above widens the policy until rep sees all
+      // three sales. Restore the narrow one: with rep at 3 the expected count
+      // would equal the UNGATED answer, and this case could not fail if the
+      // gate were removed — which is the only thing it exists to detect.
+      await db.query(
+        `update public.restricted_views set policy = '{"match":"all","rules":[
+           {"left":{"user_attribute":"user_id"},"comparison":"equal","right":{"column":"owner_id"}}]}'
+         where id = $1`, [rv])
+      // A plain type over the same three rows. 417: a foreign-key link's
+      // `backing_column` names the TARGET's primary-key column and the property
+      // of that name lives on the SOURCE — here both are `sale_id`.
+      tagType = (await one(
+        `insert into public.object_types (ontology_id, api_name, label)
+         values ($1,'RvTag771','Tag') returning id`, [ont])).id
+      await db.query(
+        `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+         values ($1,$2,$3)`, [tagType, f.datasetId, f.branchId])
+      await db.query(
+        `insert into public.object_type_properties
+           (object_type_id, property_id, display_name, api_name, base_type,
+            backing_column, required, is_primary_key, is_title_key)
+         values ($1,'sale_id','Sale Id','saleId','string','sale_id',true,true,true)`, [tagType])
+      await db.query(
+        `insert into public.link_types (ontology_id, project_id, source_object_type_id,
+                                        target_object_type_id, api_name, label,
+                                        cardinality, backing_kind, backing_column)
+         values ($1,$2,$3,$4,'tag-sale771','Sale','many_to_one','foreign_key','sale_id')`,
+        [ont, f.projectId, tagType, saleType])
+      const build = (await one(
+        'select public.run_index_build(array[$1]::uuid[], true) as b', [tagType])).b
+      const job = await one(
+        'select state, error from public.build_jobs where build_id = $1', [build])
+      expect(job.state, job.error ?? '').toBe('COMPLETED')
+    }, 60_000)
+
+    it('every tag exists, and all three are visible in themselves', async () => {
+      await claims(rep, 'limited_access')
+      expect(Number((await one(
+        'select public.count_object_set($1, $2::jsonb) as n', [tagType, '[]'])).n)).toBe(3)
+    })
+
+    it('a presence filter counts only the far objects the caller may read', async () => {
+      // owner sees S1; rep sees S2 and S3. Ungated, both would see 3.
+      await claims(owner, 'admin')
+      expect(await linked('MUST_HAVE')).toBe(1)
+      await claims(rep, 'limited_access')
+      expect(await linked('MUST_HAVE')).toBe(2)
+    })
+
+    it('and its negation is not an oracle for the rows it hides', async () => {
+      // The sharper half: ungated, MUST_NOT_HAVE turns the leak into a positive
+      // oracle. Gated, a link to an invisible object reads as no link at all.
+      await claims(owner, 'admin')
+      expect(await linked('MUST_NOT_HAVE')).toBe(2)
+      await claims(rep, 'limited_access')
+      expect(await linked('MUST_NOT_HAVE')).toBe(1)
+    })
+  })
+
 })
