@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (328) ───────────────────────────────────────────────────
+// ── FUNCTIONS (330) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2921,8 +2921,12 @@ export const objectPrimaryKeyColumn = { apiName: 'object_primary_key_column', ki
 >
 
 /**
- *  The filter grammar generate-urls.md prints: propertyFilter with seven
- *  value kinds, at most one linkFilter carrying a presenceFilter.
+ *  The filter grammar generate-urls.md prints, widened by 776: a linkFilter
+ *  carries either the flat presenceFilter value that page shows, or a nested
+ *  "filters" list whose members are presenceFilter and propertyFilter — the
+ *  link config workshop/widgets-filter-list.md describes. "only 1 LINK
+ *  filter" is read as one per LINK, because the captures show one exploration
+ *  filtering two different links.
  */
 export const objectSetFiltersValid = { apiName: 'object_set_filters_valid', kind: 'function' } as FunctionType<
   { p: Json },
@@ -2932,6 +2936,17 @@ export const objectSetFiltersValid = { apiName: 'object_set_filters_valid', kind
 export const objectSetKeys = { apiName: 'object_set_keys', kind: 'function' } as FunctionType<
   { p_set: string; p_limit?: number },
   string[]
+>
+
+/**
+ *  One propertyFilter compiled to SQL, bound to the given alias. Lifted out
+ *  of object_set_where by 776 so a far-property link filter can bind it to
+ *  the far index; the subject arm calls it with "o". The value kinds are
+ *  generate-urls.md's, unchanged.
+ */
+export const objectSetPropertyPredicate = { apiName: 'object_set_property_predicate', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_filter: Json; p_alias?: string },
+  string
 >
 
 /**
@@ -2959,6 +2974,17 @@ export const objectSetSize = { apiName: 'object_set_size', kind: 'function' } as
  */
 export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid', kind: 'function' } as FunctionType<
   { p: Json },
+  boolean
+>
+
+/**
+ *  Whether a filter VALUE is one of the seven kinds generate-urls.md prints,
+ *  with the field that kind requires. Split out by 776 so a nested
+ *  far-property member and a top-level property filter are judged by one
+ *  rule.
+ */
+export const objectSetValueFilterValid = { apiName: 'object_set_value_filter_valid', kind: 'function' } as FunctionType<
+  { v: Json },
   boolean
 >
 

@@ -146,7 +146,8 @@ export default function ExplorationPage() {
             filtered, charted or sorted, so the affordances exclude it. */}
         <AddFilter props={props.filter((p) => p.source !== 'linked_objects')}
           typeLabel={type.label} relations={relations}
-          hasLinkFilter={filters.some((f) => f.type === 'linkFilter')} onAdd={addFilter} />
+          filteredLinks={filters.flatMap((f) => (f.type === 'linkFilter' ? [f.linkType] : []))}
+          onAdd={addFilter} />
         {filters.length > 0 && (
           <Button variant="minimal" size="small" onClick={() => { setFilters([]) }}>Clear</Button>
         )}
@@ -406,11 +407,13 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
 // shows one "Has X?" row whose editor offers both directions; ours offers
 // both up front, which is the same capability with one less step.
 
-function AddFilter({ props, typeLabel, relations, hasLinkFilter, onAdd }: {
+function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
   props: PropertyRow[]
   typeLabel: string
   relations: { linkApi: string; linkLabel: string; farLabel: string }[]
-  hasLinkFilter: boolean
+  /** Which links already carry a filter. The cap is one per LINK since 776 —
+   *  the captures show one exploration filtering two different links. */
+  filteredLinks: string[]
   onAdd: (f: ExplorerFilter) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -501,10 +504,11 @@ function AddFilter({ props, typeLabel, relations, hasLinkFilter, onAdd }: {
                 Apply filter
               </Button>
             </>
-          ) : hasLinkFilter ? (
-            // "You can have many PROPERTY filters, but only 1 LINK filter."
+          ) : filteredLinks.includes(rel.linkApi) ? (
+            // "You can have many PROPERTY filters, but only 1 LINK filter" —
+            // one per LINK (776), so another relation is still offered.
             <p className="text-[11px] text-muted-foreground">
-              You can have many property filters, but only 1 link filter.
+              {rel.linkLabel} already has a filter. One filter per link.
             </p>
           ) : (
             <>

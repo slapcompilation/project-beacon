@@ -283,13 +283,25 @@ describe.skipIf(noDb)('the exploration engine', () => {
       [flight])).rows[0] as { e: { distance: number } }
     expect(Number(first.e.distance)).toBe(2500)
 
-    // "You can have many PROPERTY filters, but only 1 LINK filter."
+    // "You can have many PROPERTY filters, but only 1 LINK filter" — read since
+    // 776 as one per LINK, because charts_linked_property_charts.png shows one
+    // exploration filtering two different links at once and CLAUDE.md forbids
+    // being stricter than Foundry. So the SAME link twice is what is refused.
+    const sameLinkTwice = [
+      { type: 'linkFilter', linkType: 'a', value: { type: 'presenceFilter', matchType: 'MUST_HAVE' } },
+      { type: 'linkFilter', linkType: 'a', value: { type: 'presenceFilter', matchType: 'MUST_HAVE' } }]
+    const msg = await refused(db, () =>
+      db.query('select public.count_object_set($1,$2::jsonb)', [flight, JSON.stringify(sameLinkTwice)]))
+    expect(msg).toContain('Ontology:InvalidFilters')
+
+    // Two DIFFERENT links pass the grammar and are refused later, by the engine,
+    // for naming links that do not exist — which is a different complaint.
     const twoLinks = [
       { type: 'linkFilter', linkType: 'a', value: { type: 'presenceFilter', matchType: 'MUST_HAVE' } },
       { type: 'linkFilter', linkType: 'b', value: { type: 'presenceFilter', matchType: 'MUST_HAVE' } }]
-    const msg = await refused(db, () =>
-      db.query('select public.count_object_set($1,$2::jsonb)', [flight, JSON.stringify(twoLinks)]))
-    expect(msg).toContain('Ontology:InvalidFilters')
+    expect(await refused(db, () =>
+      db.query('select public.count_object_set($1,$2::jsonb)', [flight, JSON.stringify(twoLinks)])))
+      .toContain('Ontology:LinkTypeNotFound')
   })
 
   it('aggregates with the charts vocabulary, and histograms partition', async () => {

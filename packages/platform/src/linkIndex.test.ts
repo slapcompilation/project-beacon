@@ -156,6 +156,32 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
     expect(await count(tb, presence('linkidx_pairs', 'MUST_NOT_HAVE'))).toBe(1)
   })
 
+  // ── 776: a link filter is a link and a LIST of predicates ────────────────
+  // "To search for objects whose linked objects have a specific property,
+  //  select the relation in the left side of the search menu panel. From there,
+  //  choose a property type to filter."
+  it('filters by a property of the object at the FAR end', async () => {
+    const far = (linkType: string, propertyType: string, values: string[], matchType?: string) => [{
+      type: 'linkFilter', linkType,
+      filters: [
+        ...(matchType ? [{ type: 'presenceFilter', matchType }] : []),
+        { type: 'propertyFilter', propertyType, value: { type: 'valuesFilter', values } },
+      ],
+    }]
+    // A1 links to B1 and B2; A2 links to B1; A3 links to nothing.
+    expect(await count(ta, presence('linkidx_pairs', 'MUST_HAVE'))).toBe(2)
+    expect(await count(ta, far('linkidx_pairs', 'pk', ['B2']))).toBe(1)
+    expect(await count(ta, far('linkidx_pairs', 'pk', ['B1']))).toBe(2)
+    expect(await count(ta, far('linkidx_pairs', 'pk', ['B1', 'B2']))).toBe(2)
+
+    // Presence is a MEMBER of the list now, and negates the whole arm — so this
+    // is "has no link to B2", which A2 and A3 satisfy.
+    expect(await count(ta, far('linkidx_pairs', 'pk', ['B2'], 'MUST_NOT_HAVE'))).toBe(2)
+
+    // The flat form saved explorations carry still compiles unchanged.
+    expect(await count(ta, presence('linkidx_pairs', 'MUST_NOT_HAVE'))).toBe(1)
+  })
+
   it('a fresh pair store is not rebuilt; a moved join dataset is', async () => {
     const again = (await db.query(
       'select public.run_link_index_build(array[$1]::uuid[], false) as b', [link])).rows[0] as { b: string | null }

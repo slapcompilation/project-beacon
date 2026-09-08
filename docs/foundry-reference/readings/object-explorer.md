@@ -504,7 +504,7 @@ predicate. So a far-property *filter element* is an Object Explorer construct
 that compiles to a traversal; it is not something the platform api models, and
 our engine is right to compile it rather than to mirror an api union.
 
-## Decisions (2026-09-08) — NOT YET BUILT
+## Decisions (2026-09-08) — BUILT by 776/777 except where noted
 
 1. **The link filter nests.** `{type:'linkFilter', linkType, filters:[…]}` where a
    member is `{type:'presenceFilter', matchType}` or
@@ -523,6 +523,39 @@ our engine is right to compile it rather than to mirror an api union.
    when the subject rather than a link is selected, and the page identifies the
    objects by **title**. It is its own kind, and its listogram carries
    Keep/Exclude, which `valuesFilter` has no token for. Deferred, not folded in.
+   **Still deferred after 776** — it is the one of the three kinds not built.
+
+## What 776 and 777 built (2026-09-09)
+
+The nested grammar, the far-property predicate, and the cap in the form
+Decision 2 of the operator's call gave it.
+
+* `object_set_property_predicate(object_type, filter, alias)` is
+  `object_set_where`'s value CASE **lifted, not copied** — its twelve emits all
+  had the shape `format('... o.%I ...', prop.property_id, ...)`, so the alias
+  threaded through mechanically and the subject arm now calls it with `'o'`.
+* A `linkFilter` may carry `filters: [...]` whose members are `presenceFilter`
+  and `propertyFilter`. The far predicate compiles into the arm's own EXISTS,
+  beside 771's policy gate and **before** the negation, so `MUST_NOT_HAVE`
+  means *has no link to a far object matching this* and no far object the
+  caller may not read can be inferred from either polarity.
+* **The cap moved to one filter per LINK.** Taken literally it would refuse a
+  state `charts_linked_property_charts.png` depicts — one exploration filtering
+  two different links — and CLAUDE.md forbids being stricter than Foundry. The
+  sentence also sits on the page that disclaims itself as possibly out of date.
+  Recorded as OUR reading, not as something a page says.
+* The flat form still validates and still compiles, because saved explorations
+  carry it.
+
+777 exists because 776 shipped without a proof block — **the second time in one
+session**, after 775 corrected 774 for the same omission. That is a pattern, not
+a slip: the header and the mechanism get written and the migration then feels
+finished before any assertion exists.
+
+The web now matches the engine's cap (one per link) but does **not** yet offer a
+far-property control; `AddFilter` never receives the far type or its properties.
+That is the next chunk, and until it lands the grammar is reachable through the
+platform client and not through the Explorer.
 
 ## Open questions (2026-09-08)
 
