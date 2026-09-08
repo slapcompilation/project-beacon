@@ -3443,11 +3443,15 @@ export const restrictedViewMarkings = { apiName: 'restricted_view_markings', kin
 >
 
 /**
- *  The policy gate for one object type, or NULL when it is not
- *  restricted-view-backed. The index stays whole; this is the only door.
+ *  The row-level policy of a restricted-view-backed object type, as a SQL
+ *  predicate bound to the given alias, which defaults to "o". "the restricted
+ *  view controls what objects users can see". A subject-level caller takes
+ *  the default; a far hop and a link filter bind something else, and before
+ *  771 they reached it by string substitution on the emitted text, which
+ *  fails silently.
  */
 export const restrictedViewPredicate = { apiName: 'restricted_view_predicate', kind: 'function' } as FunctionType<
-  { p_object_type: string },
+  { p_object_type: string; p_alias?: string },
   string
 >
 
