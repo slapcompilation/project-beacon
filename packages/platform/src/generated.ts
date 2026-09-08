@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (327) ───────────────────────────────────────────────────
+// ── FUNCTIONS (328) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1865,9 +1865,11 @@ export const canWriteRepository = { apiName: 'can_write_repository', kind: 'func
 
 /**
  *  The slot-based Capabilities vocabulary, from metadata-typeclasses (the
- *  page it replaces) and the Geospatial panel screenshot. Time series is the
- *  other panel shape and is not built: it is not one of the twenty-two base
- *  types, and Foundry gives it a 42-page section of its own.
+ *  page it replaces) and the Geospatial panel screenshot. Its time_series
+ *  slots are fillable since 774: time_series IS one of the twenty-two base
+ *  types — it has been since 408 — and a sync now backs it. Foundry gives
+ *  time series a 42-page section, of which this builds the ontology slice
+ *  only.
  */
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,
@@ -3724,6 +3726,21 @@ export const testGroupAssignment = { apiName: 'test_group_assignment', kind: 'fu
 export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'function' } as FunctionType<
   { p_view: string; p_user: string },
   { visible_rows: number; total_rows: number }[]
+>
+
+/**
+ *  The points of one object's time series property. Resolves the series id
+ *  from the object's index row, then reads the sync's dataset: "the seriesId
+ *  contained in the property's value will be searched for within that
+ *  property's data sources and its associated time series data will be
+ *  returned". Returns a numeric and a categorical column because a sync's
+ *  value may be a double, integer, float or string. Applies the sync
+ *  dataset's markings, because a TSP is readable only by someone who may read
+ *  its backing data source.
+ */
+export const timeSeriesPoints = { apiName: 'time_series_points', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_primary_key: string; p_property: string; p_from?: string; p_to?: string; p_limit?: number },
+  { point_time: string; num: number; cat: string }[]
 >
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
