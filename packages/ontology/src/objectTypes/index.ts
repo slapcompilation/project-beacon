@@ -388,6 +388,11 @@ export interface LinkTypeDef {
   cardinality?: LinkCardinality | null
   backingKind?: LinkBackingKind | null
   backingObjectTypeId?: string | null
+  /** object_backed: the two many-to-one links from the intermediary type to
+   *  each side — what a search-around walks, and what create-link-type makes
+   *  the builder select (765). */
+  sourceEdgeLinkTypeId?: string | null
+  targetEdgeLinkTypeId?: string | null
   sourceKeyColumn?: string | null
   targetKeyColumn?: string | null
   datasetId?: string | null

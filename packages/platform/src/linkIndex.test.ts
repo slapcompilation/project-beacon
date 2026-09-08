@@ -274,15 +274,27 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
       'the revert takes it back').toBe(1)
   })
 
-  it('an object-backed link still refuses, scoped to what is unbuilt', async () => {
-    await db.query(
+  // 765 built the object-backed walk, so what this asked has moved: an
+  // object-backed link may not exist WITHOUT its edges (create-link-type makes
+  // them a prerequisite), and the refusal that remains names a link with no
+  // backing at all.
+  it('an object-backed link cannot exist without its edges, and a backing-less link still refuses (765)', async () => {
+    expect(await refused(db, () => db.query(
       `insert into public.link_types (ontology_id, project_id, source_object_type_id,
          target_object_type_id, api_name, label, cardinality, backing_kind, backing_object_type_id)
        values ($1,$2,$3,$4,'linkidx_via','Link idx via','many_to_one','object_backed',$4)`,
+      // 766 made the edge guard a CONSTRAINT trigger, so the row's own CHECK
+      // answers for the row and the guard answers only for the edges.
+      [ont, f.projectId, ta, tb]))).toMatch(/link_types_object_backed_edges/)
+
+    await db.query(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id,
+         target_object_type_id, api_name, label, cardinality)
+       values ($1,$2,$3,$4,'linkidx_bare','Link idx bare','many_to_one')`,
       [ont, f.projectId, ta, tb])
     const err = await refused(db, () => db.query(
       'select public.count_object_set($1,$2::jsonb)',
-      [ta, JSON.stringify(presence('linkidx_via', 'MUST_HAVE'))]))
+      [ta, JSON.stringify(presence('linkidx_bare', 'MUST_HAVE'))]))
     expect(err).toContain('Ontology:LinkFilterBackingUnsupported')
   })
 
@@ -294,5 +306,108 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
       `select count(*)::int as n from information_schema.tables
         where table_schema='objects' and table_name=$1`, [idx.index_table])
     expect(Number(gone.n)).toBe(0)
+  })
+
+  // ── 765: an object-backed link names its edges, and a search-around walks
+  // them. "The object in the middle serves as the intermediary and provides
+  // additional metadata about the connection between the two entities, and
+  // backs the link." Its own three types, because an object-backed link needs
+  // each side's primary-key column named on the middle (417's FK rule).
+  it('walks an object-backed link through the object in the middle, both ways (765)', async () => {
+    const mk = async (api: string, col: string, keys: string[]) => {
+      const ds = (await one(
+        `insert into public.datasets (organization_id, project_id, api_name, name)
+         values ($1,$2,$3,$3) returning id`, [f.orgId, f.projectId, api.toLowerCase()])).id
+      const br = (await one(
+        `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`, [ds])).id
+      await commitRows(ds, br, [{ name: col, type: 'STRING' }], async (phys, file) => {
+        await db.query(`insert into datasets.${phys} (_file, ${col}) select $1, unnest($2::text[])`, [file, keys])
+      })
+      const t = (await one(
+        `insert into public.object_types (ontology_id, project_id, api_name, label)
+         values ($1,$2,$3,$3) returning id`, [ont, f.projectId, api])).id
+      await db.query(`insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+                      values ($1,$2,$3)`, [t, ds, br])
+      await db.query(
+        `insert into public.object_type_properties
+           (object_type_id, property_id, api_name, display_name, base_type, source,
+            backing_column, datasource_id, is_primary_key, is_title_key, required)
+         values ($1,$2,'id','Id','string','column',$2,
+                 (select id from public.object_type_datasources where object_type_id = $1),
+                 true,true,true)`, [t, col])
+      return t
+    }
+    const tc = await mk('LinkIdxC', 'c_pk', ['C1', 'C2'])
+    const td = await mk('LinkIdxD', 'd_pk', ['D1', 'D2'])
+
+    // the manifest: its own key, plus one column per side, named as each
+    // side's primary key column so 417's foreign-key rule is satisfied
+    const mds = (await one(
+      `insert into public.datasets (organization_id, project_id, api_name, name)
+       values ($1,$2,'linkidx_mid','linkidx_mid') returning id`, [f.orgId, f.projectId])).id
+    const mbr = (await one(
+      `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`, [mds])).id
+    await commitRows(mds, mbr,
+      [{ name: 'pk', type: 'STRING' }, { name: 'c_pk', type: 'STRING' }, { name: 'd_pk', type: 'STRING' }],
+      async (phys, file) => {
+        // C1 reaches D1; C2's manifest names a D that does not exist.
+        await db.query(`insert into datasets.${phys} (_file, pk, c_pk, d_pk)
+                        values ($1,'M1','C1','D1'),($1,'M2','C2','GONE')`, [file])
+      })
+    const tm = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'LinkIdxMid','LinkIdxMid') returning id`, [ont, f.projectId])).id
+    await db.query(`insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+                    values ($1,$2,$3)`, [tm, mds, mbr])
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source, backing_column,
+          datasource_id, is_primary_key, is_title_key, required)
+       values ($1,'pk','id','Id','string','column','pk',
+               (select id from public.object_type_datasources where object_type_id = $1),true,true,true)`, [tm])
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source, backing_column, datasource_id)
+       select $1, v.c, v.a, v.d, 'string', 'column', v.c,
+              (select id from public.object_type_datasources where object_type_id = $1)
+         from (values ('c_pk','cKey','C key'),('d_pk','dKey','D key')) as v(c, a, d)`, [tm])
+
+    const edge = async (api: string, target: string, col: string) => (await one(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id, target_object_type_id,
+                                      api_name, label, cardinality, backing_kind, backing_column)
+       values ($1,$2,$3,$4,$5,$5,'many_to_one','foreign_key',$6) returning id`,
+      [ont, f.projectId, tm, target, api, col])).id
+    const ec = await edge('linkidx-of-c', tc, 'c_pk')
+    const ed = await edge('linkidx-of-d', td, 'd_pk')
+
+    // the guard refuses edges that do not run from the middle to each side
+    expect(await refused(db, () => db.query(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id, target_object_type_id,
+                                      api_name, label, cardinality, backing_kind, backing_object_type_id,
+                                      source_edge_link_type_id, target_edge_link_type_id)
+       values ($1,$2,$3,$4,'linkidx-bad','Bad','many_to_one','object_backed',$5,$6,$7)`,
+      [ont, f.projectId, tc, td, tm, ed, ec]))).toMatch(/Ontology:LinkEdgeDoesNotReachTheSide/)
+
+    await db.query(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id, target_object_type_id,
+                                      api_name, label, cardinality, backing_kind, backing_object_type_id,
+                                      source_edge_link_type_id, target_edge_link_type_id)
+       values ($1,$2,$3,$4,'linkidx-via','Via','many_to_one','object_backed',$5,$6,$7)`,
+      [ont, f.projectId, tc, td, tm, ec, ed])
+    await db.query('select public.run_index_build($1::uuid[], true)', [[tc, td, tm]])
+
+    // the filter: one C has a link, the other's manifest names nothing real
+    expect(await count(tc, presence('linkidx-via', 'MUST_HAVE'))).toBe(1)
+    expect(await count(tc, presence('linkidx-via', 'MUST_NOT_HAVE'))).toBe(1)
+    // and from the far side, which reads the same two edges the other way
+    expect(await count(td, presence('linkidx-via', 'MUST_HAVE'))).toBe(1)
+
+    // the listing walks it too, and the count follows
+    expect(Number((await one(
+      `select count(*) n from public.list_linked_objects($1,'C1','linkidx-via')`, [tc])).n)).toBe(1)
+    expect(Number((await one(
+      `select count(*) n from public.list_linked_objects($1,'C2','linkidx-via')`, [tc])).n)).toBe(0)
+    expect(Number((await one(
+      `select public.count_linked_objects($1,'D1','linkidx-via') n`, [td])).n)).toBe(1)
   })
 })

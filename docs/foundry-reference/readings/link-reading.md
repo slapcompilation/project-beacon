@@ -9,7 +9,9 @@ same question asked in different places: our join-table links are metadata-only 
 read time (`object_set_where` refuses one with `Ontology:LinkFilterBackingUnsupported`),
 the Explorer has no authoring UI for a link filter, and the Object View's linked
 panel sends the reader to the far type's whole explorer instead of to this object's
-linked rows. This reading is what the documentation says about reading links —
+linked rows. *(All three are closed since: 750–752 built the pair store, the
+traversal and the linked panel, #922 the filter menu, and 765 the object-backed
+walk this reading predicted — see §7's question 7.)* This reading is what the documentation says about reading links —
 the wire shape, the surfaces, and what runs underneath.
 
 **There is no `explore/` section in the mirror.** The task named one; the mirror
@@ -1336,6 +1338,23 @@ supports a jump to the far type's explorer as the card's behaviour.
    object's own index, which coherently implies a plain join-table link has a
    faster indexed structure of its own (a point in the pair-store answer to
    question 1's favour).
+
+   **BUILT (765), and the prediction held.** The walk is exactly that two-hop
+   probe: the near key finds the middle object's rows, their far foreign key
+   finds the far object's index, and a link counts only when both exist — the
+   semantics 751 settled for the pair store, one hop longer. What had to come
+   first was not the walk but the *definition*: our `link_types` row carried
+   only the middle type, while `create-link-type` makes the two many-to-one
+   links from the middle to each side a prerequisite of creating the link at
+   all, and makes the builder select them by name. So the row gains
+   `source_edge_link_type_id` and `target_edge_link_type_id`, a CHECK binding
+   them to the object-backed kind, and a guard that refuses any edge which is
+   not a many-to-one foreign-key link running from the backing type to that
+   side. Which end of each edge is the source is INFERENCE, marked in 765: the
+   page's prerequisite sentence does not say, and the manifest example plus
+   417's foreign-key rule do. `object_set_where` and `list_linked_objects`
+   both walk it now, in either direction; the derived-property evaluator (758)
+   still does not, and 757's untraversable-hop warning still fires for one.
 8. **Does `interfaceLinkSearchAround` behave differently at read time?**
    `blocks: nothing`, but it blocks the interfaces arc if that resumes. It is a
    distinct `ObjectSet` member taking an `interfaceLink` rather than a `link`, and

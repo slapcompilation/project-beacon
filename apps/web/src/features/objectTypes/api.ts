@@ -294,6 +294,8 @@ export interface LinkTypeRow {
   cardinality: LinkCardinality | null
   backing_kind: LinkBackingKind | null
   backing_object_type_id: string | null
+  source_edge_link_type_id: string | null
+  target_edge_link_type_id: string | null
   source_key_column: string | null
   target_key_column: string | null
   dataset_id: string | null
@@ -311,6 +313,8 @@ export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
     sourceVisibility: r.source_visibility, targetVisibility: r.target_visibility,
     cardinality: r.cardinality, backingKind: r.backing_kind,
     backingObjectTypeId: r.backing_object_type_id,
+    sourceEdgeLinkTypeId: r.source_edge_link_type_id,
+    targetEdgeLinkTypeId: r.target_edge_link_type_id,
     sourceKeyColumn: r.source_key_column, targetKeyColumn: r.target_key_column,
     datasetId: r.dataset_id, status: r.status, rid: r.rid,
   }
@@ -338,8 +342,11 @@ export interface CreateLinkTypeInput {
   branchId?: string | null
   sourceKeyColumn?: string | null
   targetKeyColumn?: string | null
-  /** object_backed: the intermediary type. */
+  /** object_backed: the intermediary type, and the two many-to-one links
+   *  from it to each side that a search-around walks (765). */
   backingObjectTypeId?: string | null
+  sourceEdgeLinkTypeId?: string | null
+  targetEdgeLinkTypeId?: string | null
   /** Per-side display names — "A link type has exactly two sides". */
   sourceLabel?: string | null
   targetLabel?: string | null
@@ -360,6 +367,8 @@ export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
       dataset_id: i.datasetId ?? null, branch_id: i.branchId ?? null,
       source_key_column: i.sourceKeyColumn ?? null, target_key_column: i.targetKeyColumn ?? null,
       backing_object_type_id: i.backingObjectTypeId ?? null,
+      source_edge_link_type_id: i.sourceEdgeLinkTypeId ?? null,
+      target_edge_link_type_id: i.targetEdgeLinkTypeId ?? null,
       source_label: i.sourceLabel ?? null, target_label: i.targetLabel ?? null,
       source_api_name: i.sourceApiName ?? null, target_api_name: i.targetApiName ?? null,
     } as unknown as Json,
