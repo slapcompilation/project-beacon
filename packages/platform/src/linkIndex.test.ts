@@ -313,7 +313,7 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
   // additional metadata about the connection between the two entities, and
   // backs the link." Its own three types, because an object-backed link needs
   // each side's primary-key column named on the middle (417's FK rule).
-  it('walks an object-backed link through the object in the middle, both ways (765)', async () => {
+  it('walks an object-backed link through the object in the middle, both ways, and a derived property hops through it (765, 767)', async () => {
     const mk = async (api: string, col: string, keys: string[]) => {
       const ds = (await one(
         `insert into public.datasets (organization_id, project_id, api_name, name)
@@ -409,5 +409,31 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
       `select count(*) n from public.list_linked_objects($1,'C2','linkidx-via')`, [tc])).n)).toBe(0)
     expect(Number((await one(
       `select public.count_linked_objects($1,'D1','linkidx-via') n`, [td])).n)).toBe(1)
+
+    // 767: a derived property hops through the same middle object. Its
+    // untraversable-hop warning (757) must not fire for a hop that now reads.
+    const drv = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, derived_aggregation)
+       values ($1,'d_count','D count','dCount','integer','linked_objects','count')
+       returning id`, [tc])).id
+    await db.query(
+      `insert into public.derived_property_hops (property_id, position, link_type_id)
+       select $1, 1, l.id from public.link_types l where l.api_name = 'linkidx-via'`, [drv])
+    expect(Number((await one(
+      `select count(*) n from public.ontology_warnings() w
+        where w.subject = 'd_count' and w.problem like '%cannot read yet%'`)).n)).toBe(0)
+    const c1 = (await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"c_pk","value":{"type":"valuesFilter","values":["C1"]}}]'::jsonb) e`,
+      [tc])).rows[0].e as Record<string, unknown>
+    expect(c1.d_count, 'C1 reaches one D through the manifest').toBe(1)
+    const c2 = (await db.query(
+      `select e from public.evaluate_object_set($1,
+         '[{"type":"propertyFilter","propertyType":"c_pk","value":{"type":"valuesFilter","values":["C2"]}}]'::jsonb) e`,
+      [tc])).rows[0].e as Record<string, unknown>
+    expect(c2.d_count, 'C2 links to nothing that exists').toBe(0)
+    await db.query(`delete from public.derived_property_hops where property_id = $1`, [drv])
+    await db.query(`delete from public.object_type_properties where id = $1`, [drv])
   })
 })
