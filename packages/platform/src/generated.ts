@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (117) ────────────────────────────────────────────────
+// ── ACTION TYPES (118) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -919,6 +919,17 @@ export const runScheduleNow = { apiName: 'run_schedule_now', kind: 'action' } as
  */
 export const satisfyActionConstraint = { apiName: 'satisfy_action_constraint', kind: 'action' } as ActionType<
   { p_object_type: string; p_interface: string; p_constraint: string; p_action_type: string; p_mappings?: Json },
+  void
+>
+
+/**
+ *  Step 3 of implementing an interface: "you must select a link type on the
+ *  object type that satisfies each required link type constraint". Takes the
+ *  whole set for one constraint, because the api types an implementation's
+ *  links as a list; the empty array is the wizard's "Skip".
+ */
+export const satisfyLinkConstraint = { apiName: 'satisfy_link_constraint', kind: 'action' } as ActionType<
+  { p_object_type: string; p_interface: string; p_constraint: string; p_link_types: string[] },
   void
 >
 

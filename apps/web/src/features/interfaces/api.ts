@@ -9,6 +9,8 @@ import { client } from '@/lib/supabase/ontologyClient'
 import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
 
 export interface LinkConstraintRow {
+  /** The satisfaction rows point at this, so the tab needs it. */
+  id: string
   api_name: string
   display_name: string
   required: boolean
@@ -17,6 +19,10 @@ export interface LinkConstraintRow {
   target_interface_id: string | null
   target_object_type_id: string | null
 }
+
+/** Staging a clause sends the full set, and a brand-new constraint has no row
+ *  id yet — `apply_interface` upserts by (interface_id, api_name). */
+export type LinkConstraintDraft = Omit<LinkConstraintRow, 'id'> & { id?: string }
 
 export interface ParameterConstraintDraft {
   api_name: string
@@ -85,7 +91,7 @@ export async function fetchInterfaces(): Promise<InterfaceRow[]> {
   const { data, error } = await supabase.from('ontology_interfaces')
     .select(`*,
       interface_properties(id, property_id, display_name, base_type, required, pk_constraint, position),
-      interface_link_constraints(api_name, display_name, required, cardinality, target_kind, target_interface_id, target_object_type_id),
+      interface_link_constraints(id, api_name, display_name, required, cardinality, target_kind, target_interface_id, target_object_type_id),
       interface_action_constraints(api_name, display_name, description, required, interface_action_parameter_constraints(api_name, display_name, base_type, is_list, required, position)),
       extensions:interface_extensions!interface_extensions_interface_id_fkey(parent_interface_id)`)
     .order('label')
@@ -148,7 +154,7 @@ export async function deleteInterface(id: string): Promise<void> {
 export async function stageInterfaceClauses(
   id: string,
   patch: {
-    link_constraints?: LinkConstraintRow[]
+    link_constraints?: LinkConstraintDraft[]
     action_constraints?: ActionConstraintRow[]
     extends?: string[]
   },

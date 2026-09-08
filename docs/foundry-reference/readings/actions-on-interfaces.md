@@ -464,3 +464,111 @@ Three things the prose does not say:
    raises when it resolves a type that cannot satisfy the rule, and nothing
    refuses the rule at configuration time.
 
+
+---
+
+## Post-build reconciliation (2026-09-08) — Decision 5 named the wrong blocker
+
+Decisions 5 and 12 both say the two link rules wait on *a link instance store*
+and *an `interface_link_constraint_id` no column points at*. Re-reading
+`interfaces/implement-interface`, `interfaces/interface-link-types-overview` and
+`interfaces/create-interface` whole — none of which this reading had read, all
+three named on this page — the first half is stale and the second is the smaller
+of two gaps. **The blocker I had not seen is that nothing records which concrete
+link keeps the clause.**
+
+The store has existed since 750 (the join-table pair store) and 765 (the
+object-backed walk). What was missing is a table, and the page states its
+obligation as a precondition of implementing at all:
+
+From `interfaces/implement-interface`:
+
+> Once defined, an interface can be implemented by any object type that conforms to the interface definition. This means that object types must have properties that satisfy the interface's required properties, links that satisfy all required link type constraints, and action types that satisfy all required action type constraints defined on the interface.
+
+and, as step 3 of its five:
+
+> If any required link type constraints are declared on the interface, you must select a link type on the object type that satisfies each required link type constraint. You can also optionally provide a link mapping for any non-required link type constraints. You can choose an existing link type or create a new one to satisfy each constraint.
+
+**Satisfaction is DECLARED, not discovered**, and the image says so where the
+prose only implies it. `implement-link-type-constraint.png` is the *Implement an
+Interface* dialog, its rail four steps, STEP 4 headed *Satisfy link type
+constraints*:
+
+> "Choose link types that satisfy the link type constraints on the interface"
+> — interfaces/images/implement-link-type-constraint.png
+
+with one row per constraint whose menu offers *Select link type*, *Create new
+link type* and *Skip*. That capture predates interface action type constraints —
+its rail has four steps where the prose has five, and no action step — so I read
+it only for the link step it shows.
+
+### The api settles the multiplicity the prose leaves open
+
+§4 above quotes the two warnings about "multiple concrete link implementations
+on the object type for the link constraint" and calls the create/delete
+asymmetry worth carrying forward. It is stronger than that: those sentences are
+only reachable if the schema can hold several. The api prints the contrast
+against actions in one block —
+
+* `links` · map → `InterfaceLinkTypeApiName` → `array` · list → `LinkTypeApiName`
+* `actionTypes` · map → `InterfaceActionTypeConstraintApiName` → `ActionTypeApiName`
+
+both in
+`api/v2/ontologies-v2-resources/object-types-get-object-type-full-metadata.md`.
+A **list** for links, a **single api name** for actions. So 768 keys the
+satisfaction on the link type where 450's `interface_action_satisfactions` stops
+at the constraint. Keyed the other way, both warnings would describe a state our
+schema forbids.
+
+### A default this repository invented
+
+450 gave `interface_link_constraints.required` DEFAULT true. Its *property*
+clause cites a sentence for that default; the link clause cites none and took
+the property's by symmetry. Two witnesses say otherwise — the prose's worked
+example is "an optional one-to-many link type constraint"
+(`interface-link-types-overview`), and the configuration modal's Requiredness
+toggle is OFF:
+
+> "Object types will not be able to Implement this interface unless a link type that satisfies this constraint is provided."
+> — interfaces/images/create-link-type-constraint-modal.png
+
+That label is also the exact statement of the obligation, so 768 flips the
+default and enforces the sentence in one migration: turning the guard on while
+every clause defaulted to required would make an unsatisfiable demand of every
+interface that already had a link clause. **The web could not express an
+optional one at all** — `InterfaceDetail` hardcoded `required: true` — which is
+the usual shape of an unread column, one step earlier than usual.
+
+## Decisions (2026-09-08)
+
+14. **`interface_link_satisfactions` is keyed on the link type**, so one
+    constraint takes several concrete links. The api's list type is the
+    citation, not the prose's "a link type".
+15. **Cardinality compatibility is a WARNING, not a refusal.** A `ONE`
+    constraint says each implementing object "should link to one object of the
+    target type" — should, not must — so a `ONE` clause kept by a link that can
+    return many lands in `ontology_warnings()` and does not block the save.
+    Which concrete cardinalities can return more than one depends on which end
+    the implementer is, and the arm says so both ways.
+16. **The guard refuses three things and no more:** a constraint that is not
+    this interface's or an ancestor's, a link with no end on the implementing
+    object type, and a far end that is not what the constraint names. It is a
+    CONSTRAINT TRIGGER, so the foreign keys answer for a bad id before it
+    answers for a bad shape (766's lesson).
+17. **Decisions 5 and 12 are superseded, not amended.** They are left standing
+    above because a reading that quietly corrects its own record teaches the
+    next reader to trust a prediction that was wrong. The link rules still are
+    not executable; what stands between them and execution is now the rule
+    column, the generated parameters, and the apply arm — not the store, and
+    not this table.
+
+## Questions (2026-09-08)
+
+9. **Does a satisfaction survive the working-state round trip?** It does not
+   travel through `ontology_resource_row` — that function's `object_type` arm
+   carries `properties` and `datasources` only — so interface implementations
+   and their action satisfactions already live outside it, and link
+   satisfactions now join them. Unchanged by 768, and recorded because it looks
+   like an omission and is instead the existing contract.
+10. **Foundry's wizard offers "Create new link type" inline.** Ours offers only
+   selection, and says so when nothing qualifies. Not built, not hidden.

@@ -140,6 +140,10 @@ function LinkConstraintsTab({ row, all, types }: {
   const [linkName, setLinkName] = useState('')
   const [cardinality, setCardinality] = useState<'ONE' | 'MANY'>('ONE')
   const [target, setTarget] = useState('')
+  // The modal's Requiredness toggle, which is off in the capture: "Object
+  // types will not be able to Implement this interface unless a link type
+  // that satisfies this constraint is provided."
+  const [required, setRequired] = useState(false)
   const nameOf = (id: string | null) =>
     all.find((i) => i.id === id)?.label ?? types.find((t) => t.id === id)?.label ?? '?'
 
@@ -147,11 +151,11 @@ function LinkConstraintsTab({ row, all, types }: {
     const [kind, id] = target.split(':')
     stage.mutate({ id: row.id, patch: { link_constraints: [
       ...row.interface_link_constraints,
-      { api_name: toCamel(linkName), display_name: linkName.trim(), required: true, cardinality,
+      { api_name: toCamel(linkName), display_name: linkName.trim(), required, cardinality,
         target_kind: kind as 'interface' | 'object_type',
         target_interface_id: kind === 'interface' ? id : null,
         target_object_type_id: kind === 'object_type' ? id : null },
-    ] } }, { onSuccess: () => { setLinkName(''); setTarget('') } })
+    ] } }, { onSuccess: () => { setLinkName(''); setTarget(''); setRequired(false) } })
   }
   const drop = (apiName: string) => {
     stage.mutate({ id: row.id, patch: {
@@ -166,6 +170,7 @@ function LinkConstraintsTab({ row, all, types }: {
           <span>{c.display_name}</span>
           <Tag minimal>{c.cardinality}</Tag>
           <span className="text-muted-foreground">→ {nameOf(c.target_interface_id ?? c.target_object_type_id)}</span>
+          {c.required && <Tag minimal intent={Intent.WARNING}>Required</Tag>}
           <Button variant="minimal" size="small" icon="cross" onClick={() => { drop(c.api_name) }} />
         </div>
       ))}
@@ -185,6 +190,8 @@ function LinkConstraintsTab({ row, all, types }: {
             {types.map((t) => <option key={t.id} value={`object_type:${t.id}`}>{t.label}</option>)}
           </optgroup>
         </HTMLSelect>
+        <Checkbox checked={required} label="Required" className="mb-0"
+          onChange={(e) => { setRequired(e.currentTarget.checked) }} />
         <Button size="small" icon="add" disabled={!linkName.trim() || !target} onClick={add} />
       </div>
     </div>
