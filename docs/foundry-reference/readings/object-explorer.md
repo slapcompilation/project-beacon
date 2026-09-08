@@ -417,3 +417,121 @@ icon on the primary key, bookmark on the title key), a dependents count, and a
 5. **"Property Count" vs "Est. Unique Count"** in the listogram aggregation
    menu: the page never defines Property Count (count of non-null values, by
    the name). Marked inference.
+
+---
+
+## 13. The link filter's real shape, and how I got it wrong twice (2026-09-08)
+
+Building the far-property link filter was attempted twice on paper and refuted
+twice before any code was written. Both wrong turns are recorded, because each
+came from a *real, cited, on-topic page* — which is what makes them worth
+keeping.
+
+**Wrong turn 1: I read the encoding page and declared the feature complete.**
+`object-explorer/generate-urls.md` prints a filter JSON whose only link member
+is a `presenceFilter`, so I concluded our engine already matched Object
+Explorer. It does not. `filter-results.md` is the page that documents the
+feature, and its *Filtering on links* section gives three kinds:
+
+> To search for objects that have a particular link, select the "Has Link" option
+
+> It is also possible to search for objects that have links to other specific objects. For example, after selecting a link choose the option "Filter by Airline". This opens a filter for links to specific objects. Linked objects are displayed by their title in the resulting listogram.
+
+> To search for objects whose linked objects have a specific property, select the relation in the left side of the search menu panel. From there, choose a property type to filter.
+
+**Wrong turn 2: I treated that JSON block as the ENUMERATION.** It is not. The
+block is a worked example, immediately followed by "There are more types of
+filters available, including:", carrying its own callout —
+
+> This example may be out of date – use the instructions below to find out the latest format.
+
+— and instructing the reader to obtain the real format by running
+`hubble_get_current_search()` in the browser console. A page that says *there
+are more, this may be stale, go read it off the running app* **describes** a
+format; it does not enumerate a closed set. Designing "we may add no token the
+corpus does not print" on top of it is 599/600 with the roles swapped: treating
+a description as the list. The same capture that supplies the far-property pill
+shows a geospatial value kind (`Airport Location is bounded by any of 41
+geographic areas`) that the block never prints, which settles it independently.
+
+### What the shape actually is: a link holds MANY filters
+
+The page that prints the configuration shape is Workshop's, not the Explorer's:
+
+> To filter on linked object properties, select a link within the **Filter on a link** section of the **Add filter...** dropdown.
+
+> Once selected, click into the link config to add filter sections. You will see a setup similar to the **Filters configuration** options described in the Configuration Options section, with some additional options.
+
+> The **Has Link** filter is unique to linked object filters and filters on the presence of a link. For example: "Filter for all **Tasks** that have a link to **Person**."
+
+— `workshop/widgets-filter-list.md`. So the model is **link → a list of filter
+sections**, and *Has link* is ONE MEMBER of that list rather than the link
+filter's single value. Workshop is a different product, so it does not settle
+the Explorer's wire format; but it is the only page in the corpus that prints
+the configuration shape, and the Explorer's own menu agrees with it —
+`has_link.png` and `linked_to_object.png` show, under one selected link, a `Has
+<X>?` row, a `Filter by <X>?` row, then a `PROPERTIES` header and the far type's
+properties. Three kinds under one link, which is a link config.
+
+**That nesting resolves two things a flat member could not.** `matchType` is a
+field of the `presenceFilter` *value*, so a flat element whose value is a
+`numberRangeFilter` has nowhere to put it — nested, presence keeps its own
+member and its own `matchType`. And several predicates can share one link, which
+`pivot_flights.png` shows directly: two pills, both reading `Origin Airport ›
+…`, independently removable.
+
+### The cap does not survive its own documentation
+
+> You can have many *PROPERTY* filters, but only 1 *LINK* filter.
+
+That is the only sentence in the mirror quantifying the filter list, and our
+`object_set_filters_valid` enforces it. But `charts_linked_property_charts.png`
+shows one Flights exploration carrying far-property filters over **two different
+links** (`Aircraft › Acquisition Date` and `Airline › Total Miles`), and
+`pivot_flights.png` shows two over one link. Under any counting where a
+far-property predicate is a link filter, the validator would refuse states
+Foundry's own screenshots reach — and CLAUDE.md forbids being stricter than
+Foundry. The cap sentence sits on the page that disclaims itself as possibly out
+of date, which is the likeliest explanation.
+
+### And the api settles that this is the Explorer's shape, not the platform's
+
+`functions/api-object-sets.md`: link filters there are presence only —
+`.isPresent()` — and far properties are reached by `.searchAroundX()` then
+`.filter(...)`, capped at three. The v2 `ObjectSet` union has no link-filter
+primitive at all, and `filter.where`'s twenty-eight members contain no link
+predicate. So a far-property *filter element* is an Object Explorer construct
+that compiles to a traversal; it is not something the platform api models, and
+our engine is right to compile it rather than to mirror an api union.
+
+## Decisions (2026-09-08) — NOT YET BUILT
+
+1. **The link filter nests.** `{type:'linkFilter', linkType, filters:[…]}` where a
+   member is `{type:'presenceFilter', matchType}` or
+   `{type:'propertyFilter', propertyType, value}`. Every tag keeps its printed
+   spelling; the nesting is Workshop's documented shape and the Explorer menu's.
+2. **The current flat form must keep validating.** `object_set_filters_valid` is
+   a CHECK on `object_sets.filters`, so saved explorations exist in the flat
+   shape and cannot be rewritten by a validator change alone.
+3. **`objectType` stays absent.** In the printed example it is the SUBJECT type
+   on every element — the three property filters are on review fields and carry
+   the same value as the link filter — and Foundry needs it because its
+   `objectTypes` is a list. `object_set_where(p_object_type, filters)` takes one
+   subject by signature, so the field is redundant here rather than dropped.
+4. **"Filter by <X>?" is NOT a property predicate on the primary key.** It sits
+   above the `PROPERTIES` header as a sibling of `Has <X>?`, both rows vanish
+   when the subject rather than a link is selected, and the page identifies the
+   objects by **title**. It is its own kind, and its listogram carries
+   Keep/Exclude, which `valuesFilter` has no token for. Deferred, not folded in.
+
+## Open questions (2026-09-08)
+
+1. **What does `hubble_get_current_search()` actually return?** The page names it
+   as the way to learn the current format. We cannot run it. Everything above is
+   therefore the best reading of prose plus images, and the wire format is not
+   confirmed by anything that is not disclaimed.
+2. **How is the cap really scoped?** Keep it and refuse states the screenshots
+   show, or relax it and diverge from the only sentence that quantifies. This
+   needs a human call.
+3. **How does Exclude compile?** Every listogram carries Keep/Exclude, and the
+   far-property member as designed has no negation.

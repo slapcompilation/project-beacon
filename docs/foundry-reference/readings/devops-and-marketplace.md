@@ -24,6 +24,19 @@ to `foundry-devops/overview` — two more double-mirrored slugs. The nine
 `marketplace/` pages were **not** re-read here; this reading is the builder's
 end, and the installer's end is quoted only where a DevOps page points into it.
 
+**Five of the pages named above carry no quotation of their own, and here is
+why each.** `devops/_index` and `devops/overview` are byte-identical, as are
+`foundry-devops/_index` and `foundry-devops/overview`; every sentence taken from
+a pair is attributed to the `overview` slug, so the two `_index` duplicates are
+listed as read and quoted through their twins. `devops/overview` and
+`foundry-devops/overview` are themselves overview pages whose content is
+restated in full by the specific pages below them, so nothing rests on them
+alone. `foundry-rules/marketplace` was read for the drift note that prompted
+this reading — it is the page that changed upstream to say `Rule` and `Proposal`
+cannot be packaged — and that sentence is quoted in the drift record, not here.
+Said explicitly because `check:readings` flags a page listed and never quoted,
+and it is right to: the usual cause is a page that was listed rather than read.
+
 **Images: 2 of 54 parsed**, both because they carry model shape the prose
 leaves implicit — `foundry-devops/images/inputs-and-outputs.png` and
 `foundry-devops/images/folder-structure.png`. The other 52 are step-by-step
