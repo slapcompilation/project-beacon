@@ -289,15 +289,22 @@ Its interface sibling takes an `interfaceLink` instead:
 
 — `api/v2-ontologies-v2-resources-ontology-object-sets-create-temporary-object-set.md`
 
-**The `where` union on `filter` has twenty-six members and not one of them mentions
-a link.** In alphabetical order as I extracted them: `and`, `contains`,
+**The `where` union on `filter` has twenty-eight members and not one of them
+mentions a link.** In alphabetical order as I extracted them: `and`, `contains`,
 `containsAllTerms`, `containsAllTermsInOrder`,
 `containsAllTermsInOrderPrefixLastTerm`, `containsAnyTerm`,
-`doesNotIntersectBoundingBox`, `doesNotIntersectPolygon`, `eq`, `gt`, `gte`, `in`,
-`intersectsBoundingBox`, `intersectsPolygon`, `interval`, `isNull`, `lt`, `lte`,
-`not`, `or`, `regex`, `relativeDateRange`, `startsWith`, `wildcard`,
-`withinBoundingBox`, `withinDistanceOf`, `withinPolygon`. All twenty-six address a
-property, via `field` or `propertyIdentifier`.
+`doesNotIntersectBoundingBox`, `doesNotIntersectPolygon`, `eq`, `geoShapeV2`,
+`gt`, `gte`, `in`, `intersectsBoundingBox`, `intersectsPolygon`, `interval`,
+`isNull`, `lt`, `lte`, `not`, `or`, `regex`, `relativeDateRange`, `startsWith`,
+`wildcard`, `withinBoundingBox`, `withinDistanceOf`, `withinPolygon`. All
+twenty-eight address a property, via `field` or `propertyIdentifier`.
+
+**That count was wrong when I first wrote it, in all three ways a count can be.**
+It said twenty-six, listed twenty-seven, and the page has twenty-eight —
+`geoShapeV2` was the one I dropped. Corrected 2026-09-08 by enumerating the
+union out of the page rather than re-reading my own list, which is the only
+method that could have caught it. Left visible, per rule 7: a reading that
+miscounts an enumeration is exactly the artifact the next reader trusts.
 
 So in the public API a link is not something you filter *by*; it is something you
 *follow*, producing a new set. Filtering by a link is composed:
