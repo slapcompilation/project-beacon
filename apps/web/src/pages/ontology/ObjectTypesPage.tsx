@@ -709,9 +709,18 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const [sourceKeyColumn, setSourceKeyColumn] = useState('')
   const [targetKeyColumn, setTargetKeyColumn] = useState('')
   const [backingObjectTypeId, setBackingObjectTypeId] = useState('')
+  const [sourceEdgeId, setSourceEdgeId] = useState('')
+  const [targetEdgeId, setTargetEdgeId] = useState('')
   const [sourceSide, setSourceSide] = useState('')
   const [targetSide, setTargetSide] = useState('')
   const { data: datasets = [] } = useDatasets()
+  // An object-backed link walks two many-to-one links from the intermediary
+  // type to each side, and create-link-type makes them a prerequisite — so the
+  // pickers offer only what 765's guard would accept.
+  const { data: allLinkRows } = useLinkTypes()
+  const edgesTo = (side: string) => allLinkRows.map(rowToLinkType).filter((lt) =>
+    lt.backingKind === 'foreign_key' && lt.cardinality === 'many_to_one'
+    && lt.sourceTypeId === backingObjectTypeId && lt.targetTypeId === side)
   const { data: joinBranches = [] } = useBranches(backingKind === 'join_table' && joinDatasetId ? joinDatasetId : null)
   const { data: joinFields = [] } = useDatasetFields(backingKind === 'join_table' && joinDatasetId ? joinDatasetId : null)
   const apiName = toSlug(label)
@@ -729,7 +738,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
     : backingKind === 'join_table'
       ? joinDatasetId !== '' && joinBranchId !== '' && sourceKeyColumn !== ''
         && targetKeyColumn !== '' && sourceKeyColumn !== targetKeyColumn
-      : backingObjectTypeId !== ''
+      : backingObjectTypeId !== '' && sourceEdgeId !== '' && targetEdgeId !== ''
 
   const submit = () => {
     if (!validation.ok || !backingComplete || !ontology) return
@@ -743,6 +752,8 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
         sourceKeyColumn: backingKind === 'join_table' ? sourceKeyColumn : null,
         targetKeyColumn: backingKind === 'join_table' ? targetKeyColumn : null,
         backingObjectTypeId: backingKind === 'object_backed' ? backingObjectTypeId : null,
+        sourceEdgeLinkTypeId: backingKind === 'object_backed' ? sourceEdgeId : null,
+        targetEdgeLinkTypeId: backingKind === 'object_backed' ? targetEdgeId : null,
         sourceLabel: sourceSide.trim() || null,
         targetLabel: targetSide.trim() || null,
         sourceApiName: sourceSide.trim() ? toCamel(sourceSide) : null,
@@ -750,6 +761,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
       { onSuccess: () => {
         setLabel(''); setFkColumn(''); setJoinDatasetId(''); setJoinBranchId('')
         setSourceKeyColumn(''); setTargetKeyColumn(''); setBackingObjectTypeId('')
+        setSourceEdgeId(''); setTargetEdgeId('')
         setSourceSide(''); setTargetSide('')
       } })
   }
@@ -800,12 +812,30 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
           </HTMLSelect>
         )}
         {backingKind === 'object_backed' && (
-          <HTMLSelect value={backingObjectTypeId} onChange={(e) => { setBackingObjectTypeId(e.currentTarget.value) }}>
+          <HTMLSelect value={backingObjectTypeId}
+            onChange={(e) => { setBackingObjectTypeId(e.currentTarget.value); setSourceEdgeId(''); setTargetEdgeId('') }}>
             <option value="">Backing object type…</option>
             {allTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
           </HTMLSelect>
         )}
       </div>
+      {backingKind === 'object_backed' && backingObjectTypeId !== '' && (
+        <div className="flex flex-wrap items-center gap-2">
+          <HTMLSelect value={sourceEdgeId} onChange={(e) => { setSourceEdgeId(e.currentTarget.value) }}>
+            <option value="">Edge to {labelOf(type.id)}…</option>
+            {edgesTo(type.id).map((lt) => <option key={lt.id} value={lt.id}>{lt.label}</option>)}
+          </HTMLSelect>
+          <HTMLSelect value={targetEdgeId} onChange={(e) => { setTargetEdgeId(e.currentTarget.value) }}>
+            <option value="">Edge to {labelOf(targetTypeId)}…</option>
+            {edgesTo(targetTypeId).map((lt) => <option key={lt.id} value={lt.id}>{lt.label}</option>)}
+          </HTMLSelect>
+          {edgesTo(type.id).length === 0 || edgesTo(targetTypeId).length === 0 ? (
+            <span className="text-xs text-muted-foreground">
+              Create the many-to-one links from the backing object type to each side first.
+            </span>
+          ) : null}
+        </div>
+      )}
       {backingKind === 'join_table' && (
         <div className="flex flex-wrap items-center gap-2">
           <HTMLSelect value={joinDatasetId}
