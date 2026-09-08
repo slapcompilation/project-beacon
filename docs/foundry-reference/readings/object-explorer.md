@@ -552,10 +552,16 @@ session**, after 775 corrected 774 for the same omission. That is a pattern, not
 a slip: the header and the mechanism get written and the migration then feels
 finished before any assertion exists.
 
-The web now matches the engine's cap (one per link) but does **not** yet offer a
-far-property control; `AddFilter` never receives the far type or its properties.
-That is the next chunk, and until it lands the grammar is reachable through the
-platform client and not through the Explorer.
+The web offers the control now, so the grammar is reachable where the page says
+it is reached: select the relation in the left panel, then a property of the far
+type from the same menu. `AddFilter`'s value controls serve both panes — the
+property list follows the pane — and the pill reads the way the capture's
+breadcrumb does, `Origin Airport > Number Of Carriers is between 9 and 17`.
+`Filter by <X>?` stays disabled with a line saying so, because it is the kind
+that is not built.
+
+The web's cap is per-link too, so a second relation is still offered when one
+already carries a filter.
 
 ## Open questions (2026-09-08)
 

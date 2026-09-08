@@ -23,9 +23,19 @@ export type FilterValue =
   | { type: 'numberRangeFilter'; min?: number; max?: number }
   | { type: 'dateRangeFilter'; dateRangeFilter: { start?: string; end?: string } }
 
+/** A member of a link's filter list. "click into the link config to add filter
+ *  sections", with "Has link" as one of them (workshop/widgets-filter-list). */
+export type LinkPredicate =
+  | { type: 'presenceFilter'; matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE' }
+  | { type: 'propertyFilter'; propertyType: string; value: FilterValue }
+
 export type ExplorerFilter =
   | { type: 'propertyFilter'; propertyType: string; value: FilterValue }
-  | { type: 'linkFilter'; linkType: string; value: { type: 'presenceFilter'; matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE' } }
+  /** A link carries EITHER the flat presence value generate-urls.md prints —
+   *  which saved explorations still hold — or the nested list (776). */
+  | { type: 'linkFilter'; linkType: string
+      value?: { type: 'presenceFilter'; matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE' }
+      filters?: LinkPredicate[] }
 
 export interface SortSpec { property: string; direction: 'asc' | 'desc' }
 
