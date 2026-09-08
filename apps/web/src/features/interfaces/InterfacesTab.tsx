@@ -1,9 +1,13 @@
-// The implementing object type's Interfaces tab — its Actions sub-tab.
+// The implementing object type's Interfaces tab — its Links and Actions
+// sub-tabs.
 // "After adding the interface implementation in Ontology Manager, the object
 // type's Interfaces tab lists the interface's action type constraints in the
 // Actions sub-tab. Select a concrete action type on the implementing object
 // type for each required constraint. You may skip or map optional
 // constraints." (interfaces/interface-action-type-constraints)
+// The link clause is the same shape one step earlier: "you must select a link
+// type on the object type that satisfies each required link type constraint"
+// (interfaces/implement-interface).
 
 import { useMemo, useState } from 'react'
 import {
@@ -11,12 +15,15 @@ import {
 } from '@blueprintjs/core'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { useInterfaces, useImplementations } from './hooks'
-import type { InterfaceRow } from './api'
+import type { InterfaceRow, LinkConstraintRow } from './api'
 import {
   useActionConstraints, useSatisfactions, useSatisfy, useUnsatisfy,
   type ActionConstraintFullRow, type ParameterConstraintRow,
 } from './actionConstraints'
+import { useLinkSatisfactions, useSatisfyLinks } from './linkConstraints'
 import { useActionTypes, type ActionTypeRow } from '@/features/actionTypes/api'
+import { useLinkTypes } from '@/features/objectTypes/hooks'
+import type { LinkTypeRow } from '@/features/objectTypes/api'
 
 /** Own and inherited, because the obligation includes the inherited clause. */
 function withAncestors(id: string, all: InterfaceRow[]): string[] {
@@ -45,8 +52,96 @@ export function InterfacesTab({ type }: { type: ObjectTypeDef }) {
       {mine.map((impl) => {
         const iface = interfaces.find((r) => r.id === impl.interface_id)
         if (!iface) return null
-        return <InterfaceActions key={impl.interface_id} type={type} iface={iface} all={interfaces} />
+        return (
+          <div key={impl.interface_id} className="space-y-3">
+            <InterfaceLinks type={type} iface={iface} all={interfaces} />
+            <InterfaceActions type={type} iface={iface} all={interfaces} />
+          </div>
+        )
       })}
+    </div>
+  )
+}
+
+function InterfaceLinks({ type, iface, all }: {
+  type: ObjectTypeDef; iface: InterfaceRow; all: InterfaceRow[]
+}) {
+  const ids = useMemo(() => withAncestors(iface.id, all), [iface.id, all])
+  const { data: links } = useLinkTypes()
+  const { data: satisfactions = [] } = useLinkSatisfactions(type.id)
+  const { data: impls = [] } = useImplementations()
+  const constraints = all.filter((r) => ids.includes(r.id)).flatMap((r) => r.interface_link_constraints)
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <Icon icon="layers" size={12} className="text-violet-500" />
+        <span className="text-xs font-semibold">{iface.label}</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-2">Links</span>
+      </div>
+      {constraints.length === 0 && (
+        <p className="text-xs text-muted-foreground pl-5">This interface declares no link type constraints.</p>
+      )}
+      {constraints.map((c) => (
+        <LinkConstraintRowView key={c.api_name} type={type} iface={iface} constraint={c} links={links}
+          impls={impls} allIfaces={all}
+          chosen={satisfactions.filter((s) => s.interface_id === iface.id && s.constraint_id === c.id)
+            .map((s) => s.link_type_id)} />
+      ))}
+    </div>
+  )
+}
+
+/** Client-side mirror of `guard_link_satisfaction`, so the picker offers only
+ *  what the database would accept — the guard still has the last word. */
+function satisfies(l: LinkTypeRow, typeId: string, c: LinkConstraintRow,
+                   impls: { object_type_id: string; interface_id: string }[],
+                   allIfaces: InterfaceRow[]): boolean {
+  const far = l.source_object_type_id === typeId ? l.target_object_type_id
+            : l.target_object_type_id === typeId ? l.source_object_type_id
+            : null
+  if (far === null) return false
+  if (c.target_kind === 'object_type') return far === c.target_object_type_id
+  return impls.some((i) => i.object_type_id === far
+    && withAncestors(i.interface_id, allIfaces).includes(c.target_interface_id ?? ''))
+}
+
+function LinkConstraintRowView({ type, iface, constraint, links, impls, allIfaces, chosen }: {
+  type: ObjectTypeDef
+  iface: InterfaceRow
+  constraint: LinkConstraintRow
+  links: LinkTypeRow[]
+  impls: { object_type_id: string; interface_id: string }[]
+  allIfaces: InterfaceRow[]
+  chosen: string[]
+}) {
+  const satisfy = useSatisfyLinks(type.id)
+  const set = (linkTypeIds: string[]) => {
+    satisfy.mutate({ interfaceId: iface.id, constraintId: constraint.id, linkTypeIds })
+  }
+  const candidates = links.filter((l) => satisfies(l, type.id, constraint, impls, allIfaces))
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 pl-5 text-xs">
+      <Icon icon="link" size={11} className="text-violet-500" />
+      <span>{constraint.display_name}</span>
+      {constraint.required
+        ? <Tag minimal intent={Intent.WARNING}>Required</Tag>
+        : <Tag minimal>Optional</Tag>}
+      {chosen.map((id) => (
+        <Tag key={id} minimal onRemove={() => { set(chosen.filter((x) => x !== id)) }}>
+          {links.find((l) => l.id === id)?.label ?? '?'}
+        </Tag>
+      ))}
+      {candidates.length === 0 && chosen.length === 0
+        ? <span className="text-muted-foreground">No link on this object type satisfies it — create one first.</span>
+        : (
+          <HTMLSelect value="" onChange={(e) => { set([...chosen, e.currentTarget.value]) }}>
+            <option value="">{constraint.required && chosen.length === 0 ? 'Select a link type…' : 'Add a link type…'}</option>
+            {candidates.filter((l) => !chosen.includes(l.id))
+              .map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+          </HTMLSelect>
+        )}
     </div>
   )
 }

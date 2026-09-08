@@ -340,4 +340,161 @@ describe.skipIf(noDb)('interfaces', () => {
       `update public.ontology_interfaces set searchable = true where id = $1`, [cap]))
     expect(err).toContain('Ontology:TooManyImplementations')
   })
+
+  // ── 768: which concrete link keeps the link clause ─────────────────────────
+  // The page's own two examples: a Facility interface linking to the Airlines
+  // object type, and a Facility linking to the Alert *interface*. Its own
+  // fixture throughout, because the shared one accumulates implementations.
+  describe('link type constraints are satisfied by concrete links', () => {
+    let facility: string
+    let alertable: string
+    let airport: string
+    let airline: string
+    let alert: string
+    let elsewhere: string
+    let serves: string
+    let alsoServes: string
+    let toAlert: string
+    let toElsewhere: string
+    let cObj: string
+    let cIface: string
+
+    const mkType = async (api: string) => (await one(
+      `insert into public.object_types (ontology_id, api_name, label)
+       values ($1,$2,$2) returning id`, [ont, api])).id
+    const mkLink = async (api: string, from: string, to: string) => (await one(
+      `insert into public.link_types (ontology_id, source_object_type_id, target_object_type_id,
+                                      api_name, label, cardinality)
+       values ($1,$2,$3,$4,$4,'one_to_many') returning id`, [ont, from, to, api])).id
+
+    beforeAll(async () => {
+      facility = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
+                             values ($1,'Facility','Facility') returning id`, [ont])).id
+      alertable = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
+                              values ($1,'Alertable','Alert') returning id`, [ont])).id
+      airport = await mkType('Airport')
+      airline = await mkType('Airline')
+      alert = await mkType('FlightAlert')
+      elsewhere = await mkType('Elsewhere')
+      serves = await mkLink('serves', airport, airline)
+      alsoServes = await mkLink('alsoServes', airport, airline)
+      toAlert = await mkLink('raises', airport, alert)
+      toElsewhere = await mkLink('elsewhere', airport, elsewhere)
+      cObj = (await one(
+        `insert into public.interface_link_constraints
+           (interface_id, api_name, display_name, cardinality, target_kind, target_object_type_id)
+         values ($1,'airlines','Airlines','MANY','object_type',$2) returning id`,
+        [facility, airline])).id
+      cIface = (await one(
+        `insert into public.interface_link_constraints
+           (interface_id, api_name, display_name, cardinality, target_kind, target_interface_id)
+         values ($1,'alerts','Alerts','MANY','interface',$2) returning id`,
+        [facility, alertable])).id
+      await db.query(`insert into public.object_type_interfaces (object_type_id, interface_id)
+                      values ($1,$2)`, [alert, alertable])
+      await db.query(`insert into public.object_type_interfaces (object_type_id, interface_id)
+                      values ($1,$2)`, [airport, facility])
+      // The guard is DEFERRABLE INITIALLY IMMEDIATE, but a test above ran
+      // `set constraints all deferred` and that holds for the transaction —
+      // which this suite never commits. Named here, so the guard answers when
+      // it is called rather than at a commit that never comes.
+      await db.query('set constraints guard_link_satisfaction immediate')
+    })
+
+    // 450 defaulted this to true by symmetry with the property clause, which
+    // cites a sentence for it. The link clause's modal shows the toggle off.
+    it('leaves a constraint optional when it names no requiredness', async () => {
+      expect((await one(
+        `select required from public.interface_link_constraints where id = $1`, [cObj])).required)
+        .toBe(false)
+    })
+
+    // The api types an implementation's `links` as a map to a LIST of link
+    // type api names, where `actionTypes` maps to a single one.
+    it('takes several concrete links for one constraint, and replaces the set', async () => {
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, [serves, alsoServes]])
+      expect(await count(
+        `select count(*) n from public.interface_link_satisfactions
+          where object_type_id = $1 and constraint_id = $2`, [airport, cObj])).toBe(2)
+      // The wizard's row carries the whole set, so a second call replaces it.
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, [serves]])
+      expect(await count(
+        `select count(*) n from public.interface_link_satisfactions
+          where object_type_id = $1 and constraint_id = $2`, [airport, cObj])).toBe(1)
+      // and the empty array is the menu's "Skip".
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, []])
+      expect(await count(
+        `select count(*) n from public.interface_link_satisfactions
+          where object_type_id = $1 and constraint_id = $2`, [airport, cObj])).toBe(0)
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, [serves]])
+    })
+
+    it('satisfies an interface-targeted constraint with a link to an implementer', async () => {
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cIface, [toAlert]])
+      expect(await count(
+        `select count(*) n from public.interface_link_satisfactions
+          where object_type_id = $1 and constraint_id = $2`, [airport, cIface])).toBe(1)
+    })
+
+    it('refuses a link whose far end is not what the constraint names', async () => {
+      const err = await refused(db, () => db.query(
+        `select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, [toElsewhere]]))
+      expect(err).toContain('Ontology:LinkTargetDoesNotSatisfyConstraint')
+    })
+
+    it('refuses a link whose far end does not implement the target interface', async () => {
+      const err = await refused(db, () => db.query(
+        `select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cIface, [toElsewhere]]))
+      expect(err).toContain('Ontology:LinkTargetDoesNotImplement')
+    })
+
+    it('refuses a link with no end on the implementing object type', async () => {
+      const stray = await mkLink('stray', alert, elsewhere)
+      const err = await refused(db, () => db.query(
+        `select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, cObj, [stray]]))
+      expect(err).toContain('Ontology:LinkDoesNotTouchTheImplementer')
+    })
+
+    // "Object types will not be able to Implement this interface unless a link
+    //  type that satisfies this constraint is provided."
+    it('refuses an implementation while a required constraint is unsatisfied', async () => {
+      await db.query(
+        `insert into public.interface_link_constraints
+           (interface_id, api_name, display_name, required, cardinality, target_kind, target_object_type_id)
+         values ($1,'mandatory','Mandatory',true,'MANY','object_type',$2)`, [facility, airline])
+      const err = await refused(db, async () => {
+        await db.query(`insert into public.object_type_interfaces (object_type_id, interface_id)
+                        values ($1,$2)`, [elsewhere, facility])
+        await db.query('set constraints all immediate')
+      })
+      expect(err).toContain('OntologyMetadata:LinkConstraintNotSatisfied')
+      await db.query('set constraints all deferred')
+      await db.query('set constraints guard_link_satisfaction immediate')
+    })
+
+    // "A `ONE` cardinality indicates that each object implementing the
+    //  interface should link to one object of the target type." Should — so
+    //  the ladder puts it in the advisory list, not the blocking one.
+    it('warns, without blocking, when a ONE constraint is kept by a link that returns many', async () => {
+      await db.query(
+        `update public.interface_link_constraints set cardinality = 'ONE' where id = $1`, [cObj])
+      const warned = await count(
+        `select count(*) n from public.ontology_warnings()
+          where scope = 'interface' and subject = 'airlines'
+            and problem like '%can return more than one object%'`)
+      expect(warned).toBe(1)
+      expect(await count(
+        `select count(*) n from public.ontology_violations() where subject = 'airlines'`)).toBe(0)
+      await db.query(
+        `update public.interface_link_constraints set cardinality = 'MANY' where id = $1`, [cObj])
+    })
+  })
 })
