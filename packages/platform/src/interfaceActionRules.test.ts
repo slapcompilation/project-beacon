@@ -11,9 +11,11 @@
 // permission — one level up. An interface rule naming a property some
 // implementing type lacks would be an edit that cannot apply to all of them.
 //
-// None of the five executes yet, and the durable question is that they are
-// *expressible and constrained*: a kind that cannot be modelled cannot be
-// reasoned about, and one that claims execution it does not have is worse.
+// All five execute now — the three object kinds since 592/593 and the two link
+// kinds since 769 — but the durable question this file was written for is
+// unchanged: they must be *expressible and constrained*, because a kind that
+// cannot be modelled cannot be reasoned about, and one that claims execution it
+// does not have is worse.
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
@@ -80,23 +82,25 @@ describe.skipIf(noDb)('action rules on interfaces', () => {
     expect(iface.map((r) => (r as { kind: string }).kind).sort()).toEqual([...INTERFACE_KINDS].sort())
   })
 
-  it('the three object kinds execute and the two link kinds still say why not', async () => {
-    // This assertion used to be "none of them execute". 592 and 593 changed that
-    // for the three OBJECT kinds — the blockers were the parameter kinds and the
-    // value encoding, both published in `api/` and neither needing inference.
-    // A kind that claimed execution it does not have would still be worse than
-    // one that is absent, so every kind still states its own reason.
+  it('all five interface kinds execute, and each still states what it does', async () => {
+    // This assertion has been narrowed twice. It began as "none of them
+    // execute"; 592/593 made the three OBJECT kinds executable; 769 made the
+    // two LINK kinds executable, once 768 recorded which concrete link keeps a
+    // constraint. What survives both narrowings is the part worth keeping — a
+    // kind that claimed execution it does not have is worse than one absent,
+    // so every kind states its own behaviour.
     const { rows } = await db.query(
       `select kind, executable, note from public.action_rule_kinds() where targets = 'interface'`)
+    expect(rows).toHaveLength(5)
     for (const r of rows as { kind: string; executable: boolean; note: string }[]) {
-      expect(r.executable, `${r.kind} executes iff it is an object rule`)
-        .toBe(!r.kind.includes('link'))
-      expect(r.note.length, `${r.kind} states what it does or why it cannot`).toBeGreaterThan(20)
+      expect(r.executable, `${r.kind} executes`).toBe(true)
+      expect(r.note.length, `${r.kind} states what it does`).toBeGreaterThan(20)
     }
-    // The two link kinds wait on the same thing their non-interface siblings do.
+    // The two link kinds name the constraint they resolve through, which is
+    // what distinguishes them from create_link/delete_link.
     const link = rows.filter((r) => (r as { kind: string }).kind.includes('link'))
     expect(link).toHaveLength(2)
-    for (const r of link) expect((r as { note: string }).note).toContain('link instance store')
+    for (const r of link) expect((r as { note: string }).note).toContain('constraint')
   })
 
   it('requires an interface, and refuses another target alongside it', async () => {
@@ -270,5 +274,157 @@ describe.skipIf(noDb)('action rules on interfaces', () => {
       `insert into public.action_type_rules (action_type_id, kind, position, interface_id)
        values ($1,'create_object_of_interface',3,$2)`, [action, otherIface]))
     expect(err).toContain('Ontology:ActionCrossesOntologies')
+  })
+
+  // -- 769: the two link kinds, applied ------------------------------------
+  // The page's own example: a Facility interface with an `airlines` constraint
+  // to the Airline object type, kept by a concrete foreign-key link.
+  describe('an interface link rule writes the foreign key on the many side', () => {
+    let airport = ''
+    let airline = ''
+    let facility = ''
+    let serves = ''
+    let constraint = ''
+    let at = ''
+    let rule = ''
+    let srcParam = ''
+    let tgtParam = ''
+
+    const mkLink = async (api: string) => (await one(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id,
+                                      target_object_type_id, api_name, label, cardinality,
+                                      backing_kind, backing_column)
+       values ($1,$2,$3,$4,$5,$5,'many_to_one','foreign_key','airline_pk') returning id`,
+      [ont, f.projectId, airport, airline, api])).id
+
+    const apply = async () => Number((await one(
+      `select public.apply_action($1, $2::jsonb, null, 'ifr769') as n`,
+      [at, JSON.stringify({
+        [srcParam]: { objectTypeApiName: 'Airport769', primaryKeyValue: 'LHR' },
+        [tgtParam]: 'BA',
+      })])).n)
+
+    beforeAll(async () => {
+      airport = (await one(
+        `insert into public.object_types (ontology_id, project_id, api_name, label, edits_enabled)
+         values ($1,$2,'Airport769','Airport',true) returning id`, [ont, f.projectId])).id
+      airline = (await one(
+        `insert into public.object_types (ontology_id, project_id, api_name, label)
+         values ($1,$2,'Airline769','Airline') returning id`, [ont, f.projectId])).id
+      // 417: an FK link's backing_column names the TARGET's pk column, and the
+      // property of that name lives on the SOURCE.
+      await db.query(
+        `insert into public.object_type_properties
+           (object_type_id, property_id, api_name, display_name, base_type, backing_column,
+            is_primary_key, is_title_key, required)
+         values ($1,'airport_pk','airportPk','Airport Pk','string','airport_pk',true,true,true)`, [airport])
+      await db.query(
+        `insert into public.object_type_properties
+           (object_type_id, property_id, api_name, display_name, base_type, backing_column)
+         values ($1,'airline_pk','airlinePk','Airline Pk','string','airline_pk')`, [airport])
+      await db.query(
+        `insert into public.object_type_properties
+           (object_type_id, property_id, api_name, display_name, base_type, backing_column,
+            is_primary_key, is_title_key, required)
+         values ($1,'airline_pk','airlinePk','Airline Pk','string','airline_pk',true,true,true)`, [airline])
+      facility = (await one(
+        `insert into public.ontology_interfaces (ontology_id, api_name, label, created_by_user_id)
+         values ($1,'Facility769','Facility',$2) returning id`, [ont, author])).id
+      constraint = (await one(
+        `insert into public.interface_link_constraints
+           (interface_id, api_name, display_name, cardinality, target_kind, target_object_type_id)
+         values ($1,'airlines','Airlines','ONE','object_type',$2) returning id`,
+        [facility, airline])).id
+      serves = await mkLink('serves769')
+      await db.query(`select public.implement_interface($1,$2)`, [airport, facility])
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, constraint, [serves]])
+
+      // `fixture` sets claims without a `sub` (see the note above), and
+      // stage_change stamps working_state_changes.user_id from auth.uid().
+      const claims = (await one(
+        `select coalesce(current_setting('request.jwt.claims', true), '{}') as c`)).c
+      await db.query(`select set_config('request.jwt.claims', $1, true)`,
+        [JSON.stringify({ ...JSON.parse(claims) as Record<string, unknown>, sub: author })])
+
+      // Authored through the front door -- apply_action_type is the only writer
+      // of action_type_rules, and it deletes and re-inserts.
+      at = (await one(`select public.save_action_type($1::jsonb) as id`, [JSON.stringify({
+        api_name: 'link-769', label: 'Link 769', ontology_id: ont, project_id: f.projectId,
+        rules: [{
+          kind: 'create_link_on_object_of_interface',
+          interface_id: facility,
+          interface_link_constraint_api_name: 'airlines',
+        }],
+      })])).id
+      await db.query('select public.save_working_state()')
+      const r = await one(
+        `select id, interface_link_constraint_id, source_parameter_id, target_parameter_id
+           from public.action_type_rules where action_type_id = $1`, [at])
+      rule = r.id
+      expect(r.interface_link_constraint_id).toBe(constraint)
+      srcParam = (await one(
+        `select api_name from public.action_type_parameters where id = $1`, [r.source_parameter_id])).api_name
+      tgtParam = (await one(
+        `select api_name from public.action_type_parameters where id = $1`, [r.target_parameter_id])).api_name
+    })
+
+    // "the source will be an interface reference parameter and the destination
+    //  will be an object reference parameter"
+    it('generates an interface reference source and an object reference destination', async () => {
+      const src = await one(
+        `select data_kind, interface_id from public.action_type_parameters
+          where action_type_id = $1 and api_name = $2`, [at, srcParam])
+      expect(src.data_kind).toBe('interfaceObject')
+      expect(src.interface_id).toBe(facility)
+      const tgt = await one(
+        `select data_kind, object_type_id from public.action_type_parameters
+          where action_type_id = $1 and api_name = $2`, [at, tgtParam])
+      expect(tgt.data_kind).toBe('object')
+      expect(tgt.object_type_id).toBe(airline)
+    })
+
+    // "creating a one-to-many link modifies the foreign key on the many side"
+    it('creates the link by setting the foreign key, and deletes it by clearing it', async () => {
+      expect(await apply()).toBe(1)
+      const made = await one(
+        `select properties ->> 'airline_pk' as v from public.object_edits
+          where object_type_id = $1 and primary_key = 'LHR' order by seq desc limit 1`, [airport])
+      expect(made.v).toBe('BA')
+
+      await db.query(
+        `update public.action_type_rules set kind = 'delete_link_on_object_of_interface' where id = $1`, [rule])
+      expect(await apply()).toBe(1)
+      const cleared = await one(
+        `select properties -> 'airline_pk' = 'null'::jsonb as v from public.object_edits
+          where object_type_id = $1 and primary_key = 'LHR' order by seq desc limit 1`, [airport])
+      expect(cleared.v).toBe(true)
+    })
+
+    it('refuses when the implementing type names no concrete link for the constraint', async () => {
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, constraint, []])
+      const err = await refused(db, apply)
+      expect(err).toContain('Actions:InterfaceLinkNotImplemented')
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, constraint, [serves]])
+    })
+
+    // "the action will fail" for create; "attempt to delete all the concrete
+    //  link implementations" for delete. The asymmetry is the page's, kept.
+    it('fails a create on multiple implementations and fans a delete out over all of them', async () => {
+      const also = await mkLink('alsoServes769')
+      await db.query(`select public.satisfy_link_constraint($1,$2,$3,$4::uuid[])`,
+        [airport, facility, constraint, [serves, also]])
+
+      await db.query(
+        `update public.action_type_rules set kind = 'create_link_on_object_of_interface' where id = $1`, [rule])
+      const err = await refused(db, apply)
+      expect(err).toContain('Actions:MultipleLinkImplementations')
+
+      await db.query(
+        `update public.action_type_rules set kind = 'delete_link_on_object_of_interface' where id = $1`, [rule])
+      expect(await apply()).toBe(2)
+    })
   })
 })

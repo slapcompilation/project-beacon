@@ -136,23 +136,23 @@ describe.skipIf(noDb)('actions', () => {
   // applied at all" and a function rule is — by the action runtime, which owns
   // the isolate. What apply_action can run is the SQL-runtime subset, and that
   // is still three.
-  it('has exactly ten kinds apply_action can run, said by the registry', async () => {
+  it('has exactly twelve kinds apply_action can run, said by the registry', async () => {
     // Three since 445; the three interface OBJECT rules joined them at 592/593,
     // the two LINK rules at 755, once the pair store existed for their edits,
-    // and create-or-modify at 760, once the merged object could be asked
-    // whether it exists. The two interface LINK rules still wait — the rule
-    // must name an interface link constraint, which no rule column points at.
+    // create-or-modify at 760, and the two interface LINK rules at 769, once
+    // 768 recorded which concrete link keeps a constraint. The list of kinds
+    // this platform cannot run is now empty.
     expect(await count(
-      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(10)
-    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(11)
+      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(12)
+    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(13)
     expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(13)
-    // The ones still waiting, by name, so this fails loudly if one quietly flips.
     expect((await db.query(
       `select kind from public.action_rule_kinds() where not executable order by kind`)).rows
-      .map((r) => (r as { kind: string }).kind)).toEqual([
-        'create_link_on_object_of_interface',
-        'delete_link_on_object_of_interface',
-      ])
+      .map((r) => (r as { kind: string }).kind)).toEqual([])
+    // Emptiness is easy to reach by deleting a row, so the registry must still
+    // say what each kind DOES — the assertion the list used to carry.
+    expect(await count(
+      `select count(*) n from public.action_rule_kinds() where length(coalesce(note,'')) < 20`)).toBe(0)
   })
 
   // ── 445 + 449: the apply path and its gates ───────────────────────────────

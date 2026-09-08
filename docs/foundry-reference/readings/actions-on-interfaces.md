@@ -572,3 +572,82 @@ the usual shape of an unread column, one step earlier than usual.
    like an omission and is instead the existing contract.
 10. **Foundry's wizard offers "Create new link type" inline.** Ours offers only
    selection, and says so when nothing qualifies. Not built, not hidden.
+
+---
+
+## Post-build reconciliation (2026-09-08, second) — the link rules execute
+
+769 makes `action_rule_kinds()`'s list of unexecutable kinds empty. Decisions 5,
+12 and 17 all said what was left; what actually turned out to be load-bearing is
+one clause of the create callout that this reading quoted and did not follow
+through:
+
+> Additionally, creating a one-to-many link modifies the foreign key on the many side of the relationship. Ensure there are no conflicts if your action type also modifies the foreign key using a "Create object" or "Modify object(s)" rule.
+
+**These are the one link rule kind that writes a foreign key.** A plain
+`create_link` refuses anything but a join table, and `rules.md` says why —
+"For foreign key links, one has to use **Modify object** rule to explicitly
+modify the foreign key property." The sentence is already quoted inside our
+`apply_rule_link_edit`. The interface rule does not refuse it: there is no
+conflict to warn about unless the rule writes that column itself. And since an
+interface link constraint is `ONE` or `MANY` only — "analogous to one-to-one and
+one-to-many modeling" — the foreign-key case is the *documented* one here, not
+the exception. A design that reused 755's pair store and refused foreign keys
+would have executed only the case the page never describes and refused every
+case it does.
+
+What the edit is, the api prints as code (`functions/typescript-v2-ontology-edits`):
+`batch.update({ $apiName: "Ticket", $primaryKey: 13 }, { assignedEmployeeId: 52 })`
+to link and `{ assignedEmployeeId: undefined }` to unlink. With 417 — a
+foreign-key link's `backing_column` names the target's primary-key column and
+the property of that name lives on the source — that fixes everything: the
+edited object is the link's source, the value is the target's key, and a delete
+writes JSON null. It is an ordinary `modify` row in `object_edits`, which is why
+605's edit window, 713's scenario redirect and 742's revert all keep working
+with nothing added.
+
+## Decisions (2026-09-08, second set)
+
+18. **`generate_interface_parameters` writes the rule's back-pointers.** It
+    cannot be left to `apply_action`'s `data_kind = 'interfaceObject' … LIMIT 1`
+    lookup, because a constraint whose target is its own interface needs TWO
+    interface reference parameters. The same change makes that lookup ordered
+    and makes it skip any parameter a link rule points at — otherwise a
+    `modify_object_of_interface` rule in the same action could resolve to a link
+    rule's far side.
+19. **`interface_link_constraint_id` is spliced into `apply_action_type`'s rule
+    INSERT, not written back afterwards.** That function is the only writer of
+    `action_type_rules` and it deletes and re-inserts, so a generator cannot
+    reach the row the way 761's key row was reached. The migration's proof block
+    therefore goes through `save_action_type` + `save_working_state`, because an
+    assertion that inserts the rule directly would pass while the only front
+    door stayed broken.
+20. **Both ends accept either parameter kind.** The kind law — "the source will
+    be an interface reference parameter and the destination will be an object
+    reference parameter" — is scoped to what is *generated*. The manual-binding
+    sentences allow "an interface reference or object reference parameter" at
+    either end. So what is checked at apply time is the resolved OBJECT TYPE
+    against the constraint, never the parameter's data kind.
+21. **The create rule's third binding is refused, in its own words.** The page
+    lets a create rule's end be "An object created by a 'Create object' or
+    'Create object(s) of interface' rule within the same action type"; one rule
+    naming another rule's output is a dependency `action_type_rules` cannot
+    express. The refusal is create-specific and says it is ours. It does NOT
+    quote the delete rule's stricter sentence at the create rule — an earlier
+    draft did exactly that, and a refuter caught it.
+
+## Questions (2026-09-08, second set)
+
+11. **`assert_rule_order` (469) cannot see these rules** — it filters
+    `object_type_id IS NOT NULL` and an interface rule carries NULL. So the
+    create callout's own warning, about an action type that also modifies the
+    foreign key with a Create or Modify object rule, is unguarded. Whether that
+    belongs in `ontology_warnings()` is open; the page says *ensure*, which is
+    advice to the builder rather than a refusal.
+12. **A link edit is not gated the way an object edit is.** `link_edits` carries
+    no BEFORE trigger, so unlike `object_edits` it is neither checked by 605's
+    `guard_object_edit` nor diverted by 713's `redirect_edit_to_scenario`. That
+    predates this work — it is 755's — but 769's delete fan-out multiplies it by
+    the number of satisfying links, so it is recorded here rather than left in
+    the one place nobody reads. The foreign-key arm is unaffected: it writes
+    `object_edits` and inherits both.

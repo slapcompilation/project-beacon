@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (118) ────────────────────────────────────────────────
+// ── ACTION TYPES (119) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -126,6 +126,19 @@ export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } 
 export const applyOneChange = { apiName: 'apply_one_change', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_op: string; p_fields: Json; p_ont: string },
   void
+>
+
+/**
+ *  A "Create/Delete interface link" rule, applied. Resolves the constraint to
+ *  the concrete links the implementing type named as satisfying it (768),
+ *  then writes each: a join table through 755's link edit, a foreign key as a
+ *  modify on the link's source object — "creating a one-to-many link modifies
+ *  the foreign key on the many side of the relationship". Create refuses more
+ *  than one implementation; delete does all of them.
+ */
+export const applyRuleInterfaceLinkEdit = { apiName: 'apply_rule_interface_link_edit', kind: 'action' } as ActionType<
+  { p_rule: string; p_action_type: string; p_parameters: Json; p_application: string },
+  number
 >
 
 export const applyRuleLinkEdit = { apiName: 'apply_rule_link_edit', kind: 'action' } as ActionType<
@@ -1137,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (325) ───────────────────────────────────────────────────
+// ── FUNCTIONS (327) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1196,6 +1209,18 @@ export const actionOverrideEffectsValid = { apiName: 'action_override_effects_va
 export const actionParameterTypeClasses = { apiName: 'action_parameter_type_classes', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  One end of an interface link rule, resolved to (object type, primary key).
+ *  "An interface reference or object reference parameter referencing an
+ *  existing object" — either kind, at either end; an interface reference
+ *  carries both halves, an object reference takes its type from the
+ *  parameter.
+ */
+export const actionReferenceObject = { apiName: 'action_reference_object', kind: 'function' } as FunctionType<
+  { p_parameter: string; p_parameters: Json; p_ontology: string },
+  { object_type_id: string; primary_key: string }[]
 >
 
 /**
@@ -3728,6 +3753,17 @@ export const transformFileLogic = { apiName: 'transform_file_logic', kind: 'func
 export const typeWidens = { apiName: 'type_widens', kind: 'function' } as FunctionType<
   { p_from: string; p_to: string },
   boolean
+>
+
+/**
+ *  A generated parameter name that will not collide: non-alphanumerics
+ *  stripped, lowerCamel, suffixed until free. action_type_parameters is
+ *  UNIQUE (action_type_id, api_name) and interface_link_constraints.api_name
+ *  carries no format CHECK.
+ */
+export const uniqueParameterApiName = { apiName: 'unique_parameter_api_name', kind: 'function' } as FunctionType<
+  { p_action_type: string; p_wanted: string },
+  string
 >
 
 /**
