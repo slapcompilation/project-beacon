@@ -15,7 +15,7 @@ import { useObjectTypes, useLinkTypes } from '@/features/objectTypes/hooks'
 import { rowToLinkType, type PropertyRow } from '@/features/objectTypes/api'
 import {
   useObjectSetAggregate, useObjectSetCount, useObjectSetHistogram, useObjectSetRows,
-  type ExplorerFilter, type SortSpec,
+  type ExplorerFilter, type FilterValue, type LinkPredicate, type SortSpec,
 } from './api'
 import { SaveDialog } from './SaveDialog'
 import { ActionsMenu } from './ActionsMenu'
@@ -31,22 +31,35 @@ const NUMERIC = new Set(['byte', 'short', 'integer', 'long', 'float', 'double', 
 const isNumeric = (p: PropertyRow) => NUMERIC.has(p.base_type)
 const isTemporal = (p: PropertyRow) => p.base_type === 'date' || p.base_type === 'timestamp'
 
-/** One sentence per pill, in the filter's own vocabulary. */
-function describe(f: ExplorerFilter): string {
-  if (f.type === 'linkFilter') {
-    return `${f.value.matchType === 'MUST_HAVE' ? 'Has' : 'Has no'} ${f.linkType}`
-  }
-  const v = f.value
+/** A value predicate as the pill reads it. */
+function describeValue(name: string, v: FilterValue): string {
   switch (v.type) {
-    case 'textFilter': return `${f.propertyType} has keywords ${v.text}`
-    case 'valuesFilter': return `${f.propertyType} is ${v.values.join(', ')}`
+    case 'textFilter': return `${name} has keywords ${v.text}`
+    case 'valuesFilter': return `${name} is ${v.values.join(', ')}`
     case 'numberRangeFilter':
-      return `${f.propertyType} ${v.min !== undefined ? `≥ ${v.min}` : ''}${v.min !== undefined && v.max !== undefined ? ' and ' : ''}${v.max !== undefined ? `≤ ${v.max}` : ''}`
+      return `${name} ${v.min !== undefined ? `≥ ${v.min}` : ''}${v.min !== undefined && v.max !== undefined ? ' and ' : ''}${v.max !== undefined ? `≤ ${v.max}` : ''}`
     case 'dateRangeFilter': {
       const r = v.dateRangeFilter
-      return `${f.propertyType} ${r.start ? `from ${r.start}` : ''}${r.start && r.end ? ' ' : ''}${r.end ? `to ${r.end}` : ''}`
+      return `${name} ${r.start ? `from ${r.start}` : ''}${r.start && r.end ? ' ' : ''}${r.end ? `to ${r.end}` : ''}`
     }
   }
+}
+
+/** One sentence per pill, in the filter's own vocabulary. A far predicate reads
+ *  as the capture's breadcrumb does — "Origin Airport > Number Of Carriers is
+ *  between 9 and 17" (pivot_flights.png). */
+function describeLink(f: ExplorerFilter & { type: 'linkFilter' }, farLabel: string,
+                      nameOf: (linkApi: string, propertyId: string) => string): string {
+  const members: LinkPredicate[] = f.filters
+    ?? (f.value ? [{ type: 'presenceFilter', matchType: f.value.matchType }] : [])
+  return members.map((m) => (m.type === 'presenceFilter'
+    ? `${m.matchType === 'MUST_HAVE' ? 'Has' : 'Has no'} ${farLabel}`
+    : `${farLabel} › ${describeValue(nameOf(f.linkType, m.propertyType), m.value)}`)).join(' and ')
+}
+
+function describe(f: ExplorerFilter): string {
+  if (f.type === 'linkFilter') return describeLink(f, f.linkType, (_l, p) => p)
+  return describeValue(f.propertyType, f.value)
 }
 
 export default function ExplorationPage() {
@@ -75,8 +88,14 @@ export default function ExplorationPage() {
     .filter((lt) => lt.sourceTypeId === typeId || lt.targetTypeId === typeId)
     .map((lt) => {
       const farId = lt.sourceTypeId === typeId ? lt.targetTypeId : lt.sourceTypeId
+      const far = types.find((t) => t.id === farId)
       return { linkApi: lt.apiName, linkLabel: lt.label,
-        farLabel: types.find((t) => t.id === farId)?.label ?? lt.label }
+        farLabel: far?.label ?? lt.label,
+        // "choose a property type to filter" — the far type's own properties,
+        // filtered the way the subject's are.
+        farProps: (far?.object_type_properties ?? [])
+          .filter((p) => p.visibility !== 'hidden' && p.source !== 'linked_objects')
+          .sort((a, b) => a.position - b.position) }
     }), [linkRows, typeId, types])
 
   // "one chart shown for each prominent property on the selected object type".
@@ -137,8 +156,10 @@ export default function ExplorationPage() {
             {/* the pill speaks the far type's label, the way the capture's
                 "Has Flight Delay Event" does */}
             {f.type === 'linkFilter'
-              ? `${f.value.matchType === 'MUST_HAVE' ? 'Has' : 'Has no'} ${
-                relations.find((r) => r.linkApi === f.linkType)?.farLabel ?? f.linkType}`
+              ? describeLink(f,
+                  relations.find((r) => r.linkApi === f.linkType)?.farLabel ?? f.linkType,
+                  (linkApi, pid) => relations.find((r) => r.linkApi === linkApi)
+                    ?.farProps.find((p) => p.property_id === pid)?.display_name ?? pid)
               : describe(f)}
           </Tag>
         ))}
@@ -410,7 +431,7 @@ function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, s
 function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
   props: PropertyRow[]
   typeLabel: string
-  relations: { linkApi: string; linkLabel: string; farLabel: string }[]
+  relations: { linkApi: string; linkLabel: string; farLabel: string; farProps: PropertyRow[] }[]
   /** Which links already carry a filter. The cap is one per LINK since 776 —
    *  the captures show one exploration filtering two different links. */
   filteredLinks: string[]
@@ -424,31 +445,42 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
   const [min, setMin] = useState('')
   const [max, setMax] = useState('')
 
-  const prop = props.find((p) => p.property_id === propId) ?? null
+  const rel = relations.find((r) => r.linkApi === pane) ?? null
+  // "select the relation in the left side of the search menu panel. From there,
+  //  choose a property type to filter" — the same controls, the far type's list.
+  const activeProps = rel === null ? props : rel.farProps
+  const prop = activeProps.find((p) => p.property_id === propId) ?? null
   const numeric = prop !== null && isNumeric(prop)
   const temporal = prop !== null && isTemporal(prop)
 
+  /** One value, built from whichever controls the property's type showed. */
+  const buildValue = (p: PropertyRow): FilterValue =>
+    isNumeric(p)
+      ? { type: 'numberRangeFilter',
+          ...(min !== '' ? { min: Number(min) } : {}), ...(max !== '' ? { max: Number(max) } : {}) }
+      : isTemporal(p)
+        ? { type: 'dateRangeFilter', dateRangeFilter: {
+            ...(min !== '' ? { start: min } : {}), ...(max !== '' ? { end: max } : {}) } }
+        : mode === 'keyword'
+          ? { type: 'textFilter', text }
+          : { type: 'valuesFilter', values: [text] }
+
+  const clear = () => { setOpen(false); setText(''); setMin(''); setMax(''); setPropId('') }
+
   const apply = () => {
     if (!prop) return
-    if (numeric) {
-      onAdd({ type: 'propertyFilter', propertyType: prop.property_id,
-        value: { type: 'numberRangeFilter',
-          ...(min !== '' ? { min: Number(min) } : {}), ...(max !== '' ? { max: Number(max) } : {}) } })
-    } else if (temporal) {
-      onAdd({ type: 'propertyFilter', propertyType: prop.property_id,
-        value: { type: 'dateRangeFilter', dateRangeFilter: {
-          ...(min !== '' ? { start: min } : {}), ...(max !== '' ? { end: max } : {}) } } })
-    } else if (mode === 'keyword') {
-      onAdd({ type: 'propertyFilter', propertyType: prop.property_id,
-        value: { type: 'textFilter', text } })
-    } else {
-      onAdd({ type: 'propertyFilter', propertyType: prop.property_id,
-        value: { type: 'valuesFilter', values: [text] } })
-    }
-    setOpen(false); setText(''); setMin(''); setMax('')
+    onAdd({ type: 'propertyFilter', propertyType: prop.property_id, value: buildValue(prop) })
+    clear()
   }
 
-  const rel = relations.find((r) => r.linkApi === pane) ?? null
+  /** The same predicate, bound to the far end of the selected relation. */
+  const applyFar = () => {
+    if (!prop || rel === null) return
+    onAdd({ type: 'linkFilter', linkType: rel.linkApi,
+      filters: [{ type: 'propertyFilter', propertyType: prop.property_id, value: buildValue(prop) }] })
+    clear(); setPane('__main')
+  }
+
   const addPresence = (matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE') => {
     if (rel === null) return
     onAdd({ type: 'linkFilter', linkType: rel.linkApi,
@@ -468,7 +500,7 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
           {relations.map((r) => (
             <button key={r.linkApi} type="button" title={r.linkLabel}
               className={`filter-menu-row${pane === r.linkApi ? ' active' : ''}`}
-              onClick={() => { setPane(r.linkApi) }}>
+              onClick={() => { setPane(r.linkApi); setPropId('') }}>
               <span>{r.farLabel}</span>
               <Icon icon="chevron-right" size={10} />
             </button>
@@ -519,8 +551,37 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
                 Has no {rel.farLabel}?
               </Button>
               <Button size="small" fill disabled>Filter by {rel.farLabel}?</Button>
+              <div className="filter-menu-head">Properties</div>
+              <HTMLSelect fill value={propId} onChange={(e) => { setPropId(e.currentTarget.value) }}>
+                <option value="">Property…</option>
+                {rel.farProps.map((p) => (
+                  <option key={p.property_id} value={p.property_id}>{p.display_name}</option>
+                ))}
+              </HTMLSelect>
+              {prop && (numeric || temporal) && (
+                <div className="flex gap-2">
+                  <InputGroup size="small" placeholder={numeric ? 'min' : 'start (YYYY-MM-DD)'}
+                    value={min} onChange={(e) => { setMin(e.currentTarget.value) }} />
+                  <InputGroup size="small" placeholder={numeric ? 'max' : 'end (YYYY-MM-DD)'}
+                    value={max} onChange={(e) => { setMax(e.currentTarget.value) }} />
+                </div>
+              )}
+              {prop && !numeric && !temporal && (
+                <>
+                  <HTMLSelect fill value={mode} onChange={(e) => { setMode(e.currentTarget.value as 'keyword' | 'exact') }}>
+                    <option value="keyword">Has keywords</option>
+                    <option value="exact">Is exactly</option>
+                  </HTMLSelect>
+                  <InputGroup size="small" placeholder={mode === 'keyword' ? 'keywords…' : 'value…'}
+                    value={text} onChange={(e) => { setText(e.currentTarget.value) }} />
+                </>
+              )}
+              <Button intent="primary" size="small" fill onClick={applyFar}
+                disabled={!prop || (!numeric && !temporal && text.trim() === '') || ((numeric || temporal) && min === '' && max === '')}>
+                Apply filter
+              </Button>
               <p className="text-[11px] text-muted-foreground">
-                Filtering by specific objects and by linked properties is not built yet.
+                Filtering by specific linked objects is not built yet.
               </p>
             </>
           )}
