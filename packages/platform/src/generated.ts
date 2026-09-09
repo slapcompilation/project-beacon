@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (334) ───────────────────────────────────────────────────
+// ── FUNCTIONS (335) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3808,13 +3808,16 @@ export const timeSeriesFormatting = { apiName: 'time_series_formatting', kind: '
 >
 
 /**
- *  The points of one object's time series property. Resolves the series id
- *  from the object's index row, then reads the sync's dataset. Returns the
- *  column the property's itemType promises — a double for "double", a
- *  categorical for "string", and both for "numericOrNonNumeric", the member
- *  whose type must be inferred from the result of a time series query.
- *  Applies the sync dataset's markings, because a TSP is readable only by
- *  someone who may read its backing data source.
+ *  One object's points for one time series property. Since 786 a property may
+ *  be backed by SEVERAL syncs: the cell decides which is read — a bare series
+ *  id is searched across all of them, which the containment rule makes
+ *  unambiguous, and a qualified {seriesId,syncRid} names one. Markings are
+ *  checked over every bound sync because the page says ALL, so one unreadable
+ *  sync suppresses the property rather than returning a partial series. A
+ *  Codex template rid raises, being legal in Foundry and unbuilt here. The
+ *  declared itemType decides which column is returned, and for
+ *  numericOrNonNumeric a per-object boolean property may decide it per object
+ *  instead — read off the same index row as the series id.
  */
 export const timeSeriesPoints = { apiName: 'time_series_points', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_property: string; p_from?: string; p_to?: string; p_limit?: number },
@@ -3831,6 +3834,18 @@ export const timeSeriesPoints = { apiName: 'time_series_points', kind: 'function
  */
 export const timeSeriesSyncItemType = { apiName: 'time_series_sync_item_type', kind: 'function' } as FunctionType<
   { p_sync: string },
+  string
+>
+
+/**
+ *  The SELECT that reads one series out of one sync, as text. Lifted verbatim
+ *  out of 774's time_series_points by 786 rather than retyped, because a
+ *  property may now be backed by several syncs and the same query is built
+ *  once per sync. Null when the sync is gone or its dataset has no
+ *  materialized table or master branch.
+ */
+export const timeSeriesSyncQuery = { apiName: 'time_series_sync_query', kind: 'function' } as FunctionType<
+  { p_sync: string; p_series: string; p_from: string; p_to: string; p_limit: number },
   string
 >
 

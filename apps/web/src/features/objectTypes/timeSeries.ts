@@ -40,6 +40,8 @@ export interface TimeSeriesProperty {
   isDefault: boolean
   interpolation: FormatterOperand | null
   units: FormatterOperand | null
+  /** The boolean property deciding numeric-or-not per object, live since 786. */
+  isNonNumericPropertyId: string | null
   /** 'double' | 'string' | 'numericOrNonNumeric', declared since 779. */
   itemType: string | null
   syncId: string | null
@@ -56,7 +58,8 @@ export function useTimeSeriesProperties(typeId: string) {
     queryFn: async (): Promise<TimeSeriesProperty[]> => {
       const { data, error } = await supabase.from('object_type_properties')
         .select('id, api_name, display_name, is_default_time_series, time_series_item_type, ' +
-                'time_series_interpolation, time_series_units, position')
+                'time_series_interpolation, time_series_units, ' +
+                'time_series_is_non_numeric_property_id, position')
         .eq('object_type_id', typeId).eq('base_type', 'time_series').order('position')
       if (error) throw new Error(error.message)
       const rows = data as unknown as {
@@ -64,6 +67,7 @@ export function useTimeSeriesProperties(typeId: string) {
         is_default_time_series: boolean; time_series_item_type: string | null
         time_series_interpolation: FormatterOperand | null
         time_series_units: FormatterOperand | null
+        time_series_is_non_numeric_property_id: string | null
       }[]
       if (rows.length === 0) return []
 
@@ -83,6 +87,7 @@ export function useTimeSeriesProperties(typeId: string) {
           id: r.id, apiName: r.api_name, displayName: r.display_name,
           isDefault: r.is_default_time_series, itemType: r.time_series_item_type,
           interpolation: r.time_series_interpolation, units: r.time_series_units,
+          isNonNumericPropertyId: r.time_series_is_non_numeric_property_id,
           syncId: sync?.id ?? null, syncName: sync?.name ?? null,
           datasourceId: b?.datasource_id ?? null,
         }
@@ -262,6 +267,23 @@ export function useSetTimeSeriesFormatting(typeId: string) {
       const { error } = await supabase.from('object_type_properties').update({
         time_series_interpolation: i.interpolation, time_series_units: i.units,
       }).eq('id', i.propertyId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: key(typeId) }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** Which boolean property decides numeric-or-not per object. 779 stored this and
+ *  refused it; 786 reads it off the same index row as the series id, so it is
+ *  live — for a property that declares `numericOrNonNumeric`. */
+export function useSetIsNonNumericProperty(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { propertyId: string; booleanPropertyId: string | null }) => {
+      const { error } = await supabase.from('object_type_properties')
+        .update({ time_series_is_non_numeric_property_id: i.booleanPropertyId })
+        .eq('id', i.propertyId)
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: key(typeId) }) },
