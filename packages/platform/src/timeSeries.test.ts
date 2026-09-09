@@ -586,6 +586,91 @@ describe.skipIf(noDb)('time series', () => {
     await db.query('delete from public.object_types where id = $1', [root])
   })
 
+  // ── 787: the two findings 786 deferred ──────────────────────────
+
+  // 780 checks a string/double declaration against its sync when the BINDING is
+  // made and never again. Repointing the sync is one of the three edges that
+  // passes unremarked, and it makes 779's projection null the column it named.
+  it('reports a declaration its own sync has stopped agreeing with', async () => {
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%now holds%'`)).toBe(0)
+
+    const cat = await dataset('ts787_cat',
+      [{ name: 'series_id', type: 'STRING' }, { name: 'ts', type: 'TIMESTAMP' }, { name: 'val', type: 'STRING' }],
+      `insert into datasets.__TBL__ (_file, series_id, ts, val)
+       values ($1,'M1-temp','2026-01-01T00:00:00Z','RUNNING')`)
+
+    // The property still declares `double`; its sync now holds strings.
+    await db.query('update public.time_series_syncs set input_dataset_id = $2 where id = $1',
+      [sync, cat.ds])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%now holds string values%'`)).toBe(1)
+
+    await db.query('update public.time_series_syncs set input_dataset_id = $2 where id = $1',
+      [sync, pointsDataset])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%now holds%'`)).toBe(0)
+  })
+
+  // The one place in this slice where the two audiences split, and both sides
+  // are cited: the sensor page says the boolean MUST be selected, the api
+  // publishes the same field as optional with a working fallback.
+  it('blocks a mixed-kind sensor with no boolean, and only advises otherwise', async () => {
+    const states = await dataset('ts787_states',
+      [{ name: 'series_id', type: 'STRING' }, { name: 'ts', type: 'TIMESTAMP' }, { name: 'val', type: 'STRING' }],
+      `insert into datasets.__TBL__ (_file, series_id, ts, val)
+       values ($1,'M1-temp','2026-01-01T00:00:00Z','RUNNING')`)
+    const catSync = (await one(
+      `insert into public.time_series_syncs
+         (organization_id, project_id, input_dataset_id, name, series_id_column, timestamp_column, value_column)
+       values ($1,$2,$3,'TS787 states','series_id','ts','val') returning id`,
+      [f.orgId, f.projectId, states.ds])).id
+    const catDs = (await one(
+      `insert into public.object_type_datasources (object_type_id, time_series_sync_id)
+       values ($1,$2) returning id`, [machine, catSync])).id
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'numericOrNonNumeric',
+              time_series_is_non_numeric_property_id = null where id = $1`, [tsp])
+    await db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [catDs, tsp])
+
+    // Not a sensor: advice, and it must not block a save.
+    expect(await count(
+      `select count(*) as n from public.ontology_warnings() w
+        where w.object_type = 'TsMachine774' and w.problem like 'Backed by syncs of both kinds%'`)).toBe(1)
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%boolean property saying which%'`)).toBe(0)
+
+    // The SAME configuration on a sensor object type blocks.
+    await db.query('update public.object_types set is_sensor = true where id = $1', [machine])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%boolean property saying which%'`)).toBe(1)
+    expect(await count(
+      `select count(*) as n from public.ontology_warnings() w
+        where w.object_type = 'TsMachine774' and w.problem like 'Backed by syncs of both kinds%'`)).toBe(0)
+
+    // Two syncs of ONE kind are not mixed — the over-wide shape 586 got wrong.
+    await db.query('update public.time_series_syncs set input_dataset_id = $2 where id = $1',
+      [catSync, pointsDataset])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%boolean property saying which%'`)).toBe(0)
+
+    await db.query('update public.object_types set is_sensor = false where id = $1', [machine])
+    await db.query('delete from public.object_type_time_series_sources where datasource_id = $1', [catDs])
+    await db.query('delete from public.object_type_datasources where id = $1', [catDs])
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = 'double' where id = $1`, [tsp])
+  })
+
   it('carries the rid the time series catalogue names it by', async () => {
     const r = await one(`select rid from public.time_series_syncs where id = $1`, [sync])
     expect(r.rid).toBe(`ri.time-series-catalog.main.sync.${sync}`)
