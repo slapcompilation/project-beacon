@@ -639,3 +639,75 @@ the nested `filters` was accepted by the validator and **negated twice** by the
 engine, so "has no link" asked twice returned the objects that have one. Second
 time this session that a reconcile aimed at one thing found a defect in another,
 after the far-side leak 771 closed.
+
+## 15. A filter compares a property it can compare (2026-09-09)
+
+Found while reading the time series slice, and filed here rather than there
+because it is not a time series defect — it was only *noticed* on a series id.
+
+### What was wrong
+
+`object_set_property_predicate` compiled a range filter against any property at
+all. The numeric arm emits, for a `string` property whose index column is `text`:
+
+```
+(true AND o.some_string >= 5)
+```
+
+and Postgres answers `42883 operator does not exist: text >= numeric`. I ran
+that comparison against the live database rather than reasoning about it.
+
+**Five of the seven kinds do this** — `numberRangeFilter`, `dateRangeFilter`,
+`relativeDateFilter`, `timestampRangeFilter`, `relativeTimestampFilter` — because
+each compares the column to a typed literal. Only `textFilter` and
+`valuesFilter` are safe, and for a reason worth stating: both cast the column to
+`text` first, so nothing is out of range for them.
+
+### Why it is a defect even though the query fails either way
+
+The result is a bare SQLSTATE from the planner, and this project takes exactly
+one rule from Foundry's stack rather than from a page — namespaced, typed
+errors, so a caller can branch without parsing prose. `42883` is not that.
+
+**This is not being stricter than Foundry.** Nothing new is refused: the query
+already failed. What changed is that it now fails by name,
+`Ontology:FilterTypeMismatch`.
+
+### Where the rule went, and why not the validator
+
+`object_set_filters_valid` is the CHECK on `object_sets.filters`, and a CHECK may
+not subquery — so it cannot reach `object_type_properties` to learn a base type.
+It validates SHAPE only, which is why a saved exploration could hold a mistyped
+filter. The refusal belongs at the point of compilation, where the property row
+is already in hand.
+
+### How reachable, measured
+
+Our Explorer picks its controls from the property's type, so the UI does not
+produce one. The platform function is callable directly, `object_sets` accepts
+it, and the generated client exposes it. **Latent through the UI, reachable
+through the API** — the same shape as 778's double negation, which was also
+written off as unreachable until the validator was read properly.
+
+### What the docs say about this: nothing
+
+`numberRangeFilter` appears in exactly ONE mirrored page,
+`object-explorer/generate-urls`, which is the URL-encoding page and which
+disclaims its own example:
+
+> This example may be out of date – use the instructions below to find out the latest format.
+
+It lists the kinds and their fields and says nothing about which property types
+each applies to, and `api/` publishes no object-set filter union at all. So the
+mapping in `filter_kind_applies` is **inference**, and deliberately the narrowest
+available: a kind is refused only where the comparison it emits has no operator
+in Postgres. Nothing is refused on taste.
+
+### Still open, and named here
+
+That same page lists the four kinds beyond the flat two, and **three of them have
+no UI**: `relativeDateFilter`, `timestampRangeFilter` and
+`relativeTimestampFilter` all compile, and the Explorer's Add filter offers none
+of them. Reachable through the API and through saved explorations, so not dead —
+but it is the engine-nothing-reaches shape, and it wants its own chunk rather
+than being smuggled into a bug fix.

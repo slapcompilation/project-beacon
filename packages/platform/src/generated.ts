@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (333) ───────────────────────────────────────────────────
+// ── FUNCTIONS (334) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2340,6 +2340,21 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
   string
 >
 
+/**
+ *  Whether a value filter kind can compile against a property of this base
+ *  type. Derived from what each arm of object_set_property_predicate EMITS,
+ *  not from a page: the two text filters cast the column and apply to
+ *  everything, the five range filters compare it to a typed literal and need
+ *  an operator that exists. No page states the mapping — generate-urls lists
+ *  the kinds and disclaims its own example, and api/ publishes no object set
+ *  filter union — so this is the narrowest inference available rather than a
+ *  vocabulary (784).
+ */
+export const filterKindApplies = { apiName: 'filter_kind_applies', kind: 'function' } as FunctionType<
+  { p_kind: string; p_base_type: string },
+  boolean
+>
+
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
   { p_folder: string },
   boolean
@@ -2939,10 +2954,11 @@ export const objectSetKeys = { apiName: 'object_set_keys', kind: 'function' } as
 >
 
 /**
- *  One propertyFilter compiled to SQL, bound to the given alias. Lifted out
- *  of object_set_where by 776 so a far-property link filter can bind it to
- *  the far index; the subject arm calls it with "o". The value kinds are
- *  generate-urls.md's, unchanged.
+ *  One value filter compiled against one property, bound to the given alias —
+ *  shared by the subject's own filters and, since 776, by the far side of a
+ *  link filter. Since 784 a kind whose comparison the property's type cannot
+ *  support is refused with Ontology:FilterTypeMismatch rather than emitted
+ *  for the planner to reject as 42883.
  */
 export const objectSetPropertyPredicate = { apiName: 'object_set_property_predicate', kind: 'function' } as FunctionType<
   { p_object_type: string; p_filter: Json; p_alias?: string },

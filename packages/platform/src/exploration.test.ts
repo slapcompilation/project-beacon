@@ -304,6 +304,50 @@ describe.skipIf(noDb)('the exploration engine', () => {
       .toContain('Ontology:LinkTypeNotFound')
   })
 
+  // ── 784: a filter compares a property it can compare ───────────────────
+
+  // Five of the seven filter kinds compare the column to a TYPED literal, so
+  // the comparison has to exist. Before 784 a number range filter on a string
+  // property compiled and the planner answered 42883 — a bare SQLSTATE, which a
+  // caller cannot branch on.
+  it('refuses a filter kind the property\'s type cannot answer, by name', async () => {
+    const numberOnString = [
+      { type: 'propertyFilter', propertyType: 'status',
+        value: { type: 'numberRangeFilter', min: 5 } }]
+    expect(await refused(db, () =>
+      db.query('select public.count_object_set($1,$2::jsonb)', [flight, JSON.stringify(numberOnString)])))
+      .toContain('Ontology:FilterTypeMismatch')
+
+    // Every range kind is gated, not just the numeric one.
+    const dateOnString = [
+      { type: 'propertyFilter', propertyType: 'status',
+        value: { type: 'relativeDateFilter', sinceDaysAgo: 7 } }]
+    expect(await refused(db, () =>
+      db.query('select public.count_object_set($1,$2::jsonb)', [flight, JSON.stringify(dateOnString)])))
+      .toContain('Ontology:FilterTypeMismatch')
+  })
+
+  // The two filters that CAST the column apply to everything, so the gate must
+  // not have narrowed them — that would be stricter than Foundry, and it would
+  // break the Explorer's ordinary keyword search.
+  it('leaves the filters that cast the column alone', async () => {
+    const values = [
+      { type: 'propertyFilter', propertyType: 'status',
+        value: { type: 'valuesFilter', values: ['ON_TIME'] } }]
+    const r = await db.query('select public.count_object_set($1,$2::jsonb) as n',
+      [flight, JSON.stringify(values)])
+    expect(Number(r.rows[0].n)).toBeGreaterThanOrEqual(0)
+
+    // and the mapping itself, so a future arm cannot quietly change it
+    const m = await db.query(
+      `select public.filter_kind_applies('numberRangeFilter','string') as a,
+              public.filter_kind_applies('numberRangeFilter','integer') as b,
+              public.filter_kind_applies('textFilter','timestamp') as c,
+              public.filter_kind_applies('timestampRangeFilter','date') as d,
+              public.filter_kind_applies('dateRangeFilter','boolean') as e`)
+    expect(m.rows[0]).toEqual({ a: false, b: true, c: true, d: true, e: false })
+  })
+
   it('aggregates with the charts vocabulary, and histograms partition', async () => {
     const top = (await db.query(
       `select * from public.aggregate_object_set($1,'[]','status','distance')`, [flight]))
