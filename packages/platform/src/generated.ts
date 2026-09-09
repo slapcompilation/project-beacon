@@ -3756,13 +3756,12 @@ export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'func
 
 /**
  *  The points of one object's time series property. Resolves the series id
- *  from the object's index row, then reads the sync's dataset: "the seriesId
- *  contained in the property's value will be searched for within that
- *  property's data sources and its associated time series data will be
- *  returned". Returns a numeric and a categorical column because a sync's
- *  value may be a double, integer, float or string. Applies the sync
- *  dataset's markings, because a TSP is readable only by someone who may read
- *  its backing data source.
+ *  from the object's index row, then reads the sync's dataset. Returns the
+ *  column the property's itemType promises — a double for "double", a
+ *  categorical for "string", and both for "numericOrNonNumeric", the member
+ *  whose type must be inferred from the result of a time series query.
+ *  Applies the sync dataset's markings, because a TSP is readable only by
+ *  someone who may read its backing data source.
  */
 export const timeSeriesPoints = { apiName: 'time_series_points', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_property: string; p_from?: string; p_to?: string; p_limit?: number },

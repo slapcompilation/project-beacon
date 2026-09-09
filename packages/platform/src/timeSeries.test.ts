@@ -85,11 +85,13 @@ describe.skipIf(noDb)('time series', () => {
           backing_column, datasource_id, is_primary_key, is_title_key, required)
        values ($1,'machine_id','Machine Id','machineId','string','column','machine_id',$2,true,true,true)`,
       [machine, tabular])
+    // 779: the api makes itemType required on a timeseries property type. The
+    // sync's value column is a DOUBLE, so these series are numeric.
     tsp = (await one(
       `insert into public.object_type_properties
          (object_type_id, property_id, display_name, api_name, base_type, source,
-          backing_column, datasource_id)
-       values ($1,'temperature_id','Temperature','temperature','time_series','column','temperature_id',$2)
+          backing_column, datasource_id, time_series_item_type)
+       values ($1,'temperature_id','Temperature','temperature','time_series','column','temperature_id',$2,'double')
        returning id`, [machine, tabular])).id
 
     sync = (await one(
@@ -172,6 +174,64 @@ describe.skipIf(noDb)('time series', () => {
       `insert into public.object_type_datasources (object_type_id, time_series_sync_id, media_set_rid)
        values ($1,$2,'ri.mio.main.media-set.00000000-0000-0000-0000-000000000000')`, [machine, sync])))
       .toContain('object_type_datasources_one_backing')
+  })
+
+  // ── 779: a time series property says what its values are ─────────────────
+  // "A union of the types supported by time series properties": string, double,
+  // numericOrNonNumeric — the last being the one whose type "must be inferred
+  // from the result of a time series query".
+  it('returns the column its itemType promises', async () => {
+    const point = async () => await one(
+      `select num, cat from public.time_series_points($1,'M1','temperature_id') order by point_time limit 1`,
+      [machine])
+
+    // declared double: a number, and no categorical value
+    let p = await point()
+    expect(Number(p.num)).toBe(10)
+    expect(p.cat).toBeNull()
+
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = 'string' where id = $1`, [tsp])
+    p = await point()
+    expect(p.num).toBeNull()
+    expect(p.cat).not.toBeNull()
+
+    // the mixed member keeps both, because that is the one that says to infer
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = 'numericOrNonNumeric' where id = $1`, [tsp])
+    p = await point()
+    expect(p.num).not.toBeNull()
+    expect(p.cat).not.toBeNull()
+
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = 'double' where id = $1`, [tsp])
+  })
+
+  it('requires the declaration of a bound property, and refuses the per-series boolean', async () => {
+    const tsDs = (await one(
+      `select id from public.object_type_datasources
+        where object_type_id = $1 and time_series_sync_id is not null limit 1`, [machine])).id
+    await db.query(`delete from public.object_type_time_series_sources where property_id = $1`, [tsp])
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = null where id = $1`, [tsp])
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, tsp]))).toContain('TimeSeries:ItemTypeNotDeclared')
+
+    // isNonNumericPropertyTypeId is storable and refused, rather than stored
+    // and ignored: it resolves per SERIES and the reader does not do that yet.
+    const boolProp = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, backing_column, datasource_id)
+       values ($1,'is_cat','Is categorical','isCat','boolean','column','machine_id',$2) returning id`,
+      [machine, tabular])).id
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'numericOrNonNumeric', time_series_is_non_numeric_property_id = $2
+        where id = $1`, [tsp, boolProp])
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, tsp]))).toContain('TimeSeries:MixedSeriesNotBuilt')
   })
 
   it('carries the rid the time series catalogue names it by', async () => {
