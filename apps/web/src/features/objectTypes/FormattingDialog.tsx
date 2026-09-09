@@ -160,6 +160,7 @@ function ValueFormattingCard({ property, onChange }: {
     return (
       <p className="text-xs text-muted-foreground">
         No value formatter applies to a {base} property.
+        {base === 'time_series' && ' A time series property carries a base formatter instead — interpolation and units, on the Capabilities tab.'}
       </p>
     )
   }

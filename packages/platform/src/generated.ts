@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (331) ───────────────────────────────────────────────────
+// ── FUNCTIONS (332) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3757,6 +3757,22 @@ export const testGroupAssignment = { apiName: 'test_group_assignment', kind: 'fu
 export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'function' } as FunctionType<
   { p_view: string; p_user: string },
   { visible_rows: number; total_rows: number }[]
+>
+
+/**
+ *  What one object's time series reads as: the base formatter resolved. A
+ *  constant answers for every object; a propertyType operand is read per
+ *  object from the index, because the page's reason for the pointer is that
+ *  "each time series contained in the time series property has different
+ *  units and or interpolation". Called without a primary key it answers the
+ *  constants and the itemType defaults only. Interpolation defaults are the
+ *  page's own — LINEAR for numeric, PREVIOUS for categorical — and
+ *  numericOrNonNumeric resolves to null because the api says its type "must
+ *  be inferred from the result of a time series query".
+ */
+export const timeSeriesFormatting = { apiName: 'time_series_formatting', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_property: string; p_primary_key?: string },
+  { interpolation: string; units: string }[]
 >
 
 /**

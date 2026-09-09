@@ -371,6 +371,122 @@ the capture replaces the cell with an info icon. Under *do not be stricter than
 Foundry* that is a withheld control and at most a warning — but the precedence
 rule itself would be invented.
 
+## 9. Time series formatting, built (2026-09-09)
+
+The base formatter — the third column of the TSP table, and the last part of
+`## Time series formatting` 774 named as unbuilt. Seven readers went at it
+before anything was written, and four of their findings changed the design.
+
+### It is NOT the value formatter, which was the whole design fork
+
+The column is headed `BASE FORMATTER`, and that is also the docs' own name for
+what our `value_formatting` column holds. One name, two mechanisms — and the
+obvious move, a sixth arm on `value_formatting_valid`, would have been wrong
+twice. The api's `valueFormatting` union has exactly five members — `date`, `number`,
+`boolean`, `knownType`, `timestamp` — with no time series member, and 736
+exists *because* 673 invented members the
+api does not publish. A sixth arm repeats that migration by name.
+
+What is reused is one level down. Every "value or pointer" slot the api
+publishes — a unit, a currency code, an affix, a timezone id — is the same
+two-member union, and 736 already validates it as `formatting_operand_valid`.
+And the page's own sentence IS that union, in prose:
+
+> The unit and interpolation formatting can point to other `string` properties on this object type for more granular control (for example, if each time series contained in the time series property has different units and or interpolation). If granular control is not required, both interpolation and units have a set of standard values to choose from.
+
+So both columns are operands, validated by the function that already existed.
+The seam `packages/ontology/src/formatting/index.ts` records holds: the api's
+`propertyApiName` carries a PROPERTY_ID here, as everywhere else in this repo.
+
+### Units have no standard set, and the page promised one
+
+That same sentence says units *"have a set of standard values to choose from"*.
+**That set is not in the corpus.** Not on any of 4,123 mirrored pages, not in
+`api/`, not in the 214 extracted lessons. The only enumerated unit lists belong
+to other products and print themselves truncated as *"and more"*. Palantir's own
+worked example dataset uses `ft`, `mph`, `ft/min`, `deg` — and `lat` and `lon`,
+which are not units at all.
+
+So the units constant is **free text with no CHECK**, and 782's header carries
+the reason rather than a `Values from` comment it could not honestly write. This
+is the first value set in this project that a page promises and no page prints.
+
+Interpolation is the opposite: five members, enumerated verbatim twice.
+
+> The internal interpolation options available in the Palantir platform are:
+
+`LINEAR NEAREST PREVIOUS NEXT NONE`, re-enumerated identically under
+create-sensor-ot's *"Valid values are:"*. The CHECK names the page.
+
+### Unset is not unknown
+
+> By default, numeric time series use `LINEAR` interpolation and categorical series use `PREVIOUS`.
+
+So the column is nullable with no literal DEFAULT and `time_series_formatting()`
+resolves it from the declared `itemType`. `numericOrNonNumeric` resolves to
+null rather than guessing — its type *"must be inferred from the result of a
+time series query"*.
+
+### Two rungs, and the difference is whether a page states a consequence
+
+`LINEAR` is *"Only applicable to numerical time series"* — stated. What happens
+if it is set anyway is **not** stated anywhere: a filtered grep of every
+interpolation line for invalid / ignore / error / fallback / unsupported /
+reject across the whole mirror returns nothing. A refusal would be stricter than
+Foundry, so it is `ontology_warnings()`.
+
+A pointer naming a property that is gone, or is not a string, is different: the
+formatter cannot resolve, and that can become true without anyone editing the
+formatter. That is `ontology_violations()` by CLAUDE.md's own description of the
+rung.
+
+### What is deliberately NOT modelled
+
+- **External interpolation.** Quiver's cards have one; the ontology has no
+  field, no type class, no sensor option, nothing on any Ontology Manager
+  surface. It is a plot setting. The consuming applications do not even agree on
+  its shape — Quiver splits it into Before and After, Workshop carries a single
+  External — which is a second reason it does not belong here.
+- **The sensor branch.** For a sensor object type the cell becomes an info icon:
+
+> Set the units and interpolation in the Sensor object type configuration below.
+> — time-series/images/time-series-setup-sensor-object-type-base-formatter.png
+
+  Sensor object types are excluded, so no object type of ours can be one.
+- **A precedence rule.** Genuinely undocumented — fifteen grep patterns over the
+  whole mirror, intersected with unit/interpolation/formatter/sensor, return
+  nothing. Foundry withholds the control rather than refusing the value, so
+  withholding is a surface decision and precedence stays uninvented.
+
+### `api/` cannot help here, and that is worth recording
+
+Zero of 1,821 api pages match `interpolat`; the `timeseries` property type
+publishes `itemType` and nothing else; the OSDK publishes points only. CLAUDE.md
+leans on `api/` to settle shape questions and it has falsified our schema four
+times — **here it cannot**, so prose is the sole rail. It does still confirm the
+constant-or-pointer SHAPE four times over on the neighbouring value formatter,
+which is why that half is not an invention.
+
+### A correction, and it is mine
+
+780's header says `ObjectTypesPage` *"excludes `time_series` from the property
+type dropdown by name"*. It does not. Line 210 offers every member of
+`PROPERTY_TYPES`; the filter that names `time_series` is the **array element**
+dropdown twelve lines below. So an undeclared, unbound time series property is
+creatable from the editor today, and the panel has to tolerate one. I wrote that
+claim into an applied migration and repeated it, and 782's header carries the
+correction because 780 cannot be edited.
+
+### One open fork in the surface
+
+The capture shows the constant-vs-pointer choice as an unlabelled caret-right
+beside the value control — an Ontology Manager idiom that recurs in the numeric
+formatter and the conditional-formatting colour picker, and which **no page
+names**. Foundry's one prose-documented form of the same choice is a pair of
+links, *"Add constant"* and *"Add reference"* (conditional-formatting). Ours
+draws the documented pair. If a capture ever shows the caret open, this is the
+thing to revisit.
+
 ## Decisions (2026-09-09, second pass — NOT YET READ BY A HUMAN)
 
 These were taken while building 780 and the Capabilities panel. Four of them
