@@ -263,6 +263,13 @@ worth reading before the next thing is built on them.
    key or title property* (`create-sensor-ot.md`). The probe that "proved" the
    new CHECK caught `check_violation` from the OLD constraint and would have
    passed with the new one removed.
+
+   One scar from this: 780's section heading still reads *the column, and the
+   two facts about one row* when only one CHECK survived. I corrected it after
+   applying the migration; `db.mjs` byte-compares an applied file against its
+   ledger entry and CI refused the change, correctly. **Applied migrations are
+   immutable including their comments**, so the heading stays wrong and this
+   line is the correction.
 9. **The trigger fires for the FIRST time series property, not whenever no
    default exists.** The two readings differ on a reachable path: delete the
    default of two and add a third, and the second version designates it

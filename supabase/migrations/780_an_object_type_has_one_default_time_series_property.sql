@@ -131,7 +131,7 @@
 -- `numericOrNonNumeric` by design, so a single-sync property may still declare
 -- it. 779's refusal still rests on 779's RAISE, exactly as it did.
 
--- ── 1. the column, and the one fact about a row it adds ──────────────────
+-- ── 1. the column, and the two facts about one row ────────────────────────
 
 ALTER TABLE public.object_type_properties
   ADD COLUMN is_default_time_series boolean NOT NULL DEFAULT false;
