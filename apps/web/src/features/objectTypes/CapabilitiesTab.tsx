@@ -14,6 +14,7 @@ import { Callout, Collapse, HTMLSelect, Icon, Spinner, Tag } from '@blueprintjs/
 import type { IconName } from '@blueprintjs/icons'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { useCapabilitySlots, useObjectTypeCapabilities, useNominate } from './capabilities'
+import { TimeSeriesPanel } from './TimeSeriesPanel'
 
 /** Panel chrome per capability. The Geospatial line is the screenshot's own;
  *  no page or screenshot read gives Event a description, so it gets its
@@ -51,6 +52,8 @@ export function CapabilitiesTab({ type }: { type: ObjectTypeDef }) {
         platform contract. Each slot accepts particular base types; the picker
         offers only properties that fit.
       </Callout>
+
+      <TimeSeriesPanel type={type} />
 
       {capabilities.map((cap) => {
         const panel = PANELS[cap] ?? { title: titleCase(cap), icon: 'cube' as IconName, blurb: '' }

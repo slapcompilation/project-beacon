@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (330) ───────────────────────────────────────────────────
+// ── FUNCTIONS (331) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3766,6 +3766,19 @@ export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'func
 export const timeSeriesPoints = { apiName: 'time_series_points', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_property: string; p_from?: string; p_to?: string; p_limit?: number },
   { point_time: string; num: number; cat: string }[]
+>
+
+/**
+ *  The itemType a property bound to this sync should declare. "A String type
+ *  indicates a Categorical time series" and "different data types cannot
+ *  exist within one time series sync", so the sync answers it for every
+ *  property it backs — which is why the setup dialog tags a sync Numerical
+ *  instead of asking. Null when the sync's dataset has no committed schema to
+ *  read the value column from.
+ */
+export const timeSeriesSyncItemType = { apiName: 'time_series_sync_item_type', kind: 'function' } as FunctionType<
+  { p_sync: string },
+  string
 >
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
