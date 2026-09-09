@@ -26,11 +26,20 @@ export interface TimeSeriesSync {
 }
 
 /** One row of the panel's table: PROPERTY NAME, TIME SERIES SYNC, BASE FORMATTER. */
+/** The api's constant-or-property union, which is what the page's "point to
+ *  other `string` properties … for more granular control" describes. Our
+ *  `propertyApiName` carries a PROPERTY_ID, the seam 736 recorded. */
+export type FormatterOperand =
+  | { constant: { value: string } }
+  | { propertyType: { propertyApiName: string } }
+
 export interface TimeSeriesProperty {
   id: string
   apiName: string
   displayName: string
   isDefault: boolean
+  interpolation: FormatterOperand | null
+  units: FormatterOperand | null
   /** 'double' | 'string' | 'numericOrNonNumeric', declared since 779. */
   itemType: string | null
   syncId: string | null
@@ -46,12 +55,15 @@ export function useTimeSeriesProperties(typeId: string) {
     queryKey: key(typeId),
     queryFn: async (): Promise<TimeSeriesProperty[]> => {
       const { data, error } = await supabase.from('object_type_properties')
-        .select('id, api_name, display_name, is_default_time_series, time_series_item_type, position')
+        .select('id, api_name, display_name, is_default_time_series, time_series_item_type, ' +
+                'time_series_interpolation, time_series_units, position')
         .eq('object_type_id', typeId).eq('base_type', 'time_series').order('position')
       if (error) throw new Error(error.message)
       const rows = data as unknown as {
         id: string; api_name: string; display_name: string
         is_default_time_series: boolean; time_series_item_type: string | null
+        time_series_interpolation: FormatterOperand | null
+        time_series_units: FormatterOperand | null
       }[]
       if (rows.length === 0) return []
 
@@ -70,6 +82,7 @@ export function useTimeSeriesProperties(typeId: string) {
         return {
           id: r.id, apiName: r.api_name, displayName: r.display_name,
           isDefault: r.is_default_time_series, itemType: r.time_series_item_type,
+          interpolation: r.time_series_interpolation, units: r.time_series_units,
           syncId: sync?.id ?? null, syncName: sync?.name ?? null,
           datasourceId: b?.datasource_id ?? null,
         }
@@ -232,6 +245,26 @@ export function useReleaseTimeSeriesProperty(typeId: string) {
       void qc.invalidateQueries({ queryKey: ['object-types'] })
       toast.success('Time series property removed')
     },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The base formatter. Both fields are the same operand, and clearing the
+ *  formatter is clearing both — the popover's master toggle. */
+export function useSetTimeSeriesFormatting(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: {
+      propertyId: string
+      interpolation: FormatterOperand | null
+      units: FormatterOperand | null
+    }) => {
+      const { error } = await supabase.from('object_type_properties').update({
+        time_series_interpolation: i.interpolation, time_series_units: i.units,
+      }).eq('id', i.propertyId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: key(typeId) }) },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

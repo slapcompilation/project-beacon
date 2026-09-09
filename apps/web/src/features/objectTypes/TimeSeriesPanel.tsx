@@ -13,15 +13,22 @@
 //                      creates analyses without plotting a TSP.
 //   Sensor object type — step 3 of Foundry's dialog. Not built, so the dialog
 //                      has two steps and says so rather than showing a dead one.
-//   Time series formatting — the BASE FORMATTER cell is a live dropdown in
-//                      Foundry. Interpolation and units are unbuilt (774 named
-//                      them), so the cell shows the state that is actually
-//                      true of every row and does nothing.
+//   Time series formatting's SENSOR branch — for a sensor object type Foundry
+//                      replaces the cell with an info icon. Sensor object types
+//                      are excluded, so no object type of ours can be one.
+//
+// The formatter popover is measured off time-series-setup-time-series-formatting.png:
+// a muted uppercase header carrying the master toggle, then `Internal
+// Interpolation` with a select and NO toggle of its own, then `Units` WITH one.
+// The constant-or-property choice is drawn as Foundry's one PROSE-documented
+// form of that control - "Add constant" / "Add reference" from
+// conditional-formatting - rather than the unlabelled caret the capture shows,
+// because no page names what that caret opens.
 
 import { useState } from 'react'
 import {
   Button, Callout, Checkbox, Collapse, Dialog, DialogBody, DialogFooter,
-  HTMLSelect, Icon, InputGroup, Intent, NonIdealState, Spinner, Tag,
+  HTMLSelect, Icon, InputGroup, Intent, NonIdealState, Popover, Spinner, Switch, Tag,
 } from '@blueprintjs/core'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { useDatasets } from '@/features/datasets/api'
@@ -29,11 +36,18 @@ import { useDatasetFields } from './hooks'
 import {
   useTimeSeriesProperties, useTimeSeriesSyncs, useCreateTimeSeriesSync,
   useDesignateTimeSeriesProperty, useSetDefaultTimeSeriesProperty,
-  useReleaseTimeSeriesProperty,
+  useReleaseTimeSeriesProperty, useSetTimeSeriesFormatting,
+  type FormatterOperand, type TimeSeriesProperty,
 } from './timeSeries'
 
 /** A long timestamp column carries its unit; a timestamp one is already one. */
 const UNITS = ['SECONDS', 'MILLISECONDS', 'MICROSECONDS', 'NANOSECONDS']
+
+/** The five interpolation members the page enumerates. LINEAR is "Only
+ *  applicable to numerical time series"; the stored token is SCREAMING_CASE and
+ *  every Foundry UI spells it Title Case, both being the page's own. */
+const INTERPOLATION = ['LINEAR', 'NEAREST', 'PREVIOUS', 'NEXT', 'NONE']
+const titleOf = (t: string) => t.charAt(0) + t.slice(1).toLowerCase()
 
 export function TimeSeriesPanel({ type }: { type: ObjectTypeDef }) {
   const { data: rows, isLoading } = useTimeSeriesProperties(type.id)
@@ -109,7 +123,7 @@ export function TimeSeriesPanel({ type }: { type: ObjectTypeDef }) {
                               </span>}
                         </td>
                         <td className="p-2">
-                          <Tag minimal intent={Intent.WARNING}>No formatting</Tag>
+                          <BaseFormatter type={type} row={r} />
                         </td>
                         <td className="p-2 text-right">
                           {!r.isDefault && (
@@ -314,5 +328,118 @@ function AddTimeSeriesProperty({ type, isOpen, hasAny, onClose }: {
         </>
       } />
     </Dialog>
+  )
+}
+
+/** The BASE FORMATTER cell: an amber `No formatting` tag when unset and a blue
+ *  `Time series formatting` tag when set, each opening the same popover. */
+function BaseFormatter({ type, row }: { type: ObjectTypeDef; row: TimeSeriesProperty }) {
+  const save = useSetTimeSeriesFormatting(type.id)
+  const on = row.interpolation !== null || row.units !== null
+
+  // "point to other `string` properties on this object type" - and not to the
+  // time series property itself.
+  const targets = type.properties.filter(
+    (p) => p.type === 'string' && p.id !== undefined && p.id !== row.id)
+
+  const set = (patch: { interpolation?: FormatterOperand | null; units?: FormatterOperand | null }) => {
+    save.mutate({
+      propertyId: row.id,
+      interpolation: patch.interpolation !== undefined ? patch.interpolation : row.interpolation,
+      units: patch.units !== undefined ? patch.units : row.units,
+    })
+  }
+
+  return (
+    <Popover placement="bottom-start" content={
+      <div className="space-y-2 p-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Time series formatting
+          </span>
+          <Switch checked={on} className="mb-0"
+            onChange={() => { set({ interpolation: null, units: null }) }} />
+        </div>
+
+        <p className="text-xs font-medium">Internal Interpolation</p>
+        <OperandField operand={row.interpolation} targets={targets}
+          choices={INTERPOLATION} labelOf={titleOf}
+          onChange={(o) => { set({ interpolation: o }) }} />
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium">Units</span>
+          <Switch checked={row.units !== null} className="mb-0"
+            onChange={(e) => {
+              set({ units: e.currentTarget.checked ? { constant: { value: '' } } : null })
+            }} />
+        </div>
+        {row.units !== null && (
+          <OperandField operand={row.units} targets={targets}
+            onChange={(o) => { set({ units: o }) }} />
+        )}
+      </div>
+    }>
+      <Tag interactive minimal intent={on ? Intent.PRIMARY : Intent.WARNING} endIcon="caret-down">
+        {on ? 'Time series formatting' : 'No formatting'}
+      </Tag>
+    </Popover>
+  )
+}
+
+/** One operand: a constant, or a reference to a string property. The two
+ *  choices are named the way conditional-formatting names them, which is the
+ *  only form of this control any page writes down. */
+function OperandField({ operand, targets, onChange, choices, labelOf }: {
+  operand: FormatterOperand | null
+  targets: ObjectTypeDef['properties']
+  onChange: (o: FormatterOperand | null) => void
+  /** A closed set renders a select. Units have no published set, so no choices
+   *  and a free-text input - the page promises a standard set it never prints. */
+  choices?: string[]
+  labelOf?: (v: string) => string
+}) {
+  const isRef = operand !== null && 'propertyType' in operand
+  const constant = operand !== null && 'constant' in operand ? operand.constant.value : ''
+  const ref = isRef ? operand.propertyType.propertyApiName : ''
+
+  return (
+    <div className="space-y-1">
+      {isRef
+        ? (
+          <HTMLSelect fill value={ref}
+            onChange={(e) => {
+              onChange(e.currentTarget.value === ''
+                ? null
+                : { propertyType: { propertyApiName: e.currentTarget.value } })
+            }}>
+            <option value="">Choose a property...</option>
+            {targets.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </HTMLSelect>
+        )
+        : choices !== undefined
+          ? (
+            <HTMLSelect fill value={constant}
+              onChange={(e) => {
+                onChange(e.currentTarget.value === ''
+                  ? null
+                  : { constant: { value: e.currentTarget.value } })
+              }}>
+              <option value="">Default for this series type...</option>
+              {choices.map((c) => (
+                <option key={c} value={c}>{labelOf ? labelOf(c) : c}</option>
+              ))}
+            </HTMLSelect>
+          )
+          : (
+            <InputGroup value={constant} placeholder="Custom unit"
+              onValueChange={(v) => { onChange({ constant: { value: v } }) }} />
+          )}
+      <Button variant="minimal" size="small"
+        onClick={() => {
+          onChange(isRef ? { constant: { value: '' } } : { propertyType: { propertyApiName: '' } })
+        }}>
+        {isRef ? 'Add constant' : 'Add reference'}
+      </Button>
+    </div>
   )
 }

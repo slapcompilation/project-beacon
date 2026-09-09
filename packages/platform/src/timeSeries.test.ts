@@ -346,6 +346,133 @@ describe.skipIf(noDb)('time series', () => {
     await db.query('delete from public.object_type_datasources where id = $1', [catDs])
   })
 
+  // ── 782: the base formatter ────────────────────────────────────────
+
+  // "Time series formatting allows setting the desired internal interpolation
+  //  and units of the time series." Both halves are the api's constant-or-
+  //  property operand, which is why formatting_operand_valid already validates
+  //  them and why an invented shape is refused.
+  it('takes the api\'s operand and the five interpolations the page publishes', async () => {
+    expect(await refused(db, () => db.query(
+      `update public.object_type_properties set time_series_units = '{"value":"kg"}'::jsonb
+        where id = $1`, [tsp]))).toMatch(/time_series_formatting_is_an_operand/)
+
+    expect(await refused(db, () => db.query(
+      `update public.object_type_properties
+          set time_series_interpolation = '{"constant":{"value":"SPLINE"}}'::jsonb where id = $1`,
+      [tsp]))).toMatch(/time_series_interpolation_is_a_published_member/)
+
+    // and a formatter only belongs on a time series property
+    const other = (await one(
+      `select id from public.object_type_properties
+        where object_type_id = $1 and base_type = 'string' limit 1`, [machine])).id
+    expect(await refused(db, () => db.query(
+      `update public.object_type_properties
+          set time_series_units = '{"constant":{"value":"kg"}}'::jsonb where id = $1`,
+      [other]))).toMatch(/time_series_formatting_only_on_a_time_series_property/)
+  })
+
+  // "By default, numeric time series use LINEAR interpolation and categorical
+  //  series use PREVIOUS." Unset is not unknown.
+  it('resolves the page\'s own defaults, and a constant beats them', async () => {
+    // An earlier case in this file leaves the per-series boolean set, and 779's
+    // CHECK ties it to numericOrNonNumeric — so it is cleared here rather than
+    // inherited.
+    await db.query(
+      `update public.object_type_properties
+          set time_series_interpolation = null, time_series_units = null,
+              time_series_is_non_numeric_property_id = null,
+              time_series_item_type = 'double' where id = $1`, [tsp])
+    let r = await one('select * from public.time_series_formatting($1, $2)', [machine, 'temperature_id'])
+    expect(r.interpolation).toBe('LINEAR')
+    expect(r.units).toBeNull()
+
+    await db.query(
+      `update public.object_type_properties set time_series_item_type = 'string' where id = $1`, [tsp])
+    r = await one('select * from public.time_series_formatting($1, $2)', [machine, 'temperature_id'])
+    expect(r.interpolation).toBe('PREVIOUS')
+
+    // numericOrNonNumeric "must be inferred from the result of a time series
+    // query", so it resolves to nothing rather than guessing.
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'numericOrNonNumeric' where id = $1`, [tsp])
+    r = await one('select * from public.time_series_formatting($1, $2)', [machine, 'temperature_id'])
+    expect(r.interpolation).toBeNull()
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'double',
+              time_series_interpolation = '{"constant":{"value":"NEXT"}}'::jsonb,
+              time_series_units = '{"constant":{"value":"PSI"}}'::jsonb where id = $1`, [tsp])
+    r = await one('select * from public.time_series_formatting($1, $2)', [machine, 'temperature_id'])
+    expect(r.interpolation).toBe('NEXT')
+    expect(r.units).toBe('PSI')
+  })
+
+  // The whole reason the pointer exists: "if each time series contained in the
+  // time series property has different units and or interpolation".
+  it('reads a pointer per object, and answers without one only as far as it goes', async () => {
+    // The pointer names a property the INDEX carries. This fixture's index was
+    // built in beforeAll, so a property added now would have no column in it;
+    // machine_id is a string property of this object type and is indexed.
+    await db.query(
+      `update public.object_type_properties
+          set time_series_units = jsonb_build_object('propertyType',
+                jsonb_build_object('propertyApiName', 'machine_id')) where id = $1`, [tsp])
+
+    // Without a primary key there is no object to resolve against, so the
+    // pointer answers nothing rather than inventing a value.
+    let r = await one('select * from public.time_series_formatting($1, $2)', [machine, 'temperature_id'])
+    expect(r.units).toBeNull()
+
+    // The fixture's index carries machine_id as the uom column's value.
+    r = await one('select * from public.time_series_formatting($1, $2, $3)',
+      [machine, 'temperature_id', 'M1'])
+    expect(r.units).toBe('M1')
+    r = await one('select * from public.time_series_formatting($1, $2, $3)',
+      [machine, 'temperature_id', 'M2'])
+    expect(r.units).toBe('M2')
+
+    // A pointer at a property that is not a string property of this object type
+    // cannot resolve, and that can become true without anyone editing the
+    // formatter — so it is a violation, not a write-time refusal.
+    await db.query(
+      `update public.object_type_properties
+          set time_series_units = jsonb_build_object('propertyType',
+                jsonb_build_object('propertyApiName', 'nosuch')) where id = $1`, [tsp])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774'
+          and v.problem like '%points at a property that is not a string%'`)).toBe(1)
+
+    await db.query(
+      `update public.object_type_properties set time_series_units = null where id = $1`, [tsp])
+  })
+
+  // "LINEAR: ... Only applicable to numerical time series." No page says what
+  // happens if it is set anyway, so refusing would be stricter than Foundry.
+  it('warns rather than refuses LINEAR on a categorical series', async () => {
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'string',
+              time_series_is_non_numeric_property_id = null,
+              time_series_interpolation = '{"constant":{"value":"LINEAR"}}'::jsonb
+        where id = $1`, [tsp])
+    expect(await count(
+      `select count(*) as n from public.ontology_warnings() w
+        where w.object_type = 'TsMachine774'
+          and w.problem like 'LINEAR interpolation is only applicable%'`)).toBe(1)
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%LINEAR%'`)).toBe(0)
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'double', time_series_interpolation = null
+        where id = $1`, [tsp])
+  })
+
   it('carries the rid the time series catalogue names it by', async () => {
     const r = await one(`select rid from public.time_series_syncs where id = $1`, [sync])
     expect(r.rid).toBe(`ri.time-series-catalog.main.sync.${sync}`)
