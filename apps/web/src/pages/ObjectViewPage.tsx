@@ -19,6 +19,7 @@ import {
 } from '@/features/objectView/api'
 import { EmbeddedModule } from '@/features/objectView/EmbeddedModule'
 import { FormattedValue } from '@/features/formatting/FormattedValue'
+import { useSensorSeries } from '@/features/objectTypes/sensors'
 
 export default function ObjectViewPage() {
   const { typeId = '', pk = '' } = useParams()
@@ -229,6 +230,8 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
           )}
         </Card>
 
+        <SensorsCard typeId={typeId} pk={pk} />
+
         <Card compact>
           <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Edit history</span>
           {history.length === 0 ? (
@@ -250,5 +253,46 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
         </Card>
       </div>
     </div>
+  )
+}
+
+/** What this object's sensors are reading. The time series overview describes
+ *  the unified view as three steps — fetch the TSPs, search around for links
+ *  carrying the sensor designation, fetch the sensor names — and `sensor_series`
+ *  is those three steps. The card renders nothing at all when this object type
+ *  is no sensor's root, so it costs an ordinary object view nothing.
+ *
+ *  A count and a latest value per sensor, not a plot: nothing here draws a
+ *  series yet, and a chart with no library behind it would be the half-built
+ *  thing this repository keeps deleting. */
+function SensorsCard({ typeId, pk }: { typeId: string; pk: string }) {
+  const { data: points = [], isLoading } = useSensorSeries(typeId, pk)
+  if (isLoading || points.length === 0) return null
+
+  const bySensor = new Map<string, { name: string; n: number; last: string }>()
+  for (const p of points) {
+    const key = `${p.sensor_object_type}/${p.sensor_primary_key}`
+    const value = p.num !== null ? String(p.num) : p.cat ?? ''
+    const seen = bySensor.get(key)
+    bySensor.set(key, {
+      name: p.sensor_name || p.sensor_primary_key,
+      n: (seen?.n ?? 0) + 1,
+      last: value,
+    })
+  }
+
+  return (
+    <Card compact>
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sensors</span>
+      <div className="space-y-1 mt-2">
+        {[...bySensor.entries()].map(([key, s]) => (
+          <div key={key} className="flex items-center gap-2 text-sm">
+            <span className="font-medium">{s.name}</span>
+            <span className="text-xs text-muted-foreground">{s.n} points</span>
+            <span className="ml-auto font-mono text-xs">{s.last}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }

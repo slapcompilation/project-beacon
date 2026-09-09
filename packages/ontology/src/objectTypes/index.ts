@@ -241,6 +241,10 @@ export interface ObjectTypeDef {
    *  object type never moves between them — its API name is unique per ontology
    *  and its RID resolves inside one. */
   ontologyId?: string
+  /** "Record time series data for a linked object type" — the Capabilities >
+   *  Time series toggle (783). Where Foundry stores this is not published, so
+   *  the column, and this field, are ours. */
+  isSensor?: boolean
   /** slug, unique per org — the type's stable api name. */
   apiName: string
   label: string

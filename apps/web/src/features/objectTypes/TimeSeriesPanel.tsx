@@ -8,14 +8,24 @@
 // `No formatting`. Two older captures show the same panel under a different
 // name and without the tag; the reading dates all four and says which won.
 //
-// Three things it deliberately does NOT draw, each because nothing is behind it:
+// What it deliberately does NOT draw:
 //   Analyze          — opens Quiver against the series, and our Quiver page
 //                      creates analyses without plotting a TSP.
-//   Sensor object type — step 3 of Foundry's dialog. Not built, so the dialog
-//                      has two steps and says so rather than showing a dead one.
-//   Time series formatting's SENSOR branch — for a sensor object type Foundry
-//                      replaces the cell with an info icon. Sensor object types
-//                      are excluded, so no object type of ours can be one.
+//   The dialog's step 3 — a two-card radio, "Standard time series property" vs
+//                      "Sensor object type [Advanced]" (the step-3 capture is
+//                      time-series-setup-sensor-object-type-setup-dialog.png;
+//                      an earlier version of this comment cited the step 1 and
+//                      2 captures by mistake). Its terminal write must land the
+//                      toggle AND one Sensor link entry in one transaction, or
+//                      the type saves straight into a violation. The
+//                      Capabilities section below is the complete path, and it
+//                      is where Foundry's own walkthrough turns the toggle on.
+//   Primary Sensor Link — "This will only appear if you still have old versions
+//                      of Quiver accessible in your Foundry instance", and it
+//                      is absent from the newer capture entirely.
+//
+// 783 made the sensor branch real: the Sensor object type section below, and
+// the info icon that replaces the base formatter for one.
 //
 // The formatter popover is measured off time-series-setup-time-series-formatting.png:
 // a muted uppercase header carrying the master toggle, then `Internal
@@ -32,7 +42,10 @@ import {
 } from '@blueprintjs/core'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { useDatasets } from '@/features/datasets/api'
-import { useDatasetFields } from './hooks'
+import { useDatasetFields, useLinkTypes } from './hooks'
+import {
+  useSensorLinks, useSetIsSensor, useSaveSensorLink, useRemoveSensorLink,
+} from './sensors'
 import {
   useTimeSeriesProperties, useTimeSeriesSyncs, useCreateTimeSeriesSync,
   useDesignateTimeSeriesProperty, useSetDefaultTimeSeriesProperty,
@@ -142,6 +155,8 @@ export function TimeSeriesPanel({ type }: { type: ObjectTypeDef }) {
                 </table>
               )}
           </div>
+
+          <SensorObjectType type={type} tsps={rows} />
         </div>
       </Collapse>
 
@@ -337,6 +352,16 @@ function BaseFormatter({ type, row }: { type: ObjectTypeDef; row: TimeSeriesProp
   const save = useSetTimeSeriesFormatting(type.id)
   const on = row.interpolation !== null || row.units !== null
 
+  // For a sensor object type Foundry withholds this control rather than
+  // refusing its value, and substitutes an explanation. Withholding is why no
+  // precedence rule is needed: the two editors cannot both be used.
+  if (type.isSensor === true) {
+    return (
+      <Icon icon="info-sign" size={14} className="text-muted-foreground"
+        title="Set the units and interpolation in the Sensor object type configuration below." />
+    )
+  }
+
   // "point to other `string` properties on this object type" - and not to the
   // time series property itself.
   const targets = type.properties.filter(
@@ -441,5 +466,110 @@ function OperandField({ operand, targets, onChange, choices, labelOf }: {
         {isRef ? 'Add constant' : 'Add reference'}
       </Button>
     </div>
+  )
+}
+
+/** The Sensor object type section — "Record time series data for a linked
+ *  object type". Built from sensor-object-om-configuration.png, the newer of
+ *  the two captures: it has no Primary Sensor Link. */
+function SensorObjectType({ type, tsps }: { type: ObjectTypeDef; tsps: TimeSeriesProperty[] }) {
+  const { data: links } = useLinkTypes()
+  const { data: entries = [] } = useSensorLinks(type.id)
+  const setSensor = useSetIsSensor(type.id)
+  const save = useSaveSensorLink(type.id)
+  const remove = useRemoveSensorLink(type.id)
+  const on = type.isSensor === true
+
+  // "at least one link type which links this sensor object type to a root
+  // object type" — either side, so both directions are offered.
+  const eligible = links.filter(
+    (l) => l.source_object_type_id === type.id || l.target_object_type_id === type.id)
+  const names = type.properties.filter((p) => p.type === 'string' && p.id !== undefined)
+
+  return (
+    <section className="mt-3 rounded border">
+      <div className="flex items-start gap-2 p-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">Sensor object type</p>
+          <p className="text-xs text-muted-foreground">
+            Record time series data for a linked object type.
+          </p>
+        </div>
+        <Switch checked={on} className="mb-0"
+          onChange={(e) => { setSensor.mutate(e.currentTarget.checked) }} />
+      </div>
+
+      {on && (
+        <div className="space-y-3 border-t p-3">
+          <div>
+            <p className="text-xs font-medium">Sensor link</p>
+            <p className="text-xs text-muted-foreground">
+              Identify the link to allow root objects to link to the time series
+              data of sensor objects.
+            </p>
+          </div>
+
+          {entries.length === 0 && (
+            <Callout intent="warning" className="text-xs">
+              A sensor object type records data for a linked object type, and this
+              one configures no sensor link yet.
+            </Callout>
+          )}
+
+          {entries.map((e) => (
+            <div key={e.id} className="flex items-center gap-2">
+              <HTMLSelect value={e.linkTypeId}
+                onChange={(ev) => {
+                  save.mutate({ id: e.id, linkTypeId: ev.currentTarget.value,
+                    sensorNamePropertyId: e.sensorNamePropertyId })
+                }}>
+                {eligible.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+              </HTMLSelect>
+              <span className="text-xs text-muted-foreground">Sensor name</span>
+              <HTMLSelect value={e.sensorNamePropertyId}
+                onChange={(ev) => {
+                  save.mutate({ id: e.id, linkTypeId: e.linkTypeId,
+                    sensorNamePropertyId: ev.currentTarget.value })
+                }}>
+                {names.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+              </HTMLSelect>
+              <Button variant="minimal" size="small" icon="trash"
+                onClick={() => { remove.mutate(e.id) }} />
+            </div>
+          ))}
+
+          <Button size="small" variant="outlined" icon="plus"
+            disabled={eligible.length === 0 || names.length === 0}
+            onClick={() => {
+              const used = new Set(entries.map((e) => e.linkTypeId))
+              const next = eligible.find((l) => !used.has(l.id))
+              if (next !== undefined && names[0]?.id !== undefined) {
+                save.mutate({ linkTypeId: next.id, sensorNamePropertyId: names[0].id })
+              }
+            }}>
+            Add new entry
+          </Button>
+
+          <div className="border-t pt-3">
+            <p className="text-xs font-medium">Is categorical?</p>
+            <p className="text-xs text-muted-foreground">
+              Select a boolean property to indicate whether each sensor has
+              categorical time series data.
+            </p>
+            <HTMLSelect fill disabled value=""
+              title="TimeSeries:MultiSyncNotBuilt — a per-series boolean only decides anything for a property backed by several syncs of mixed kinds, and one sync per property is enforced.">
+              <option value="">Only for a property backed by several syncs</option>
+            </HTMLSelect>
+          </div>
+
+          {tsps.length > 1 && (
+            <Callout intent="warning" className="text-xs">
+              A sensor object type has one time series property, and this one has
+              {' '}{tsps.length}.
+            </Callout>
+          )}
+        </div>
+      )}
+    </section>
   )
 }
