@@ -3145,12 +3145,17 @@ export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as Fu
 
 /**
  *  The vertex and timeseries type classes
- *  object-link-types/metadata-typeclasses enumerates (17 vertex + 13
- *  timeseries rows, two deprecated), plus the three link-direction classes
- *  vertex/graphs-display-options defines on link types. applies_to is the
- *  table's own Property/Relation column; parameterised rows take a dot suffix
- *  (event_intent.danger). Kinds the page carries that no application here
- *  consumes yet (schedules, …) refuse until catalogued deliberately.
+ *  object-link-types/metadata-typeclasses enumerates — 17 vertex rows and 17
+ *  timeseries rows, three deprecated — plus the three link-direction classes
+ *  vertex/graphs-display-options defines on link types. 710 said 13
+ *  timeseries rows and held 13; the page had 17, so four were refused by name
+ *  until 781. applies_to is the table's own Property/Relation column and
+ *  deprecated is its Deprecated column, which is why timeseries_is_deprecated
+ *  is not deprecated. parameterised rows take a dot suffix
+ *  (event_intent.danger). typeClasses.test.ts parses the page and compares,
+ *  so the next upstream row fails CI rather than this comment going stale
+ *  again. Kinds the page carries that no application here consumes yet
+ *  (hubble, schedules, …) refuse until catalogued deliberately.
  */
 export const ontologyTypeClassesCatalogue = { apiName: 'ontology_type_classes_catalogue', kind: 'function' } as FunctionType<
   Record<string, never>,
