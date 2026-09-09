@@ -156,11 +156,24 @@ masks access as absence on this path. The sync's FK to `datasets` — not to
 
 ## Questions (2026-09-09)
 
-1. **`itemType` is required by the api and is not stored.** A `timeseries`
-   property type carries `itemType`: `string | double | numericOrNonNumeric`,
-   the last with `isNonNumericPropertyTypeId`, "a boolean property reference".
-   The reader returns both a numeric and a categorical column instead of
-   declaring which, which is the most permissive member of a required union.
+1. **CLOSED by 779.** `itemType` is required by the api and was not stored. It
+   is now a declaration on the property, with the three members the api
+   enumerates, and a bound TSP must make it.
+
+   The reader's old behaviour turns out to have been right for a reason nobody
+   had written down: returning both a numeric and a categorical column IS the
+   documented behaviour of `numericOrNonNumeric` without the boolean property —
+   the type "must be inferred from the result of a time series query". What was
+   missing was the other two members, where the answer is known in advance and
+   a column that is always null was handed back anyway. The reader now returns
+   what the declaration promises, and both only for the member that says to
+   infer.
+
+   `isNonNumericPropertyTypeId` is **storable and refused**, not stored and
+   ignored: it resolves per SERIES, from a boolean property of the object being
+   read, which is a second lookup no page shows configured. The guard raises
+   `TimeSeries:MixedSeriesNotBuilt` until the reader can honour it — the
+   alternative to the declared-defaulted-inert shape this whole arc began from.
 2. **The 10,000-variant cap on a categorical series is not enforced**, and the
    page says exceeding it makes the series "error and no longer be accessible in
    the platform".
