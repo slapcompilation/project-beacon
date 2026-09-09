@@ -22,6 +22,12 @@ export type FilterValue =
   | { type: 'valuesFilter'; values: string[] }
   | { type: 'numberRangeFilter'; min?: number; max?: number }
   | { type: 'dateRangeFilter'; dateRangeFilter: { start?: string; end?: string } }
+  /** The three the engine has compiled since 475 and no control reached until
+   *  785. Fields are generate-urls' own: "relativeDateFilter: sinceDaysAgo
+   *  (optional number), untilDaysAgo (optional number)" and so on. */
+  | { type: 'relativeDateFilter'; sinceDaysAgo?: number; untilDaysAgo?: number }
+  | { type: 'timestampRangeFilter'; startMillis?: number; endMillis?: number }
+  | { type: 'relativeTimestampFilter'; sinceMillisAgo?: number; untilMillisAgo?: number }
 
 /** A member of a link's filter list. "click into the link config to add filter
  *  sections", with "Has link" as one of them (workshop/widgets-filter-list). */

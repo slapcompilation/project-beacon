@@ -697,17 +697,41 @@ disclaims its own example:
 
 > This example may be out of date – use the instructions below to find out the latest format.
 
-It lists the kinds and their fields and says nothing about which property types
-each applies to, and `api/` publishes no object-set filter union at all. So the
-mapping in `filter_kind_applies` is **inference**, and deliberately the narrowest
-available: a kind is refused only where the comparison it emits has no operator
-in Postgres. Nothing is refused on taste.
+`api/` publishes no object-set filter union at all.
 
-### Still open, and named here
+**And I under-read that page, which 785 corrects.** §15 first said it "says
+nothing about which property types each applies to". Four lines below the bullet
+list I stopped at:
 
-That same page lists the four kinds beyond the flat two, and **three of them have
-no UI**: `relativeDateFilter`, `timestampRangeFilter` and
-`relativeTimestampFilter` all compile, and the Explorer's Add filter offers none
-of them. Reachable through the API and through saved explorations, so not dead —
-but it is the engine-nothing-reaches shape, and it wants its own chunk rather
-than being smuggled into a bug fix.
+> The type of the value must match the type of widget that shows by default for that property in Object Explorer. For example: `valuesFilter` for a histogram widget; `textFilter` for textbox.
+
+That is the rule, stated as a **must**. So the refusal 784 added has a documented
+principle behind it and not only an inference from Postgres operators. What is
+still inference is narrower, and worth stating exactly:
+
+* **that** a mismatch is refused — DOCUMENTED, by the sentence above;
+* **which** kinds fit which base types — inference, because the rule is written
+  in terms of a property's *default widget* and no page in the corpus pairs
+  widgets with property types. `workshop/widgets-filter-list` lists widget kinds
+  ("keyword, histogram, single- and multi-select dropdowns, distribution chart,
+  single- and multi-date pickers, and timeline displays") without binding them
+  to types.
+
+So `filter_kind_applies` stays the narrowest available reading — a kind is
+refused only where the comparison it emits has no operator in Postgres — and
+nothing is refused on taste.
+
+**The lesson is separate from the one this page already taught.** That lesson was
+to read the feature page rather than the URL-encoding page. This one is:
+*I read four bullets and treated the section as exhausted.* The sentence that
+mattered sat immediately below the list, outside it.
+
+### The three kinds with no UI — CLOSED by 785
+
+That same page lists four kinds beyond the flat two, and three of them compiled
+with no control reaching them: `relativeDateFilter`, `timestampRangeFilter` and
+`relativeTimestampFilter`. A temporal property now offers all four — between
+dates, relative in days, between timestamps, relative in hours — with the field
+names the page gives (`sinceDaysAgo`, `startMillis`, `sinceMillisAgo`). The two
+relative kinds take NUMBERS rather than dates, which is why the range inputs
+change their hints with the mode.
