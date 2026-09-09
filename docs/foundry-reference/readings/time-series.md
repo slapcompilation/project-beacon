@@ -244,6 +244,133 @@ database is left able to represent the state an operator reaches in SQL — with
    datasource's `Phonograph2:DatasetAndBranchAlreadyRegistered` rule. The sync
    page shows one sync backing two object types.
 
+## 8. Are the `timeseries.*` type classes legacy? (2026-09-09)
+
+Asked because 780 left it open, and answered by reading rather than by choosing.
+**The answer is NUANCED — no sentence settles it — but it rests on three
+explicit anchors and one explicit contradiction that does most of the work.**
+
+### First, a correction to how the question was posed
+
+I said 415 "skipped" the seven and that nobody decided it. **False, and 415 says
+so in its own header:**
+
+```
+-- Two panel shapes exist. This builds the SLOT-BASED one (Geospatial, Event).
+-- The LIST-BASED one is `time_series_properties`, which we already have.
+```
+(`supabase/migrations/415_metadata_and_capabilities.sql` — ours, not the mirror.)
+
+It routed them by panel shape, deliberately. And 710 already catalogues most of
+the family as type classes. The open question was never *were they skipped* but
+*is the shape they encode still live*.
+
+### The contradiction that dates the table
+
+Two mirrored pages state opposite rules for the same property:
+
+> When applied to the primary key of a timeseries object, this type class specifies the *series identifier* (`seriesId`) of that object.
+
+— `object-link-types/metadata-typeclasses.md`, of `timeseries_id`. Against:
+
+> The primary key property of an object type cannot be selected as the time series property.
+
+— `time-series/time-series-properties.md`. And:
+
+> TSPs cannot be a primary key or title property.
+
+— `time-series/create-sensor-ot.md`. That is not ambiguity. One of those pages
+describes a model the platform no longer uses.
+
+### Which model, said explicitly
+
+> Prior to the development of sensor object types, the platform used Measures as a time series model. Measures are being deprecated and you can use sensor object types in similar workflows.
+
+— `time-series/faqs.md`. And the single sentence in the whole corpus that maps a
+type-class NAME onto a current field:
+
+> If you are migrating from the Measures setup, this was previously referred to as `is_enum`.
+
+— `time-series/create-sensor-ot.md`. So the `timeseries.*` vocabulary **is** the
+Measures vocabulary, and Measures is retired.
+
+### But the rows are not dead, and the page says why
+
+> The **Deprecated** column indicates whether a type class is still supported.
+
+Only two of the seventeen carry the literal token. The rest carry
+*Configure in **Capabilities** page of object type*, which the legend makes a
+THIRD value — supported, configured elsewhere:
+
+> The configuration of all supported type classes will move to the **Capabilities** page.
+
+And Quiver is named in the present tense as a consumer:
+
+> Quiver is an application that consumes `timeseries` type classes.
+
+### The verdict: the seven do not share one fate
+
+| row | status | where it lives now |
+|---|---|---|
+| `timeseries_units` | live knob, **relocated** | the per-TSP base formatter, and the sensor-OT section |
+| `timeseries_internal_interpolation` | live knob, **relocated** | the same two |
+| `timeseries_is_enum` | live knob, **renamed** | sensor-OT section, "Is categorical?" |
+| `timeseries_measure` | model **deprecated** | Measures → sensor object types |
+| `timeseries_id` | **generationally contradicted** | the TSP's series-id string property |
+| `timeseries_root_object_id` | no named successor | possibly Sensor link — INFERENCE, nothing states it |
+| `timeseries_is_deprecated` | no current UI | one callout telling the reader to ignore it |
+
+So neither *legacy-and-excluded* nor *the slot half*: the seven are the
+**superseded encoding of a live feature**, and the live feature is not
+slot-shaped at the level they sit at.
+
+### What that means for building Time series formatting
+
+**Its own panel, not `capability_slots()`** — and 415's routing was right for
+the reason it gave. Two levels, because the docs have two:
+
+1. **Per TSP row, the base formatter.** Two fields, each a constant OR a
+   reference to a `string` property on the same object type — *"The unit and
+   interpolation formatting can point to other `string` properties on this
+   object type for more granular control"*. That is per-(object type, property),
+   which `capability_slots()`'s one-row-per-object-type-slot shape structurally
+   cannot hold.
+2. **Per object type, the sensor configuration section.** This half IS
+   slot-shaped — Sensor link, Is categorical?, Units, Internal interpolation,
+   each bound to a property. Still not `capability_slots()`, because Sensor link
+   binds a LINK TYPE plus a property and the slot shape is
+   `(capability, slot, accepts base_type[])`.
+
+Adding `timeseries_units` / `timeseries_internal_interpolation` to
+`capability_slots()` would build the retired Measures shape beside the live one
+— the parallel-system failure this repository has made three times.
+
+The interpolation value set is closed and citable: `LINEAR` / `NEAREST` /
+`PREVIOUS` / `NEXT` / `NONE` (`time-series/interpolation-overview.md`), with
+`LINEAR` *"Only applicable to numerical time series"*. Two cautions: `api/`
+publishes **nothing** about interpolation, so prose is the only source — weaker
+than our usual rail; and the casing splits by audience, SCREAMING_CASE in the
+time-series pages and "Linear" in the OMA capture.
+
+### What this pass found on the way, and 781 fixed
+
+`ontology_type_classes_catalogue()`'s own COMMENT counted the page as 17 vertex
+plus 13 timeseries rows. The page has **seventeen** timeseries rows. Four were uncatalogued and therefore
+refused by name at assignment time, three of them carrying a blank Deprecated
+column — the value meaning current and not even relocated. 781 adds them and
+`typeClasses.test.ts` now PARSES the page, so the next upstream row fails CI
+instead.
+
+### Still for a human
+
+**Precedence is undocumented.** Nothing in the mirror says what wins if a sensor
+object type has both a base formatter and a sensor-section value; the page says
+units and interpolation *"should be set in the sensor object type configuration
+section rather than through the base formatter"*, inside a warning callout, and
+the capture replaces the cell with an info icon. Under *do not be stricter than
+Foundry* that is a withheld control and at most a warning — but the precedence
+rule itself would be invented.
+
 ## Decisions (2026-09-09, second pass — NOT YET READ BY A HUMAN)
 
 These were taken while building 780 and the Capabilities panel. Four of them
