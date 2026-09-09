@@ -574,3 +574,68 @@ already carries a filter.
    needs a human call.
 3. **How does Exclude compile?** Every listogram carries Keep/Exclude, and the
    far-property member as designed has no negation.
+
+
+---
+
+## 14. The third link filter kind, and why it is not built (2026-09-09)
+
+`Filter by <LinkedType>?` — the pixels carry the question mark that the prose
+drops. Reconciled before building, and the reconcile says **do not build it
+yet**.
+
+> It is also possible to search for objects that have links to other specific objects. For example, after selecting a link choose the option "Filter by Airline". This opens a filter for links to specific objects. Linked objects are displayed by their title in the resulting listogram.
+
+**No page and no capture in the mirror shows this filter open, or its serialized
+form.** All three link captures — `has_link.png`, `linked_to_property.png`,
+`linked_to_object.png` — are of the search MENU with a row hovered, the state
+immediately before the click. `generate-urls.md` serializes exactly one link
+filter and it is kind 1, presence. The deep dives add nothing: the Object
+Explorer lesson text is seven lines and covers no filtering.
+
+Building it would stack four inferences into structure:
+
+1. **The wire member** — nothing publishes one.
+2. **Multi-select** — the prose is plural ("specific objects"), and the property
+   listogram capture shows two values selected, but that is a different widget
+   in a different pane. Reading a plural is not seeing a selection.
+3. **Keep / Exclude** — the page grants negation explicitly to the other two
+   kinds ("or objects that do not have the associated link"; `"Is not": Negates
+   the current search term`) and is **silent** here. The Keep/Exclude dropdown
+   is documented for listogram CHARTS: "Selected values can be kept or excluded
+   by using the dropdown at the bottom of the chart", and
+   `charts_listogram_select.png` shows the dropdown open with exactly `Keep` and
+   `Exclude`, over the sentence `Keep [FRP] Flights where Origin City Name is
+   any of 2 selected values`.
+4. **Title or key** — "displayed by their title" says how they are *shown*,
+   never that title is the identifier. Filtering by title is wrong for a type
+   whose titles are not unique, and no page gives a key.
+
+CLAUDE.md's rule 3 applies exactly: the mirror does not cover it, the courses are
+exhausted, so **ask** rather than invent. A plausible shape invented here becomes
+structure, and structure is expensive.
+
+### What is already true, and worth knowing before asking
+
+**The Keep case is already expressible.** 776's nested far predicate on the far
+primary key *is* a filter for links to specific objects, and
+`linkIndex.test.ts` proves it green today — `far('linkidx_pairs','pk',['B2'])`
+returns 1. `object_set_rows` already compiles a saved list of specific primary
+keys into exactly that shape at the subject end. So the missing thing is a UI affordance and a
+negation, not a mechanism.
+
+**Exclude is a general gap, and its meaning is ambiguous.** No negated values
+token exists in the seven value kinds, so a near-property listogram cannot
+express Exclude either. And the two readings differ:
+`NOT EXISTS(link AND far.pk IN {A,B})` means *has no link to A or B*, while a
+listogram Exclude might mean *has a link to some far object that is not A or B*
+— different sets for any subject linked to both A and C. No page settles it.
+That ambiguity is the strongest single reason not to guess.
+
+### What the reconcile found instead
+
+A defect in 776, fixed by 778: a link filter carrying BOTH the flat `value` and
+the nested `filters` was accepted by the validator and **negated twice** by the
+engine, so "has no link" asked twice returned the objects that have one. Second
+time this session that a reconcile aimed at one thing found a defect in another,
+after the far-side leak 771 closed.

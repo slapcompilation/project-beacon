@@ -182,6 +182,28 @@ describe.skipIf(noDb)('a join table is indexed alongside the objects', () => {
     expect(await count(ta, presence('linkidx_pairs', 'MUST_NOT_HAVE'))).toBe(1)
   })
 
+  // ── 778: a link filter is negated once ───────────────────────────────────
+  // 776 left both negations running: the validator branches on `filters` and
+  // never inspects `value`, so a filter carrying BOTH was accepted and then
+  // double-negated — "has no link" twice meant "has one".
+  it('is negated once when a link filter carries both forms', async () => {
+    const both = [{
+      type: 'linkFilter', linkType: 'linkidx_pairs',
+      filters: [{ type: 'presenceFilter', matchType: 'MUST_NOT_HAVE' }],
+      value: { type: 'presenceFilter', matchType: 'MUST_NOT_HAVE' },
+    }]
+    // The validator has always accepted it, which is what makes it reachable:
+    // object_sets_filters_check is the CHECK on a saved exploration's filters.
+    expect((await one('select public.object_set_filters_valid($1::jsonb) as ok',
+      [JSON.stringify(both)])).ok).toBe(true)
+    // A1 and A2 have links; A3 does not. Double-negated this returned 2.
+    expect(await count(ta, both)).toBe(1)
+    // and each form alone is unchanged
+    expect(await count(ta, presence('linkidx_pairs', 'MUST_NOT_HAVE'))).toBe(1)
+    expect(await count(ta, [{ type: 'linkFilter', linkType: 'linkidx_pairs',
+      filters: [{ type: 'presenceFilter', matchType: 'MUST_NOT_HAVE' }] }])).toBe(1)
+  })
+
   it('a fresh pair store is not rebuilt; a moved join dataset is', async () => {
     const again = (await db.query(
       'select public.run_link_index_build(array[$1]::uuid[], false) as b', [link])).rows[0] as { b: string | null }
