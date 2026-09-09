@@ -31,6 +31,21 @@ const NUMERIC = new Set(['byte', 'short', 'integer', 'long', 'float', 'double', 
 const isNumeric = (p: PropertyRow) => NUMERIC.has(p.base_type)
 const isTemporal = (p: PropertyRow) => p.base_type === 'date' || p.base_type === 'timestamp'
 
+/** What the two range inputs mean, which depends on the kind being built. The
+ *  relative kinds take numbers, not dates — generate-urls calls their fields
+ *  `sinceDaysAgo` and `sinceMillisAgo`. */
+function rangeHint(numeric: boolean, temporal: boolean,
+                   when: 'dates' | 'relativeDays' | 'timestamps' | 'relativeHours'): [string, string] {
+  if (numeric) return ['min', 'max']
+  if (!temporal) return ['', '']
+  switch (when) {
+    case 'relativeDays':  return ['since days ago', 'until days ago']
+    case 'timestamps':    return ['start (ISO)', 'end (ISO)']
+    case 'relativeHours': return ['since hours ago', 'until hours ago']
+    default:              return ['start (YYYY-MM-DD)', 'end (YYYY-MM-DD)']
+  }
+}
+
 /** A value predicate as the pill reads it. */
 function describeValue(name: string, v: FilterValue): string {
   switch (v.type) {
@@ -42,6 +57,12 @@ function describeValue(name: string, v: FilterValue): string {
       const r = v.dateRangeFilter
       return `${name} ${r.start ? `from ${r.start}` : ''}${r.start && r.end ? ' ' : ''}${r.end ? `to ${r.end}` : ''}`
     }
+    case 'relativeDateFilter':
+      return `${name} ${v.sinceDaysAgo !== undefined ? `within the last ${v.sinceDaysAgo} days` : ''}${v.sinceDaysAgo !== undefined && v.untilDaysAgo !== undefined ? ' and ' : ''}${v.untilDaysAgo !== undefined ? `up to ${v.untilDaysAgo} days ago` : ''}`
+    case 'timestampRangeFilter':
+      return `${name} ${v.startMillis !== undefined ? `from ${new Date(v.startMillis).toISOString()}` : ''}${v.startMillis !== undefined && v.endMillis !== undefined ? ' ' : ''}${v.endMillis !== undefined ? `to ${new Date(v.endMillis).toISOString()}` : ''}`
+    case 'relativeTimestampFilter':
+      return `${name} ${v.sinceMillisAgo !== undefined ? `within the last ${Math.round(v.sinceMillisAgo / 3600000)} hours` : ''}${v.sinceMillisAgo !== undefined && v.untilMillisAgo !== undefined ? ' and ' : ''}${v.untilMillisAgo !== undefined ? `up to ${Math.round(v.untilMillisAgo / 3600000)} hours ago` : ''}`
   }
 }
 
@@ -444,6 +465,8 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
   const [text, setText] = useState('')
   const [min, setMin] = useState('')
   const [max, setMax] = useState('')
+  /** Which of the four temporal kinds a date or timestamp property filters by. */
+  const [when, setWhen] = useState<'dates' | 'relativeDays' | 'timestamps' | 'relativeHours'>('dates')
 
   const rel = relations.find((r) => r.linkApi === pane) ?? null
   // "select the relation in the left side of the search menu panel. From there,
@@ -453,19 +476,44 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
   const numeric = prop !== null && isNumeric(prop)
   const temporal = prop !== null && isTemporal(prop)
 
-  /** One value, built from whichever controls the property's type showed. */
+  /** A temporal property answers four kinds, and the engine has compiled all
+   *  four since 475. `when` chooses between them; the two "relative" ones take
+   *  numbers rather than dates, which is why they share the min/max inputs. */
+  const buildTemporal = (): FilterValue => {
+    const a = min === '' ? undefined : min
+    const b = max === '' ? undefined : max
+    switch (when) {
+      case 'relativeDays':
+        return { type: 'relativeDateFilter',
+          ...(a !== undefined ? { sinceDaysAgo: Number(a) } : {}),
+          ...(b !== undefined ? { untilDaysAgo: Number(b) } : {}) }
+      case 'timestamps':
+        return { type: 'timestampRangeFilter',
+          ...(a !== undefined ? { startMillis: Date.parse(a) } : {}),
+          ...(b !== undefined ? { endMillis: Date.parse(b) } : {}) }
+      case 'relativeHours':
+        return { type: 'relativeTimestampFilter',
+          ...(a !== undefined ? { sinceMillisAgo: Number(a) * 3600000 } : {}),
+          ...(b !== undefined ? { untilMillisAgo: Number(b) * 3600000 } : {}) }
+      default:
+        return { type: 'dateRangeFilter', dateRangeFilter: {
+          ...(a !== undefined ? { start: a } : {}), ...(b !== undefined ? { end: b } : {}) } }
+    }
+  }
+
   const buildValue = (p: PropertyRow): FilterValue =>
     isNumeric(p)
       ? { type: 'numberRangeFilter',
           ...(min !== '' ? { min: Number(min) } : {}), ...(max !== '' ? { max: Number(max) } : {}) }
       : isTemporal(p)
-        ? { type: 'dateRangeFilter', dateRangeFilter: {
-            ...(min !== '' ? { start: min } : {}), ...(max !== '' ? { end: max } : {}) } }
+        ? buildTemporal()
         : mode === 'keyword'
           ? { type: 'textFilter', text }
           : { type: 'valuesFilter', values: [text] }
 
-  const clear = () => { setOpen(false); setText(''); setMin(''); setMax(''); setPropId('') }
+  const clear = () => {
+    setOpen(false); setText(''); setMin(''); setMax(''); setPropId(''); setWhen('dates')
+  }
 
   const apply = () => {
     if (!prop) return
@@ -513,11 +561,22 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
                 <option value="">Property…</option>
                 {props.map((p) => <option key={p.property_id} value={p.property_id}>{p.display_name}</option>)}
               </HTMLSelect>
+              {prop && temporal && (
+                <HTMLSelect fill value={when}
+                  onChange={(e) => {
+                    setWhen(e.currentTarget.value as typeof when); setMin(''); setMax('')
+                  }}>
+                  <option value="dates">Between dates</option>
+                  <option value="relativeDays">Relative, in days</option>
+                  <option value="timestamps">Between timestamps</option>
+                  <option value="relativeHours">Relative, in hours</option>
+                </HTMLSelect>
+              )}
               {prop && (numeric || temporal) && (
                 <div className="flex gap-2">
-                  <InputGroup size="small" placeholder={numeric ? 'min' : 'start (YYYY-MM-DD)'}
+                  <InputGroup size="small" placeholder={rangeHint(numeric, temporal, when)[0]}
                     value={min} onChange={(e) => { setMin(e.currentTarget.value) }} />
-                  <InputGroup size="small" placeholder={numeric ? 'max' : 'end (YYYY-MM-DD)'}
+                  <InputGroup size="small" placeholder={rangeHint(numeric, temporal, when)[1]}
                     value={max} onChange={(e) => { setMax(e.currentTarget.value) }} />
                 </div>
               )}
@@ -558,11 +617,22 @@ function AddFilter({ props, typeLabel, relations, filteredLinks, onAdd }: {
                   <option key={p.property_id} value={p.property_id}>{p.display_name}</option>
                 ))}
               </HTMLSelect>
+              {prop && temporal && (
+                <HTMLSelect fill value={when}
+                  onChange={(e) => {
+                    setWhen(e.currentTarget.value as typeof when); setMin(''); setMax('')
+                  }}>
+                  <option value="dates">Between dates</option>
+                  <option value="relativeDays">Relative, in days</option>
+                  <option value="timestamps">Between timestamps</option>
+                  <option value="relativeHours">Relative, in hours</option>
+                </HTMLSelect>
+              )}
               {prop && (numeric || temporal) && (
                 <div className="flex gap-2">
-                  <InputGroup size="small" placeholder={numeric ? 'min' : 'start (YYYY-MM-DD)'}
+                  <InputGroup size="small" placeholder={rangeHint(numeric, temporal, when)[0]}
                     value={min} onChange={(e) => { setMin(e.currentTarget.value) }} />
-                  <InputGroup size="small" placeholder={numeric ? 'max' : 'end (YYYY-MM-DD)'}
+                  <InputGroup size="small" placeholder={rangeHint(numeric, temporal, when)[1]}
                     value={max} onChange={(e) => { setMax(e.currentTarget.value) }} />
                 </div>
               )}

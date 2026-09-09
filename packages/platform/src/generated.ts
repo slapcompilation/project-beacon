@@ -2342,13 +2342,15 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 
 /**
  *  Whether a value filter kind can compile against a property of this base
- *  type. Derived from what each arm of object_set_property_predicate EMITS,
- *  not from a page: the two text filters cast the column and apply to
- *  everything, the five range filters compare it to a typed literal and need
- *  an operator that exists. No page states the mapping — generate-urls lists
- *  the kinds and disclaims its own example, and api/ publishes no object set
- *  filter union — so this is the narrowest inference available rather than a
- *  vocabulary (784).
+ *  type. THAT a mismatch is refused is documented: "The type of the value
+ *  must match the type of widget that shows by default for that property in
+ *  Object Explorer" (object-explorer/generate-urls). WHICH kinds fit which
+ *  base types is not — the rule is written in terms of a property's default
+ *  widget and no page pairs widgets with property types — so the pairings
+ *  below are inference, and the narrowest available: a kind is refused only
+ *  where the comparison its arm EMITS has no operator in Postgres. The two
+ *  text filters cast the column and so apply to everything. 784, comment
+ *  corrected by 785, which found the sentence 784 said did not exist.
  */
 export const filterKindApplies = { apiName: 'filter_kind_applies', kind: 'function' } as FunctionType<
   { p_kind: string; p_base_type: string },
