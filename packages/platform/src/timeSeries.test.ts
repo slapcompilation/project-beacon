@@ -207,7 +207,10 @@ describe.skipIf(noDb)('time series', () => {
       `update public.object_type_properties set time_series_item_type = 'double' where id = $1`, [tsp])
   })
 
-  it('requires the declaration of a bound property, and refuses the per-series boolean', async () => {
+  it('requires the declaration of a bound property, and that its boolean is readable', async () => {
+    const pkOf = (await one(
+      `select id from public.object_type_properties
+        where object_type_id = $1 and is_primary_key`, [machine])).id
     const tsDs = (await one(
       `select id from public.object_type_datasources
         where object_type_id = $1 and time_series_sync_id is not null limit 1`, [machine])).id
@@ -218,8 +221,10 @@ describe.skipIf(noDb)('time series', () => {
       `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
       [tsDs, tsp]))).toContain('TimeSeries:ItemTypeNotDeclared')
 
-    // isNonNumericPropertyTypeId is storable and refused, rather than stored
-    // and ignored: it resolves per SERIES and the reader does not do that yet.
+    // 779 refused isNonNumericPropertyTypeId outright, on the cost of "a second
+    // lookup". 782 made that lookup routine and 786 reads it off the SAME index
+    // row as the series id, so the refusal is gone — replaced by the one thing
+    // that makes it readable at all.
     const boolProp = (await one(
       `insert into public.object_type_properties
          (object_type_id, property_id, display_name, api_name, base_type, source, backing_column, datasource_id)
@@ -229,9 +234,30 @@ describe.skipIf(noDb)('time series', () => {
       `update public.object_type_properties
           set time_series_item_type = 'numericOrNonNumeric', time_series_is_non_numeric_property_id = $2
         where id = $1`, [tsp, boolProp])
+    await db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, tsp])
+    expect(Number((await one(
+      `select count(*) as n from public.object_type_time_series_sources where property_id = $1`,
+      [tsp])).n)).toBe(1)
+
+    // A boolean the reader cannot take off the index row is refused instead.
+    await db.query(`delete from public.object_type_time_series_sources where property_id = $1`, [tsp])
+    await db.query(
+      `update public.object_type_properties
+          set time_series_is_non_numeric_property_id = $2 where id = $1`, [tsp, pkOf])
     expect(await refused(db, () => db.query(
       `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
-      [tsDs, tsp]))).toContain('TimeSeries:MixedSeriesNotBuilt')
+      [tsDs, tsp]))).toContain('TimeSeries:IsNonNumericPropertyUnreadable')
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_is_non_numeric_property_id = null,
+              time_series_item_type = 'double' where id = $1`, [tsp])
+    await db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, tsp])
+    await db.query('delete from public.object_type_properties where id = $1', [boolProp])
   })
 
   // ── 780: the designation, and the two silences it closes ────────────────
@@ -333,13 +359,24 @@ describe.skipIf(noDb)('time series', () => {
       `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
       [catDs, prop])
 
-    // A SECOND sync for the same property is where the silence was.
+    // A SECOND sync was refused until 786. Now the two kinds differ, so the
+    // declaration must be the member that says the type is inferred.
     const tsDs = (await one(
       `select id from public.object_type_datasources
         where object_type_id = $1 and time_series_sync_id = $2`, [machine, sync])).id
     expect(await refused(db, () => db.query(
       `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
-      [tsDs, prop]))).toContain('TimeSeries:MultiSyncNotBuilt')
+      [tsDs, prop]))).toContain('TimeSeries:ItemTypeMustBeMixed')
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = 'numericOrNonNumeric' where id = $1`, [prop])
+    await db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, prop])
+    expect(Number((await one(
+      `select count(*) as n from public.object_type_time_series_sources where property_id = $1`,
+      [prop])).n), 'both syncs back the property').toBe(2)
 
     await db.query('delete from public.object_type_time_series_sources where property_id = $1', [prop])
     await db.query('delete from public.object_type_properties where id = $1', [prop])

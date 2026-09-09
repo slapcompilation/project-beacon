@@ -606,6 +606,120 @@ nothing consumes, which is this repository's dominant defect.
    opacity in two captures, not a sentence.
 6. `sensor_series`' name and argument shape — the page gives the algorithm.
 
+## 11. Several syncs, and the qualified series id (2026-09-09)
+
+The last large thing the section had, and the one two migrations named as their
+own blocker. Both refusals lift.
+
+### The encoding is what made it buildable
+
+An undocumented cell format would have stopped this — inventing one is what this
+project deletes. It is published three ways that agree to the whitespace.
+
+> A qualified series ID has the following shape: `"{"seriesId":"<replace with series ID>","syncRid":"<replace with sync RID containing this series ID>"}"`. The value of a time series property that is backed by multiple time series syncs must be a qualified series ID, and it must be formatted as a JSON string with no newlines or spaces.
+
+> The `seriesId` corresponds to the series identifier in the sync dataset, and the `syncRid` corresponds to the RID of the sync that stores that series.
+
+and the Pipeline Builder expression that produces the column prints its own
+output, which is where the null sentinel below comes from:
+
+```
+{"seriesId":"seriesOne","syncRid":"ri.time-series-catalog.main.sync.11111111"}
+```
+(the Output column of Example 1 on
+`pb-functions-expression/createQualifiedTimeSeriesIdV1.md` — rendered as code
+rather than quoted, because the inner double quotes break the citation
+checker's quote pairing.)
+
+The `syncRid` is **our own `time_series_syncs.rid` verbatim** — 774 already
+emits `ri.time-series-catalog.main.sync.<uuid>` — so the join is equality with
+no translation. The worked-example capture
+(`time-series-multisync-data.png`) shows the column typed `String` with cells
+opening on a bare `{`, which settles that the glossary's outer quotes are
+notation rather than part of the value.
+
+### Three cell forms, and they mix in one column
+
+> Yes! A TSP can have a mix of values which are either a series ID for (non-derived) time series or Codex template RIDs for derived series.
+
+So the discrimination is per ROW, not per property: a bare id, a qualified
+object, or a Codex template rid. The third raises
+`TimeSeries:DerivedSeriesNotBuilt` — legal in Foundry, unbuilt here, and refused
+by name rather than skipped.
+
+### Why a bare id is still safe under several syncs
+
+> If a time series property is backed by more than one time series sync, the `seriesIds` in the property values must be fully contained within a single time series sync.
+
+That containment rule is what lets an unqualified cell be searched across every
+bound sync without double counting: at most one can answer.
+
+### Markings are ALL, and that decides the shape of the check
+
+> To view a time series property, you must satisfy the access requirements for **all** of its backing data sources.
+
+So one unreadable sync suppresses the WHOLE property. Skipping it per sync would
+return a partial series the page says may not be viewed — a tempting
+implementation that the sentence forbids.
+
+### The two refusals, and the three reasons 779 was given
+
+`TimeSeries:MultiSyncNotBuilt` (780) is deleted. Its own header scoped the
+divergence to last exactly as long as `time_series_points` read a bare series
+id, and that is over.
+
+`TimeSeries:MixedSeriesNotBuilt` (779) is deleted too, and its history is worth
+keeping because the *reason* moved twice while the refusal stayed right:
+
+1. **779 said** the boolean was refused on cost — resolving it per series would
+   be a second lookup, for a case no page shows configured.
+2. **782 falsified that** without noticing: `time_series_formatting()` resolves a
+   per-object property off the index row as a matter of course. 783's header
+   caught it and corrected the reason to the single-sync rule — with one sync
+   the item type is already known, so the boolean has no work.
+3. **786 removes the single-sync rule**, so the boolean finally has work, and the
+   reader takes it off the SAME index row as the series id. There is no second
+   lookup and there never needed to be one.
+
+It is replaced by a narrower arm rather than nothing: the referenced property
+must be a boolean COLUMN property of the same object type, because that is what
+makes it readable in one query. That requirement is **ours** — the api says only
+"boolean property type ID".
+
+### No schema change
+
+`object_type_time_series_sources` is keyed `(datasource_id, property_id)` and has
+always permitted several rows per property. 780 refused the second in a trigger,
+not in the schema. 786 is function surgery only — and the per-sync query
+construction was **lifted out of the live function by position** and
+re-parameterised (776's pattern) rather than retyped, so none of the fragile part
+was written from memory.
+
+### Inference, listed
+
+1. The cell discriminator — leading `{`, then `templateRid` versus
+   `seriesId`+`syncRid`. All three shapes are published; telling them apart is
+   not described.
+2. `TimeSeries:SyncNotBoundToProperty` when a qualified cell names a sync the
+   property is not bound to. No page states any behaviour; an error beats an
+   empty series with no cause.
+3. Treating the producer's `"null"` sentinel as no series. The sentinel is
+   quoted; the treatment is ours.
+4. A UNION across bound syncs for a bare id, and ordering the merged stream.
+5. Refusing a Codex cell rather than skipping it.
+6. Requiring the is-non-numeric property to be an indexed column property.
+7. That mixed-kind syncs FORCE `numericOrNonNumeric`.
+
+### Deliberately deferred, not forgotten
+
+Two linter arms belong with this and are held back to their own chunk, because
+586's third arm fired on six suites when one was written too wide: a sync's
+dataset later changing its value column type so the kinds no longer agree
+(`ontology_violations()`), and a sensor object type whose mixed-kind TSP names no
+is-categorical property — which splits by audience, blocking for a sensor object
+type where the page says *required*, warning otherwise where the api says
+optional and publishes a working fallback.
+
 ## Decisions (2026-09-09, second pass — NOT YET READ BY A HUMAN)
 
 These were taken while building 780 and the Capabilities panel. Four of them

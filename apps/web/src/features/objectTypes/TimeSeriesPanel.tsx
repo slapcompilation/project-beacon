@@ -50,6 +50,7 @@ import {
   useTimeSeriesProperties, useTimeSeriesSyncs, useCreateTimeSeriesSync,
   useDesignateTimeSeriesProperty, useSetDefaultTimeSeriesProperty,
   useReleaseTimeSeriesProperty, useSetTimeSeriesFormatting,
+  useSetIsNonNumericProperty,
   type FormatterOperand, type TimeSeriesProperty,
 } from './timeSeries'
 
@@ -262,10 +263,11 @@ function AddTimeSeriesProperty({ type, isOpen, hasAny, onClose }: {
               Choose file…
             </Button>
             <Callout className="!text-xs">
-              One sync per property. Foundry allows several, and reaching them
-              needs a column of qualified series IDs, which the reader does not
-              parse yet — so a second binding is refused rather than resolved
-              against whichever sync answers first.
+              You can select multiple time series syncs by continuing to select
+              <b> Choose file</b>. If you are backing your TSP with multiple time
+              series syncs, you will need to use qualified series IDs — cells of
+              the form <code>{'{"seriesId":"…","syncRid":"…"}'}</code>, produced
+              in Pipeline Builder.
             </Callout>
           </div>
         )}
@@ -476,6 +478,12 @@ function SensorObjectType({ type, tsps }: { type: ObjectTypeDef; tsps: TimeSerie
   const { data: links } = useLinkTypes()
   const { data: entries = [] } = useSensorLinks(type.id)
   const setSensor = useSetIsSensor(type.id)
+  const setBoolean = useSetIsNonNumericProperty(type.id)
+  // "The single time series property of a sensor object type must be a default
+  //  time series property", so the sensor section configures that one.
+  const defaultTsp = tsps.find((t) => t.isDefault)
+  const booleans = type.properties.filter(
+    (p) => p.type === 'boolean' && (p.source ?? 'column') === 'column' && p.id !== undefined)
   const save = useSaveSensorLink(type.id)
   const remove = useRemoveSensorLink(type.id)
   const on = type.isSensor === true
@@ -556,9 +564,22 @@ function SensorObjectType({ type, tsps }: { type: ObjectTypeDef; tsps: TimeSerie
               Select a boolean property to indicate whether each sensor has
               categorical time series data.
             </p>
-            <HTMLSelect fill disabled value=""
-              title="TimeSeries:MultiSyncNotBuilt — a per-series boolean only decides anything for a property backed by several syncs of mixed kinds, and one sync per property is enforced.">
-              <option value="">Only for a property backed by several syncs</option>
+            {/* Live since 786. The guard requires a boolean COLUMN property of
+                this object type, because the reader takes it off the index row
+                beside the series id — so only those are offered. */}
+            <HTMLSelect fill value={tsps.find((t) => t.isDefault)?.isNonNumericPropertyId ?? ''}
+              disabled={defaultTsp === undefined || defaultTsp.itemType !== 'numericOrNonNumeric'}
+              title={defaultTsp?.itemType === 'numericOrNonNumeric'
+                ? 'Read per object, off the same index row as the series id.'
+                : 'Only a property that declares numericOrNonNumeric leaves the type to be decided per object.'}
+              onChange={(e) => {
+                if (defaultTsp !== undefined) {
+                  setBoolean.mutate({ propertyId: defaultTsp.id,
+                    booleanPropertyId: e.currentTarget.value === '' ? null : e.currentTarget.value })
+                }
+              }}>
+              <option value="">Inferred from the result</option>
+              {booleans.map((b) => <option key={b.id} value={b.id}>{b.label}</option>)}
             </HTMLSelect>
           </div>
 
