@@ -234,6 +234,118 @@ describe.skipIf(noDb)('time series', () => {
       [tsDs, tsp]))).toContain('TimeSeries:MixedSeriesNotBuilt')
   })
 
+  // ── 780: the designation, and the two silences it closes ────────────────
+
+  // "When configuring the first time series property for an object type, that
+  //  property will be set as the default time series property." The fixture
+  //  never asked for it; the trigger did it as the property became one.
+  it('makes the first time series property the default, and leaves the next alone', async () => {
+    expect((await one(
+      'select is_default_time_series as d from public.object_type_properties where id = $1',
+      [tsp])).d).toBe(true)
+
+    const second = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id, time_series_item_type)
+       values ($1,'pressure_id','Pressure','pressure','time_series','column','temperature_id',$2,'double')
+       returning id`, [machine, tabular])).id
+    expect((await one(
+      'select is_default_time_series as d from public.object_type_properties where id = $1',
+      [second])).d).toBe(false)
+
+    // "An object type can have one time series property designated as the
+    //  default time series property."
+    expect(await refused(db, () => db.query(
+      'update public.object_type_properties set is_default_time_series = true where id = $1',
+      [second]))).toMatch(/object_type_one_default_time_series|duplicate key/)
+
+    // The path that made an earlier draft of the trigger wrong: with the
+    // default cleared and a TSP still present, a NEW one is not the first.
+    await db.query(
+      'update public.object_type_properties set is_default_time_series = false where id = $1', [tsp])
+    const third = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id, time_series_item_type)
+       values ($1,'flow_id','Flow','flow','time_series','column','temperature_id',$2,'double')
+       returning id`, [machine, tabular])).id
+    expect((await one(
+      'select is_default_time_series as d from public.object_type_properties where id = $1',
+      [third])).d).toBe(false)
+
+    // and time series properties with no default is a WARNING, not a violation
+    expect(await count(
+      `select count(*) as n from public.ontology_warnings() w
+        where w.object_type = 'TsMachine774' and w.problem like 'Time series properties are configured%'`))
+      .toBe(1)
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%default time series%'`)).toBe(0)
+
+    await db.query(
+      'delete from public.object_type_properties where id = any($1::uuid[])', [[second, third]])
+    await db.query(
+      'update public.object_type_properties set is_default_time_series = true where id = $1', [tsp])
+  })
+
+  // "you can link a time series property to multiple time series syncs. To do
+  //  this, you must have a column of qualified series IDs" — 774 excluded those,
+  //  and time_series_points resolves the binding with LIMIT 1, so a second
+  //  binding would be answered by whichever row came back first.
+  it('resolves through one sync, and refuses a declaration the sync disagrees with', async () => {
+    const states = await dataset('ts780_states',
+      [{ name: 'series_id', type: 'STRING' }, { name: 'ts', type: 'TIMESTAMP' }, { name: 'val', type: 'STRING' }],
+      `insert into datasets.__TBL__ (_file, series_id, ts, val)
+       values ($1,'M1-temp','2026-01-01T00:00:00Z','RUNNING')`)
+    const catSync = (await one(
+      `insert into public.time_series_syncs
+         (organization_id, project_id, input_dataset_id, name, series_id_column, timestamp_column, value_column)
+       values ($1,$2,$3,'TS780 states','series_id','ts','val') returning id`,
+      [f.orgId, f.projectId, states.ds])).id
+
+    // "A String type indicates a Categorical time series" — the sync answers
+    // the question the setup dialog never asks.
+    expect((await one('select public.time_series_sync_item_type($1) as t', [catSync])).t).toBe('string')
+    expect((await one('select public.time_series_sync_item_type($1) as t', [sync])).t).toBe('double')
+
+    const catDs = (await one(
+      `insert into public.object_type_datasources (object_type_id, time_series_sync_id)
+       values ($1,$2) returning id`, [machine, catSync])).id
+    const prop = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id, time_series_item_type)
+       values ($1,'state_id','State','state','time_series','column','temperature_id',$2,'double')
+       returning id`, [machine, tabular])).id
+
+    // 779's reader nulls the categorical column for a `double` property, so
+    // every point would come back empty. Refused instead.
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [catDs, prop]))).toContain('TimeSeries:ItemTypeDisagreesWithSync')
+
+    await db.query(
+      `update public.object_type_properties
+          set time_series_item_type = public.time_series_sync_item_type($2) where id = $1`,
+      [prop, catSync])
+    await db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [catDs, prop])
+
+    // A SECOND sync for the same property is where the silence was.
+    const tsDs = (await one(
+      `select id from public.object_type_datasources
+        where object_type_id = $1 and time_series_sync_id = $2`, [machine, sync])).id
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_time_series_sources (datasource_id, property_id) values ($1,$2)`,
+      [tsDs, prop]))).toContain('TimeSeries:MultiSyncNotBuilt')
+
+    await db.query('delete from public.object_type_time_series_sources where property_id = $1', [prop])
+    await db.query('delete from public.object_type_properties where id = $1', [prop])
+    await db.query('delete from public.object_type_datasources where id = $1', [catDs])
+  })
+
   it('carries the rid the time series catalogue names it by', async () => {
     const r = await one(`select rid from public.time_series_syncs where id = $1`, [sync])
     expect(r.rid).toBe(`ri.time-series-catalog.main.sync.${sync}`)

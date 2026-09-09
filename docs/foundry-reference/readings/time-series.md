@@ -131,6 +131,96 @@ sync's input dataset, and returns nothing rather than raising, because the api
 masks access as absence on this path. The sync's FK to `datasets` — not to
 `restricted_views` — keeps the third sentence true by construction.
 
+## 7. The Capabilities surface, re-read (2026-09-09)
+
+Written before building it, and the re-read changed three things I had recorded
+from the prose alone. CLAUDE.md rule 8 applies here more than anywhere else in
+this reading: **the four captures are not all of the same UI generation**, and
+they disagree about what the panel is called.
+
+**The newer capture** (`time-series-setup-ontology-capabilities-tab.png`) puts
+time series inside an outer **Base Types** group on the Capabilities tab,
+alongside six siblings — Media Reference Properties, Measures, Event,
+Geospatial, Search Around, Vertex — with a second group, Dynamic Scheduling,
+below it. Its own header reads:
+
+> Time Series Properties
+> set existing object type properties as time series
+> — time-series/images/time-series-setup-ontology-capabilities-tab.png
+
+**The older captures** (`time-series-setup-add-tsp-dialog-2.png` and `-3.png`)
+show the panel through the dim behind an open dialog, and there it is one row
+with no Base Types wrapper and a different name and blurb:
+
+> Time Series - set up time series properties or a sensor object type.
+> — time-series/images/time-series-setup-add-tsp-dialog-2.png
+
+Media Reference Properties is absent from the older one, which is what dates
+them: a capability was added and the row was renamed. **Built from the newer.**
+
+### What the table actually has
+
+Three columns, and I had recorded a fourth that is not there:
+
+> PROPERTY NAME | TIME SERIES SYNC | BASE FORMATTER
+> — time-series/images/time-series-setup-ontology-capabilities-tab.png
+
+There is **no Default column**. The single row shows `Temperature`, the sync as
+a link (`Machine time series sync`), and a `Time series formatting` dropdown. The
+panel's actions sit on its header line: `Analyze` and `+ Add`. With one TSP in
+the capture I cannot see how several are distinguished, so marking the default
+row in our table is an **inference**, and is marked as one below.
+
+### The empty state
+
+> Get started using one or more properties from this object type in time series workflows
+> — time-series/images/time-series-oma-get-started.png
+
+Its subtitle offers the sensor branch, which we do not build:
+
+> Choose if this object type is a Sensor object type and set up a time series property.
+> — time-series/images/time-series-oma-get-started.png
+
+### The dialog, and the step we do not build
+
+Titled `Time series property setup`, with a three-item stepper: `Select existing
+property`, `Add time series syncs`, `Ontology setup`. Step 3 is the sensor
+decision, so ours has two steps and says why rather than showing a dead third.
+
+Step 2 carries the sentence that lets a surface create a sync at all:
+
+> A time series sync indexes the rows of the time series dataset by series ID. A dataset may also be selected and it will be indexed as a time series sync.
+> — time-series/images/time-series-setup-add-tsp-dialog-3.png
+
+and its chosen sync is tagged by kind — `machine time series sync` `Numerical`.
+That tag is not asked for anywhere in the dialog, and the glossary says why it
+does not have to be: a `String` value column *indicates a Categorical time
+series*, and *different data types cannot exist within one time series sync*.
+So the sync answers `itemType` for every property it backs. 780 makes that a
+function, `time_series_sync_item_type`, rather than a rule the surface knows
+privately.
+
+### The default checkbox is shown in both of its states
+
+In the OLD three-step dialog it is checked with a live label:
+
+> Set as default time series property
+> This allows other applications to automatically configure and display this property.
+> — time-series/images/time-series-setup-add-tsp-dialog-2.png
+
+In the NEW single `Edit time series property` dialog the same control is checked
+and **greyed out** — a disabled checkbox with a muted label, in a red-outlined
+callout the capture uses to point at it:
+
+> Set as default
+> — time-series/images/time-series-setup-default-tsp.png
+
+That is the whole answer to whether the default can be cleared. Foundry does not
+refuse the click; it removes it. So the rule lives in the surface, and the
+database is left able to represent the state an operator reaches in SQL — with
+`ontology_warnings()` reporting it rather than a trigger silently rewriting a
+`false` back to `true`.
+
 ## Decisions (2026-09-09)
 
 1. **A sync is a resource over a dataset**, with its three columns named rather
@@ -153,6 +243,74 @@ masks access as absence on this path. The sync's FK to `datasets` — not to
 6. **One sync serves many object types**, which is the opposite of a dataset
    datasource's `Phonograph2:DatasetAndBranchAlreadyRegistered` rule. The sync
    page shows one sync backing two object types.
+
+## Decisions (2026-09-09, second pass — NOT YET READ BY A HUMAN)
+
+These were taken while building 780 and the Capabilities panel. Four of them
+exist because a reconcile overturned what I had already written, so they are
+worth reading before the next thing is built on them.
+
+7. **The default is a flag on the property row.** The api publishes no default
+   field on either the object type or the `timeseries` property type, so this
+   shape is **ours** — inference, modelled on 408's `is_title_key`: a boolean, a
+   CHECK on eligibility, a partial unique index for the one-per-type half.
+8. **The primary-key refusal was already ours, and I nearly re-added it.** I
+   wrote a CHECK for *The primary key property of an object type cannot be
+   selected as the time series property* and then deleted it:
+   `primary_key_eligibility('time_series')` has returned `'no'` since 408, which
+   §2 of this reading already said. The title half is covered too, which matters
+   because a page I had not used states both at once — *TSPs cannot be a primary
+   key or title property* (`create-sensor-ot.md`). The probe that "proved" the
+   new CHECK caught `check_violation` from the OLD constraint and would have
+   passed with the new one removed.
+
+   One scar from this: 780's section heading still reads *the column, and the
+   two facts about one row* when only one CHECK survived. I corrected it after
+   applying the migration; `db.mjs` byte-compares an applied file against its
+   ledger entry and CI refused the change, correctly. **Applied migrations are
+   immutable including their comments**, so the heading stays wrong and this
+   line is the correction.
+9. **The trigger fires for the FIRST time series property, not whenever no
+   default exists.** The two readings differ on a reachable path: delete the
+   default of two and add a third, and the second version designates it
+   silently — which contradicts the position taken in 12 below. Scoped to the
+   moment a property *becomes* one.
+10. **One sync per property, refused rather than picked.** `time_series_points`
+    resolves the binding with `LIMIT 1` and the join table is keyed
+    `(datasource_id, property_id)`, so two syncs meant an arbitrary answer.
+    Foundry supports several and says the cost — *you must have a column of
+    qualified series IDs* — which 774 excluded. A **scoped divergence**: it
+    lasts exactly as long as the reader parses a bare series id.
+11. **A declaration the sync disagrees with is refused — at bind time.** A
+    `double` property bound to a categorical sync makes 779's reader null the
+    column it named and return every point empty. Closed on ONE edge: the guard
+    does not re-run when the declaration is later edited, when a sync is
+    repointed, or when its dataset commits a new schema. Those three are a
+    linter's job and are named in Questions rather than implied to be covered.
+12. **The missing-default warning is a DECISION, not a citation.** No page in
+    the mirror says a missing default is a problem, a warning or a
+    recommendation; the strongest statement of consequence in the corpus is
+    Quiver's card sentence. Every other arm of `ontology_warnings()` quotes a
+    page that says *discouraged* or *warned*. This one infers.
+13. **A claim withdrawn.** I drafted, and cut, an argument that sensor object
+    types' `Is categorical` column — *\[Required if the TSP is backed by
+    multiple syncs of both numerical and categorical types]* — meant 779's
+    `TimeSeries:MixedSeriesNotBuilt` now rested on the schema. It does not: that
+    row is a column of a sensor object type's backing dataset, 779's column is
+    the api's `isNonNumericPropertyTypeId` on the property type, and the new arm
+    exempts `numericOrNonNumeric` anyway. Converging concepts, different
+    mechanisms.
+14. **The panel is built from the newest capture**
+    (`capabilities-time-series-properties-panel.png`), and three of its controls
+    are deliberately not drawn because nothing is behind them: `Analyze` (our
+    Quiver page creates analyses without plotting a series), step 3 of the
+    dialog (the sensor object type choice), and the `BASE FORMATTER` dropdown —
+    which is rendered as the `No formatting` state the capture itself shows,
+    because that is true of every row until interpolation and units are built.
+15. **Two documented subtitles exist for this panel and the truthful one was
+    chosen.** The older capture's *set up time series properties or a sensor
+    object type* promises a branch we do not build; the newer tab capture's *set
+    existing object type properties as time series* is exactly what ours does.
 
 ## Questions (2026-09-09)
 
@@ -177,9 +335,10 @@ masks access as absence on this path. The sync's FK to `datasets` — not to
 2. **The 10,000-variant cap on a categorical series is not enforced**, and the
    page says exceeding it makes the series "error and no longer be accessible in
    the platform".
-3. **The default time series property is not built.** One per object type, the
-   first configured becomes it, and a sensor object type's single TSP must be
-   it. Deferred with the Capabilities surface.
+3. **CLOSED by 780 and the Capabilities panel.** The default is designated, one
+   per object type, the first one automatically, and the panel is what reaches
+   it. A sensor object type's single TSP must be the default — still out of
+   scope, and it constrains nothing on the standard path.
 4. **`geotemporal_series` still falls through to `jsonb`**, and
    `array_element_allowed` excludes `time_series` but not it. `base-types`
    words it differently on purpose — a property as a *reference to* a
@@ -194,6 +353,26 @@ masks access as absence on this path. The sync's FK to `datasets` — not to
    and it needs its own reading: what Foundry does when a filter kind and a
    property type disagree is not something any page consulted for this slice
    says.
-6. Unbuilt and named: derived series and codex templates, the Time Series
+6. **`## Time series formatting` is a third of every table row and is unbuilt.**
+   `BASE FORMATTER` is a column in every capabilities capture, and its popover
+   configures Internal Interpolation and Units — each of which may instead point
+   at another `string` property of the object type for per-series control. Ours
+   renders the `No formatting` state and nothing else. This is the largest named
+   gap in the panel.
+7. **Seven `timeseries.*` type-class rows were skipped by `capability_slots()`
+   and nobody decided that.** `object-link-types/metadata-typeclasses` marks
+   `timeseries_id`, `timeseries_measure`, `timeseries_units`,
+   `timeseries_internal_interpolation`, `timeseries_root_object_id`,
+   `timeseries_is_enum` and `timeseries_is_deprecated` with the same *Configure
+   in Capabilities page* note that 415 used to take the whole `event` family.
+   Two of them are exactly the knobs question 6 describes. Whoever builds
+   formatting has to decide whether that family is legacy-and-excluded or the
+   slot-shaped half of the same feature, and say which.
+8. **The itemType-agrees-with-sync invariant is enforced at bind time only.**
+   Editing the declaration afterwards, repointing a sync's value column, or a
+   dataset committing a schema that changes that column's type all pass
+   unremarked. That is precisely the *goes stale without anyone editing the
+   ontology* shape `ontology_violations()` exists for, and it has no arm.
+9. Unbuilt and named: derived series and codex templates, the Time Series
    Catalog, alerting, function-backed series, sensor object types, multi-sync
    TSPs and qualified series ids, interpolation and units formatting.
