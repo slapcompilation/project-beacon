@@ -473,6 +473,82 @@ describe.skipIf(noDb)('time series', () => {
         where id = $1`, [tsp])
   })
 
+  // ── 783: sensor object types ───────────────────────────────────────
+
+  // "You must select at least one link type which links this sensor object type
+  //  to a root object type for which this records time series data" and "You
+  //  must also select the property containing the Sensor name for this link
+  //  type" — so an entry is a PAIR, and every part of it is checked.
+  it('configures a sensor link only on a sensor, for its own string property', async () => {
+    const root = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'Ts783Root','Root') returning id`, [ont, f.projectId])).id
+    const lk = (await one(
+      `insert into public.link_types (ontology_id, project_id, source_object_type_id,
+         target_object_type_id, api_name, label, cardinality, backing_kind, backing_column)
+       values ($1,$2,$3,$4,'ts783-root','Root','many_to_one','foreign_key','machine_id')
+       returning id`, [ont, f.projectId, machine, root])).id
+    const name = (await one(
+      `select id from public.object_type_properties
+        where object_type_id = $1 and property_id = 'machine_id'`, [machine])).id
+
+    // The toggle comes first: an entry on a type that is not a sensor is refused.
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_sensor_links
+         (object_type_id, link_type_id, sensor_name_property_id) values ($1,$2,$3)`,
+      [machine, lk, name]))).toContain('TimeSeries:NotASensorObjectType')
+
+    await db.query('update public.object_types set is_sensor = true where id = $1', [machine])
+
+    // A sensor object type with no entry is a violation, and one entry clears it.
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%configures no sensor link%'`)).toBe(1)
+
+    // The sensor name must be a string property of THIS object type.
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_sensor_links
+         (object_type_id, link_type_id, sensor_name_property_id) values ($1,$2,$3)`,
+      [machine, lk, tsp]))).toContain('TimeSeries:SensorNameMustBeString')
+
+    const foreign = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, is_primary_key, is_title_key, required)
+       values ($1,'code','Code','code','string','column','code',true,true,true) returning id`,
+      [root])).id
+    expect(await refused(db, () => db.query(
+      `insert into public.object_type_sensor_links
+         (object_type_id, link_type_id, sensor_name_property_id) values ($1,$2,$3)`,
+      [machine, lk, foreign]))).toContain('Ontology:PropertyNotOnThisObjectType')
+
+    await db.query(
+      `insert into public.object_type_sensor_links
+         (object_type_id, link_type_id, sensor_name_property_id) values ($1,$2,$3)`,
+      [machine, lk, name])
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774' and v.problem like '%configures no sensor link%'`)).toBe(0)
+
+    // "A series ID for the sole TSP" — a second one is a violation, not a refusal.
+    const second = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source,
+          backing_column, datasource_id, time_series_item_type)
+       values ($1,'second_id','Second','secondId','time_series','column','temperature_id',$2,'double')
+       returning id`, [machine, tabular])).id
+    expect(await count(
+      `select count(*) as n from public.ontology_violations() v
+        where v.object_type = 'TsMachine774'
+          and v.problem like 'A sensor object type has one time series property%'`)).toBe(1)
+
+    await db.query('delete from public.object_type_properties where id = $1', [second])
+    await db.query('delete from public.object_type_sensor_links where object_type_id = $1', [machine])
+    await db.query('update public.object_types set is_sensor = false where id = $1', [machine])
+    await db.query('delete from public.link_types where id = $1', [lk])
+    await db.query('delete from public.object_types where id = $1', [root])
+  })
+
   it('carries the rid the time series catalogue names it by', async () => {
     const r = await one(`select rid from public.time_series_syncs where id = $1`, [sync])
     expect(r.rid).toBe(`ri.time-series-catalog.main.sync.${sync}`)

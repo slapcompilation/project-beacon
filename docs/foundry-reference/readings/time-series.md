@@ -487,6 +487,125 @@ links, *"Add constant"* and *"Add reference"* (conditional-formatting). Ours
 draws the documented pair. If a capture ever shows the caret open, this is the
 thing to revisit.
 
+## 10. Sensor object types, built (2026-09-09)
+
+The second of the two ways Foundry stores time series in the ontology, and the
+one every migration since 774 excluded by name. Five readers went at it first.
+
+### Why it is small: it is not new storage
+
+> If you expect time series data to appear on only a subset of objects of a given object type, you should proceed with creating sensor objects linked back to those root object types.
+
+The page prints the backing schema — primary key, series ID, sensor name,
+foreign key, and three optional columns — so a sensor object type is an
+**ordinary dataset-backed object type with an ordinary FK link**. CLAUDE.md's
+third question has a dull answer, which is the good outcome. No table for
+objects, none for edges, none for series. What is new is configuration on the
+object type and one reader that walks the link.
+
+### The two things stored
+
+`object_types.is_sensor`, and `object_type_sensor_links(object_type_id,
+link_type_id, sensor_name_property_id)` — an entry being a PAIR:
+
+> You must select at least one link type which links this sensor object type to a root object type for which this records time series data.
+
+> You must also select the property containing the Sensor name for this link type.
+
+Repeatable: both captures carry `+ Add new entry`. The plural root is the
+screenshot's, not the prose's — the prose never writes "(s)".
+
+**The toggle is author-set, not derived.** Foundry's own walkthrough creates the
+link *before* turning it on, so a link exists without sensor-ness; and it renders
+a configured-but-incomplete state on purpose, with a red asterisk and a Setup
+requirements block. Deriving sensor-ness from "has an entry" makes that state
+unrepresentable.
+
+**Where Foundry stores it is not published**, and this is the weakest evidence
+floor in the whole arc: `api/` carries no sensor field on the object type, and
+metadata-typeclasses lists carriers as properties, link types and action
+types — *not* object types. The column's location is ours.
+
+### What needed no schema, and why the precedence question dissolved
+
+The sensor section's `Units` and `Internal interpolation` are **property pickers
+only**:
+
+> Select a string property to display units (e.g. `kg` or `PSI`) for each sensor's series.
+> — time-series/images/sensor-object-om-configuration.png
+
+That is exactly the `{propertyType}` arm of the operands 782 added, which
+`time_series_formatting()` already resolves per object. So the sensor section is
+a second **editor** for 782's storage, not second storage — and *that* is why
+Foundry withholds the base formatter for a sensor object type rather than
+reconciling two values. The precedence rule §9 left uninvented turns out never to
+have been needed: the two editors cannot both be used.
+
+### `Is categorical?` — 780's withdrawal was right, its reasoning was not
+
+780 said the sensor `Is categorical` column and the api's
+`isNonNumericPropertyTypeId` were converging concepts with different mechanisms.
+Having parsed the newer capture, they are the **same** mechanism:
+
+> Select a boolean property to indicate whether each sensor has categorical time series data when this property's value is true; otherwise, it is assumed to have numerical data.
+> — time-series/images/sensor-object-om-configuration.png
+
+That is the api field's description in the UI's words. The dataset column is the
+backing; the property is the reference.
+
+**And 779's stated reason for refusing it stopped being true when 782 shipped.**
+779 refused on cost — resolving a boolean per series would be "a second lookup".
+`time_series_formatting()` now performs exactly that lookup, off the same index
+row `time_series_points` already reads. What actually keeps the refusal correct
+is unrelated to sensors: a sync cannot hold two data types and its value column
+decides numeric from categorical, so with ONE sync per property the item type is
+already known. The boolean earns its keep only for a TSP backed by several syncs
+of mixed kinds — `TimeSeries:MultiSyncNotBuilt`. **Building sensors does not
+unblock 779; lifting 780 would.** The section renders the control disabled with
+that reason rather than hiding it.
+
+### The reader, and what reaches it
+
+> * Fetch all TSPs on the object set.
+> * Conduct a search-around on the object set for any links with this special metadata.
+> * Fetch the sensor names for the linked sensor objects.
+
+`sensor_series(root_type, primary_key, from, to, limit)` is those three steps,
+composed from `list_linked_objects` rather than a direct index join — so
+771-773's rule holds without restating it, and the sync's markings arrive through
+`time_series_points`. A **Sensors** card on the root object's view is what makes
+the search-around observable; without it the configuration would be an ontology
+nothing consumes, which is this repository's dominant defect.
+
+### Not built, each with its reason
+
+- **Primary Sensor Link** — *"This will only appear if you still have old
+  versions of Quiver accessible in your Foundry instance"*, and it is absent
+  from the newer capture entirely.
+- **Sensor-name uniqueness per root object** — the page says "must be unique",
+  but that is a fact about indexed ROWS across two object types, not about the
+  ontology definition, and no reader needs it.
+- **Any cardinality rule on the sensor link** — the page explicitly permits the
+  sensor's own primary key as the foreign key, which is a one-to-one, and
+  `create-link-type` says one-to-one "is not enforced".
+- **Step 3 of the dialog** — its terminal write must land the toggle and one
+  entry in ONE transaction or the type saves into a violation (590's
+  chicken-and-egg). The Capabilities section is the complete path, and it is
+  where Foundry's walkthrough turns the toggle on.
+
+### Inference, listed
+
+1. `object_types.is_sensor` as the storage location — the docs never say where.
+2. A child table for the entries; the docs show a picker, not a shape.
+3. `UNIQUE (object_type_id, link_type_id)`, read out of the singular "this link
+   type".
+4. **Violations rather than warnings** for both the no-entry arm and the
+   more-than-one-TSP arm. No page files either on a list; `required` and a red
+   asterisk reading as a refusal is the reasoning.
+5. Refusing a second TSP at all — the evidence is a control measured at 50%
+   opacity in two captures, not a sentence.
+6. `sensor_series`' name and argument shape — the page gives the algorithm.
+
 ## Decisions (2026-09-09, second pass — NOT YET READ BY A HUMAN)
 
 These were taken while building 780 and the Capabilities panel. Four of them

@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (332) ───────────────────────────────────────────────────
+// ── FUNCTIONS (333) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3604,6 +3604,20 @@ export const semverCaretUpper = { apiName: 'semver_caret_upper', kind: 'function
 export const semverPrereleaseKey = { apiName: 'semver_prerelease_key', kind: 'function' } as FunctionType<
   { p_prerelease: string },
   string[]
+>
+
+/**
+ *  One root object's sensors and their points — the three steps
+ *  time-series/_index prints for a unified view: find the links carrying the
+ *  sensor designation, search around them, and fetch the sensor names with
+ *  the series. Composed from list_linked_objects so the far type's own policy
+ *  and the near-side gate apply unchanged (771-773), and from
+ *  time_series_points so the sync's markings do too. A sensor object type's
+ *  single TSP is its default, so the default is the series read.
+ */
+export const sensorSeries = { apiName: 'sensor_series', kind: 'function' } as FunctionType<
+  { p_root_object_type: string; p_primary_key: string; p_from?: string; p_to?: string; p_limit?: number },
+  { sensor_object_type: string; sensor_primary_key: string; sensor_name: string; point_time: string; num: number; cat: string }[]
 >
 
 /**

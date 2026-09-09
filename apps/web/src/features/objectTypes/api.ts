@@ -138,6 +138,8 @@ export interface ObjectTypeRow {
   point_of_contact: string | null
   contributors: string[]
   track_edit_history: boolean
+  /** The Sensor object type toggle (783). */
+  is_sensor: boolean
   description: string
   rid: string | null
   /** Other names this type answers to — what the header search means by
@@ -158,7 +160,7 @@ export interface ObjectTypeRow {
 
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
-    id: r.id, ontologyId: r.ontology_id,
+    id: r.id, ontologyId: r.ontology_id, isSensor: r.is_sensor,
     apiName: r.api_name, label: r.label, icon: r.icon,
     iconColor: r.icon_color, pluralLabel: r.plural_label,
     pointOfContact: r.point_of_contact, contributors: r.contributors,
