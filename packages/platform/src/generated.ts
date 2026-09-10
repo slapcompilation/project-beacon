@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (120) ────────────────────────────────────────────────
+// ── ACTION TYPES (123) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -585,6 +585,11 @@ export const listLinkedObjects = { apiName: 'list_linked_objects', kind: 'action
   Json[]
 >
 
+export const markNotificationRead = { apiName: 'mark_notification_read', kind: 'action' } as ActionType<
+  { p_delivery: string },
+  void
+>
+
 /**
  *  "a staging release can be promoted to production by clicking Mark as
  *  production" (manage-models/release-model). ADDS the production tag — the
@@ -1051,6 +1056,34 @@ export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' 
   number
 >
 
+/**
+ *  One notification per event to each eligible recipient —
+ *  automate/effect-notification's "Execute once for all objects", where
+ *  multiple triggering objects still produce only one notification per
+ *  recipient. The other two groupings are not built: once-per-group needs a
+ *  property list the effect row cannot carry, once-per-object needs a
+ *  per-object fan-out notifications have no counterpart for.
+ */
+export const sendAutomationNotification = { apiName: 'send_automation_notification', kind: 'action' } as ActionType<
+  { p_automation: string; p_effect: string },
+  string
+>
+
+/**
+ *  Delivers one payload to the users a principal list resolves to. Groups
+ *  expand recursively and expired memberships are skipped, per
+ *  action-types/notifications, which resolves groups to individuals so
+ *  permissions can be checked per person. NOT ENFORCED, and recorded rather
+ *  than silent: that page also says users may only receive notifications
+ *  containing data they are allowed to view. That rule exists because Foundry
+ *  interpolates ontology data into content; nothing here interpolates, so it
+ *  has nothing to bite on, and it becomes real the day templating does.
+ */
+export const sendNotification = { apiName: 'send_notification', kind: 'action' } as ActionType<
+  { p_heading: string; p_content: string; p_principals: string[]; p_subject?: string; p_body?: string; p_links?: Json; p_source_rid?: string },
+  string
+>
+
 export const setOntologyMetrics = { apiName: 'set_ontology_metrics', kind: 'action' } as ActionType<
   { p_ontology: string; p_enabled: boolean },
   void
@@ -1170,7 +1203,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (340) ───────────────────────────────────────────────────
+// ── FUNCTIONS (345) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2951,6 +2984,66 @@ export const monitoringRuleFamily = { apiName: 'monitoring_rule_family', kind: '
 export const monitoringRuleTypes = { apiName: 'monitoring_rule_types', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  The in-platform notifications centre read path — object-monitors/overview
+ *  names it as the in-platform pop-up in the Foundry notifications center.
+ *  Invoker rights, and it filters on auth.uid() so a caller reads only their
+ *  own.
+ */
+export const myNotifications = { apiName: 'my_notifications', kind: 'function' } as FunctionType<
+  { p_limit?: number },
+  { delivery_id: string; notification_id: string; heading: string; content: string; links: Json; source_rid: string; created_at: string; read_at: string }[]
+>
+
+/**
+ *  Values from object-monitors/overview — the three delivery mechanisms it
+ *  enumerates: the in-platform pop-up in the notifications centre, email, and
+ *  SMS through a webhook to a third-party service. Only in_platform is
+ *  deliverable here; the other two are declared because the enumeration is
+ *  the set, and trimming it to what we can do would make it a different set.
+ */
+export const notificationChannels = { apiName: 'notification_channels', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  A notification effect's parameters: a static recipient list of principal
+ *  ids, the ShortNotification's heading and content, and optionally the
+ *  EmailNotificationContent's subject and body together plus a link list —
+ *  the payload functions/types-reference publishes, and nothing else. Dynamic
+ *  recipients are absent because automate/effect-notification makes them
+ *  require a condition that exposes effect inputs and a property read per
+ *  fired object.
+ */
+export const notificationEffectConfigValid = { apiName: 'notification_effect_config_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
+/**
+ *  A Link has a user-facing label and a linkTarget, and the LinkTarget is a
+ *  URL, an OntologyObject, or a rid of any resource within Foundry
+ *  (functions/types-reference). The three target shapes are that sentence; a
+ *  fourth is refused.
+ */
+export const notificationLinksValid = { apiName: 'notification_links_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
+/**
+ *  Truncates with a trailing ellipsis, which is what
+ *  action-types/notifications says happens to an over-length subject or body:
+ *  they are validated and truncated when notifications are rendered. A CHECK
+ *  would refuse instead, and refusing is what the RECIPIENT caps do, not the
+ *  length caps.
+ */
+export const notificationRender = { apiName: 'notification_render', kind: 'function' } as FunctionType<
+  { p: string; p_max: number },
+  string
 >
 
 /**

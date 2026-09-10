@@ -218,6 +218,38 @@ conflating them would produce a notification row that needs to be updated.
 - `readings/data-health.md` and the monitoring reading, for the two watcher and
   subscriber audiences.
 
+## 8. What building it found (793, 794)
+
+Three things, none of them visible from the pages.
+
+**A deferred guard fired against a row that no longer existed.**
+`guard_sequential_needs_two` is a deferred constraint trigger, so it runs at
+commit. Create an automation and delete it inside one transaction, and the check
+fires after the row has gone, its lookup of the execution mode returns null,
+`null <> 'sequential'` is neither true nor false, control falls past the early
+return, and the count is now zero — so a transaction that leaves no automation at
+all is refused for having too few effects on one. Same shape as the decimal with
+no precision that rode through a validator in 391, and the same shape as this
+build's own first validator, which let a notification with no recipients through
+because the type of a missing key is null rather than a mismatch. Fixed in 794: a
+guard has nothing to protect once its subject is deleted.
+
+**An automation carries no resource identifier**, so a notification it produces
+cannot name its producer. Migration 488 gave identifiers to link types, shared
+properties, action types and value types on eight attested pages; no page attests
+one for an automation, and inventing a token to fill a column is the wrong-token
+risk 396 exists to warn about. The column stays null, and 794 carries an
+assertion that fails the day an automation gains one, so the decision is
+revisited rather than forgotten.
+
+**The recipient rule that is enforceable is not the one the reading led with.**
+The content-level rule — users may only receive notifications containing data
+they are allowed to view — has nothing to bite on while nothing interpolates
+ontology data into a body. The effect page carries a different one that does:
+a recipient needs at least Viewer on the automation. That is about a resource we
+own, so 794 enforces it, and a recipient who fails it is dropped rather than
+failing the effect.
+
 ## Decisions (2026-09-10 — NOT YET READ BY A HUMAN)
 
 1. **Build one notification payload**, shaped as the published type: a heading and

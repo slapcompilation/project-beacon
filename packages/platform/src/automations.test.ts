@@ -68,19 +68,27 @@ describe.skipIf(noDb)('automations', () => {
     }
   })
 
-  it('names four effect kinds and executes two', async () => {
+  it('names four effect kinds and executes three', async () => {
     // 446's shape: the registry says what runs, so the surface disables
     // rather than hides.
     expect(await count('select count(*) n from public.automation_effect_kinds()')).toBe(4)
+    // Two until 794. A notification effect joined them when 793 gave the
+    // payload somewhere to go — 517 had registered the kind years of migrations
+    // earlier with a description saying no notification system existed.
     expect(await count(
-      'select count(*) n from public.automation_effect_kinds() where executable')).toBe(2)
+      'select count(*) n from public.automation_effect_kinds() where executable')).toBe(3)
     const notif = await one(
       `select executable, runtime from public.automation_effect_kinds() where kind='notification'`)
-    expect(notif.executable).toBe(false)
+    expect(notif.executable).toBe(true)
+    expect(notif.runtime).toBe('sql')
     // A function effect is executable, but not here.
     const fn = await one(
       `select runtime from public.automation_effect_kinds() where kind='function'`)
     expect(fn.runtime).toBe('function')
+    // Logic is the one that stays unexecutable: AIP Logic is not a product here.
+    const logic = await one(
+      `select executable, runtime from public.automation_effect_kinds() where kind='logic'`)
+    expect(logic.executable).toBe(false)
   })
 
   it('fires a time condition on its cron, and not otherwise', async () => {
