@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (119) ────────────────────────────────────────────────
+// ── ACTION TYPES (120) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -1145,12 +1145,25 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
+/**
+ *  Uploads one delimited file into an existing dataset, opening and
+ *  committing its transaction the way
+ *  api/datasets-resources-files-upload-file describes. The transaction type
+ *  follows dataset-preview/overview: the same filename and schema is UPDATE,
+ *  a new filename is APPEND, and a same-filename different-schema upload is
+ *  refused because no page defines it.
+ */
+export const uploadFileToDataset = { apiName: 'upload_file_to_dataset', kind: 'action' } as ActionType<
+  { p_dataset: string; p_path: string; p_content: string; p_branch?: string; p_params?: Json; p_transaction_type?: string },
+  string
+>
+
 export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as ActionType<
   { p_link: string; p_a: string; p_b: string; p_instruction: string; p_action: string; p_application: string },
   void
 >
 
-// ── FUNCTIONS (336) ───────────────────────────────────────────────────
+// ── FUNCTIONS (340) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2095,6 +2108,40 @@ export const cronMatches = { apiName: 'cron_matches', kind: 'function' } as Func
 >
 
 /**
+ *  The defaults column of dataset-preview/csv-parsing's options table. Both
+ *  behaviour options default to throwing: Foundry's documented answer to a
+ *  malformed row is to fail loudly rather than null-fill.
+ */
+export const csvParserDefaults = { apiName: 'csv_parser_defaults', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  Json
+>
+
+/**
+ *  Values from dataset-preview/csv-parsing — the twelve options its table
+ *  enumerates, with parser and nullValues required and the three enumerated
+ *  value sets (parser, jaggedRowBehavior, parseErrorBehavior). Unknown keys
+ *  are refused, which is what makes the table rather than its example JSON
+ *  the source. The table's fifth column scopes options to parsers and is
+ *  applicability rather than refusal, so it is not enforced here.
+ */
+export const csvParserParamsValid = { apiName: 'csv_parser_params_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
+/**
+ *  Splits delimited text into records using the fieldDelimiter,
+ *  quoteCharacter, recordDelimiter and skipLines of
+ *  dataset-preview/csv-parsing. Returns one array per record so that a jagged
+ *  row reaches jaggedRowBehavior instead of being silently squared off.
+ */
+export const csvRows = { apiName: 'csv_rows', kind: 'function' } as FunctionType<
+  { p_content: string; p_params: Json },
+  string[][]
+>
+
+/**
  *  The schema in force on a branch: the nearest one down the commit chain
  *  from its head. Per branch, because a datasource is a dataset ON A BRANCH.
  */
@@ -2657,6 +2704,17 @@ export const inActionApply = { apiName: 'in_action_apply', kind: 'function' } as
 export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } as FunctionType<
   { p_object_type: string; p_limit?: number },
   Json[]
+>
+
+/**
+ *  The narrowest of the fifteen dataset field types that every non-null value
+ *  in a column satisfies, falling back to STRING. OURS: no page among the 65
+ *  read for readings/ingestion.md publishes an inference algorithm, and the
+ *  reading records that as an open question.
+ */
+export const inferFieldType = { apiName: 'infer_field_type', kind: 'function' } as FunctionType<
+  { vals: string[] },
+  string
 >
 
 export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'function' } as FunctionType<
