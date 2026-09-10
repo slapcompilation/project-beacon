@@ -630,10 +630,26 @@ scrapped. What genuinely remains:
 - **Auto-pause.** Its trigger is "excessive activity", with no threshold, metric
   or window on any page — the contrast with auto-mute's exact 80%-of-30 is what
   makes the difference visible. Not buildable without inventing a number.
-- **Effect inputs.** Notification effects, per-object execution, batch size,
-  parallelism and a manual run's input object set all need the objects that
-  triggered a condition to reach the effects. Nothing carries them today, and it
-  is the one absence several published settings sit behind.
+- **Effect inputs — HALF BUILT, and this entry was stale for months.** It used to
+  read that nothing carries the triggering objects to an effect. That was false
+  when written and falser since: **630 is called "the objects that fired reach the
+  effect"**, and it ships `automation_effects.object_input_parameter_id`, a
+  `guard_effect_input` trigger enforcing the type-alignment rule, the three
+  exposing conditions by name, and the 10,000-object cap with its published
+  behaviour. 631 followed with the index. A `Single object` input works today, and
+  because a single-object input *is* per-object execution, that execution mode
+  works with it.
+  **What genuinely remains, and 630's own header names the blocker:** the other
+  three published input kinds — Object set, Object list, Property reference — need
+  an action parameter that can hold more than one object, and `data_kind` admits
+  only `base_type`, `object`, `interfaceObject` and `objectType`. The api DOES
+  publish the missing one: `objectSet` is a parameter type on
+  `api/ontologies-v2-resources-action-types-get-action-type`, carrying an
+  `objectApiName`. So the next build here is an **action type** feature, not an
+  Automate one, and the three grouping execution modes — once for all, per batch,
+  per group — become buildable the moment a parameter can hold a set.
+  Corrected 2026-09-10 after `scripts/probes/chain-e2e.mjs` asked whether the
+  machinery existed instead of assuming this entry was current.
 
 **Platform-experience residuals.** Languages and Platform version stay out
 with reasons recorded in `platform-experience.md`; the enrollment-scope
