@@ -1150,7 +1150,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (335) ───────────────────────────────────────────────────
+// ── FUNCTIONS (336) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1864,12 +1864,15 @@ export const canWriteRepository = { apiName: 'can_write_repository', kind: 'func
 >
 
 /**
- *  The slot-based Capabilities vocabulary, from metadata-typeclasses (the
- *  page it replaces) and the Geospatial panel screenshot. Its time_series
- *  slots are fillable since 774: time_series IS one of the twenty-two base
- *  types — it has been since 408 — and a sync now backs it. Foundry gives
- *  time series a 42-page section, of which this builds the ontology slice
- *  only.
+ *  The slot-based Capabilities vocabulary, from metadata-typeclasses and the
+ *  Geospatial panel screenshot. Time series is the other panel shape and
+ *  lives in the time series properties table, not here. The geospatial track
+ *  slots take TIME SERIES properties — "Both properties must be numeric time
+ *  series properties representing the object's location over time"
+ *  (map/integrate-objects) — so they are the time series feature and not the
+ *  geotemporal one; 774's header said no property could fill them, which was
+ *  false when written, since 415's own assertion nominates one. Corrected by
+ *  788.
  */
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,
@@ -2486,6 +2489,20 @@ export const geopointValid = { apiName: 'geopoint_valid', kind: 'function' } as 
  */
 export const geoshapeValid = { apiName: 'geoshape_valid', kind: 'function' } as FunctionType<
   { p: string },
+  boolean
+>
+
+/**
+ *  A geotemporal series reference cell: the two-key object
+ *  constructGeotemporalSeriesReferenceV1 prints, naming the series and the
+ *  integration that holds it. The series id is NOT length-bounded here —
+ *  data-modeling bounds the sync's own Series ID column, and the producer
+ *  prints the empty string producing a full reference — and the RID's
+ *  instance segment is not pinned, because the only published sample leaves
+ *  it empty. 788.
+ */
+export const geotemporalReferenceValid = { apiName: 'geotemporal_reference_valid', kind: 'function' } as FunctionType<
+  { j: Json },
   boolean
 >
 
@@ -3360,6 +3377,14 @@ export const propertyColumnCheck = { apiName: 'property_column_check', kind: 'fu
   string
 >
 
+/**
+ *  The physical column an indexed property gets for its base type. geopoint
+ *  and geoshape are text because the pages say what those columns contain
+ *  (632); geotemporal_series is jsonb and says so explicitly since 788,
+ *  rather than falling through the ELSE — its cell is a two-key object, not
+ *  the bare string a time series cell holds, and inheriting the time-series
+ *  answer from a shared word would be the wrong reading.
+ */
 export const propertyColumnType = { apiName: 'property_column_type', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
