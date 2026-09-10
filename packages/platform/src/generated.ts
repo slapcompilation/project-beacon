@@ -1151,7 +1151,14 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
  *  api/datasets-resources-files-upload-file describes. The transaction type
  *  follows dataset-preview/overview: the same filename and schema is UPDATE,
  *  a new filename is APPEND, and a same-filename different-schema upload is
- *  refused because no page defines it.
+ *  refused because no page defines it. SCOPED DIVERGENCE (792): an APPEND or
+ *  UPDATE whose inferred schema differs from the dataset's current one is
+ *  also refused, which data-integration/datasets does not require — there a
+ *  new transaction may add a column and older files simply may not conform.
+ *  Ours materialises one physical table with one column set, so the refusal
+ *  is forced by the substrate; the way out is to widen the table on a
+ *  column-adding transaction, not to relax the check. A SNAPSHOT is
+ *  unaffected.
  */
 export const uploadFileToDataset = { apiName: 'upload_file_to_dataset', kind: 'action' } as ActionType<
   { p_dataset: string; p_path: string; p_content: string; p_branch?: string; p_params?: Json; p_transaction_type?: string },

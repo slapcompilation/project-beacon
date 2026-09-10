@@ -413,6 +413,56 @@ every dataset those five wrote.
 repairs the history already written by chaining each branch's transactions in
 commit order.
 
+## 11. The reconcile pass, after 789 to 791 shipped
+
+Re-reading the source pages whole once the build landed, which is where most of
+what this repository finds gets found. Two things, both about claims rather than
+behaviour, both corrected forward in 792.
+
+**The upload is stricter than Foundry and did not say so.** It refuses an append
+or update whose inferred schema differs from the dataset's current one. Foundry
+allows exactly that:
+
+> a new transaction may introduce a new column to a tabular dataset or change the type of a field
+
+— data-integration/datasets.md
+
+and tolerates the consequence, because a schema describes a view rather than the
+files beneath it:
+
+> there is no guarantee that the files in a dataset actually conform to the specified schema
+
+— data-integration/datasets.md
+
+In Foundry the newest schema wins and older files may simply not conform, which
+surfaces as an error in whatever reads them. That model needs a file store. Ours
+materialises one physical table per dataset with one column set, so two files
+with different columns cannot both be represented, and the refusal is forced by
+the substrate rather than chosen. The divergence is now scoped on the function
+itself: it applies only where a committed schema already exists and the new
+file's differs, a snapshot is unaffected, and the way out is to widen the table
+when a transaction adds a column rather than to relax the check.
+
+**The trigger 791 added has a named expiry.** The same page says a view may span
+branches:
+
+> A view may constitute transactions from multiple branches.
+
+— data-integration/datasets.md
+
+Its example is a branch whose view begins from master's snapshot and appends, so
+a child branch's first transaction has to point at the parent's head. The trigger
+reads the head of the transaction's own branch, which is empty on a branch never
+written to.
+
+It costs nothing today, and the reason is the finding rather than the reassurance:
+**nothing in this platform creates a child dataset branch.** The parent column has
+sat on the branch table since 392 and its only writer anywhere is a fixture inside
+405's assertion block. Every dataset branch in production is a root named master.
+So the documented multi-branch view is unreachable here rather than wrong, and it
+is one more column with no writer. The condition is written down: seed a child
+branch's head from its parent at creation, and the trigger keeps working unchanged.
+
 ## Connects to
 
 - `readings/datasets-rid-and-object-storage.md` — the layer this builds on. Its
@@ -453,6 +503,10 @@ commit order.
    the branch-name shape as CHECKs, the duplicate index dropped.
 7. **`nullValues` and `parser` are required**, as the table marks them, with
    `CSV_PARSER` and an empty null-value list as the defaults a fresh upload writes.
+8. **The schema-must-match refusal is a scoped divergence, added after the
+   reconcile pass** (792). Foundry lets a transaction add a column; our physical
+   table cannot hold two column sets. The exit is to widen the table, not to
+   relax the check, and a snapshot is unaffected.
 
 ## Questions
 
@@ -465,7 +519,11 @@ commit order.
    first and the Dataset Preview FAQ's worked schema writes the second. We already
    use the first, which is the page 392 cited, so nothing changes — but a reader
    meeting the FAQ alone would pick the other.
-4. **Does the default upload mode commit?** The branch-scoped sentence says created
+4. **When something finally branches a dataset, who seeds the branch head?**
+   Nothing creates a child dataset branch today, so the multi-branch view the page
+   describes is unreachable. Creation has to seed the head from the parent, and
+   there is no create-branch entry point for datasets to put that in yet.
+5. **Does the default upload mode commit?** The branch-scoped sentence says created
    and committed; the default sentence says only that the file goes to a new
    transaction. The view promise only makes sense if it commits, and the page does
    not say so.
