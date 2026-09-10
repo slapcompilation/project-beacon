@@ -258,3 +258,70 @@ describe.skipIf(noDb)('the property vocabulary', () => {
     }
   })
 })
+
+describe.skipIf(noDb)('geotemporal series references', () => {
+  let db: pg.Client
+  beforeAll(async () => { db = await connect() })
+  afterAll(async () => { await rollback(db) })
+
+  // "Each object type may have at most one GTSR property type, and it may not
+  //  allow multiple values." One sentence, two rules, neither of them ours
+  //  before 788.
+  it('is never an array element', async () => {
+    const r = await db.query(
+      `select pg_get_constraintdef(oid) as d from pg_constraint
+        where conrelid = 'public.object_type_properties'::regclass
+          and conname = 'array_element_allowed'`)
+    expect(r.rows[0].d).toContain('geotemporal_series')
+    // and the three that were already excluded stay excluded
+    for (const t of ['vector', 'time_series', 'media_reference']) {
+      expect(r.rows[0].d).toContain(t)
+    }
+  })
+
+  it('lands on jsonb, explicitly, and carries the reference check', async () => {
+    // NOT text. A time series cell is a bare series id; a GTSR cell is an
+    // object, and copying the time-series answer would be reasoning from a
+    // shared word rather than a shared shape.
+    const t = await db.query(`select public.property_column_type('geotemporal_series') as t`)
+    expect(t.rows[0].t).toBe('jsonb')
+    const c = await db.query(`select public.property_column_check('geotemporal_series','gt') as c`)
+    expect(c.rows[0].c).toContain('geotemporal_reference_valid')
+  })
+
+  it('accepts what the producer prints and refuses what it does not', async () => {
+    const ok = async (j: string) =>
+      (await db.query('select public.geotemporal_reference_valid($1::jsonb) as v', [j])).rows[0].v
+
+    // the producer's own base case
+    expect(await ok('{"seriesId":"series1","geotimeSeriesIntegrationRid":"ri.geotime-catalog..integration.05a40ec0-3a7d-406d-88d6-043ed2cb6af8"}')).toBe(true)
+    // the producer prints the empty series id producing a full reference, so
+    // refusing it would be stricter than Foundry's printed answer
+    expect(await ok('{"seriesId":"","geotimeSeriesIntegrationRid":"ri.geotime-catalog..integration.x"}')).toBe(true)
+
+    expect(await ok('{"seriesId":"a"}')).toBe(false)
+    expect(await ok('"a"')).toBe(false)
+    expect(await ok('{"seriesId":"a","geotimeSeriesIntegrationRid":"ri.time-series-catalog.main.sync.1"}')).toBe(false)
+    expect(await ok('{"seriesId":"a","geotimeSeriesIntegrationRid":"ri.geotime-catalog..integration.x","extra":1}')).toBe(false)
+  })
+
+  it('is one per object type', async () => {
+    const r = await db.query(
+      `select indexdef from pg_indexes
+        where schemaname='public' and indexname='object_type_one_geotemporal_series'`)
+    expect(r.rows[0].indexdef).toContain('geotemporal_series')
+    expect(r.rows[0].indexdef).toContain('UNIQUE')
+  })
+
+  // "Both properties must be numeric time series properties representing the
+  //  object's location over time" — so the track slots are the TIME SERIES
+  //  feature, and a declared-string property is categorical.
+  it('takes a numeric time series property for a track coordinate', async () => {
+    const g = await db.query(
+      `select prosrc from pg_proc where proname = 'guard_object_type_capability'`)
+    expect(g.rows[0].prosrc).toContain('Ontology:TrackMustBeNumeric')
+    // numericOrNonNumeric must NOT be refused: its type is inferred from the
+    // result, so refusing it would be stricter than the page.
+    expect(g.rows[0].prosrc).not.toContain("'numericOrNonNumeric'")
+  })
+})
