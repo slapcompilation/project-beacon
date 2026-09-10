@@ -10,6 +10,7 @@
 // unread: upload (`compass/manually-upload-data`) and the Compare and Details
 // tabs. A tab that renders an empty shell reads as a built feature. Health is
 // no longer among them — readings/data-health.md, engine 659, panel below.
+// Upload is no longer among them either: readings/ingestion.md, engine 789-791.
 
 import { useState } from 'react'
 import {
@@ -31,6 +32,7 @@ import {
 import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
 import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
 import { TransformCard } from '@/features/builds/TransformCard'
+import { UploadCard } from '@/features/datasets/UploadCard'
 import { HealthPanel } from '@/features/dataHealth/HealthPanel'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
@@ -206,6 +208,8 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
             mono={dataset.physicalTable !== null} />
         </dl>
       </Card>
+
+      {branch && <UploadCard datasetId={dataset.id} branchName={branch.name} />}
 
       <TransformCard datasetId={dataset.id} />
 

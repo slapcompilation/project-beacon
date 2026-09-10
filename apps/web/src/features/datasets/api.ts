@@ -17,7 +17,9 @@ import type {
   TransactionStatus, TransactionType,
 } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { abortTransaction, commitTransaction, datasetMarkings, datasetView } from '@beacon/platform'
+import {
+  abortTransaction, commitTransaction, datasetMarkings, datasetView, uploadFileToDataset,
+} from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
 export interface Dataset {
@@ -221,6 +223,40 @@ export function useCreateDataset() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.all })
       toast.success('Dataset created')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** Uploading a file into an existing dataset — the Dataset Preview path, not
+ *  Compass's. "In Dataset Preview, you can upload files of the following types
+ *  directly into a dataset": `.csv`, `.tsv`, `.xls`, `.xlsm`, `.xlsx`. The
+ *  engine builds the two with a documented schema story and refuses the other
+ *  three by name, so the picker offers those two.
+ *
+ *  The transaction type is the server's to choose — same filename and schema is
+ *  an UPDATE, a new filename an APPEND — so nothing here proposes one. */
+export const UPLOAD_ACCEPT = '.csv,.tsv'
+
+export function useUploadFile(datasetId: string, branchName: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (file: File): Promise<{ path: string; type: string }> => {
+      const content = await file.text()
+      const txn = await client(uploadFileToDataset).applyAction({
+        p_dataset: datasetId, p_path: file.name, p_content: content, p_branch: branchName,
+      })
+      const { data, error } = await supabase.from('dataset_transactions')
+        .select('txn_type').eq('id', txn).single()
+      if (error) throw new Error(error.message)
+      return { path: file.name, type: (data as { txn_type: string }).txn_type }
+    },
+    onSuccess: ({ path, type }) => {
+      for (const k of [keys.all, keys.transactions(datasetId), keys.schema(datasetId)]) {
+        void qc.invalidateQueries({ queryKey: k })
+      }
+      void qc.invalidateQueries({ queryKey: ['dataset-view'] })
+      toast.success(`${path} landed as a ${type} transaction`)
     },
     onError: (e: Error) => { toast.error(e.message) },
   })
