@@ -147,6 +147,41 @@ that way has no single page to name, and naming one anyway is exactly the failur
 a declaration exists to prevent. 799 withdraws the claim and says which three
 came from where, rather than renaming fourteen primitives to satisfy a comment.
 
+## 6. What the effect input build found (800–802)
+
+**An empty array has no length.** The constraint requiring at least one grouping
+property was written as `array_length(...) >= 1`, and `array_length` of an empty
+array is null rather than zero. Null is not less than one; a CHECK passes on
+null; so an effect could be configured to group by nothing at all, which groups
+every object together and behaves as *once for all objects* while claiming to be
+*once for each group*. Caught within the hour by this arc's own test, fixed in
+801.
+
+**That is the fourth appearance of one shape**, and the first where the previous
+three were already written down when I wrote it: a decimal with no precision
+riding through a validator because the type of a missing key is null; a
+notification effect with no recipients for the same reason; the payload check
+whose else arm returned null so any new kind could carry any payload; and this.
+
+The pattern is not about arrays or about JSON. It is that three-valued logic
+makes *not obviously true* and *false* identical inside a constraint, and every
+one of the four came from reaching for the natural expression instead of the
+total one. The habit that prevents it is to write the null case out — coalesce,
+or `IS NOT TRUE` — whenever a constraint touches something that can be absent.
+
+**Per is not each.** 800 declared its execution modes as coming from
+`automate/effect-actions` and spelled two of them `once_per_batch` and
+`once_per_group`, where the page writes *once for each batch of objects* and
+*once for each group of objects*. The suite refused both, and correctly: a
+declared set has to be findable on the page it names, because the declaration
+exists so the next reader can go and read the sentence. Renamed in 802 to the
+page's own words.
+
+That is the second vocabulary correction in two days, after the parameter kinds
+in 799, and both stayed free for the same reason — no value had been exported
+yet. It is the condition `readings/rid-grammar.md` records for the object-set
+token, and it does not last.
+
 ## Decisions (2026-09-11 — NOT YET READ BY A HUMAN)
 
 1. **Build the parameter type and the host read together**, because either alone
