@@ -102,13 +102,56 @@ export const automateCronLooksValid = (cron: string): boolean => {
 }
 
 export interface EffectDraft {
-  kind: 'action' | 'function'
+  kind: 'action' | 'function' | 'notification'
   actionTypeId: string | null
   /** The action parameter each fired object is handed to. Non-null means
    *  per-object execution: "each action is executed once for each object from
    *  the condition" (630). */
   objectInputParameterId: string | null
+  /** The action parameter that receives EVERY object that fired (800). The two
+   *  are mutually exclusive, because effect-actions says object set and single
+   *  object inputs cannot be combined. */
+  objectSetParameterId: string | null
+  /** Only meaningful beside an object-set input, because a single-object input
+   *  IS per-object execution and has no mode to choose. */
+  executionMode: ExecutionMode | null
+  batchSize: number | null
+  groupByProperties: string[]
+  /** A notification effect's payload and recipients (794, 803). */
+  heading: string
+  content: string
+  recipients: string[]
+  recipientUserProperties: string[]
+  recipientGroupProperties: string[]
 }
+
+/** The three grouping options automate/effect-actions enumerates for the
+ *  multi-object input family, in the page's own words (802). */
+export type ExecutionMode = 'once_for_all' | 'once_for_each_batch' | 'once_for_each_group'
+
+export const EXECUTION_MODES: { value: ExecutionMode; label: string }[] = [
+  { value: 'once_for_all', label: 'Execute once for all objects' },
+  { value: 'once_for_each_batch', label: 'Execute once for each batch of objects' },
+  { value: 'once_for_each_group', label: 'Execute once for each group of objects' },
+]
+
+/** automate/limits: max batch size of an automation. */
+export const MAX_BATCH_SIZE = 1000
+
+export const emptyEffect = (kind: EffectDraft['kind'] = 'action'): EffectDraft => ({
+  kind,
+  actionTypeId: null,
+  objectInputParameterId: null,
+  objectSetParameterId: null,
+  executionMode: null,
+  batchSize: null,
+  groupByProperties: [],
+  heading: '',
+  content: '',
+  recipients: [],
+  recipientUserProperties: [],
+  recipientGroupProperties: [],
+})
 
 /** The three conditions that expose an effect input. `Run on all objects` is
  *  deliberately absent — effect-actions enumerates three and it is not one,
@@ -149,11 +192,34 @@ export function useCreateAutomation() {
       if (error) throw new Error(error.message)
       const id = (data as { id: string }).id
 
+      // A notification effect runs no action; an action effect names one. The
+      // guards underneath refuse either mistake by name, so this only drops
+      // rows that are not filled in yet.
       const rows = d.effects
-        .filter((e) => e.kind === 'action' && e.actionTypeId)
-        .map((e, i) => ({ automation_id: id, position: i, kind: e.kind,
-          action_type_id: e.actionTypeId,
-          object_input_parameter_id: e.objectInputParameterId }))
+        .filter((e) => (e.kind === 'notification' ? e.heading.trim() !== '' : Boolean(e.actionTypeId)))
+        .map((e, i) => e.kind === 'notification'
+          ? {
+              automation_id: id, position: i, kind: e.kind,
+              parameters: {
+                recipients: e.recipients,
+                heading: e.heading,
+                content: e.content,
+              } as unknown as Record<string, unknown>,
+              recipient_user_properties: e.recipientUserProperties.length > 0
+                ? e.recipientUserProperties : null,
+              recipient_group_properties: e.recipientGroupProperties.length > 0
+                ? e.recipientGroupProperties : null,
+            }
+          : {
+              automation_id: id, position: i, kind: e.kind,
+              action_type_id: e.actionTypeId,
+              object_input_parameter_id: e.objectInputParameterId,
+              object_set_parameter_id: e.objectSetParameterId,
+              execution_mode: e.objectSetParameterId ? e.executionMode : null,
+              batch_size: e.executionMode === 'once_for_each_batch' ? e.batchSize : null,
+              group_by_properties: e.executionMode === 'once_for_each_group'
+                && e.groupByProperties.length > 0 ? e.groupByProperties : null,
+            })
       if (rows.length > 0) {
         const { error: ee } = await supabase.from('automation_effects').insert(rows)
         if (ee) throw new Error(ee.message)

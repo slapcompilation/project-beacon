@@ -31,7 +31,10 @@ export interface ActionParameterRow {
   description: string
   /** Which payload the parameter carries. Only `object` can receive Automate's
    *  Single object effect input (630) — there is no set-shaped kind. */
-  data_kind: 'base_type' | 'object' | 'interfaceObject' | 'objectType'
+  // 797 added objectSet. This union is hand-written, so it drifts from the
+  // database unless a change like that is followed here — which it was not,
+  // until the editor needed to offer one.
+  data_kind: 'base_type' | 'object' | 'interfaceObject' | 'objectType' | 'objectSet'
   base_type: PropertyType | null
   object_type_id: string | null
   required: boolean
