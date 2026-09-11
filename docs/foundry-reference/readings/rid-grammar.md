@@ -316,6 +316,59 @@ instance for a different type. One service, two instance conventions.
 
 ---
 
+## Object sets — three type tokens, and ours is a decision already taken
+
+Added 2026-09-11, while reading the api for the object-set action parameter. I
+went looking to correct our token and found the correction already argued, which
+is worth recording so the next reader does not spend two migrations arriving
+where we started, the way the `cipher` rename did.
+
+**Three tokens are attested**, and they are not spellings of one thing:
+
+> Use the `saved` route to open a saved exploration or object set.
+
+— object-explorer/generate-urls.md
+
+That route's example carries `ri.object-set.main.versioned-object-set`. The very
+next paragraph gives a different route and a different token:
+
+> To load an object set created by another Foundry application, use the `external/objectSet` route.
+
+— object-explorer/generate-urls.md
+
+whose example carries `ri.object-set.main.object-set`. And a third appears where
+the backend describes what an object set can be:
+
+> Object sets can be described by definition (static or dynamic) and current state in the object backend (temporary or permanent):
+
+— object-backend/overview.md
+
+The temporary one is handed between applications, is readable only by whoever
+made it, and:
+
+> and expires within 24 hours.
+
+— object-backend/overview.md
+
+**Our column already names all three and states a choice.** The comment on
+`object_sets.rid` says ours are permanent and dynamic and picks the bare
+`object-set` token. That is a reasoned position, taken before mine.
+
+**What I can add is that the two pages cut the set differently.** The backend
+page's axes are definition and state, and it never maps either axis onto a type
+token — it only shows that the temporary state has one. `generate-urls`
+distinguishes by ORIGIN instead: a set saved in this platform against a set
+handed over by another application. On that reading ours are saved sets, which
+would make them `versioned-object-set`, and every api example of an object-set
+*action parameter* uses that token too.
+
+**Not changed, and deliberately so.** Two pages support two answers, the existing
+one is recorded with its reasoning, and no page maps the axes to the tokens. This
+is exactly the shape of the `cipher` mistake — counting sources is not the
+tie-break. What makes it safe to leave is that it is also cheap to revisit:
+`object_sets` currently holds zero rows, so no RID has ever been exported, and
+the correction stays free until one is.
+
 ## Summary
 
 | resource | RID? | form | source |
