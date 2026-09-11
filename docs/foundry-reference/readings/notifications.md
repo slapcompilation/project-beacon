@@ -250,6 +250,74 @@ a recipient needs at least Viewer on the automation. That is about a resource we
 own, so 794 enforces it, and a recipient who fails it is dropped rather than
 failing the effect.
 
+## 9. Dynamic recipients, read properly (803)
+
+793 and 794 deferred these as blocked on the multi-object shape. 797 to 802
+built it, so this is the last thing it held up — and reading the Recipients
+section properly overturned two things I had assumed.
+
+**Static and dynamic COEXIST.** I had them as alternatives. The configuration
+form's own subtitle says both may be selected:
+
+> Define the recipients for your notification. You can select both static and object-property-backed recipients.
+> — automate/images/effect-notifications-effect-object-backed-recipients.png
+
+and two captures of that form show it from both sides, one with the static field
+filled beside a filled property picker and one with static empty. So the
+recipient set is a union.
+
+**The configuration is two bindings, not one.** The prose treats it as a single
+idea, properties that contain user ids or group ids. The form splits it into
+separate pickers for users and for groups, each with its own help icon. That is
+image-only, and it is built rather than merely recorded because a second page's
+capture of the same form shows the same split.
+
+**The type restriction is exact and published:**
+
+> Therefore, object property types must be either `String` or `Array of String`.
+
+— automate/effect-notification.md
+
+and the gate is too:
+
+> This configuration option requires an object set condition that exposes effect inputs.
+
+— automate/effect-notification.md
+
+**What happens to an ineligible recipient is stated on a page the main one never
+links.** The effect page lists viewer requirements and never says what failing
+one does. The worked example does, and it confirms what 794 had inferred:
+
+> Note that all recipients require at least **Viewer** permission on the automation or they will not receive the notification.
+
+— automate/example-dynamic-contract-owner.md
+
+Silent non-delivery, not an error. Which is what 794 built by reasoning, and is
+now built by citation.
+
+**Three requirements stay unenforced, and the reason is structural rather than
+lazy.** Beside viewer on the automation, the page requires viewer on the
+triggering object instances, on all their properties where the object type is
+multi-datasource, and on every object a function-backed notification touched. The
+model behind all three is explicit:
+
+> * **Notification effects** continue to use each recipient's individual permissions.
+
+— automate/third-party-app-ownership.md
+
+Evaluating that means reading the fired objects once per recipient under that
+recipient's own claims. Nothing here can: our reads resolve the caller from their
+own token, and an automation runs on a heartbeat holding nobody's credentials. It
+becomes buildable the day something can evaluate a read as another principal,
+which is the same wall 553 hit when it inverted the scheduled path rather than
+elevating it.
+
+**And one thing that is not a permission at all.** A capture describes the effect
+as sending to recipients that have notifications turned on — a per-user
+preference beside the four checks. That string appears nowhere in the mirror's
+prose, only inside the screenshot, so it is recorded and not built, for the same
+reason §7's preference matrix is not.
+
 ## Decisions (2026-09-10 — NOT YET READ BY A HUMAN)
 
 1. **Build one notification payload**, shaped as the published type: a heading and

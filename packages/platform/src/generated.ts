@@ -1069,15 +1069,18 @@ export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' 
 >
 
 /**
- *  One notification per event to each eligible recipient —
- *  automate/effect-notification's "Execute once for all objects", where
- *  multiple triggering objects still produce only one notification per
- *  recipient. The other two groupings are not built: once-per-group needs a
- *  property list the effect row cannot carry, once-per-object needs a
- *  per-object fan-out notifications have no counterpart for.
+ *  One notification per event to each eligible recipient, where the
+ *  recipients are the static list UNIONED with whatever the named object
+ *  properties hold — automate/effect-notification's two halves, which its own
+ *  form says may both be selected. Eligibility is at least Viewer on the
+ *  automation; the page's three other viewer requirements are about the
+ *  triggering rows and are recorded unbuilt in 803's header, because
+ *  evaluating them means reading as each recipient and nothing here can. NOT
+ *  BUILT and recorded rather than inferred: a notification names no producer,
+ *  because automations carry no rid.
  */
 export const sendAutomationNotification = { apiName: 'send_automation_notification', kind: 'action' } as ActionType<
-  { p_automation: string; p_effect: string },
+  { p_automation: string; p_effect: string; p_keys?: string[] },
   string
 >
 
@@ -1215,7 +1218,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (349) ───────────────────────────────────────────────────
+// ── FUNCTIONS (350) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2385,6 +2388,18 @@ export const discoverableCoverPages = { apiName: 'discoverable_cover_pages', kin
 export const displayTimezoneValid = { apiName: 'display_timezone_valid', kind: 'function' } as FunctionType<
   { j: Json },
   boolean
+>
+
+/**
+ *  The principal ids held by the named properties of the objects that fired.
+ *  A value that is not a principal id is skipped rather than refused:
+ *  automate/effect-notification says the property holds user or group ids and
+ *  says nothing about what a malformed one does, and failing the whole
+ *  notification over one bad row would be stricter than the page.
+ */
+export const dynamicRecipients = { apiName: 'dynamic_recipients', kind: 'function' } as FunctionType<
+  { p_effect: string; p_object_type: string; p_keys: string[] },
+  string[]
 >
 
 /**
