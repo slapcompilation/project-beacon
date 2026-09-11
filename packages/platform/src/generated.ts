@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (123) ────────────────────────────────────────────────
+// ── ACTION TYPES (124) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -898,6 +898,18 @@ export const runCleanup = { apiName: 'run_cleanup', kind: 'action' } as ActionTy
 >
 
 /**
+ *  The multi-object half of automate/effect-actions' execution modes: once
+ *  for all the objects that fired, once per batch of at most batch_size, or
+ *  once per group of equal values across the named properties. The
+ *  single-object half is run_effect_per_object, and 630's header says why it
+ *  needs no mode.
+ */
+export const runEffectForSet = { apiName: 'run_effect_for_set', kind: 'action' } as ActionType<
+  { p_automation: string; p_effect: string; p_event: string; p_keys: string[] },
+  number
+>
+
+/**
  *  One build whose jobs index object types. Foundry indexes through build
  *  jobs; a job waits for any unfinished build rewriting its datasources. NULL
  *  means every index was fresh.
@@ -1203,7 +1215,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (348) ───────────────────────────────────────────────────
+// ── FUNCTIONS (349) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2458,6 +2470,17 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 export const filterKindApplies = { apiName: 'filter_kind_applies', kind: 'function' } as FunctionType<
   { p_kind: string; p_base_type: string },
   boolean
+>
+
+/**
+ *  The object set an effect receives, as an inline definition over the
+ *  primary keys that fired. api/ontologies-v2-resources-actions-apply-action
+ *  encodes an Object Set value as a string OR the object set definition, and
+ *  the definition form leaves nothing behind.
+ */
+export const firedObjectSetValue = { apiName: 'fired_object_set_value', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_keys: string[] },
+  Json
 >
 
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
