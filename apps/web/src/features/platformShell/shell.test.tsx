@@ -43,7 +43,10 @@ describe('platform shell', () => {
     for (const label of ['Home', 'Search…', 'Recent', 'Files', 'Applications', 'Account', 'Sign out']) {
       expect(screen.getByRole('button', { name: label })).toBeDefined()
     }
-    expect(screen.queryByRole('button', { name: /notifications|what's new/i })).toBeNull()
+    // Notifications joined the rail when 793-803 built the feed behind it. It
+    // was absent for the same reason What's New still is: nothing was there.
+    expect(screen.getByRole('button', { name: 'Notifications' })).toBeDefined()
+    expect(screen.queryByRole('button', { name: /what's new/i })).toBeNull()
   })
 
   it('lands on the welcome banner and the app cards', () => {

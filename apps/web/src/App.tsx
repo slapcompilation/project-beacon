@@ -19,6 +19,7 @@ const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
+const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
@@ -94,6 +95,7 @@ function AppRoutes() {
             {/* "Home: Return to your organization's landing page." */}
             <Route path="/"          element={<HomePage />} />
             <Route path="/account"   element={<AccountPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings"  element={<SettingsPage />} />
             <Route path="/ontology"  element={<OmaLayout />}>
               {/* "The Discover view offers a highly customizable landing page." */}

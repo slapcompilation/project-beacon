@@ -2,7 +2,10 @@
 // application rendered to its right (readings/home-and-navigation.md §1, §3).
 //
 // Only entries that lead somewhere real are here. Omitted, and why:
-//   §1  Notifications / What's New — no notification feed, no release notes.
+//   §1  What's New — no release notes. Notifications WERE omitted for the
+//       same reason until 793-803 built the feed; the entry below is that
+//       correction, and this line is kept rather than deleted because a
+//       stale "we lack X" is what invites rebuilding X.
 //   §3  favourited Files — nothing stars a resource yet, so the group would
 //       render its empty state forever. Applications favourites are here.
 //   §5  AIP Assist, Support, Other Workspaces — nothing behind any of them.
@@ -86,6 +89,8 @@ export function PlatformSidebar() {
           <Row icon="home" label="Home" collapsed={collapsed} active={pathname === '/'} onClick={go('/')} />
           <Row icon="search" label="Search…" hint={`${MOD}J`} collapsed={collapsed}
             onClick={() => { setSearchOpen(true) }} />
+          <Row icon="notifications" label="Notifications" collapsed={collapsed}
+            active={pathname.startsWith('/notifications')} onClick={go('/notifications')} />
         </div>
         <div className="platform-group">
           <Row icon="history" label="Recent" collapsed={collapsed} popover={recentMenu} />
