@@ -21,10 +21,10 @@
 
 import { Card, Icon, NonIdealState, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { Link } from 'react-router-dom'
+import { useMarkRead, useMyNotifications } from '@/features/notifications/api'
 import {
-  linkHref, relativeTime, useMarkRead, useMyNotifications,
-  type Notification, type NotificationLink,
-} from '@/features/notifications/api'
+  linkHref, relativeTime, type Notification, type NotificationLink,
+} from '@/features/notifications/format'
 
 export default function NotificationsPage() {
   const { data: notifications = [], isLoading } = useMyNotifications()

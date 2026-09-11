@@ -1,11 +1,15 @@
 // The two pure helpers the notifications centre renders through.
 //
+// They live in `format.ts` rather than beside the read path, because importing
+// that pulls in the Supabase client and a test of a pure function should need no
+// credential. CI found that; a local .env.local had been hiding it.
+//
 // Both exist because `data-health/images/notifications.png` shows what a row
 // says: a sentence with an inline action link, and a relative timestamp
 // underneath in the forms "1 minute ago", "15 minutes ago", "1 hour ago".
 
 import { describe, it, expect } from 'vitest'
-import { linkHref, relativeTime, type NotificationLink } from './api'
+import { linkHref, relativeTime, type NotificationLink } from './format'
 
 describe('relativeTime', () => {
   const now = new Date('2026-09-11T12:00:00Z').getTime()
