@@ -1203,7 +1203,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (345) ───────────────────────────────────────────────────
+// ── FUNCTIONS (348) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2411,6 +2411,19 @@ export const evaluateObjectSetByApiName = { apiName: 'evaluate_object_set_by_api
 >
 
 /**
+ *  Resolves a stored object set by its rid and evaluates it as the caller —
+ *  the fourth read a function's host can perform, beside count, page and
+ *  fetch-one. functions/permissions: the permissions of the end user running
+ *  the function determine which objects are loaded, so this is INVOKER and a
+ *  set whose objects the caller cannot see comes back short rather than
+ *  refused.
+ */
+export const evaluateObjectSetByRid = { apiName: 'evaluate_object_set_by_rid', kind: 'function' } as FunctionType<
+  { p_rid: string; p_limit?: number },
+  Json[]
+>
+
+/**
  *  The caller's working state as JSON. "Any changes you have in your working
  *  state will be included in the export" (ontology-manager/export-import).
  *  The schema is deliberately ours: the page says not to depend on it.
@@ -3131,6 +3144,18 @@ export const objectSetKeys = { apiName: 'object_set_keys', kind: 'function' } as
 >
 
 /**
+ *  The two forms api/ontologies-v2-resources-actions-apply-action gives an
+ *  Object Set parameter value equal standing: a stored set's rid, or the
+ *  definition inline. The inline filter grammar is deliberately unvalidated —
+ *  no page read says it is the exploration grammar, and assuming so would
+ *  invent the join.
+ */
+export const objectSetParameterValueValid = { apiName: 'object_set_parameter_value_valid', kind: 'function' } as FunctionType<
+  { v: Json },
+  boolean
+>
+
+/**
  *  One value filter compiled against one property, bound to the given alias —
  *  shared by the subject's own filters and, since 776, by the far side of a
  *  link filter. Since 784 a kind whose comparison the property's type cannot
@@ -3158,6 +3183,18 @@ export const objectSetRows = { apiName: 'object_set_rows', kind: 'function' } as
 export const objectSetSize = { apiName: 'object_set_size', kind: 'function' } as FunctionType<
   { p_set: string },
   number
+>
+
+/**
+ *  The api name of the object type a stored set is over, so the function host
+ *  can apply the declared-imports gate before reading it — the same gate it
+ *  applies to count, page and fetch-one, which are handed a type outright.
+ *  INVOKER: a set the caller cannot see is not distinguishable here from one
+ *  that does not exist.
+ */
+export const objectSetSubjectApiName = { apiName: 'object_set_subject_api_name', kind: 'function' } as FunctionType<
+  { p_rid: string },
+  string
 >
 
 /**
