@@ -8,6 +8,11 @@
 // Only object types the published version declared as imports are answerable:
 // the page generates "code bindings for every object and link type that was
 // loaded" from the repository's imports, and this is the enforcement of that.
+//
+// Four operations: count, page and fetchOne are handed an object type. objectSet
+// is handed a RID instead — an object-set ACTION PARAMETER carries one, and the
+// api encodes its value as a string or the set definition — so that one asks the
+// database what the set is over before applying the same gate.
 
 import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import type { Mediator } from './isolate.ts'
@@ -43,6 +48,22 @@ export function ontologyReader(
   declared: Set<string>,
 ): Mediator {
   return async (op, payload) => {
+    // An object set is named by a RID, and a RID does not say what it is over —
+    // so the declared-imports gate has to ask before it can decide. Every other
+    // read here is handed its type outright.
+    if (op === 'objectSet') {
+      const rid = String(payload.objectSetRid ?? '')
+      const named = await caller.rpc('object_set_subject_api_name', { p_rid: rid })
+      if (named.error) return { ok: false, error: named.error.message }
+      const subject = String(named.data ?? '')
+      if (!declared.has(subject)) {
+        return { ok: false, error: `Functions:UndeclaredImport — ${subject} is not imported by this function` }
+      }
+      const r = await caller.rpc('evaluate_object_set_by_rid',
+        { p_rid: rid, p_limit: Number(payload.pageSize ?? 100) })
+      return r.error ? { ok: false, error: r.error.message } : { ok: true, value: r.data ?? [] }
+    }
+
     const objectType = String(payload.objectType ?? '')
     if (!declared.has(objectType)) {
       return { ok: false, error: `Functions:UndeclaredImport — ${objectType} is not imported by this function` }

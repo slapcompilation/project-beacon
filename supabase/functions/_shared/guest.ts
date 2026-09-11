@@ -52,6 +52,23 @@ globalThis.client = function (entity) {
   return __objectSet(apiName, {})
 }
 
+// An object set ACTION PARAMETER arrives as a value, not as an object type:
+// the api encodes it as "string OR the object set definition", and the string
+// is the set's rid. So a function handed one reaches its members through the
+// rid rather than by naming a type it may not know. The host still applies the
+// declared-imports gate — it asks what the set is over first.
+globalThis.client.objectSet = function (rid) {
+  return {
+    fetchPage: function (opts) {
+      const rows = __call('objectSet', {
+        objectSetRid: typeof rid === 'string' ? rid : (rid && rid.rid),
+        pageSize: (opts && opts.$pageSize) || 100,
+      })
+      return { data: rows, nextPageToken: undefined }
+    },
+  }
+}
+
 // The edit batch. "For the edits created in a function to actually be applied,
 // Ontology edit functions must be configured as a function-backed Action" — so
 // this collects and nothing more. The batch never writes; it returns the
