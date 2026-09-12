@@ -128,9 +128,12 @@ export default function ActionTypesPage() {
 
 interface ParamDraft {
   label: string; baseType: PropertyType; required: boolean
-  /** A parameter is a value of a base type, or a reference to an object —
-   *  the two data kinds 418/592 store. Link rules take only the second. */
-  kind: 'value' | 'object'
+  /** A parameter is a value of a base type, a reference to ONE object, or a
+   *  whole object SET. 418 and 592 stored the first two; 797 added the third
+   *  from the api's own union, and an Automate effect binds one to hand an
+   *  action every object that fired. Link rules take only the single-object
+   *  kind. */
+  kind: 'value' | 'object' | 'objectSet'
   objectTypeId: string
 }
 interface PropDraft { propertyId: string; source: ValueSource; parameter: string; staticValue: string }
@@ -275,9 +278,11 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
       apiName, label: label.trim(), description: description.trim(), ontologyId,
       parameters: named.map((p, i) => ({
         api_name: toCamel(p.label), display_name: p.label.trim(),
-        base_type: p.kind === 'object' ? null : p.baseType,
-        data_kind: p.kind === 'object' ? 'object' : 'base_type',
-        object_type_id: p.kind === 'object' ? p.objectTypeId : null,
+        base_type: p.kind === 'value' ? p.baseType : null,
+        data_kind: p.kind === 'value' ? 'base_type' : p.kind,
+        // An object reference must name its type; an object set need not, so an
+        // empty picker there is "any object type" rather than an unfinished row.
+        object_type_id: p.kind === 'value' ? null : (p.objectTypeId || null),
         required: p.required, exposed: true, editable: true, position: i,
       })),
       // An interface rule names an interface and no object type; the parameter
@@ -354,11 +359,15 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
               onChange={(e) => { setParams(params.map((x, idx) => (idx === i ? { ...x, kind: e.currentTarget.value as 'value' | 'object' } : x))) }}>
               <option value="value">Value</option>
               <option value="object">Object reference</option>
+              <option value="objectSet">Object set</option>
             </HTMLSelect>
-            {p.kind === 'object' ? (
+            {p.kind === 'object' || p.kind === 'objectSet' ? (
               <HTMLSelect value={p.objectTypeId}
                 onChange={(e) => { setParams(params.map((x, idx) => (idx === i ? { ...x, objectTypeId: e.currentTarget.value } : x))) }}>
-                <option value="">Object type…</option>
+                {/* The api marks both naming fields OPTIONAL on its objectSet
+                    member and required on its object member, so a set may be
+                    untyped and a reference may not. */}
+                <option value="">{p.kind === 'objectSet' ? 'Any object type' : 'Object type…'}</option>
                 {types.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
               </HTMLSelect>
             ) : (

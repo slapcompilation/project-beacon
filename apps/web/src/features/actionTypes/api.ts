@@ -128,9 +128,11 @@ export interface ActionDraft {
   parameters: {
     api_name: string; display_name: string
     /** A value parameter names a base type; an object reference names a type
-     *  instead (418's either-or, landed since 755). */
+     *  instead (418's either-or, landed since 755). An object SET may name one
+     *  or not — the api marks both of its naming fields optional where the
+     *  object member marks them required (797). */
     base_type: PropertyType | null
-    data_kind?: 'base_type' | 'object'
+    data_kind?: 'base_type' | 'object' | 'objectSet'
     object_type_id?: string | null
     required: boolean; exposed: boolean; editable: boolean; position: number
   }[]
