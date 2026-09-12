@@ -9,6 +9,7 @@
 // offered, because hiding them makes the vocabulary look smaller than the page
 // that enumerates it — the shape action_rule_kinds() set.
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import type { AutomationEffectsExecutionMode } from '@beacon/platform'
 import { toast } from 'sonner'
 import { executeAutomationNow } from '@beacon/platform'
 import { supabase } from '@/lib/supabase/client'
@@ -126,8 +127,9 @@ export interface EffectDraft {
 }
 
 /** The three grouping options automate/effect-actions enumerates for the
- *  multi-object input family, in the page's own words (802). */
-export type ExecutionMode = 'once_for_all' | 'once_for_each_batch' | 'once_for_each_group'
+ *  multi-object input family, in the page's own words (802) — taken from the
+ *  CHECK rather than retyped, so 802's rename could not have been missed here. */
+export type ExecutionMode = AutomationEffectsExecutionMode
 
 export const EXECUTION_MODES: { value: ExecutionMode; label: string }[] = [
   { value: 'once_for_all', label: 'Execute once for all objects' },

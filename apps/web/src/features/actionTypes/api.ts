@@ -8,6 +8,7 @@
 // table: the header's Save control is what lands the action in the ontology.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { ActionTypeParametersDataKind } from '@beacon/platform'
 import { useMemo } from 'react'
 import { useAppStore } from '@/stores/app.store'
 import { useComposeBranch } from '@/features/branching/api'
@@ -31,10 +32,10 @@ export interface ActionParameterRow {
   description: string
   /** Which payload the parameter carries. Only `object` can receive Automate's
    *  Single object effect input (630) — there is no set-shaped kind. */
-  // 797 added objectSet. This union is hand-written, so it drifts from the
-  // database unless a change like that is followed here — which it was not,
-  // until the editor needed to offer one.
-  data_kind: 'base_type' | 'object' | 'interfaceObject' | 'objectType' | 'objectSet'
+  // Generated from the CHECK itself, so a member the database gains and this
+  // file does not is a COMPILE error rather than a silent disagreement. It was
+  // hand-written until 797's objectSet went unnoticed here for two changes.
+  data_kind: ActionTypeParametersDataKind
   base_type: PropertyType | null
   object_type_id: string | null
   required: boolean
@@ -132,7 +133,7 @@ export interface ActionDraft {
      *  or not — the api marks both of its naming fields optional where the
      *  object member marks them required (797). */
     base_type: PropertyType | null
-    data_kind?: 'base_type' | 'object' | 'objectSet'
+    data_kind?: ActionTypeParametersDataKind
     object_type_id?: string | null
     required: boolean; exposed: boolean; editable: boolean; position: number
   }[]
