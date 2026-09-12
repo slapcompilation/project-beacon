@@ -21,9 +21,12 @@ import { useSavedSets } from '@/features/explorer/api'
 import { useOmaOntology } from '@/features/ontologyManager/resources'
 import { useProjects } from '@/features/projects/api'
 import { useEffectKinds } from '@/features/automate/api'
+import { EffectEditor } from '@/features/automate/EffectEditor'
+import { useObjectTypes } from '@/features/objectTypes/hooks'
+import { useUsers } from '@/features/users/api'
 import {
   CONDITION_CARDS, EMPTY_SCHEDULE, automateCronLooksValid, conditionOf,
-  EXPOSES_INPUT, scheduleToCron, useCreateAutomation,
+  emptyEffect, EXPOSES_INPUT, scheduleToCron, useCreateAutomation,
   type EffectDraft, type Frequency, type ScheduleDraft,
 } from '@/features/automate/authoring'
 
@@ -53,6 +56,8 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
   const { data: sets = [] } = useSavedSets()
   const { data: kinds = [] } = useEffectKinds()
   const { data: projects = [] } = useProjects()
+  const { data: objectTypes = [] } = useObjectTypes()
+  const { data: users = [] } = useUsers()
   const create = useCreateAutomation()
 
   const effective = advanced ? cron : scheduleToCron(schedule)
@@ -149,63 +154,29 @@ export function NewAutomationDialog({ onClose }: { onClose: () => void }) {
                   runtime; the others are in the vocabulary and refuse by name.
                 </p>
                 {effects.map((e, i) => (
-                  <div key={i} className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-muted-foreground tabular-nums">{i + 1}.</span>
-                    <HTMLSelect value={e.actionTypeId ?? ''} className="flex-1"
-                      onChange={(ev) => {
-                        setEffects(effects.map((x, xi) =>
-                          xi === i ? { ...x, actionTypeId: ev.currentTarget.value || null } : x))
-                      }}>
-                      <option value="">Action type…</option>
-                      {/* "Not all actions are appropriate to use with Automate."
-                          The picker offers only those that allow it (612). */}
-                      {actions.filter((a) => a.automate_can_submit)
-                        .map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-                    </HTMLSelect>
-                    <Button variant="minimal" size="small" icon="cross"
-                      onClick={() => { setEffects(effects.filter((_, xi) => xi !== i)) }} />
-                  </div>
+                  <EffectEditor key={i} index={i} effect={e}
+                    actions={actions}
+                    subjectTypeId={sets.find((x) => x.id === objectSetId)?.subject_type_id ?? null}
+                    objectTypes={objectTypes}
+                    users={users}
+                    exposesInput={kind !== null && EXPOSES_INPUT.includes(kind)}
+                    onChange={(next) => {
+                      setEffects(effects.map((x, xi) => (xi === i ? next : x)))
+                    }}
+                    onRemove={() => { setEffects(effects.filter((_, xi) => xi !== i)) }} />
                 ))}
-                {/* "To use condition effect inputs, the type of the action
-                    parameter needs to align with the type of the exposed
-                    condition effect input" — so the list is that action's
-                    object parameters of the type the condition watches, and
-                    nothing else. Absent entirely when the condition exposes
-                    no input. */}
-                {kind !== null && EXPOSES_INPUT.includes(kind) && effects.map((e, i) => {
-                  const act = actions.find((a) => a.id === e.actionTypeId)
-                  const subject = sets.find((x) => x.id === objectSetId)?.subject_type_id ?? null
-                  const fits = (act?.action_type_parameters ?? []).filter(
-                    (pm) => pm.data_kind === 'object' && pm.object_type_id === subject)
-                  if (!act) return null
-                  return (
-                    <label key={`in-${i}`} className="flex flex-col gap-1 mt-2">
-                      <span className="text-xs font-semibold">
-                        {i + 1}. Hand each object to
-                      </span>
-                      <HTMLSelect value={e.objectInputParameterId ?? ''}
-                        onChange={(ev) => {
-                          setEffects(effects.map((x, xi) => xi === i
-                            ? { ...x, objectInputParameterId: ev.currentTarget.value || null } : x))
-                        }}>
-                        <option value="">Nothing — run the action once</option>
-                        {fits.map((pm) => (
-                          <option key={pm.id} value={pm.id}>{pm.display_name}</option>
-                        ))}
-                      </HTMLSelect>
-                      {fits.length === 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          This action takes no object parameter of the type the condition watches,
-                          so it can only run once for the whole firing.
-                        </span>
-                      )}
-                    </label>
-                  )
-                })}
-                <Button variant="minimal" size="small" icon="add"
-                  onClick={() => { setEffects([...effects, { kind: 'action', actionTypeId: null, objectInputParameterId: null }]) }}>
-                  Add action effect
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="minimal" size="small" icon="add"
+                    onClick={() => { setEffects([...effects, emptyEffect('action')]) }}>
+                    Add action effect
+                  </Button>
+                  {/* 517 registered the kind and 794 made it run; before that
+                      this button would have created something inert. */}
+                  <Button variant="minimal" size="small" icon="notifications"
+                    onClick={() => { setEffects([...effects, emptyEffect('notification')]) }}>
+                    Add notification effect
+                  </Button>
+                </div>
                 <div className="mt-3 space-y-1">
                   {kinds.filter((k) => !k.executable).map((k) => (
                     <div key={k.kind} className="text-xs text-muted-foreground" title={k.note}>
