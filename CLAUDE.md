@@ -327,6 +327,18 @@ a typed value per platform entity, so a wrong name fails to *compile*. **A guard
 whose job the compiler can do should be deleted, not maintained.**
 `check:surfaces` goes the same way once object surfaces are generated.
 
+**And the converse, which is the same rule from the other side.** Where the
+compiler *cannot* do the job yet, give it what it needs rather than writing a
+second checker. `gen:client` now also emits **every value set** — 133 of them, a
+union per single-column CHECK whose members are a literal array, on a table the
+app role may read — so a vocabulary the web hand-wrote becomes a compile error
+when the database gains a member. It was built because the same drift bit twice
+in two hours: 797 added `objectSet` to `action_type_parameters.data_kind`, the
+web's copy found out two changes later, and a *second* copy of that union in the
+same file had to be widened an hour after that. `gen:client --check` is what
+makes it bite — CI fails while the file is stale. **Convert a hand-written union
+when it has drifted, not on principle**; three have, and the rest are left alone.
+
 **The platform suite** (`packages/platform`) is a different kind: it **runs the
 algorithm and compares against the answer the documentation prints** —
 `data-integration/datasets#example-of-transaction-types` states the view after
