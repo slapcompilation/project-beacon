@@ -6,7 +6,7 @@
 // Summary's fifth card as a median. None of this touches the Supabase client.
 
 import { describe, it, expect } from 'vitest'
-import { duration, filterLabel, formatCell, medianDurationSeconds, summaryBucket } from './preview'
+import { duration, filterLabel, formatCell, formatCount, historyTime, medianDurationSeconds, summaryBucket } from './preview'
 
 describe('filterLabel', () => {
   it('quotes strings the way the chip does', () => {
@@ -64,5 +64,23 @@ describe('summaryBucket', () => {
     expect(summaryBucket('ABORTED')).toBe('Canceled')
     expect(summaryBucket('WAITING')).toBe('Running')
     expect(summaryBucket('RUNNING')).toBe('Running')
+  })
+})
+
+describe('historyTime', () => {
+  const now = new Date('2026-09-12T14:00:00').getTime()
+  it('renders the three forms the rail shows', () => {
+    expect(historyTime(new Date(now - 5 * 60_000).toISOString(), now)).toBe('5 minutes ago')
+    expect(historyTime(new Date('2026-09-12T10:28:00').toISOString(), now)).toBe('Today at 10:28 AM')
+    expect(historyTime(new Date('2026-04-22T20:55:00').toISOString(), now)).toBe('Apr 22, 8:55 PM')
+  })
+})
+
+describe('formatCount', () => {
+  it('separates thousands and abbreviates the large', () => {
+    expect(formatCount(481)).toBe('481')
+    expect(formatCount(16719)).toBe('16,719')
+    expect(formatCount(91077)).toBe('91.1k')
+    expect(formatCount(3_000_000)).toBe('3000k')
   })
 })

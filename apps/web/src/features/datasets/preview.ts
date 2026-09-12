@@ -45,6 +45,32 @@ export function duration(startedAt: string | null, finishedAt: string | null, no
   return formatSeconds(ms / 1000)
 }
 
+/** Counts as the captures print them: `16,719` with separators, and `91.1k`
+ *  once large — dataset-preview.png abbreviates 91,077 in the strip and the
+ *  stats counts while printing 16,719 whole, so the threshold is an inference
+ *  set between the two. */
+export function formatCount(n: number): string {
+  if (n >= 20_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`
+  return n.toLocaleString('en-US')
+}
+
+/** The History rail's time: `5 minutes ago` within the hour, `Today at
+ *  10:28 AM` the same day, else `Apr 22, 8:55 PM` — the three forms
+ *  dataset-app-history-page.png and create-branch.png show. Locale pinned so
+ *  the form is the capture's wherever it runs. */
+export function historyTime(iso: string, now = Date.now()): string {
+  const t = new Date(iso)
+  const s = Math.max(0, Math.round((now - t.getTime()) / 1000))
+  if (s < 60) return 'just now'
+  if (s < 3600) { const m = Math.floor(s / 60); return `${String(m)} minute${m === 1 ? '' : 's'} ago` }
+  const time = t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const d = new Date(now)
+  if (t.getFullYear() === d.getFullYear() && t.getMonth() === d.getMonth() && t.getDate() === d.getDate()) {
+    return `Today at ${time}`
+  }
+  return `${t.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${time}`
+}
+
 /** The Summary's fifth card. Median of the finished jobs, in seconds; null when
  *  none has finished, so the card can say so rather than print 0s. */
 export function medianDurationSeconds(jobs: { startedAt: string | null; finishedAt: string | null }[]): number | null {

@@ -103,8 +103,19 @@ So a History row is a **transaction** (its type is the second line's first
 word — `Snapshot`, `Open`) *and* the **job** that produced it (`Part of build •
 4 jobs`). The two are one row because a build opens the transaction:
 
-> A selected row opens `Details: Apr 22, 8:55 PM` with a `Job progress` bar segmented `Starting / Waiting in project's resource queue / Initializing spark application / Fast loading environment / Running / Finishing`, and beneath it `Inputs and outputs`. The row's `…` menu holds `Create branch`.
+> A selected row opens `Details: Apr 22, 8:55 PM` with a `Job progress` bar segmented `Starting / Waiting in project's resource queue / Initializing spark application / Fast loading environment / Running / Finishing`, and beneath it `Inputs and outputs`. The `…` sits in that detail's header at top right, beside `Compare with…`, and holds `Create branch`. The tab row of this capture reads `Preview | History | Details | Health 1 | Compare | Projections` — a count badge on Health, and a `Projections` tab the annotated capture lacks.
 > — dataset-preview/images/create-branch.png
+
+The detail's transaction half is attested by a page outside the section:
+
+> "Select the **History** tab, then choose the specific transaction you need. Scroll to the end of the **Transaction details** section to view the **Transaction RID** field."
+— data-lifetime/FAQ.md
+
+**So a History row is a job, and the detail is the job's — with a
+`Transaction details` section that ends in the RID.** The reconcile pass
+(2026-09-13) corrected the first draft of this section, which had read the
+rail as transactions: a job opens its transaction only once it runs (493), so a
+rail of transactions could not show a waiting job the Summary counts.
 
 > "You can use the **History** tab to create branches on historical transactions of your data that have not been deleted by a [retention policy](/docs/foundry/administration/enrollments-and-organizations-retention/). Choose a previous transaction from the left panel and select the ellipsis (**...**) icon to **Create branch**."
 — dataset-preview/overview.md
@@ -177,9 +188,17 @@ Stream (New) | History | Details | Health (Beta) | Metrics`).
 > "The **All actions** dropdown menu provides quick access to Foundry tools and operations, allowing you to analyze, explore, transform, and manage the data. Some actions, such as **Analyze** (in Contour) and **Build**, are surfaced outside the actions menu for quick access."
 — dataset-preview/overview.md
 
-No capture opens the menu, so its contents are unattested here. What *is*
-attested is which actions sit outside it: Analyze, Build, Explore pipeline, and
-the SQL entry point.
+No capture in this section opens the menu; one in another section does —
+`object-link-types/struct-automapping.md` captions it as the All actions
+dropdown in the dataset detail page:
+
+> A searchable launcher: a `Search for apps…` box across the top; a left rail `All | Analyze data | Explore pipeline`; then one row per application action with its icon — `Analyze in Code Workbook`, `Analyze in Contour`, `Analyze in Jupyter Code Workspace`, `Configure justification prompt`, `Copy to new Fusion sheet`, `Create new pipeline`, `Create object type` (with ↗), `Create restricted view`, a download row, `Explore data lineage`, and more below the fold. Its action bar reads `Analyze in Contour | Explore pipeline ▾ | All actions ▾ | Build`.
+> — object-link-types/images/automap-struct-pipelinebuilder.png
+
+So the menu is an app launcher, not a list of file operations; what sits
+outside it is Analyze, Build and Explore pipeline. Found by the reconcile
+pass's refuter, not by me — the first draft of this section said the contents
+were unattested.
 
 ## 5. The preview table
 
@@ -189,7 +208,14 @@ the SQL entry point.
 The sample size in the capture is 300 (`Showing 300 of 481 rows`); the smaller
 2026 capture shows `Showing 4 rows` with no denominator when the sample is the
 whole table, and a `Calculate row count` button at bottom right — so the total
-is computed on demand there. Inference: 300 is the default sample.
+is computed on demand there. Inference: 300 is the default sample. The build
+target is the annotated capture, whose denominator is eager; the on-demand
+count is recorded as the newer product's choice, not taken (decision 8).
+
+Counts in the strip and the stats panel are printed with separators and, once
+large, abbreviated — `Showing 300 of 91.1k rows`, `Normal 91.1k`, but
+`Midtown 16,719` and `91,077 rows` whole. Where the threshold lies is not
+stated; the build sets it between those two figures and says so.
 
 > "* Select a column’s menu to sort, filter, and generate charts over the column data."
 — dataset-preview/overview.md
@@ -207,6 +233,20 @@ The capture shows both menus and the stats panel the column menu opens:
 
 > The stats panel docks beneath the grid: `end_neighborhood  String  91,077 rows`; a left column of counts `Normal 91.1k / Null 0 / Empty 0 / Whitespace 0 / Needs trim 0` then `Numeric 0 / Non-alpha 0 / Uppercase 69`; a `LENGTH 20` histogram (`by inc. value`); a `VALUE 194` list `by desc. count` with a bar per value (`Midtown 16,719`, `Upper East Side 13,273`…) and a `Filter…` box.
 > — dataset-preview/images/dataset-preview.png
+
+## 5b. How a dataset is created, from Compass
+
+> "1. Navigate to your preferred folder and create a dataset."
+— dataset-preview/overview.md
+
+> Compass's `+ New` button opens a search menu: a box with `dataset` typed and a clear ✕; a left rail `All | Analyze Data | Build & monitor pipelines | Data Governance | Manage & deploy models | Operational applications`; two results, `Contour analysis — Analyze large datasets with filters, joins and visualizations.` and `Dataset — Upload files into a new dataset in Foundry.` with ↗; a footer `HOTKEYS ⇧ shift N Open menu`. The `Actions ▾` button and a `Enter description…` field sit beside it.
+> — dataset-preview/images/create-dataset.png
+
+That is the Compass family's screen (`SURFACE-BUILD-MAP.md` §3.1), recorded
+here because this section's page is where the capture lives. Our `New
+dataset` pane asks for a name, a location and a description; the capture's
+entry is one click in the current folder, and the pane's three fields are
+attested by no capture.
 
 ## 6. The SQL console is a bottom panel, not a tab
 
@@ -232,7 +272,11 @@ dataset-preview.png` and the three `time-travel-*` captures are newer (dates in
 `Maintenance` and `Time Travel` tabs; `Analyze in Contour` in place of `Analyze
 data`; `Storage` and `Format` rows in About for an Iceberg table). The annotated
 capture is the one the overview page explains, so the build is to it; the
-differences are listed so the next reader knows they are eras, not errors.
+differences are listed so the next reader knows they are eras, not errors. The
+2026 About panel also has an `Enter description…` placeholder (the description
+is edited in place), a `Table details` heading beneath the rows, and a `Copy`
+link beside `Location`; the console toolbar carries `…`, a link icon and a
+sparkle beside `Run`. None of those is built.
 
 ## What the images add that the prose does not
 
@@ -274,13 +318,21 @@ differences are listed so the next reader knows they are eras, not errors.
    because "any action taken on the data, such as filtering or sorting, will
    apply to the full dataset".
 3. **Column stats are one function, `dataset_column_stats`**, returning the
-   counts the stats panel names (rows, null, empty, whitespace, distinct) and
-   the value list by descending count. The length histogram and the
-   `Numeric / Non-alpha / Uppercase / Needs trim` counts are not built in this
-   pass; they are recorded here, not silently dropped.
-4. **History rows are transactions joined to the job that opened them**, and the
-   Summary cards count jobs by state. Median duration is computed client-side
-   from `started_at`/`finished_at`. The `Job duration` chart is not built.
+   counts the panel names as rows — `Normal`, `Null`, `Empty`, `Whitespace` —
+   plus the distinct count, which the panel prints in the `VALUE` heading
+   (`VALUE 194`), and the value list by descending count. The length
+   histogram, the `Needs trim / Numeric / Non-alpha / Uppercase` counts, the
+   `by desc. count ▾` sort picker and the `Filter…` box over the values are not
+   built in this pass; they are recorded here, not silently dropped.
+4. **History rows are jobs, each with the transaction it opened, followed by
+   the transactions no job opened** (an upload commits inside its own call), and
+   the Summary cards count jobs by state. The rail's third line is the
+   *build's* — its status and its job count — as the capture prints it.
+   Median duration is computed client-side. The `Job duration` chart, the
+   `Date range`, the rail's `Filter` and `Job progress` are not built. The
+   detail carries a `Transaction details` section ending in the RID, because
+   `data-lifetime/FAQ` says it does. No commit or abort control lives here:
+   the only open transaction the tab can meet is a running build's lock.
 5. **Tabs with no engine are not rendered** — Compare, Time Travel, Snapshots,
    Maintenance, Stream, Metrics — because "a tab that renders an empty shell
    reads as a built feature" (the page's own standing rule). The same for `SQL
@@ -290,8 +342,30 @@ differences are listed so the next reader knows they are eras, not errors.
    counts are, and the Health capture's counts (`✓ 0 ✗ 1` beside three checks
    of which two pass) rule out "checks". Question 1.
 7. **The information panel's `Updated via` names the last committed transaction's
-   writer**: the job spec's transform when a build job opened it, otherwise
-   "Upload". Inference from the two captures (§2), marked as such in the code.
+   writer**: the transform (by the version the job recorded) when a build job
+   opened it, otherwise "Upload". Inference from the two captures (§2), marked
+   as such in the code. **`Updated` is that transaction's commit time and its
+   creator** — `create_transaction` stamps `created_by_user_id` (638), and
+   `datasets.updated_at` moves for nothing a transaction does — and the page
+   itself names the section `Updated by`. `Created … by` takes the dataset's
+   creator, which 805/806 make the caller when the platform knows them.
+8. **The row count is eager**, as the annotated capture's `Showing 300 of 481
+   rows` is; the 2026 product's `Calculate row count` is recorded, not taken.
+9. **All actions is the launcher the other section captures**: a search box, the
+   three-entry rail, and one row per application action that has somewhere to
+   go here. Three rows are ours and say so in the code.
+
+## The reconcile pass (2026-09-13)
+
+A reader that did not build it walked all seven non-streaming captures
+against the page, and a refuter tried to overturn the reader. Nine of the
+reader's claims fell (among them: the History detail's RID row *is* attested,
+by `data-lifetime/FAQ`; `Create restricted view` *is* in All actions, by the
+struct-automapping capture; the eager count *is* the annotated capture's).
+Eighteen stood and were fixed or recorded; the refuter added nine the reader
+missed, two of which changed the build (the launcher, and that the
+transaction's creator was already stored). The element table with every
+verdict is `SURFACE-BUILD-MAP.md` §1.
 
 ## Questions
 

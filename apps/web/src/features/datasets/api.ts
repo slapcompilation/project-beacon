@@ -1,10 +1,9 @@
 // Datasets — the Dataset Layer, given a surface.
 //
-// Shape copied from Dataset Preview rather than invented: a header naming the
-// dataset with its location and selected branch, an About panel carrying the
-// fields their screenshot shows (Location, Type, Table size, RID, Branch,
-// Created/Updated), a Columns section, and History
-// (mirror/dataset-preview/overview.md).
+// Shape copied from Dataset Preview rather than invented — the About panel's
+// rows as dataset.png shows them (Updated, Created, Location, Type, RID, Size,
+// Updated via), the preview table, History as jobs and their transactions
+// (mirror/dataset-preview/overview.md; readings/dataset-preview.md).
 //
 // The view is read through `dataset_view`, not by querying the physical table:
 // "what you are seeing is actually the latest dataset view", and the view is a
@@ -37,6 +36,8 @@ export interface Dataset {
   /** The space's path — the first element of every location below it. Empty
    *  while a project has no space. */
   spacePath: string
+  /** The folder inside the project, when the dataset sits in one (497). */
+  folderName: string | null
   createdByUserId: string | null
   createdAt: string
   updatedAt: string
@@ -48,7 +49,7 @@ export interface Dataset {
  *  indicates the space as the first element of the path: for example,
  *  `space/project/sub-folder/my-file`." */
 export const datasetLocation = (d: Dataset): string =>
-  `${d.spacePath}/${d.projectApiName}/${d.apiName}`
+  `${d.spacePath}/${d.projectApiName}${d.folderName === null ? '' : `/${d.folderName}`}/${d.apiName}`
 
 export interface Branch {
   id: string
@@ -64,6 +65,8 @@ export interface Transaction {
   status: TransactionStatus
   startedAt: string
   committedAt: string | null
+  /** Stamped by create_transaction (638); who the rail's `Snapshot • Jane Doe` names. */
+  createdByUserId: string | null
 }
 
 export interface ViewFile { fileId: string; logicalPath: string; rowCount: number }
@@ -97,13 +100,14 @@ const keys = {
   view: (branch: string) => ['dataset-view', branch] as const,
 }
 
-const SELECT = 'id, rid, api_name, name, description, physical_table, created_by_user_id, created_at, updated_at, project_id, projects(name, api_name, spaces(path))'
+const SELECT = 'id, rid, api_name, name, description, physical_table, created_by_user_id, created_at, updated_at, project_id, projects(name, api_name, spaces(path)), folders(name)'
 
 interface DatasetRow {
   id: string; rid: string; api_name: string; name: string; description: string
   physical_table: string | null; created_by_user_id: string | null
   created_at: string; updated_at: string; project_id: string
   projects: { name: string; api_name: string; spaces: { path: string } | null } | null
+  folders: { name: string } | null
 }
 
 const toDataset = (r: DatasetRow): Dataset => ({
@@ -113,6 +117,7 @@ const toDataset = (r: DatasetRow): Dataset => ({
   projectId: r.project_id,
   projectName: r.projects?.name ?? '', projectApiName: r.projects?.api_name ?? '',
   spacePath: r.projects?.spaces?.path ?? '',
+  folderName: r.folders?.name ?? null,
 })
 
 export function useDatasets() {
@@ -154,17 +159,26 @@ export function useBranches(datasetId: string | null) {
   })
 }
 
-export function useTransactions(datasetId: string | null) {
+/** A branch's transactions when one is named — the History tab follows the
+ *  header's branch chip — or the dataset's whole ledger when none is. */
+export function useTransactions(datasetId: string | null, branchId: string | null = null) {
   return useQuery({
-    queryKey: keys.transactions(datasetId ?? ''),
+    queryKey: [...keys.transactions(datasetId ?? ''), branchId ?? ''],
     enabled: datasetId !== null,
     queryFn: async (): Promise<Transaction[]> => {
-      const { data, error } = await supabase.from('dataset_transactions')
-        .select('id, rid, txn_type, status, started_at, committed_at')
-        .eq('dataset_id', datasetId ?? '').order('started_at', { ascending: false })
+      let q = supabase.from('dataset_transactions')
+        .select('id, rid, txn_type, status, started_at, committed_at, created_by_user_id')
+        .eq('dataset_id', datasetId ?? '')
+      if (branchId !== null) q = q.eq('branch_id', branchId)
+      const { data, error } = await q.order('started_at', { ascending: false })
       if (error) throw new Error(error.message)
-      return (data as { id: string; rid: string; txn_type: TransactionType; status: TransactionStatus; started_at: string; committed_at: string | null }[])
-        .map((r) => ({ id: r.id, rid: r.rid, txnType: r.txn_type, status: r.status, startedAt: r.started_at, committedAt: r.committed_at }))
+      return (data as {
+        id: string; rid: string; txn_type: TransactionType; status: TransactionStatus
+        started_at: string; committed_at: string | null; created_by_user_id: string | null
+      }[]).map((r) => ({
+        id: r.id, rid: r.rid, txnType: r.txn_type, status: r.status, startedAt: r.started_at,
+        committedAt: r.committed_at, createdByUserId: r.created_by_user_id,
+      }))
     },
   })
 }
@@ -269,10 +283,13 @@ export function useUploadFile(datasetId: string, branchName: string) {
       return { path: file.name, type: (data as { txn_type: string }).txn_type }
     },
     onSuccess: ({ path, type }) => {
-      for (const k of [keys.all, keys.transactions(datasetId), keys.schema(datasetId)]) {
+      // Everything the dataset view reads — the grid, its count and headers,
+      // the stats dock, the rail — not only the list and the ledger.
+      for (const k of [keys.all, keys.transactions(datasetId), keys.schema(datasetId),
+        ['dataset-view'], ['dataset-branch-schema'], ['dataset-preview'], ['dataset-preview-count'],
+        ['dataset-column-stats'], ['dataset-jobs'], ['dataset-branches']]) {
         void qc.invalidateQueries({ queryKey: k })
       }
-      void qc.invalidateQueries({ queryKey: ['dataset-view'] })
       toast.success(`${path} landed as a ${type} transaction`)
     },
     onError: (e: Error) => { toast.error(e.message) },
@@ -347,6 +364,9 @@ export function useColumnStats(branchId: string | null, column: string | null) {
 export interface DatasetJob {
   id: string; buildId: string; state: string; transactionId: string | null
   error: string | null; startedAt: string | null; finishedAt: string | null
+  specVersion: number | null
+  /** The rail's third line is the BUILD's: `Part of ✓ build • 4 jobs`. */
+  buildStatus: string; buildJobCount: number
 }
 
 export function useDatasetJobs(datasetId: string | null) {
@@ -355,16 +375,27 @@ export function useDatasetJobs(datasetId: string | null) {
     enabled: datasetId !== null,
     queryFn: async (): Promise<DatasetJob[]> => {
       const { data, error } = await supabase.from('build_jobs')
-        .select('id, build_id, state, transaction_id, error, started_at, finished_at')
+        .select('id, build_id, state, transaction_id, error, started_at, finished_at, spec_version, builds(status)')
         .eq('output_dataset_id', datasetId ?? '')
         .order('started_at', { ascending: false, nullsFirst: false }).limit(200)
       if (error) throw new Error(error.message)
-      return (data as {
+      const rows = data as unknown as {
         id: string; build_id: string; state: string; transaction_id: string | null
         error: string | null; started_at: string | null; finished_at: string | null
-      }[]).map((r) => ({
+        spec_version: number | null; builds: { status: string } | null
+      }[]
+      // A build's job count spans every dataset it wrote, so it is a second ask.
+      const ids = [...new Set(rows.map((r) => r.build_id))]
+      const counts = new Map<string, number>()
+      if (ids.length > 0) {
+        const { data: all, error: cErr } = await supabase.from('build_jobs').select('build_id').in('build_id', ids)
+        if (cErr) throw new Error(cErr.message)
+        for (const j of all as { build_id: string }[]) counts.set(j.build_id, (counts.get(j.build_id) ?? 0) + 1)
+      }
+      return rows.map((r) => ({
         id: r.id, buildId: r.build_id, state: r.state, transactionId: r.transaction_id,
-        error: r.error, startedAt: r.started_at, finishedAt: r.finished_at,
+        error: r.error, startedAt: r.started_at, finishedAt: r.finished_at, specVersion: r.spec_version,
+        buildStatus: r.builds?.status ?? '', buildJobCount: counts.get(r.build_id) ?? 1,
       }))
     },
     staleTime: 10_000,

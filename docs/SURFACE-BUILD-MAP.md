@@ -53,13 +53,14 @@ From `scripts/probes/chain-e2e.mjs`, which walks it in 22 steps and passes:
 
 ---
 
-## 1. Datasets — the dataset view — **BUILT** (804 + `DatasetPage.tsx`), reconciled 2026-09-12
+## 1. Datasets — the dataset view — **BUILT** (804–806 + `DatasetPage.tsx`), reconciled 2026-09-13
 
 **Reading:** `readings/dataset-preview.md` — 5 pages, 15 of 15 captures.
 **Engine added:** 804 — `dataset_preview` (the sample, sorted and filtered
 before the LIMIT, gated by `can_read_dataset_data`), `dataset_preview_count`,
-`dataset_column_stats`. **Surface:** `pages/DatasetPage.tsx` at
-`/datasets/:id`; `pages/DatasetsPage.tsx` is the way in.
+`dataset_column_stats`; 805/806 — the dataset's creator is the caller when the
+platform knows them. **Surface:** `pages/DatasetPage.tsx` at `/datasets/:id`;
+`pages/DatasetsPage.tsx` is the way in.
 
 **Before:** one card list, one "New dataset" button, and a stack of panels
 under a selected card (About, Upload, Transform, Access, Check access, Health,
@@ -73,46 +74,48 @@ Read off `dataset-preview/images/dataset.png`, the capture
 
 | region | element | status |
 |---|---|---|
-| 1 header | app icon, breadcrumb ending in the dataset, star | breadcrumb **built** (`dsv-crumbs`); star **not built** — no favourites engine |
+| 1 header | app icon, breadcrumb ending in the dataset, star | breadcrumb **built** (`dsv-crumbs`, space › project › folder › dataset; crumbs link to `/projects`, there being no folder route); star **not built** — no favourites engine |
 | 1 header | `File ▾  Help ▾` | **not built** — "sharing, moving, renaming" have no engine reached here |
 | 1 header | `🏢 1` organisation pill | **not built** — meaning unattested |
-| 1 header | `⑂ master ▾` branch chip | **built** — native select over `dataset_branches` |
+| 1 header | `⑂ master ▾` branch chip | **built** — on the header's second line at left as the capture has it; the root branch opens by default |
 | 1 header | `⟳ 0 ✓ 0 ✗ 1` pill, `Share`, list icon | **not built** — the pill's meaning is question 1 of the reading; Share has no engine |
 | 3 tabs | `Preview` `History` `Details` `Health (Beta)` | **built** |
 | 3 tabs | `Compare` | **not built** — no engine; the newer captures also add `Time Travel`, `Snapshots`, `Maintenance` — not built |
 | 5 actions | `SQL preview` | **not built** — needs a SQL dialect over the view (`sql-console.md`) |
 | 5 actions | `Analyze data ▾` | **built, partial** — opens `/contour` without preselecting the dataset (Contour's page has no dataset parameter yet) |
 | 5 actions | `Explore pipeline ▾` | **built** — `/lineage/dataset/:id` |
-| 5 actions | `All actions ▾` | **built** with our four members (Upload file, Create restricted view, Check access, Copy RID); Foundry's members are unattested (question 2) |
+| 5 actions | `All actions ▾` | **built** to `object-link-types/images/automap-struct-pipelinebuilder.png` (found by the refuter): a `Search for apps…` box, the rail `All / Analyze data / Explore pipeline`, one row per action with somewhere to go — Analyze in Code Workbook, Analyze in Contour, Create new pipeline, Create object type, Create restricted view, Explore data lineage — plus three of ours that say so (Upload file, Check access, Copy RID); Jupyter, justification prompt, Fusion copy and download **not built** |
 | 5 actions | `Build ▾` | **built** — `run_build` on this dataset; the split-button's second half is not |
 | 2 panel | name; `About / Columns / Schedules` | **built** (`dsv-segment`) |
 | 2 About | description; backing object-type chip with gear | description and chip **built**; the gear **not built** |
-| 2 About | `Updated … by …`, `Created … by …` | Updated time **built**, no "by" — nothing records who last wrote; Created **built** with the creator when `created_by_user_id` is set (the create path does not set it yet — a gap) |
+| 2 About | `Updated … by …`, `Created … by …` | **built** — Updated is the latest committed transaction's time and its creator (638 stamps it; the first draft read `datasets.updated_at`, which nothing moves); Created's creator is the caller since 805/806 |
 | 2 About | `Location`, `Type`, `RID 📋` | **built** |
 | 2 About | `Size — 12 columns / 481 rows / 2 files` + `584KB` | columns/rows/files **built**; bytes **not built** — not stored |
-| 2 About | `Updated via` | **built** by inference (decision 7): the job's transform, else "Upload" |
+| 2 About | `Updated via` | **built** by inference (decision 7): `transform vN` from the job's recorded spec version, else "Upload" |
 | 2 About | `Tags / Add tags` | **not built** — no tags engine |
 | 2 Columns | column list with type; "description, and data stats" | list + type **built**; a click opens the stats dock; per-column description **not built** |
 | 2 Schedules | schedules that update the dataset | **built** — filtered on `target_dataset_ids` |
-| 4 grid | `Showing 300 of 481 rows` / `12 columns` / `Search columns…` | **built** (`dataset_preview_count` is the denominator; the whole-table form is `Showing N rows`) |
+| 4 grid | `Showing 300 of 481 rows` / `12 columns` / `Search columns…` | **built** (`dataset_preview_count` is the denominator, eager as the annotated capture's; the whole-table form is `Showing N rows`; counts print as `16,719` and `91.1k`) |
 | 4 grid | row numbers; name-over-type headers with a menu glyph; italic `null` | **built** |
 | 4 grid | column menu (`dataset-preview.png`): Pin, Encrypt, Filter ▸, Sort asc/desc, View stats, View cell content, Copy column name, Expand | Sort asc/desc, View stats, Copy column name **built**; Pin, Encrypt, Filter ▸, View cell content, Expand **not built** |
 | 4 grid | cell menu: Include only, Exclude, View stats, View cell content, Copy | Include only, Exclude, View stats, Copy **built**; View cell content **not built** |
 | 4 grid | filter chip `end_borough: "Manhattan" ✕` | **built** |
-| 4 grid | stats dock: Normal/Null/Empty/Whitespace/Needs trim, Numeric/Non-alpha/Uppercase, LENGTH histogram, VALUE by count | Normal/Null/Empty/Whitespace/Distinct and VALUE by count **built**; Needs trim, Numeric, Non-alpha, Uppercase, the LENGTH histogram **not built** (decision 3) |
+| 4 grid | stats dock: Normal/Null/Empty/Whitespace/Needs trim, Numeric/Non-alpha/Uppercase, LENGTH histogram, `VALUE 194 by desc. count ▾` with `Filter…` | Normal/Null/Empty/Whitespace and `VALUE <distinct>` by count **built**; Needs trim, Numeric, Non-alpha, Uppercase, the LENGTH histogram, the sort picker and the `Filter…` box **not built** (decision 3) |
 | 4 grid | drag-and-drop upload onto the preview window | **built** — the grid wrap is the drop target; the empty state carries the picker |
-| History | rail: relative time, status icon, `Snapshot • Jane Doe`, `Part of build • 1 job`, duration; `Filter` | time, icon, type, build/upload line, duration **built**; the person **not built** — transactions record no user; `Filter` **not built** |
+| History | rail: `5 minutes ago` / `Today at 10:28 AM` / `Apr 22, 8:55 PM`, status icon, `Snapshot • Jane Doe`, `Part of ✓ build • 1 job`, duration; `Filter` | **built** — rows are jobs with their transaction, then jobless transactions; the person is the transaction's creator; the third line is the build's status and job count; `Filter` **not built** |
 | History | Summary: `Date range`, five cards, `Job duration` scatter | five cards **built**; date range and the scatter **not built** |
-| History | job detail (`create-branch.png`): `Job progress` segments, `Inputs and outputs`, `Compare with…`, `… › Create branch` | detail **built** with state, error, times, commit/abort for an open transaction; progress segments, inputs/outputs, compare, **Create branch not built** — nothing creates a child dataset branch (ingestion.md question 4) |
+| History | job detail (`create-branch.png`): `Job progress` segments, `Inputs and outputs`, `Compare with…`, `… › Create branch`; `Transaction details … Transaction RID` (`data-lifetime/FAQ`) | detail **built** with the job's state, times, error and the transaction's type and RID; progress segments, inputs/outputs, compare **not built**; **Create branch not built** — nothing creates a child dataset branch (ingestion.md question 4). Commit/abort controls the first draft had here are **removed**: no page offers them, and the only open transaction the tab meets is a running build's lock |
 | Details | Schema (editable), Files (downloadable), Job spec, Syncs, Custom metadata, Resource usage, Last run | Schema, Files, Job spec **built** read-only; Edit schema, download, and the other four **not built** |
-| Details | (ours) Access requirements, Check access | **built-but-unattested here** — Foundry reaches Check access from the resource's Access menu; placed under Details as inference, said so in the code |
-| Health | `Show failures only`, `Search monitors…`, `+ Add checks`; Checks table; Monitoring per view with `Rules`; Related schedules | the Checks half **built** by `HealthPanel` (659/660); the Monitoring and Related schedules sections on *this* tab **not built** — `MonitoringPanel` exists at `/data-health` but is not composed here |
+| Details | (ours) Access requirements, Check access | **built-but-unattested here** — `security/checking-permissions.md` places Check access in the workspace sidebar or the Data Lineage tool; kept under Details as inference, said so in the code |
+| Health | `Show failures only`, `Search monitors…`, `+ Add checks`; Checks table `NAME / STATUS / REPORTED AT / MONITORING VIEW / HISTORY REPORTS` with `Checks 3 ● 2 ● 1`; Monitoring per view with `Rules`; Related schedules | the Checks half **built** by `HealthPanel` (659/660) — **divergent**: a two-line list with a minimal `Add check` toggle, no failures switch, no search, no table columns; its per-check `Watch`/RID controls are attested by `data-health/images/health-checks-overview.png`, a second capture of this same tab. The Monitoring and Related schedules sections **not built** here — `MonitoringPanel` exists at `/data-health` but is not composed. Both are the Data Health family's (§3.3) |
 
 ### What building it turned up
 
-- **`created_by_user_id` is never written.** `useCreateDataset` inserts
-  without it, so "Created … by" has nothing to say. Fix: a default of
-  `auth.uid()` on the column, forward.
+- **`created_by_user_id` was never written.** `useCreateDataset` inserted
+  without it, so "Created … by" had nothing to say. 805 defaulted it to
+  `auth.uid()` and the suite refused that within the hour — a caller whose
+  `sub` the platform has not registered broke the FK — so 806 made the default
+  `known_caller()`: the caller when a users row carries them, else NULL.
 - **The physical table's own policy is the weaker predicate.** 393's
   `rows follow the dataset` checks `can_read_dataset`; the data predicate
   (401) also requires the propagated data markings. 804's readers gate on the
@@ -123,15 +126,36 @@ Read off `dataset-preview/images/dataset.png`, the capture
   web suite run "as CI" (env moved aside) cannot overlap; one silently skips
   66 files. The full suite is run alone before this ships.
 
+### What the reconcile pass changed (2026-09-13)
+
+A reader walked seven captures against the page (136 elements); a refuter
+overturned nine of its claims, upheld eighteen and added nine it missed.
+Changed as a result: the All actions launcher (above); History rows are jobs;
+`Updated` is the last commit and its creator; the About `Branch` row and the
+commit/abort buttons are gone; the branch chip moved to the header's second
+line and opens on the root branch; `bp5-input` — dead under Blueprint 6 — became
+`Classes.INPUT` here and in `EffectEditor.tsx`; an upload now invalidates
+every query the view reads; a caller refused by the data gate sees the
+refusal instead of an empty grid; a schema-less dataset with files says so;
+counts print as the captures print them; the `Distinct` row became the
+`VALUE` heading's count; the folder joins the breadcrumb and the Location.
+Overturned and kept: the eager count (it is the annotated capture's), the
+transaction RID in the detail (`data-lifetime/FAQ`), `Create restricted view`
+in All actions (the struct-automapping capture), and 804's `ORDER BY _row` —
+`_row` is the table's unique identity, so the order is deterministic and is
+file order, the refuter's ties-across-files objection notwithstanding.
+
 ### Not built, with the reason
 
 | gap | why |
 |---|---|
 | SQL preview / console | needs a query language over the view; `sql-console.md` names Spark SQL |
-| Compare, Time Travel | a diff engine over two views; Time Travel is beta and needs a key-column diff |
+| Compare, Time Travel, Projections | a diff engine over two views; Time Travel is beta and needs a key-column diff; Projections has no page read here |
 | Create branch from History | no function creates a child dataset branch; ingestion.md question 4 |
 | Tags, star, Share, File/Help | no engine for any of the four |
-| header pill | unattested meaning |
+| header pill, `🏢 1` | unattested meaning |
+| `Analyze data ▾` / `Explore pipeline ▾` carets, `Build ▾` split half | their dropdown contents are unattested; a caret that opens nothing is worse than none |
+| `Enter description…` in place, `Table details`, `Copy` beside Location | 2026-era About panel; recorded in the reading §7 |
 | Edit schema | 789 stores the options; the editor is a form over them, not yet drawn |
 | per-column description | no column on `dataset_schemas.fields` for it |
 | Monitoring + Related schedules on the Health tab | compose `MonitoringPanel`; a small chunk, queued |

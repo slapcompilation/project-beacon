@@ -1621,7 +1621,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (353) ───────────────────────────────────────────────────
+// ── FUNCTIONS (354) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3296,6 +3296,16 @@ export const jobSpecQueryText = { apiName: 'job_spec_query_text', kind: 'functio
 export const jobSpecVersion = { apiName: 'job_spec_version', kind: 'function' } as FunctionType<
   { p_spec: string },
   number
+>
+
+/**
+ *  auth.uid() when the platform has a users row for it, else NULL — the value
+ *  a "created by" column may take without the FK refusing an unregistered
+ *  caller.
+ */
+export const knownCaller = { apiName: 'known_caller', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string
 >
 
 /**

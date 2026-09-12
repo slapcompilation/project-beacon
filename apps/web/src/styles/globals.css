@@ -2215,6 +2215,8 @@
    with the action bar, the preview table. Measured off dataset.png. */
 .dsv { display:flex; flex-direction:column; height:100%; min-height:0; }
 .dsv-header { display:flex; align-items:center; gap:8px; padding:6px 12px; border-bottom:1px solid hsl(var(--border)); }
+.dsv-header-line2 { display:flex; align-items:center; gap:6px; padding:2px 12px 6px 36px; font-size:12px; border-bottom:1px solid hsl(var(--border)); }
+.dsv-header { border-bottom:none; }
 .dsv-crumbs { display:flex; align-items:center; gap:4px; font-size:12px; min-width:0; }
 .dsv-crumbs .crumb { color:hsl(var(--muted-foreground)); }
 .dsv-crumbs .crumb-sep { color:hsl(var(--muted-foreground) / .6); }
@@ -2285,3 +2287,10 @@
 .dsv-col-row:hover { background:hsl(var(--muted) / .4); }
 .dsv-col-row.active { background:hsl(var(--primary) / .08); }
 .dsv-col-row .t { color:hsl(var(--muted-foreground)); font-size:11px; margin-left:auto; }
+.dsv-launcher { width:420px; padding:8px; }
+.dsv-launcher-body { display:flex; margin-top:6px; max-height:320px; }
+.dsv-launcher-rail { width:130px; flex-shrink:0; border-right:1px solid hsl(var(--border)); display:flex; flex-direction:column; gap:1px; padding-right:6px; }
+.dsv-launcher-rail button { border:none; background:none; text-align:left; padding:5px 8px; font-size:12px; border-radius:2px; cursor:pointer; color:inherit; }
+.dsv-launcher-rail button:hover { background:hsl(var(--muted)); }
+.dsv-launcher-rail button.active { background:hsl(var(--primary) / .12); color:hsl(var(--primary)); }
+.dsv-launcher-list { flex:1 1 0%; overflow-y:auto; min-width:0; }
