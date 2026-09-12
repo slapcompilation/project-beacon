@@ -72,7 +72,29 @@ function docComment(text, indent = '') {
   return [`${indent}/**`, ...lines.map((l) => `${indent} *  ${l}`), `${indent} */`]
 }
 
-function emit(fns, overloaded) {
+/** `(data_kind = ANY (ARRAY['base_type'::text, 'object'::text]))` → the members.
+ *  Only a constraint over ONE column with a literal array is a vocabulary; one
+ *  built from a function call has its own source and is skipped above. */
+function vocabularies(rows) {
+  const out = []
+  for (const r of rows) {
+    // The left side must be the column itself, not an expression over it.
+    const shape = new RegExp(`\\b${r.column} = ANY \\(ARRAY\\[(.*?)\\]\\)`, 's').exec(r.def)
+    if (shape === null) continue
+    const members = [...shape[1].matchAll(/'((?:[^']|'')*)'::text/g)].map((m) => m[1].replace(/''/g, "'"))
+    if (members.length === 0) continue
+    out.push({ name: pascal(r.table) + pascal(r.column), table: r.table, column: r.column, members })
+  }
+  // Two constraints can cover one column — 392 and 638 did exactly that before
+  // 789 dropped the duplicate. Keep the first and say nothing twice.
+  const seen = new Set()
+  return out.filter((v) => (seen.has(v.name) ? false : (seen.add(v.name), true)))
+}
+
+const pascal = (s) => s.split('_').filter(Boolean)
+  .map((w) => w[0].toUpperCase() + w.slice(1)).join('')
+
+function emit(fns, overloaded, vocab = []) {
   const actions = fns.filter((f) => f.volatility === 'volatile')
   const functions = fns.filter((f) => f.volatility !== 'volatile')
 
@@ -86,6 +108,18 @@ function emit(fns, overloaded) {
     "import type { ActionType, FunctionType, Json } from './client'",
     '',
   ]
+
+  if (vocab.length > 0) {
+    lines.push(`// ── Value sets (${String(vocab.length)}) ${'─'.repeat(49)}`)
+    lines.push('// Every single-column CHECK whose legal values are a literal array, on a')
+    lines.push('// table the app role may read. Hand-writing one of these is how it drifts.')
+    lines.push('')
+    for (const v of vocab) {
+      lines.push(`/** \`${v.table}.${v.column}\` */`)
+      lines.push(`export type ${v.name} = ${v.members.map((m) => `'${m}'`).join(' | ')}`)
+      lines.push('')
+    }
+  }
 
   if (overloaded.length > 0) {
     lines.push('// NOT GENERATED — overloaded, and an entity has one API name:')
@@ -167,6 +201,32 @@ const { rows } = await client.query(`
      AND p.prorettype NOT IN ('trigger'::regtype, 'event_trigger'::regtype)
      AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = p.oid AND d.deptype = 'e')
    ORDER BY p.proname`)
+
+// ── the value sets, from the same catalogue and by the same rule ────────────
+// A CHECK of the form `col = ANY (ARRAY['a','b'])` IS a vocabulary, and the app
+// hand-writes several of them as TypeScript unions. Those drift: `data_kind`
+// gained objectSet in 797 and the web learned about it two changes later, when
+// an editor needed to offer one. Generating them makes a drift a COMPILE error
+// instead of a silent disagreement, which is the same move that deleted
+// check:rpcs rather than maintaining it.
+//
+// Scope is derived, not listed: tables the app role may SELECT. A constraint
+// whose legal values come from a FUNCTION rather than a literal array is left
+// out — `property_base_types()` is the set, and it already has its own test.
+const { rows: valueSets } = await client.query(`
+  SELECT c.relname AS "table", a.attname AS "column",
+         pg_get_constraintdef(con.oid) AS def
+    FROM pg_constraint con
+    JOIN pg_class c ON c.oid = con.conrelid
+    JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = con.conkey[1]
+   WHERE con.contype = 'c'
+     AND con.connamespace = 'public'::regnamespace
+     AND c.relkind = 'r'
+     AND array_length(con.conkey, 1) = 1
+     AND has_table_privilege('authenticated', c.oid, 'SELECT')
+     AND pg_get_constraintdef(con.oid) LIKE '%= ANY (ARRAY[%'
+   ORDER BY c.relname, a.attname`)
+
 await client.end()
 
 // An entity has ONE API name — "unique across all object types… between 1 and
@@ -178,7 +238,7 @@ for (const f of rows) byName.set(f.name, [...(byName.get(f.name) ?? []), f])
 const overloaded = [...byName.entries()].filter(([, v]) => v.length > 1).map(([k]) => k)
 const entities = rows.filter((f) => !overloaded.includes(f.name))
 
-const next = emit(entities, overloaded)
+const next = emit(entities, overloaded, vocabularies(valueSets))
 const current = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : ''
 
 if (process.argv.includes('--check')) {
@@ -190,5 +250,5 @@ if (process.argv.includes('--check')) {
 } else {
   fs.mkdirSync(path.dirname(OUT), { recursive: true })
   fs.writeFileSync(OUT, next)
-  console.log(`wrote ${OUT} — ${String(entities.length)} entities, ${String(overloaded.length)} skipped as overloaded`)
+  console.log(`wrote ${OUT} — ${String(entities.length)} entities, ${String(vocabularies(valueSets).length)} value sets, ${String(overloaded.length)} skipped as overloaded`)
 }

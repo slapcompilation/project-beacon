@@ -6,6 +6,409 @@
 
 import type { ActionType, FunctionType, Json } from './client'
 
+// ── Value sets (133) ─────────────────────────────────────────────────
+// Every single-column CHECK whose legal values are a literal array, on a
+// table the app role may read. Hand-writing one of these is how it drifts.
+
+/** `action_type_parameters.data_kind` */
+export type ActionTypeParametersDataKind = 'base_type' | 'object' | 'interfaceObject' | 'objectType' | 'objectSet'
+
+/** `action_type_parameters.default_source` */
+export type ActionTypeParametersDefaultSource = 'static' | 'object_property'
+
+/** `action_type_rules.create_new_object_with` */
+export type ActionTypeRulesCreateNewObjectWith = 'auto_generated_primary_key' | 'user_submitted_primary_key'
+
+/** `action_type_submission_criteria.logical_operator` */
+export type ActionTypeSubmissionCriteriaLogicalOperator = 'all' | 'any' | 'none'
+
+/** `action_type_submission_criteria.node_type` */
+export type ActionTypeSubmissionCriteriaNodeType = 'condition' | 'logical'
+
+/** `action_type_submission_criteria.template` */
+export type ActionTypeSubmissionCriteriaTemplate = 'current_user' | 'parameter'
+
+/** `action_type_submission_criteria.user_field` */
+export type ActionTypeSubmissionCriteriaUserField = 'user_id' | 'group_ids' | 'attribute'
+
+/** `action_type_submission_criteria.value_source` */
+export type ActionTypeSubmissionCriteriaValueSource = 'parameter' | 'static' | 'none'
+
+/** `action_types.status` */
+export type ActionTypesStatus = 'active' | 'experimental' | 'deprecated' | 'example'
+
+/** `approval_requests.status` */
+export type ApprovalRequestsStatus = 'pending_approval' | 'closed' | 'rejected_and_closed' | 'changes_requested' | 'completed' | 'action_required'
+
+/** `approval_tasks.status` */
+export type ApprovalTasksStatus = 'review' | 'approved' | 'rejected'
+
+/** `audit_events.producer_type` */
+export type AuditEventsProducerType = 'SERVER' | 'CLIENT'
+
+/** `automation_effects.execution_mode` */
+export type AutomationEffectsExecutionMode = 'once_for_all' | 'once_for_each_batch' | 'once_for_each_group'
+
+/** `automation_effects.kind` */
+export type AutomationEffectsKind = 'action' | 'function' | 'notification' | 'logic'
+
+/** `automation_events.event_type` */
+export type AutomationEventsEventType = 'automation_triggered' | 'evaluation_failed' | 'condition_edited' | 'paused' | 'resumed' | 'muted' | 'unmuted'
+
+/** `automation_runs.outcome` */
+export type AutomationRunsOutcome = 'started' | 'succeeded' | 'failed' | 'skipped' | 'awaiting_retry'
+
+/** `automations.execution` */
+export type AutomationsExecution = 'sequential' | 'parallel'
+
+/** `automations.scope` */
+export type AutomationsScope = 'user' | 'project'
+
+/** `batch_deployment_runs.status` */
+export type BatchDeploymentRunsStatus = 'RUNNING' | 'COMPLETED' | 'FAILED' | 'ABORTED'
+
+/** `branch_resource_changes.operation` */
+export type BranchResourceChangesOperation = 'created' | 'modified' | 'deleted'
+
+/** `branch_resource_changes.resource_kind` */
+export type BranchResourceChangesResourceKind = 'object_type' | 'link_type' | 'shared_property' | 'interface' | 'action_type' | 'type_group'
+
+/** `build_jobs.state` */
+export type BuildJobsState = 'WAITING' | 'RUN_PENDING' | 'RUNNING' | 'ABORT_PENDING' | 'ABORTED' | 'FAILED' | 'COMPLETED'
+
+/** `builds.status` */
+export type BuildsStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELED'
+
+/** `cleanup_candidates.priority` */
+export type CleanupCandidatesPriority = 'high' | 'medium' | 'low'
+
+/** `cleanup_configurations.mode` */
+export type CleanupConfigurationsMode = 'default' | 'custom'
+
+/** `cleanup_flag_overrides.priority` */
+export type CleanupFlagOverridesPriority = 'high' | 'medium' | 'low'
+
+/** `code_checks.status` */
+export type CodeChecksStatus = 'running' | 'succeeded' | 'failed'
+
+/** `code_pull_requests.status` */
+export type CodePullRequestsStatus = 'open' | 'closed' | 'merged'
+
+/** `code_reviews.decision` */
+export type CodeReviewsDecision = 'approved' | 'rejected'
+
+/** `collection_resources.resource_kind` */
+export type CollectionResourcesResourceKind = 'project' | 'folder' | 'dataset' | 'restricted_view'
+
+/** `contour_parameters.param_type` */
+export type ContourParametersParamType = 'Date' | 'String' | 'Number'
+
+/** `dataset_transactions.status` */
+export type DatasetTransactionsStatus = 'OPEN' | 'COMMITTED' | 'ABORTED'
+
+/** `dataset_transactions.txn_type` */
+export type DatasetTransactionsTxnType = 'SNAPSHOT' | 'APPEND' | 'UPDATE' | 'DELETE'
+
+/** `fusion_table_regions.sync_kind` */
+export type FusionTableRegionsSyncKind = 'table' | 'sheet'
+
+/** `group_assignment_conditions.match_kind` */
+export type GroupAssignmentConditionsMatchKind = 'includes' | 'does_not_include' | 'is_equal_to'
+
+/** `group_permissions.permission` */
+export type GroupPermissionsPermission = 'manage_permissions' | 'manage_membership'
+
+/** `groups.group_type` */
+export type GroupsGroupType = 'internal' | 'external' | 'rule_based'
+
+/** `health_check_results.severity` */
+export type HealthCheckResultsSeverity = 'moderate' | 'critical'
+
+/** `health_check_watchers.level` */
+export type HealthCheckWatchersLevel = 'nothing' | 'all_failures' | 'only_critical'
+
+/** `health_checks.severity` */
+export type HealthChecksSeverity = 'moderate' | 'critical'
+
+/** `interface_action_parameter_constraints.base_type` */
+export type InterfaceActionParameterConstraintsBaseType = 'object_reference' | 'interface_reference' | 'object_set'
+
+/** `interface_implementation_mappings.resolution` */
+export type InterfaceImplementationMappingsResolution = 'choose_existing' | 'replace_existing' | 'choose_backing_column' | 'edit_only' | 'skip'
+
+/** `interface_link_constraints.cardinality` */
+export type InterfaceLinkConstraintsCardinality = 'ONE' | 'MANY'
+
+/** `interface_link_constraints.target_kind` */
+export type InterfaceLinkConstraintsTargetKind = 'interface' | 'object_type'
+
+/** `interface_properties.pk_constraint` */
+export type InterfacePropertiesPkConstraint = 'must' | 'cannot' | 'none'
+
+/** `interface_properties.source` */
+export type InterfacePropertiesSource = 'local' | 'shared'
+
+/** `interface_properties.visibility` */
+export type InterfacePropertiesVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `link_edits.instruction` */
+export type LinkEditsInstruction = 'addLink' | 'deleteLink'
+
+/** `link_types.cardinality` */
+export type LinkTypesCardinality = 'one_to_one' | 'one_to_many' | 'many_to_one' | 'many_to_many'
+
+/** `link_types.source_visibility` */
+export type LinkTypesSourceVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `link_types.status` */
+export type LinkTypesStatus = 'active' | 'experimental' | 'deprecated' | 'example'
+
+/** `link_types.target_visibility` */
+export type LinkTypesTargetVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `link_types.visibility` */
+export type LinkTypesVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `marking_categories.category_type` */
+export type MarkingCategoriesCategoryType = 'conjunctive' | 'disjunctive'
+
+/** `marking_categories.visibility` */
+export type MarkingCategoriesVisibility = 'visible' | 'hidden'
+
+/** `marking_category_permissions.role` */
+export type MarkingCategoryPermissionsRole = 'administrator' | 'viewer'
+
+/** `marking_permissions.permission` */
+export type MarkingPermissionsPermission = 'manage' | 'apply' | 'remove'
+
+/** `model_versions.source` */
+export type ModelVersionsSource = 'importedContainerizedModel' | 'external' | 'codeWorkspace' | 'modelStudio' | 'codeRepository' | 'sdk' | 'promoted'
+
+/** `monitoring_alert_transitions.severity` */
+export type MonitoringAlertTransitionsSeverity = 'low' | 'medium' | 'high'
+
+/** `monitoring_alert_transitions.status` */
+export type MonitoringAlertTransitionsStatus = 'failing' | 'passing'
+
+/** `monitoring_alerts.severity` */
+export type MonitoringAlertsSeverity = 'low' | 'medium' | 'high'
+
+/** `monitoring_alerts.status` */
+export type MonitoringAlertsStatus = 'failing' | 'passing'
+
+/** `monitoring_rule_conditions.severity` */
+export type MonitoringRuleConditionsSeverity = 'low' | 'medium' | 'high'
+
+/** `monitoring_rules.resource_type` */
+export type MonitoringRulesResourceType = 'schedule' | 'dataset' | 'automation'
+
+/** `monitoring_rules.scope_kind` */
+export type MonitoringRulesScopeKind = 'single' | 'folder' | 'project'
+
+/** `monitoring_subscribers.min_severity` */
+export type MonitoringSubscribersMinSeverity = 'low' | 'medium' | 'high'
+
+/** `object_datasets.build_interval` */
+export type ObjectDatasetsBuildInterval = 'automatic' | 'periodic'
+
+/** `object_edits.instruction` */
+export type ObjectEditsInstruction = 'create' | 'modify' | 'delete'
+
+/** `object_sets.set_kind` */
+export type ObjectSetsSetKind = 'exploration' | 'list'
+
+/** `object_type_datasources.conflict_resolution` */
+export type ObjectTypeDatasourcesConflictResolution = 'apply_user_edits' | 'apply_most_recent_value'
+
+/** `object_type_materializations.propagation` */
+export type ObjectTypeMaterializationsPropagation = 'automatic' | 'periodic'
+
+/** `object_type_properties.analyzer` */
+export type ObjectTypePropertiesAnalyzer = 'standard' | 'simple' | 'not_analyzed' | 'whitespace' | 'english' | 'french' | 'german' | 'japanese' | 'korean' | 'arabic' | 'combined_arabic_english'
+
+/** `object_type_properties.source` */
+export type ObjectTypePropertiesSource = 'column' | 'user_input' | 'linked_objects'
+
+/** `object_type_properties.status` */
+export type ObjectTypePropertiesStatus = 'active' | 'experimental' | 'deprecated' | 'example'
+
+/** `object_type_properties.time_series_item_type` */
+export type ObjectTypePropertiesTimeSeriesItemType = 'string' | 'double' | 'numericOrNonNumeric'
+
+/** `object_type_properties.vector_embedding_kind` */
+export type ObjectTypePropertiesVectorEmbeddingKind = 'lms' | 'foundry_live_deployment'
+
+/** `object_type_properties.visibility` */
+export type ObjectTypePropertiesVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `object_types.status` */
+export type ObjectTypesStatus = 'promoted' | 'active' | 'experimental' | 'deprecated' | 'example'
+
+/** `object_types.visibility` */
+export type ObjectTypesVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `object_view_tabs.kind` */
+export type ObjectViewTabsKind = 'managed_workshop' | 'standalone_workshop'
+
+/** `objective_checks.metric_op` */
+export type ObjectiveChecksMetricOp = '>=' | '<=' | '>' | '<' | '='
+
+/** `objective_deployments.deployment_type` */
+export type ObjectiveDeploymentsDeploymentType = 'batch' | 'live'
+
+/** `objective_deployments.environment` */
+export type ObjectiveDeploymentsEnvironment = 'staging' | 'production'
+
+/** `ontology_branches.status` */
+export type OntologyBranchesStatus = 'active' | 'inactive' | 'archived' | 'merged'
+
+/** `ontology_interfaces.status` */
+export type OntologyInterfacesStatus = 'active' | 'experimental' | 'deprecated' | 'example'
+
+/** `ontology_proposals.status` */
+export type OntologyProposalsStatus = 'open' | 'merged' | 'closed'
+
+/** `ontology_role_grants.role` */
+export type OntologyRoleGrantsRole = 'viewer' | 'editor' | 'owner'
+
+/** `ontology_save_changes.operation` */
+export type OntologySaveChangesOperation = 'created' | 'modified' | 'deleted'
+
+/** `ontology_save_changes.resource_kind` */
+export type OntologySaveChangesResourceKind = 'object_type' | 'link_type' | 'shared_property' | 'interface' | 'action_type' | 'type_group'
+
+/** `ontology_saves.via` */
+export type OntologySavesVia = 'save' | 'merge'
+
+/** `org_assignment_rules.match_kind` */
+export type OrgAssignmentRulesMatchKind = 'includes' | 'does_not_include' | 'is_equal_to'
+
+/** `platform_logos.size` */
+export type PlatformLogosSize = 'favicon' | 'small' | 'medium' | 'large'
+
+/** `project_resources.resource_kind` */
+export type ProjectResourcesResourceKind = 'object_type' | 'object_set'
+
+/** `project_role_grants.role` */
+export type ProjectRoleGrantsRole = 'owner' | 'editor' | 'viewer' | 'discoverer'
+
+/** `projects.cover_page_discoverability` */
+export type ProjectsCoverPageDiscoverability = 'all_can_discover' | 'require_marking_access'
+
+/** `projects.default_role` */
+export type ProjectsDefaultRole = 'owner' | 'editor' | 'viewer' | 'discoverer'
+
+/** `proposal_reviews.decision` */
+export type ProposalReviewsDecision = 'approved' | 'rejected'
+
+/** `quiver_analyses.analysis_type` */
+export type QuiverAnalysesAnalysisType = 'quiver' | 'time_series' | 'object_set_path'
+
+/** `quiver_dashboards.view_style` */
+export type QuiverDashboardsViewStyle = 'default' | 'compact' | 'stretch'
+
+/** `resource_markings.resource_kind` */
+export type ResourceMarkingsResourceKind = 'project' | 'dataset' | 'folder' | 'restricted_view'
+
+/** `resource_tags.resource_kind` */
+export type ResourceTagsResourceKind = 'project' | 'folder' | 'dataset' | 'restricted_view'
+
+/** `scenario_edits.instruction` */
+export type ScenarioEditsInstruction = 'create' | 'modify' | 'delete'
+
+/** `schedule_runs.outcome` */
+export type ScheduleRunsOutcome = 'Succeeded' | 'Ignored' | 'Failed'
+
+/** `schedules.build_type` */
+export type SchedulesBuildType = 'manual' | 'upstream'
+
+/** `schedules.scope` */
+export type SchedulesScope = 'user' | 'project'
+
+/** `shared_properties.visibility` */
+export type SharedPropertiesVisibility = 'prominent' | 'normal' | 'hidden'
+
+/** `slate_apps.kind` */
+export type SlateAppsKind = 'integrated' | 'public'
+
+/** `slate_variables.value_type` */
+export type SlateVariablesValueType = 'Number' | 'String' | 'Boolean' | 'Array' | 'Object' | 'Null'
+
+/** `slate_widgets.container_type` */
+export type SlateWidgetsContainerType = 'basic' | 'flex' | 'repeating' | 'split' | 'tabbed'
+
+/** `slate_widgets.split_axis` */
+export type SlateWidgetsSplitAxis = 'horizontally' | 'vertically'
+
+/** `submission_check_responses.verdict` */
+export type SubmissionCheckResponsesVerdict = 'approve' | 'reject' | 'comment'
+
+/** `submission_reviews.decision` */
+export type SubmissionReviewsDecision = 'comment' | 'accept' | 'reject'
+
+/** `time_series_syncs.timestamp_unit` */
+export type TimeSeriesSyncsTimestampUnit = 'SECONDS' | 'MILLISECONDS' | 'MICROSECONDS' | 'NANOSECONDS'
+
+/** `users.role` */
+export type UsersRole = 'owner' | 'admin'
+
+/** `users.status` */
+export type UsersStatus = 'ACTIVE' | 'DELETED'
+
+/** `value_type_constraints.kind` */
+export type ValueTypeConstraintsKind = 'enum' | 'range' | 'regex' | 'rid' | 'uuid' | 'uniqueness' | 'nested' | 'element'
+
+/** `vertex_template_search_arounds.kind` */
+export type VertexTemplateSearchAroundsKind = 'relation' | 'function' | 'saved'
+
+/** `vertex_template_value_parameters.param_type` */
+export type VertexTemplateValueParametersParamType = 'Integer' | 'Double' | 'Float' | 'string' | 'boolean' | 'Timestamp' | 'Date'
+
+/** `workbook_template_versions.language` */
+export type WorkbookTemplateVersionsLanguage = 'Python' | 'R' | 'SQL'
+
+/** `workbook_template_versions.status` */
+export type WorkbookTemplateVersionsStatus = 'Released' | 'Unreleased'
+
+/** `workbook_transforms.language` */
+export type WorkbookTransformsLanguage = 'Python' | 'R' | 'SQL'
+
+/** `workbook_transforms.transform_type` */
+export type WorkbookTransformsTransformType = 'code' | 'template' | 'manual_entry'
+
+/** `workflows.scope` */
+export type WorkflowsScope = 'organization' | 'space'
+
+/** `working_state_changes.operation` */
+export type WorkingStateChangesOperation = 'created' | 'modified' | 'deleted'
+
+/** `working_state_changes.resource_kind` */
+export type WorkingStateChangesResourceKind = 'object_type' | 'link_type' | 'shared_property' | 'interface' | 'action_type' | 'type_group'
+
+/** `workshop_overlays.kind` */
+export type WorkshopOverlaysKind = 'drawer' | 'modal'
+
+/** `workshop_overlays.side` */
+export type WorkshopOverlaysSide = 'left' | 'right'
+
+/** `workshop_sections.layout` */
+export type WorkshopSectionsLayout = 'columns' | 'rows' | 'tabs' | 'flow' | 'toolbar' | 'loop'
+
+/** `workshop_sections.width_mode` */
+export type WorkshopSectionsWidthMode = 'auto' | 'absolute' | 'flex'
+
+/** `workshop_variables.definition_type` */
+export type WorkshopVariablesDefinitionType = 'static' | 'function' | 'object_set_aggregation' | 'object_property' | 'object_set_definition' | 'variable_transformation' | 'sql_query'
+
+/** `workshop_variables.recompute` */
+export type WorkshopVariablesRecompute = 'automatic' | 'on_event' | 'on_load_and_event'
+
+/** `workshop_variables.value_type` */
+export type WorkshopVariablesValueType = 'array' | 'boolean' | 'date' | 'geopoint' | 'geoshape' | 'numeric' | 'object_set' | 'object_set_filter' | 'string' | 'struct' | 'timestamp' | 'time_series_set'
+
+/** `workshop_widgets.size_mode` */
+export type WorkshopWidgetsSizeMode = 'auto' | 'absolute' | 'flex'
+
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
