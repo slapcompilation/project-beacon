@@ -630,26 +630,41 @@ scrapped. What genuinely remains:
 - **Auto-pause.** Its trigger is "excessive activity", with no threshold, metric
   or window on any page — the contrast with auto-mute's exact 80%-of-30 is what
   makes the difference visible. Not buildable without inventing a number.
-- **Effect inputs — HALF BUILT, and this entry was stale for months.** It used to
-  read that nothing carries the triggering objects to an effect. That was false
-  when written and falser since: **630 is called "the objects that fired reach the
-  effect"**, and it ships `automation_effects.object_input_parameter_id`, a
-  `guard_effect_input` trigger enforcing the type-alignment rule, the three
-  exposing conditions by name, and the 10,000-object cap with its published
-  behaviour. 631 followed with the index. A `Single object` input works today, and
-  because a single-object input *is* per-object execution, that execution mode
-  works with it.
-  **What genuinely remains, and 630's own header names the blocker:** the other
-  three published input kinds — Object set, Object list, Property reference — need
-  an action parameter that can hold more than one object, and `data_kind` admits
-  only `base_type`, `object`, `interfaceObject` and `objectType`. The api DOES
-  publish the missing one: `objectSet` is a parameter type on
-  `api/ontologies-v2-resources-action-types-get-action-type`, carrying an
-  `objectApiName`. So the next build here is an **action type** feature, not an
-  Automate one, and the three grouping execution modes — once for all, per batch,
-  per group — become buildable the moment a parameter can hold a set.
-  Corrected 2026-09-10 after `scripts/probes/chain-e2e.mjs` asked whether the
-  machinery existed instead of assuming this entry was current.
+- **Effect inputs — BUILT, 797-803, and this entry twice taught the same lesson.**
+  It first read that nothing carries the triggering objects to an effect. That
+  was false when written: **630 is called "the objects that fired reach the
+  effect"** and had shipped the `Single object` input, its type-alignment guard
+  and the 10,000-object cap. Corrected 2026-09-10 after
+  `scripts/probes/chain-e2e.mjs` asked whether the machinery existed instead of
+  believing this file.
+  It then read that the remaining three kinds were blocked on an action parameter
+  that could hold many objects. That was true, and is no longer: 797 added the
+  `objectSet` parameter kind from the api's own union plus the host read that
+  makes it reachable, 798 the subject lookup that read needs, 800 the Object set
+  effect input with the three grouping execution modes, 802 their rename into the
+  page's own words, and 803 dynamic notification recipients, which waited on the
+  same shape. 966 and 967 gave all of it a surface.
+  **What remains, with the reason rather than the word blocked.** `Object list`
+  is NOT built and will not be until Foundry publishes a parameter member for it —
+  it differs from an object set only in being a list, and the api's union has no
+  such member, so building one would invent a kind. `Property reference` waits on
+  the same absence. The three per-recipient viewer requirements on a notification
+  are recorded unbuilt in 803's header: they need a read evaluated AS each
+  recipient, and an automation runs on a heartbeat holding nobody's credentials —
+  the wall 553 hit when it inverted the scheduled path rather than elevating it.
+
+- **Notifications — BUILT, 793-795 and 803, engine and surface.** There is no
+  `notifications` section in the mirror and five product pages describe sending
+  one; `readings/notifications.md` settles that they describe ONE mechanism,
+  published as a type in `functions/types-reference`. Audience is per producer,
+  delivery is uniform, and the centre is `data-health/images/notifications.png`.
+  **Not built, each with its page-level reason:** the preference matrix, whose
+  only evidence calls itself experimental; the object-monitor subscriber
+  audience, because that product is sunset and names Automate as its replacement;
+  email and SMS transport, which are in the channel set because
+  `object-monitors/overview` enumerates all three, and undeliverable because we
+  have neither mail nor webhooks; and the eight-category rail, which names
+  producers we do not have.
 
 **Platform-experience residuals.** Languages and Platform version stay out
 with reasons recorded in `platform-experience.md`; the enrollment-scope
