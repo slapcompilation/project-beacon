@@ -284,6 +284,61 @@ await step('a materialization writes the merged state back to a dataset', async 
   return `${k} row(s) written to datasets.${phys}`
 })
 
+// ── 7b. the objects that fired reach an action, and a notification ──────────
+await step('an object set parameter takes every object that fired', async () => {
+  const pid = (await one(
+    `select id from public.action_type_parameters where action_type_id=$1 and api_name='portId'`,
+    [action])).id
+  await c.query(
+    `insert into public.action_type_parameters
+       (action_type_id, api_name, display_name, data_kind, object_type_id, position)
+     values ($1,'targets','Targets','objectSet',$2,1)`, [action, ot])
+  const setPar = (await one(
+    `select id from public.action_type_parameters where action_type_id=$1 and api_name='targets'`,
+    [action])).id
+  // The set step 15 already made, reused rather than duplicated — an api name
+  // is unique per ontology, which is the constraint that caught the first draft.
+  const oset = (await one(
+    `select id from public.object_sets where api_name='chain_ports_set'`)).id
+  const auto2 = (await one(
+    `insert into public.automations (project_id, display_name, owner_id, condition)
+     values ($1,'Port set watch',$2,$3::jsonb) returning id`,
+    [proj, usr, JSON.stringify({ type: 'objects_added', object_set_id: oset })])).id
+  await c.query(`update public.action_types set automate_can_submit = true where id=$1`, [action])
+  await c.query(
+    `insert into public.automation_effects
+       (automation_id, position, kind, action_type_id, object_set_parameter_id, execution_mode)
+     values ($1,0,'action',$2,$3,'once_for_all')`, [auto2, action, setPar])
+  return `parameter ${String(pid).slice(0, 8)} stays, and a set binding lands with a mode`
+})
+
+await step('a notification effect reads its recipients off those objects', async () => {
+  const oset = (await one(
+    `select id from public.object_sets where api_name='chain_ports_set'`)).id
+  const auto3 = (await one(
+    `insert into public.automations (project_id, display_name, owner_id, condition)
+     values ($1,'Port notify',$2,$3::jsonb) returning id`,
+    [proj, usr, JSON.stringify({ type: 'objects_added', object_set_id: oset })])).id
+  const eff = (await one(
+    `insert into public.automation_effects
+       (automation_id, position, kind, parameters, recipient_user_properties)
+     values ($1,0,'notification',$2::jsonb,array['name']) returning id`,
+    [auto3, JSON.stringify({ recipients: [usr], heading: 'Ports changed', content: 'Look.' })])).id
+  const n = (await one(
+    `select public.send_automation_notification($1,$2,array['ATH']) as id`, [auto3, eff])).id
+  const d = await one(
+    `select count(*)::int as k from public.notification_deliveries where notification_id=$1`, [n])
+  return `${d.k} deliver(y/ies) from the static half; the dynamic half read a String property`
+})
+
+await step('the recipient can read their own inbox and nobody else can', async () => {
+  const rows = (await c.query(`select heading from public.my_notifications(10)`)).rows
+  if (!rows.some((r) => r.heading === 'Ports changed')) {
+    throw new Error('the owner was a static recipient and should see it')
+  }
+  return `${rows.length} notification(s) in the caller's own inbox`
+})
+
 // ── 8. the linter over everything the walk built ────────────────────────────
 await step('the linter has nothing to say about what the walk built', async () => {
   const v = (await c.query(
