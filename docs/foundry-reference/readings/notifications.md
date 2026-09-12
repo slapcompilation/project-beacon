@@ -17,7 +17,7 @@ which nothing routed me to.
 images. **32 were parsed here**, and the remaining two —
 `automate/images/effect-fallback-configuration.png` and
 `automate/images/effect-fallback-error-info.png` — were parsed for
-`readings/automate-effect-inputs.md`, which shares the fallback page. So nothing
+`readings/automate.md`, which shares the fallback page. So nothing
 is unparsed across the pair, and the split is stated rather than rounded off.
 
 **There is no `notifications` section in the mirror.** That is the fact this
@@ -213,7 +213,7 @@ conflating them would produce a notification row that needs to be updated.
   only silences notifications; 418 records notification as one of three side-effect
   rules. The audience side is modelled in four places and the delivery side in
   none, which is the shape the standing rule asks for before building.
-- `readings/automate-effect-inputs.md` — the notification effect is one of
+- `readings/automate.md` — the notification effect is one of
   Automate's four effect kinds, and its recipients can come from an effect input.
 - `readings/data-health.md` and the monitoring reading, for the two watcher and
   subscriber audiences.

@@ -1621,7 +1621,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (350) ───────────────────────────────────────────────────
+// ── FUNCTIONS (353) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2608,6 +2608,16 @@ export const datasetBranchSchema = { apiName: 'dataset_branch_schema', kind: 'fu
   Json
 >
 
+/**
+ *  The stats panel's counts for one column of the branch's current view —
+ *  rows, normal, null, empty, whitespace, distinct — and the values by
+ *  descending count (default top 20). Gated by can_read_dataset_data.
+ */
+export const datasetColumnStats = { apiName: 'dataset_column_stats', kind: 'function' } as FunctionType<
+  { p_branch: string; p_column: string; p_top?: number },
+  Json
+>
+
 export const datasetCurrentFields = { apiName: 'dataset_current_fields', kind: 'function' } as FunctionType<
   { p_dataset: string },
   Json
@@ -2636,6 +2646,26 @@ export const datasetHistoryFrom = { apiName: 'dataset_history_from', kind: 'func
 export const datasetMarkings = { apiName: 'dataset_markings', kind: 'function' } as FunctionType<
   { p_dataset: string },
   { marking_id: string; name: string; category: string; kind: string; origin: string; satisfied: boolean }[]
+>
+
+/**
+ *  The preview table: a sample (default 300) of the branch's current view,
+ *  one jsonb per row keyed by column, after the sort and the include/exclude
+ *  filters — which apply to the whole view, not to the sample. Gated by
+ *  can_read_dataset_data.
+ */
+export const datasetPreview = { apiName: 'dataset_preview', kind: 'function' } as FunctionType<
+  { p_branch: string; p_limit?: number; p_order_by?: string; p_desc?: boolean; p_filters?: Json },
+  Json[]
+>
+
+/**
+ *  How many rows the view holds under the preview's filters — the "of 481" in
+ *  "Showing 300 of 481 rows". Gated by can_read_dataset_data.
+ */
+export const datasetPreviewCount = { apiName: 'dataset_preview_count', kind: 'function' } as FunctionType<
+  { p_branch: string; p_filters?: Json },
+  number
 >
 
 /**
