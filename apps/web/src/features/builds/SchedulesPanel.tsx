@@ -9,6 +9,7 @@ import {
   Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Switch, Tag,
 } from '@blueprintjs/core'
 import { useDatasets } from '@/features/datasets/api'
+import type { SchedulesBuildType } from '@beacon/platform'
 import {
   useCreateSchedule, useDeleteSchedule, useScheduleRuns, useSchedules,
   useSetSchedulePaused, type ScheduleTrigger,
@@ -95,7 +96,7 @@ function CreateSchedule({ onDone }: { onDone: () => void }) {
   const { data: datasets = [] } = useDatasets()
   const [name, setName] = useState('')
   const [target, setTarget] = useState('')
-  const [buildType, setBuildType] = useState<'single' | 'full'>('single')
+  const [buildType, setBuildType] = useState<SchedulesBuildType>('manual')
   const [useTime, setUseTime] = useState(true)
   const [cron, setCron] = useState('0 9 * * *')
   const [timezone, setTimezone] = useState('UTC')
@@ -124,9 +125,9 @@ function CreateSchedule({ onDone }: { onDone: () => void }) {
           <option value="">Target dataset…</option>
           {datasets.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </HTMLSelect>
-        <HTMLSelect value={buildType} onChange={(e) => { setBuildType(e.currentTarget.value as 'single' | 'full') }}>
-          <option value="single">Single build</option>
-          <option value="full">Full build (include upstream)</option>
+        <HTMLSelect value={buildType} onChange={(e) => { setBuildType(e.currentTarget.value as SchedulesBuildType) }}>
+          <option value="manual">Single build</option>
+          <option value="upstream">Full build (include upstream)</option>
         </HTMLSelect>
       </div>
       <div className="flex flex-wrap items-center gap-2 text-xs">

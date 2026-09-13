@@ -185,43 +185,399 @@ these families is queued in three batches**; the batch column says which.
 Nothing below asserts what a capture shows, because for these families I
 have not opened them this pass.
 
-### Batch A — the chain's core
+### Batch A — walked against the captures 2026-09-13
 
-**3.1 Home and Projects (Compass)** — `/` (`HomePage.tsx`, 108 lines: a
-navigation page from `readings/home-and-navigation.md`), `/projects`
-(`ProjectsPage.tsx`, 429). Sections: `compass` (10 pages / 39 images),
-`projects` (9 / 20). The operator's report is that the Data Ops group on Home
-is empty; Foundry reaches a dataset through a Compass folder, and
-`create-dataset.png` shows the `+ New` menu searching "dataset" across
-`All / Analyze Data / Build & monitor pipelines / Data Governance / Manage &
-deploy models / Operational applications`. Survey findings: none in scope.
+Four readers (one per family) opened the product's main captures, read our
+pages' source, and listed gaps, not-gaps and *unattested* elements (things we
+render that no capture or sentence shows); four refuters then tried to
+overturn every claim. Counts per family: **Home/Projects** 51 verdicts, 5
+overturned; **Pipelines** 20 verdicts, 9 overturned; **Data Health** 41, 5;
+**Explorer/Object Views** 44, 0 — plus 12 not-gaps and 11 unattested claims
+overturned the other way. Everything below survived that pass; where the
+refuter narrowed a claim, the narrower form is what is written.
 
-**3.2 Pipelines** — `/builds` (`BuildsPage.tsx`, 83), `/lineage`
-(`LineagePage.tsx`, 311), `/branches` (`BranchesPage.tsx`, 156). Sections:
-`building-pipelines` (45 / 181), `data-lineage` (20 / 71), `foundry-branching`
-(14 / 53), the builds and schedules pages of `data-integration`. Survey
-findings, all with an engine and no surface:
-- schedule scope (`schedules.scope`, `scope_project_ids`, `guard_schedule_scope`) — a user/project toggle and project picker on the schedule dialog; "All schedules should be Project-scoped when possible" (`building-pipelines/scheduling-best-practices`)
-- schedule health (`health_checks.schedule_id`, the `schedule_status` check) — a Health panel beside the runs list; "it is recommended that all schedules have schedule status checks" (`data-health/checks-reference`)
-- the build report's job detail (`job_blocked_by`, `job_spec_input_state`, `job_spec_version`) — a "waiting on build X" line, an object/link-type name where the output is not a dataset
-- dataset branching (`parent_branch_id`, `head_transaction_id`, the `_from` readers) — a Create branch control; "A child branch can be created from another branch, or from any transaction" (`data-integration/branching`)
-- branch roles (`branch_roles`, `guard_last_branch_owner`) — a Roles list on the branch detail
-- the link index pipeline (`run_link_index_build`, `link_type_index_state`) — the same index tag and Reindex control object types have, on `LinkTypesPage`
-- per-input marking stops (`dataset_input_marking_stops`) — two pages disagree on where it lives (`data-integration/views` vs `building-pipelines/remove-inherited-markings`); settle first
+**One finding is not a surface gap and is fixed in the same PR as this
+section:** every Build the web could start was refused by the engine.
+`features/builds/api.ts` sent `p_build_type` as `single`/`full`, and
+`SchedulesPanel` inserted the same tokens, where `run_build` (507) admits only
+`manual`/`upstream` and `schedules.build_type`'s CHECK (506) agrees —
+`buildQueue.test.ts` even asserts the refusal. The generated union
+`SchedulesBuildType` had carried the right tokens all along; the web now uses
+it, so the next drift is a compile error. The Build button on the dataset
+view was dead on arrival for the same reason.
 
-**3.3 Data health and monitoring** — `/data-health` (`DataHealthPage.tsx`,
-134; `HealthPanel`, `MonitoringPanel`). Sections: `data-health` (11 / 15),
-`monitoring-views` (7 / 15). Survey: `monitoring_alert_transitions` has no
-reader — the "Alert history" section of the alert debug page, "a timeline of
-monitor status transitions for this rule over the past 30 days"
-(`monitoring-views/alert-debug-page`).
+#### 3.1 Home and Projects (Compass) — the family to build next
 
-**3.4 Object Explorer and Object Views** — `/explorer` (`ExplorerHome.tsx`,
-174), `/explorer/:typeId` (`ExplorationPage.tsx`, 664), `/explorer/saved/:setId`
-(70), `/objects/:typeId/:pk` (`ObjectViewPage.tsx`, 298). Sections:
-`object-explorer` (17 / 90), `object-views` (23 / 75). Survey: the time-series
-formatter (782) has no display surface, and no capture of one was found —
-read `time-series`'s object-view pages before drawing it.
+**Routes / ours:** `/` (`HomePage.tsx`, 108), `/projects` (`ProjectsPage.tsx`,
+429, with `features/compass/FilesCard.tsx`), the shell
+(`features/platformShell/`). **Sections:** `compass` (10 / 39), `projects`
+(9 / 20, duplicates of compass), `getting-started` (home, sidebar, quicksearch
+captures). **Readings:** `home-and-navigation.md`, `compass-folders.md`,
+`compass-activity-log.md`, `project-documentation.md`,
+`request-access-to-a-project.md`. Captures opened this pass: 14 of 53.
+
+**Home (`getting-started/images/homepage.png`).** Built: the NAVIGATION
+column, the welcome banner, three audience sections of 3-column cards with the
+capture's titles and taglines verbatim. The operator's "Data Ops stripped
+empty" is not the home page — five Data Ops cards render — it is what the
+Dataset card opened onto, which §1 fixed. Gaps: card **order** diverges from
+the capture in all three sections (Data Ops reads Dataset, Code repositories,
+Data Lineage, Projects, Catalog — ours puts Code repositories last; small).
+Unattested and ours: the "is sunset" paragraph under each section, the
+welcome sub-line's wording, the hexagonal artwork, the scroll-tracking TOC.
+
+**Sidebar and shell (`compass-files-landing-page.png`, `recent.png`,
+`favorite-area.png`).** Surviving gaps: Recent lists **resources** ("the last
+20 resources you have opened or interacted with"), ours lists up to 8 app
+routes client-side; favourited resources (a starred folder, a starred object
+on the collapsed rail — the two starred *apps* beside them are built); the
+empty favourites state (`APPS · View all` / "Your favorited apps will appear
+here." — ours hides the group); an `Ontology` sidebar row between Files and
+Applications; `What's New`; the bottom cluster (AIP Assist, Support panel,
+Other Workspaces — no engine); the Applications Portal's promoted apps, search
+and tags. Unattested: `Settings` and `Sign out` as sidebar rows (kept by
+`feedback_no_top_bar`; Foundry reaches both through the Account panel);
+`Vertex` filed under Analyze data where `vertex/explore-object-relationships`
+attests **Operational Applications** — wrong, not inferred.
+
+**Files landing page (`compass-files-landing-page.png`) — LARGE.** Foundry's is
+a table, not a grid: tabs `Portfolios / Projects / Your files / Shared with
+you`; a dismissible Quick filters band (Portfolios / Projects / Promoted items,
+each with a sentence and `Apply`); one search box `Search all portfolios,
+projects, folders and files…`; a `Filters` rail (Types with counts, Status,
+Portfolios, Projects, Tags, Organizations); a table `FILE NAME (+ grey path) /
+LAST MODIFIED / TAGS / PORTFOLIO` with an org-count chip and inline `Request
+access` on rows the viewer cannot open; a namespace chip and gear; green
+`+ New project` with `Manage spaces ⚙` beside it. Ours: a card grid of
+projects with name, api name and description, and a separate `Discoverable`
+strip. Engines: portfolios (555) and promoted status (499/556) exist; tags
+(`resource_tags`) exist; the personal project exists (499); last-modified
+exists on every kind's table. Unattested and ours: the page subtitle, the
+mono `apiName` under each project (Foundry projects have RIDs, no API name),
+the card grid itself, the `Discoverable` strip's form.
+
+**Create new project (`new-project.png`, `create-new-project.png`).** Gaps: the
+space picker ("select a location"); `Organizations · Any of` (which
+organisations may see the project — no engine); project templates
+(`create-project-from-template` in the api; the lesson's "Select the Default
+Template"); the pane is a modal with a green `Create`, ours an inline card.
+Unattested: the slug preview; the placeholder `Bar inventory` (hospitality
+residue).
+
+**Project dashboard (`project-dashboard.png`, `project-navigation.png`,
+`project-details.png`, `promote-resource-project-view.png`,
+`your-files-data.png`) — LARGE.** Foundry's: a header with the name, star,
+gear, description, `Actions ▾` and green `+ New ▾`; a **navigation rail** —
+`Preview › Cover page`, `Project workspace › Files / Autosaved / Project
+Catalog / References (File, External) / Trash`, then `Project usage ↗` and
+`Access graph ↗`; a `📌 Pinned` strip; a Files **table** `NAME / LAST UPDATED /
+TAGS` with a type icon per kind; a row toolbar and context menu (Rename,
+Move…, Copy link, Copy RID, Request additional access, Edit requirements…,
+View markings, Add tags…, Add to Data Catalog…, Pin in project, Change
+status ▸ Promoted, Move to trash…); a `Move` window with a location picker;
+a Share panel; Trash as its own area; the personal project's reduced nav.
+Ours: a stack of cards under the selected grid card — a `Contents` list of
+raw resource ids, a folder tree with an in-row move select and inline trash,
+an inline `New folder…` form, Activity, Policy, Access. Engines: folders and
+trash (497/498), promoted status, tags, cover pages (676) exist; Autosaved,
+References, Project usage, Access graph, Pinned, Share and link sharing do
+not. Unattested and ours: the `Contents` card, the in-row move select, the
+inline new-folder form, the inline trash block, the folder header sentence
+(which also contradicts `compass-folders.md`'s correction that folders carry
+role grants).
+
+**Project details panel (`project-details.png`, `access.png`).** Foundry's is a
+right rail of icon tabs — Overview (Description, Documentation Add/Edit/View,
+Point of contact, Metadata: RID, Location, Space, Iceberg storage, Tags,
+Portfolio, Status, Collections, Created, Last modified … by, Views), Access
+(`Requirements | Check access`; `Roles ⓘ Manage ›` AND `Organizations · Any
+of` AND `Markings ⓘ Add ›`), Activity, and two more. Ours: always-open cards
+with roles only. Gaps: the Overview tab's fields for an accessible project;
+Access as the three-way composition with Organizations and Markings
+(`resource_markings` exists for projects); `Check access` on the project
+(engine 486 exists; the panel is composed on the dataset view only);
+`Resource queues` (no engine); project-level Documentation distinct from the
+cover page. The `Approval policy` card is attested by
+`foundry-branching/protecting-resources` as a **Branch protection tab** —
+ours is the right content in an unattested form. `Request access` by role is
+mislabelled: a Discoverer sees "Request additional access" where
+`security/projects-and-roles` distinguishes "Request project access".
+
+**`+ New` palette (`new-project-resource.png`, `create-dataset.png`).** Ours has
+no `+ New` anywhere: a folder is an inline input, a dataset is created from
+`/datasets` unscoped to any project or folder, and nothing creates a
+repository, workbook, analysis, module or web link from a project. Foundry's
+is one searchable palette — Folder, Web link, then every resource kind,
+grouped by the six category names the Applications Portal already carries,
+with `⇧N`; and `+ New › Upload files…` from a folder.
+
+**Quicksearch.** Built: `⌘J`, the JUMP TO dialog, kind pills, HOTKEYS footer,
+object-instance search (443). Gaps: full results mode (the `All search results
+for '…' ⏎` row, the `Apps / Objects / Datasets / Files` tabs, filters,
+ranking); personalisation by favourites; the `Files` kind over folders,
+restricted views, modules and repositories.
+
+**Build order for this family:** the Files landing table with its tabs and
+filters; the project dashboard's navigation rail and Files table; the `+ New`
+palette (which is also how a dataset gets created *in a folder*, closing the
+Compass end of §1's chain step 1); then the details rail. Portfolios wait on
+space roles (§3.9); Share, Autosaved, References and Pinned have no engine
+and are not built until they do.
+
+#### 3.2 Pipelines — builds, schedules, lineage, branching
+
+**Routes / ours:** `/builds` (`BuildsPage.tsx`, 83), `/lineage` and
+`/lineage/:kind/:id` (`LineagePage.tsx`, 311), `/branches` (`BranchesPage.tsx`,
+156), the branch taskbar in `OmaLayout.tsx`. **Sections:** `building-pipelines`
+(45 / 181), `data-lineage` (20 / 71), `foundry-branching` (14 / 53),
+`data-integration` builds/schedules pages. **Readings:**
+`builds-and-schedules.md`, `data-lineage.md`, `branch-overlay.md`. Captures
+opened: 14 of 69 — the refuter found four unread live-logs captures on disk.
+
+**The build report (`data-integration/images/builds.png`,
+`live-logs-build-page.png`; two eras, 2022 and 2024).** Foundry's is a page:
+`Build info` (Status in title-case with a spinner, Duration, Estimated,
+Started, Ended, Started by, Progress `0 of 4 jobs succeeded`, Build ID with
+copy); a `Build schedule` card (the schedule that started it, WHEN TO BUILD
+as dataset chips, RECENT RUNS dots, Metrics/Schedule); `Build progress` as a
+Gantt with the legend Queued/Waiting/Running/Succeeded/Failed/Canceled, a
+Job status filter and a Dataset path search; a per-job Datasets table (name +
+path, start, duration over `Typically …`, a stage progress bar, Logs,
+Actions, `Job type:`, the four-step timeline); `Cancel build`, `Explore
+lineage` and the three-count pill in the header; a log viewer (Wrap lines,
+Filter, View live, Download, colour-coded levels). Ours: a card per build
+with the API token (`SUCCEEDED` where the capture prints `Succeeded`), a
+truncated id, `12.3s`, and an inline job list. Engines: most of Build info and
+the Gantt's facts exist (493/506/507, `builds.schedule_id`); `cancel_build`
+and job logs do not. Unattested and ours: the header paragraph, the empty
+state's SQL-JobSpec sentence, the 8-character id, the accordion. The builds
+*list* itself has no capture — it is "all builds occurring across Foundry" in
+prose only.
+
+**Schedules (`data-lineage/images/manage-schedules.png`,
+`manage-schedule-details.png`, `building-pipelines/images/advanced-settings.png`,
+`add-more-schedules.png`).** Foundry's sidebar sits on the lineage canvas,
+scoped to the selected datasets ("You will see the schedules related to
+selected datasets in your graph"); a card is `name / Last updated N days ago
+by / Full build X and N other datasets / When X has new data and N other
+triggers`; the detail has `Latest run was ignored`, the target list with
+paths, `Plus N upstream datasets`, `When to build` as a sentence, `Build
+scope` as a project chip, Learn more / Metrics / Share. The **Build schedules
+application** (`add-more-schedules.png` — the refuter found the capture) has
+search-parameter chips, sort, bulk select and a name filter. Ours: a panel on
+the `/lineage` root picker only, listing every schedule; one target dataset
+where the column is an array; a raw cron field (attested by
+`triggers-reference` — "A time trigger is defined using a cron expression and
+a time zone" — but the editor also offers "an easy-to-use interface", which
+we lack) and a free-text timezone; `Allow overlapping runs` only of the six
+Advanced options; create/pause/delete but no edit and no versions. Gaps in
+order of size: the Build schedules app (no route); edit + versions; multiple
+targets, excluded datasets, the connecting build type; the five missing
+Advanced options; scope (§3.2 survey bullet, still standing); schedule health;
+and a dead pointer — the dataset view's Schedules panel says "Create one from
+the builds page" and `/builds` has no schedule control (fixed in this PR to
+point at `/lineage`).
+
+**Data Lineage (`data-lineage-ui-reference.png`, `data-lineage-build-helper.png`,
+`build-timeline.png`).** Foundry's canvas: flat coloured node cards with `‹ ›`
+chevrons that expand parents/children in place, badge glyphs, straight
+arrows; a branch selector with fallback branches; a toolbar (Tools, Layout,
+Undo/redo, Clean, Select, Expand, Color with 24 colourings, Find, Remove,
+Align, Legend); a right rail (Search & Browse, Properties/Histogram, Manage
+builds, Manage schedules, Related artifacts); bottom node tabs `Preview ·
+History · Code · Data health · Build timeline`; Save/Open, share links, SVG
+export. Ours: a root-picker landing page (unattested — Foundry opens onto an
+empty graph from a resource's Actions or Search & Browse), a global
+`Ancestors: N / Descendants: N` depth counter instead of per-node chevrons,
+bezier edges without heads, a static legend, a six-fact drawer, `Focus
+lineage here` (ours), a 300-node cap Callout (no cap is documented). Built and
+attested: marking simulation with the four states, out-of-date colouring,
+defines-object-type badges, object types as nodes and link types as edges.
+Engines: `lineage_graph` (facts for the colourings), `run_build` for two of
+the three Manage builds strategies, `dataset_preview` (804) for the Preview
+tab, `build_jobs` for the Build timeline; branches on the graph, saved graphs
+and artifact nodes have none.
+
+**Global Branching (`foundry-branching/images/branches-tab.png`,
+`create-new-branch-dialog-from-global-branching.png`, `branch-overview.png`).**
+Foundry's app: `Branches · Proposals` tabs; a homepage with `Your open
+proposals`, `Your open branches`, and three shortcut cards; a Branches table
+`BRANCH NAME (+ description) / STATUS / CREATED BY / CREATED AT / PROPOSALS`
+with Status/Created-by filters and search; a branch page (`Branches › name`,
+Overview with the resources on the branch, comments, a `Branch details` rail,
+a Security tab of role assignments); `Branch security [Advanced]` in the
+create dialog. Ours: a flat list scoped by an ontology select, with the slug
+beside the title, `Restore` on rows, `terminal` on merged rows; no branch
+route. Engines exist for the table (419's creator/date/description) and the
+branch page's resources; branch roles (419) have no surface. Unattested and
+ours: the ontology select, the slug beside the title (a Foundry branch name
+may itself be a slug — only the *second* identifier is ours), `terminal`, row
+`Restore`, the `Branching` title (the app is `Global Branching`).
+
+**The branch taskbar (`branch-taskbar.png`).** Built to the capture: the blue
+bottom bar, branch name, resource count, Create/View proposal. Gaps: the
+selector should open a dropdown to switch or create (ours resets to Main);
+the folder badge should open the modified-resource panel; `View branch ↗`;
+`Merge proposal` enabling on the bar. Unattested: a `Beta` tag; the silent
+auto-named proposal (the page shows a Create proposal dialog).
+
+**Build order:** fix the tokens (this PR); the build report as a page; the
+schedule editor's interface over the cron and the canvas-scoped sidebar;
+lineage's per-node chevrons and node tabs (Preview via 804); the Branches
+table and branch page.
+
+#### 3.3 Data Health and monitoring
+
+**Routes / ours:** `/data-health` (`DataHealthPage.tsx`, 134;
+`features/dataHealth/HealthPanel.tsx`; `features/monitoring/MonitoringPanel.tsx`).
+**Sections:** `data-health` (11 / 15), `health-checks` (a duplicate section the
+reading had marked absent — `watch-alerts.png` is there), `monitoring-views`
+(7 / 15). **Readings:** `data-health.md` (its line 34 wrongly records
+`watch-alerts.png` as missing — to correct), `monitoring-views.md`. Captures
+opened: 26 of 31.
+
+**The Data Health application (prose only — no capture of the `All checks`
+listing exists; `create-group.png` is the sunset Check groups tab).** Gaps:
+`Add health check` in the app's top-right with the multi-dataset resource
+dialog; a user-chosen sort by status or name (ours is fixed worst-first);
+`Pause all`; the failed-check notification to watchers (the notifications
+engine 793 exists, this producer does not); pipeline health in Data Lineage
+(nodes coloured by check status, a Data health tab, right-click `Add health
+check`). Unattested and ours: the header blurb, the tab label `Health checks`
+(the old capture says `All checks`), one Card per dataset, the empty-state
+copy, the eye icon as a watching marker.
+
+**Monitoring view — Troubleshoot alerts (`troubleshoot-alerts.png`,
+`run-history-redirect.png`, `snooze-*.png`).** Built to the capture: the back
+link, three tabs, `Alert summary` dots, the ALERT/RESOURCE/FAILURE
+REASON/REPORTED table, `Since … / Last checked`, `Hide snoozed alerts`, the
+snooze dialog's grammar, the snoozed-bell hover. Gaps: `View options ▾`,
+`Group by project ▾`, `Filter by type ▾`; the `Filters` and `Context Panel`
+rails and the bottom selection toolbar (snooze lives there); **`View
+details` → the alert debug page, which is not rendered at all** (the engine
+writes `monitoring_alert_transitions`; nothing reads it); `Data Lineage ↗` /
+`Run history ↗` from a row; the resource's path under its name; snooze until a
+picked time rather than a preset list. Unattested and ours: the view list as
+a card grid with RIDs, the bell as the snooze trigger, the four preset
+durations, the `Alert summary` counting only failing alerts.
+
+**Manage monitors (`data-health-add-monitoring-rule.png`).** Gaps: the
+four-step `Create monitoring rules` wizard (Select scope → Configure →
+Select view → Summary) with `Dynamic` scopes; suggested thresholds; editing a
+rule from a side panel; the dynamic scopes Workflow Lineage / Workshop /
+Developer Console (no engine — recorded); project scope for schedule rules;
+an SOP on a rule; adding checks through the app's dialog. Unattested: our
+rule-list row grammar, the `Health checks` card inside the tab, `s` units.
+
+**Manage subscriptions (prose only).** Gaps: PagerDuty, Slack and Webhooks
+sections (no engine); alerting at a specific severity rather than "and
+above"; and subscribers receiving anything at all — no producer sends the
+in-platform notification the page promises.
+
+**The alert debug page (`alert-debug-page-overview.png`,
+`alert-debug-condition-breakdown.png`) — LARGE, not rendered.** Header `on
+<resource> since <time>`, Snooze, Edit monitor; Current value / Threshold with
+the status badge and condition popover; window duration; SOP; the executions
+chart; the 30-day Alert history from `monitoring_alert_transitions`; Dive
+deeper links. Workflow Lineage's monitoring-status colouring has no engine.
+
+**The dataset Health tab (`health-checks-overview.png` new era; the 2018
+captures for the editor).** Beyond §1's row: the form cannot create a `Time
+since last updated` check (it never writes `ignore_empty_transactions`, which
+659's CHECK requires — a defect); the median-deviation clause; `Weekly…` with
+day toggles and `On a custom schedule…`; `Notes`; Issues (no engine —
+recorded); **`Edit` an existing check** (policy exists, no mutation); `Watch ▾`
+as a menu (`watch-alerts.png`) and `Watch all ▾`; the per-check rail with
+`Monitoring views` and `Details`; Pause/Delete under `More ▾`. Unattested and
+ours: the empty-state copy, the `Escalates` tag, the interval as a clock tag,
+the inline watch select, `n passed / n failed / n error` header tags (the
+capture prints `Checks 15 ●7 ●8`).
+
+**Build order:** the `ignore_empty_transactions` defect and `Edit` on a check;
+the alert debug page (its data is already written); `Add health check` on the
+app and the wizard; then the tab's table shape from §1.
+
+#### 3.4 Object Explorer and Object Views
+
+**Routes / ours:** `/explorer` (`ExplorerHome.tsx`, 174), `/explorer/:typeId`
+(`ExplorationPage.tsx`, 664, with ActionsMenu/ExportMenu/SaveDialog),
+`/explorer/saved/:setId` (70), `/objects/:typeId/:pk` (`ObjectViewPage.tsx`,
+298). **Sections:** `object-explorer` (17 / 90, one era), `object-views`
+(23 / 75, three eras). **Readings:** `object-explorer.md`, `object-views.md`.
+Captures opened: 16 of 108. The refuter overturned none of the reader's 44
+gaps — this family's reading is exact — and corrected two era notes (undo/
+redo and `Compare ▾` are in the object-explorer section itself).
+
+**Explorer home (`home_general.png`).** Built: the headline, saved explorations
+and lists at the top, groups with counts, the preview drawer, hidden types
+excluded, `Other` for the ungrouped. Gaps: the scope selector `All ▾` inside
+the search bar (the lesson's first step); the `Overview | Objects | Object
+types | Artifacts` tabs and the **search results page** with facets (large);
+the left side navigation (All / My explorations & lists / groups / Favorites);
+favourites (no engine); `List | Graph` per group (the group graph over
+`link_types`); the card's description line; linked types in the preview; the
+window tab strip (several explorations at once); the `Explorations ▾ / Lists
+▾` pickers with `All | Favorites | Created by Me | Shared with Me`; `All object
+types` always present at the bottom. Unattested and ours: object hits in the
+type-ahead that navigate to the *type* rather than the object.
+
+**Exploration (`exploration_flights.png`, `explore_search.png`,
+`pivot_flights.png`, `results_view.png`, `results_results_preview.png`).**
+Built: the results chip, Explore/Results, one chart per prominent property,
+listograms and histograms, the two-pane search menu with linked types,
+far-property predicates (776/777), all four temporal filters (785), title
+cells to the Object View, hint-gated sorting, Actions over the selection with
+the 1000 cap, Export, Save as Exploration/List, derived properties excluded.
+Gaps, large first: **the search bar as the filter hub** (pills inside the bar,
+typing offers `where <Property> is <value>`, `Has keywords`, term modifiers,
+And/Or nesting); layouts (`Flight Layout ▾`, Set as default — no engine);
+undo/redo and `Compare ▾` (no comparison store); the **Selection Preview**
+(selecting rows opens the Object View on the right); pivot to a linked type
+with carried filters as link-path pills; `Open in ▾` (no route); `Share` and
+`Monitor` in the header; the statistics table (`aggregate_object_set`
+exists); histogram range inputs; listogram multi-select with Keep/Exclude
+(Exclude's meaning is `object-explorer.md` §14's open question); the other
+chart kinds and drag reorder; charts on linked objects; the preview rail's
+`Sort by` and clickable cards; results-table paging, column tools and
+`Freeze X columns`; time-series columns with sparklines; inline edits;
+`Filter by <LinkedType>?`; `Private` saves to a home folder; pills naming
+properties by id rather than display name (small, in hand). Not-gaps the
+refuter corrected: multi-sort's precedence is inverted ("the last one selected
+… takes precedence"), Export should be Excel, `Actions ▾` belongs in the
+perspective bar. Unattested and ours: the back arrow, `Add filter` as a
+separate button, two `Has X? / Has no X?` buttons, the Actions placement, the
+20-row `Show more` cap.
+
+**Saved exploration / list.** No capture shows a saved set as its own screen —
+the picker opens the exploration itself with filters and layout restored.
+Ours is an intermediate table page (unattested whole). Gaps: opening into the
+exploration; the pickers; manually updating a list (`Add to list ▸`);
+formatted cells; saved sets in the home search's Artifacts.
+
+**Object View (`object-explorer-object-view-edit.png`,
+`standard-full-and-panel-object-view.png`, `linked-objects-component.png`,
+`results_results_preview.png`).** Built: configured view by default with the
+standard view a toggle away (once an `object_views` row exists — for other
+types ours lands on the standard view with no toggle), tabs as Workshop
+modules, prominent above normal, linked objects by link type with paging, the
+OMA authoring tab. Gaps: the header shows the **primary key** where the
+capture shows the title property's value (small, in hand); header controls
+(star, refresh, `View comments`, `More ▾ › Add to list / Export as Excel /
+Copy for Notepad / Advanced ▸`); `Actions ▾` in the header rather than inside
+the Properties card; the standard view's `★ Prominent` and `☰ Properties` as
+two sections with `Media | Map | Time series` and per-base-type displays (the
+series formatter 782 has its consumer here); the **linked objects component**
+as a table with search, `Open N in ▾`, inline preview and the multi-hop
+breadcrumb; the panel form factor (no form-factor column on `object_views`);
+tab conditions, profiles and the `Link` badge; the Edit History widget's shape
+(actor, "changed N properties using <action>", the changed values — all
+stored in `object_edits`, unread). Unattested and ours: the type-status tag in
+the header, Edit history as a *standard*-view section, the `Sensors` card, the
+label-above-value prominent cards.
+
+**Build order:** the search bar as the filter hub and the Selection Preview
+(both engine-complete); the Object View header and Prominent/Properties split;
+the search results page; then layouts once a store exists.
 
 ### Batch B — the Ontology Manager and what acts on it
 
