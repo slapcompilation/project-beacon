@@ -90,7 +90,7 @@ export function TransformCard({ datasetId }: { datasetId: string }) {
               </Button>
               <Button size="small" variant="outlined" loading={run.isPending}
                 title="Build all target datasets and all upstream datasets of this target."
-                onClick={() => { run.mutate({ targets: [datasetId], buildType: 'full' }) }}>
+                onClick={() => { run.mutate({ targets: [datasetId], buildType: 'upstream' }) }}>
                 Build with upstream
               </Button>
             </>

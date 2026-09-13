@@ -340,7 +340,7 @@ function Schedules({ datasetId }: { datasetId: string }) {
   const { data: schedules = [] } = useSchedules()
   const mine = schedules.filter((s) => s.targetDatasetIds.includes(datasetId))
   if (mine.length === 0) {
-    return <p className="text-xs text-muted-foreground">No schedule targets this dataset. <Link to="/builds">Create one</Link> from the builds page.</p>
+    return <p className="text-xs text-muted-foreground">No schedule targets this dataset. <Link to="/lineage">Create one</Link> from Data Lineage.</p>
   }
   return (
     <div className="divide-y">

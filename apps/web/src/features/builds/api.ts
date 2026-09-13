@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { runWithCheckpoint } from '@/features/checkpoints/gate'
 import { client } from '@/lib/supabase/ontologyClient'
 import { jobSpecFresh, runBuild } from '@beacon/platform'
-import type { Json } from '@beacon/platform'
+import type { Json, SchedulesBuildType } from '@beacon/platform'
 
 export interface JobSpec {
   id: string
@@ -138,13 +138,16 @@ export function usePublishJobSpec(datasetId: string) {
   })
 }
 
+// The engine's tokens are manual and upstream (506/507). The web sent
+// single/full for months and every Build it started was refused; the generated
+// union makes the next drift a compile error.
 export function useRunBuild() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (i: { targets: string[]; force?: boolean; buildType?: 'single' | 'full' }) =>
+    mutationFn: async (i: { targets: string[]; force?: boolean; buildType?: SchedulesBuildType }) =>
       await runWithCheckpoint(async () =>
         await client(runBuild).applyAction({
-          p_targets: i.targets, p_force: i.force ?? false, p_build_type: i.buildType ?? 'single',
+          p_targets: i.targets, p_force: i.force ?? false, p_build_type: i.buildType ?? 'manual',
         }) as string | null),
     onSuccess: (buildId) => {
       void qc.invalidateQueries()
@@ -209,7 +212,7 @@ export interface Schedule {
   id: string
   name: string
   targetDatasetIds: string[]
-  buildType: 'single' | 'full'
+  buildType: SchedulesBuildType
   trigger: ScheduleTrigger
   paused: boolean
   lastRunAt: string | null
@@ -236,7 +239,7 @@ export function useSchedules() {
         .order('name')
       if (error) throw new Error(error.message)
       return (data as unknown as {
-        id: string; name: string; target_dataset_ids: string[]; build_type: 'single' | 'full'
+        id: string; name: string; target_dataset_ids: string[]; build_type: SchedulesBuildType
         trigger: ScheduleTrigger; paused: boolean; last_run_at: string | null
       }[]).map((r) => ({
         id: r.id, name: r.name, targetDatasetIds: r.target_dataset_ids,
@@ -269,7 +272,7 @@ export function useCreateSchedule() {
   return useMutation({
     mutationFn: async (i: {
       name: string; targetDatasetIds: string[]
-      buildType: 'single' | 'full'; trigger: ScheduleTrigger
+      buildType: SchedulesBuildType; trigger: ScheduleTrigger
       /** "By default, a schedule does not start a new run while another run of
        *  the same schedule is in progress. Enable this setting to allow runs to
        *  overlap." — off unless asked, which 572 attests twice. */
