@@ -653,6 +653,19 @@ scrapped. What genuinely remains:
   recipient, and an automation runs on a heartbeat holding nobody's credentials —
   the wall 553 hit when it inverted the scheduled path rather than elevating it.
 
+- **The dataset view — BUILT, 804-806 and `pages/DatasetPage.tsx`, reconciled
+  against every capture the section has.** The Datasets destination had been a
+  card list with one action; Dataset Preview's screen is five numbered regions,
+  and `readings/dataset-preview.md` (5 pages, 15 of 15 images) walks them off
+  `dataset.png`. 804 is the reader the screen lacked — nothing but the indexer
+  had ever read `datasets.<table>` — with sort and include/exclude applied to
+  the whole view before the sample, the count that makes "Showing 300 of 481"
+  true under a filter, and a column's stats; 805/806 make the creator the caller
+  so the About panel's "Created … by" has something to say. What is built,
+  what is not and why, element by element, is `docs/SURFACE-BUILD-MAP.md` §1 —
+  the first entry of the map that will do for every routed screen what
+  `ONTOLOGY-BUILD-MAP.md` did for the ontology.
+
 - **Notifications — BUILT, 793-795 and 803, engine and surface.** There is no
   `notifications` section in the mirror and five product pages describe sending
   one; `readings/notifications.md` settles that they describe ONE mechanism,

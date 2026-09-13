@@ -19,7 +19,7 @@
 // exist.
 
 import {
-  Button, Card, HTMLSelect, InputGroup, NumericInput, Tag, TextArea,
+  Button, Card, Classes, HTMLSelect, InputGroup, NumericInput, Tag, TextArea,
 } from '@blueprintjs/core'
 import {
   EXECUTION_MODES, MAX_BATCH_SIZE, type EffectDraft, type ExecutionMode,
@@ -196,8 +196,9 @@ function NotificationFields({ effect, users, properties, exposesInput, set }: {
 
       <label className="flex flex-col gap-1">
         <span className="text-xs font-semibold">Static recipients</span>
-        {/* Native, because Blueprint's HTMLSelect takes no `multiple`. */}
-        <select multiple className="bp5-input" value={effect.recipients}
+        {/* Native, because Blueprint's HTMLSelect takes no `multiple`; the class
+            comes from Blueprint so the namespace (bp6- since v6) cannot go stale. */}
+        <select multiple className={Classes.INPUT} value={effect.recipients}
           onChange={(e) => {
             set({ recipients: Array.from(e.currentTarget.selectedOptions).map((o) => o.value) })
           }}>
@@ -236,7 +237,7 @@ function PropertyPicker({ label, hint, options, selected, onChange }: {
   return (
     <label className="flex flex-col gap-1">
       <span className="text-xs font-semibold">{label}</span>
-      <select multiple className="bp5-input" value={selected}
+      <select multiple className={Classes.INPUT} value={selected}
         onChange={(e) => {
           onChange(Array.from(e.currentTarget.selectedOptions).map((o) => o.value))
         }}>
