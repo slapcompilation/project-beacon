@@ -7,8 +7,9 @@
 // Read-only in this slice. The creation wizard is five pages over
 // condition-settings, effect-actions and effect-function, none of which are
 // read, so nothing here writes an automation.
-import { useQuery } from '@tanstack/react-query'
-import { automationEffectKinds } from '@beacon/platform'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { automationEffectKinds, myNotifications } from '@beacon/platform'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 
@@ -220,4 +221,44 @@ export const latestByAutomation = (runs: AutomationRun[]): Map<string, Automatio
   const out = new Map<string, AutomationRun>()
   for (const r of runs) if (!out.has(r.automation_id)) out.set(r.automation_id, r)
   return out
+}
+
+/** Pause and mute, which the five-status filter pane has always counted and
+ *  nothing could produce. Both are plain columns (609, 622, 624) and 622's
+ *  AFTER UPDATE trigger writes the paused/resumed/muted/unmuted metadata event,
+ *  so the verb is the update — there is no function to call and none is needed.
+ *
+ *  "A paused automation is not evaluated"; a muted one still evaluates and only
+ *  stops notifying, which is why `statusOf` ranks pause above mute. */
+export function useSetAutomationFlag() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { id: string; paused?: boolean; muted?: boolean }) => {
+      const patch = i.paused === undefined ? { muted: i.muted } : { paused: i.paused }
+      const { error } = await supabase.from('automations').update(patch).eq('id', i.id)
+      if (error) throw new Error(error.message)
+      return i
+    },
+    onSuccess: (i) => {
+      void qc.invalidateQueries({ queryKey: ['automations'] })
+      void qc.invalidateQueries({ queryKey: ['automation-events'] })
+      toast.success(i.paused === undefined
+        ? (i.muted ?? false ? 'Muted' : 'Unmuted')
+        : (i.paused ? 'Paused' : 'Resumed'))
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The Overview's `For you` card — "You receive notifications". Its absence was
+ *  reasoned when the notification effect was `executable = false`; 793 to 803
+ *  built the engine and 794 flipped the effect, so the reason expired and the
+ *  count is one call. */
+export function useMyNotificationCount() {
+  return useQuery({
+    queryKey: ['automations', 'my-notifications'],
+    staleTime: 30_000,
+    queryFn: async (): Promise<number> =>
+      (await client(myNotifications).executeFunction({ p_limit: 200 })).length,
+  })
 }

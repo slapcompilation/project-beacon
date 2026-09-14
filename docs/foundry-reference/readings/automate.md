@@ -848,10 +848,16 @@ stages.
    an object-set trigger is not.
 4. **The condition kind is the row's subtitle**, and the condition itself is a
    pill. Both come from the images; the prose describes neither.
-5. **`For you` is not built.** Its subtitle is *You receive notifications*, and
-   the notification effect is `executable = false` here with the note "No
-   notification system exists here". A card that always reads zero for a
-   feature we do not have is worse than an absent one.
+5. **`For you` is BUILT (2026-09-14); this decision's reason expired.** It read:
+   its subtitle is *You receive notifications*, the notification effect is
+   `executable = false` here, and a card that always reads zero for a feature we
+   do not have is worse than an absent one. That was true when written and
+   stopped being true when 793–803 built the notification engine and 794 flipped
+   the effect to executable. The card now counts `my_notifications`. **Recorded
+   this way rather than rewritten**, because a decision whose reason expires is
+   the failure mode this block exists to make visible — and this one had been
+   copied into `AutomatePage.tsx` as well, so it was a stale reason in two
+   places.
 6. **Status derivation lives in the page, not in a migration.** Decision 1 of
    the previous section holds — this slice adds no schema. If the derivation
    needs an index later, that is a measurement, not a guess.

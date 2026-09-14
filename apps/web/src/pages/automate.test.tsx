@@ -1,5 +1,7 @@
 // The Automate application: the status vocabulary the filter pane enumerates,
-// and the two of five we deliberately cannot answer.
+// and what the Overview counts. The header used to say "the two of five we
+// deliberately cannot answer" — 609 gave muted and expires_at their columns and
+// all five became answerable, which the test below has asserted ever since.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, within } from '@testing-library/react'
@@ -102,14 +104,15 @@ const renderAt = (path: string) => render(
 )
 
 describe('Automate', () => {
-  it('counts what the Overview page counts, and omits the card it cannot answer', async () => {
+  it('counts what the Overview page counts, all three cards', async () => {
     renderAt('/automate')
     expect(await screen.findByText('Create and manage automations')).toBeDefined()
     expect(screen.getByText('Owned by you')).toBeDefined()
+    // `For you` was omitted while the notification effect was executable=false.
+    // 793-803 built the engine, 794 flipped the effect, and the reason expired —
+    // this assertion used to be `toBeNull()` and is inverted deliberately.
+    expect(screen.getByText('For you')).toBeDefined()
     expect(screen.getByText('Paused')).toBeDefined()
-    // "For you — You receive notifications": the notification effect is
-    // executable=false, so the card would always read zero.
-    expect(screen.queryByText('For you')).toBeNull()
     expect(screen.getByText('Failures in last 4 weeks')).toBeDefined()
     // async: the heading paints before the runs query resolves
     expect(await screen.findByText('Actions:ObjectVersionChanged')).toBeDefined()
