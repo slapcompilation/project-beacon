@@ -713,11 +713,17 @@ inside a Create-object rule is not offerable. The function-rule exclusivity rule
 **is** enforced (418 raises `Ontology:FunctionRuleIsExclusive`); what is missing
 is the builder greying the menu, so the author meets the refusal at save time.
 
-**Two defects the refuter surfaced.** `FormEditor.tsx` offers a fourth default
-source, `type_class`, that **cannot be saved**. And
-`action_type_parameters.value_type_id` — the binding that constrains a parameter
-with a value type — has existed since **452** and nothing in `apps/web/src`
-reads or writes it.
+**Two defects the refuter surfaced; one is FIXED (2026-09-14) and it was worse
+than reported.** `FormEditor.tsx` offered `Type class` as a fourth *default
+source*, and `default_source`'s CHECK admits `static` and `object_property`
+only — so the option wrote a value the column refuses and could never save **in
+any state**, not merely when its second field was empty. Type classes are a
+separate column (`type_classes`, a prefill hint), so they are now their own
+control, offered whatever the default source is and asked of
+`action_parameter_type_classes()` rather than restated. Still open:
+`action_type_parameters.value_type_id` — the binding that constrains a
+parameter with a value type — has existed since **452** and nothing in
+`apps/web/src` reads or writes it.
 
 **Seven of our strings are Foundry's.** The refuter overturned them all with
 citations: `Auto upgrade`, the amber non-breaking-version warning, the functions
@@ -763,11 +769,13 @@ toggle that turns a cleanup into a proposal — all three engine-backed.
 *Overturned:* the `not computed here` tag belongs on one flag, not two; 579 made
 `no_registered_usage` computable.
 
-**Value types**: the constraint picker is a fixed five, unfiltered by base type
-(`value_type_constraint_base_types` is generated and unused); `uniqueness`,
-`nested` and `element` cannot be authored; and metadata cannot be edited after
-creation though `useUpdateValueTypeMetadata` exists — the same written-and-unwired
-shape as shared properties.
+**Value types**: **metadata editing is BUILT (2026-09-14)** — display name,
+description and failure message, editable at any time and minting no version,
+which is what the docs say and what `useUpdateValueTypeMetadata` had always
+been able to do while nothing called it; it was the same written-and-unwired
+shape as shared properties. Still open: the constraint picker is a fixed five,
+unfiltered by base type (`value_type_constraint_base_types` is generated and
+unused), and `uniqueness`, `nested` and `element` cannot be authored.
 
 #### 3.8 Automate, Approvals, Checkpoints, Notifications
 

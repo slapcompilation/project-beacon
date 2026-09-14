@@ -14,6 +14,8 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
+import { actionParameterTypeClasses } from '@beacon/platform'
 
 interface SectionRow {
   id: string
@@ -38,7 +40,19 @@ interface ParamForm {
 }
 
 /** The actions namespace's published prefill trio (emit-only). */
-const TYPE_CLASSES = ['generate_uuid', 'prefill_current_user', 'view_object_with_type'] as const
+/** Prefill hints, asked of the database rather than restated (666 publishes
+ *  them as `action_parameter_type_classes()`). They are NOT a default source:
+ *  `default_source`'s CHECK admits `static` and `object_property` only, so the
+ *  `Type class` entry this select used to carry could never be saved in any
+ *  state — it wrote a value the column refuses. Type classes are their own
+ *  column and now their own control. */
+function useTypeClasses() {
+  return useQuery({
+    queryKey: ['action-parameter-type-classes'],
+    queryFn: async () =>
+      await client(actionParameterTypeClasses).executeFunction({}) as unknown as string[],
+  })
+}
 
 const keys = {
   sections: (a: string) => ['action-form-sections', a] as const,
@@ -89,6 +103,7 @@ function useParamForms(actionTypeId: string) {
 
 export function FormEditor({ actionTypeId }: { actionTypeId: string }) {
   const qc = useQueryClient()
+  const { data: typeClasses = [] } = useTypeClasses()
   const { data: sections = [] } = useSections(actionTypeId)
   const { data: params = [] } = useParamForms(actionTypeId)
   const [newTitle, setNewTitle] = useState('')
@@ -191,13 +206,11 @@ export function FormEditor({ actionTypeId }: { actionTypeId: string }) {
                 default_source: src,
                 ...(src !== 'static' ? { default_static: null } : {}),
                 ...(src !== 'object_property' ? { default_property: null, default_object_parameter_id: null } : {}),
-                ...(src !== 'type_class' ? { type_classes: [] } : {}),
               } })
             }}>
             <option value="">No default</option>
             <option value="static">Static value</option>
             <option value="object_property">Object property</option>
-            <option value="type_class">Type class</option>
           </HTMLSelect>
           {p.defaultSource === 'static' && (
             <InputGroup size="small" placeholder="Default value"
@@ -221,13 +234,13 @@ export function FormEditor({ actionTypeId }: { actionTypeId: string }) {
                 onChange={(e) => { patchParam.mutate({ id: p.id, patch: { default_property: e.currentTarget.value || null } }) }} />
             </>
           )}
-          {p.defaultSource === 'type_class' && (
-            <HTMLSelect value={p.typeClasses[0] ?? ''}
-              onChange={(e) => { patchParam.mutate({ id: p.id, patch: { type_classes: e.currentTarget.value ? [e.currentTarget.value] : [] } }) }}>
-              <option value="">Type class…</option>
-              {TYPE_CLASSES.map((t) => <option key={t} value={t}>{t}</option>)}
-            </HTMLSelect>
-          )}
+          {/* Independent of the default: a parameter may be prefilled by a
+              type class whatever its default source is. */}
+          <HTMLSelect value={p.typeClasses[0] ?? ''} title="Prefill hint"
+            onChange={(e) => { patchParam.mutate({ id: p.id, patch: { type_classes: e.currentTarget.value ? [e.currentTarget.value] : [] } }) }}>
+            <option value="">No type class</option>
+            {typeClasses.map((t) => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
+          </HTMLSelect>
         </div>
       ))}
     </div>

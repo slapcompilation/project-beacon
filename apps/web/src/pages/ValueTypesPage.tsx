@@ -11,7 +11,8 @@ import {
 } from '@blueprintjs/core'
 import { PROPERTY_TYPES, toCamel, type PropertyType } from '@beacon/ontology'
 import {
-  useSpaces, useValueTypes, useCreateValueType, useMintVersion, checkValue,
+  useSpaces, useValueTypes, useCreateValueType, useMintVersion, useUpdateValueTypeMetadata,
+  checkValue,
   type ConstraintDraft, type ConstraintKind, type ValueTypeRow,
 } from '@/features/valueTypes/api'
 
@@ -66,6 +67,11 @@ function ValueTypeCard({ vt, spaceId }: { vt: ValueTypeRow; spaceId: string }) {
   const [editing, setEditing] = useState(false)
   const mint = useMintVersion(spaceId)
   const [draft, setDraft] = useState<ConstraintDraft | null>(null)
+  // Metadata is editable at any time and does not mint a version — only a
+  // constraint change does. `useUpdateValueTypeMetadata` was written and called
+  // by nothing, so nothing could be renamed after creation.
+  const [meta, setMeta] = useState<{ displayName: string; description: string; failureMessage: string } | null>(null)
+  const saveMeta = useUpdateValueTypeMetadata(spaceId)
 
   return (
     <Card className="space-y-2 !py-3">
@@ -78,7 +84,33 @@ function ValueTypeCard({ vt, spaceId }: { vt: ValueTypeRow; spaceId: string }) {
       </div>
       {open && (
         <div className="pl-5 space-y-2 text-xs">
-          {vt.description && <p className="text-muted-foreground">{vt.description}</p>}
+          {meta === null ? (
+            <div className="flex items-start gap-2">
+              <span className="flex-1 text-muted-foreground">{vt.description || 'No description'}</span>
+              <Button variant="minimal" size="small" icon="edit" title="Edit name, description and failure message"
+                onClick={() => {
+                  setMeta({ displayName: vt.displayName, description: vt.description, failureMessage: vt.failureMessage })
+                }} />
+            </div>
+          ) : (
+            <div className="space-y-1 border rounded p-2">
+              <InputGroup size="small" value={meta.displayName} placeholder="Display name"
+                onChange={(e) => { setMeta({ ...meta, displayName: e.currentTarget.value }) }} />
+              <InputGroup size="small" value={meta.description} placeholder="Description"
+                onChange={(e) => { setMeta({ ...meta, description: e.currentTarget.value }) }} />
+              <InputGroup size="small" value={meta.failureMessage} placeholder="Message shown when a value fails"
+                onChange={(e) => { setMeta({ ...meta, failureMessage: e.currentTarget.value }) }} />
+              <div className="flex items-center gap-2">
+                <Button size="small" intent={Intent.PRIMARY} icon="tick" loading={saveMeta.isPending}
+                  disabled={meta.displayName.trim() === ''}
+                  onClick={() => {
+                    saveMeta.mutate({ id: vt.id, ...meta }, { onSuccess: () => { setMeta(null) } })
+                  }}>Save</Button>
+                <Button variant="minimal" size="small" onClick={() => { setMeta(null) }}>Cancel</Button>
+                <span className="text-muted-foreground">Metadata only — this does not mint a version.</span>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <span>{summarize(vt.constraint)}</span>
             <Button variant="minimal" size="small" icon="edit" title="Update the constraint — mints a new version"
