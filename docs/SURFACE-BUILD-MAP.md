@@ -175,15 +175,25 @@ captures — the critic pass of the map workflow — not one this map makes yet.
 
 ---
 
-## 3. The families still to walk — surveyed for engines, captures queued
+## 3. The other families
 
-Each family below lists the routes, our page and its size, the mirror
-sections with their page and image counts, and what the 2026-09-11 survey
-found *reached by no surface* (each finding refuted once against the source;
-the refuters for two areas did not run). **The capture reconciliation for
-these families is queued in three batches**; the batch column says which.
-Nothing below asserts what a capture shows, because for these families I
-have not opened them this pass.
+**Batches A and B are walked** — eight families, against the captures, each
+gap refuted. **Batch C is not**, and its section says so rather than guessing.
+
+Each family gives the routes, our page and its size, the captures opened
+against the total its pages reference, and the surviving gaps with the engine
+behind each one named. A gap recorded with its reason is not a defect of this
+map; an element we render that no capture or sentence shows is, and those are
+listed as *unattested* per family.
+
+**What the walked half is actually made of.** Across the eight families the
+readers proposed 176 gaps and the refuters overturned 19 of them, added 23 the
+readers had missed, and reversed 23 not-gap and unattested claims. The
+recurring finding is not a missing screen — it is **an engine the screen cannot
+reach**, and second to it, **a stale reason in our own source** explaining an
+absence that stopped being true when some later migration shipped. Four of
+those stale reasons are named in §3.4, §3.5 and §3.8; one of them is written in
+a reading as well as in the code.
 
 ### Batch A — walked against the captures 2026-09-13
 
@@ -579,33 +589,221 @@ label-above-value prominent cards.
 (both engine-complete); the Object View header and Prominent/Properties split;
 the search results page; then layouts once a store exists.
 
-### Batch B — the Ontology Manager and what acts on it
+### Batch B — walked against the captures 2026-09-14
 
-**3.5 OMA core** — `/ontology` (Discover, 83), `object-types` (877),
-`shared-properties` (101), `link-types` (73), `interfaces` (41).
-`ONTOLOGY-BUILD-MAP.md` and `ONTOLOGY-CREATION-REVIEW.md` map this family;
-two UI eras exist in its captures (CLAUDE.md). Survey residue:
-- the Require-values gear (`allow_empty_arrays`, 670) — "Require values" with a gear opening `No null values / No empty arrays` (`object-link-types/required-properties`, two captures parsed in `readings/required-properties.md`, decision 5)
-- the value-type constraint picker (`value_type_constraint_base_types`, 575) — the picker filters by base type; `uniqueness`, `nested`, `element` cannot be authored (`object-link-types/create-value-type`, `value-type-create-constraint.png`)
-- type classes (`ontology_type_classes`, 710) vs the Capabilities tab's own table — a two-store split to settle before any surface
-- materializations: two engines answer one tab (453's `object_type_materializations`, reached; 515's `object_datasets`, not) — a choose-one
+Same method as Batch A. Counts: **OMA core** 34 verdicts, 1 overturned;
+**Actions and Functions** 44, 5; **OMA governance** 35, **13** — the most of
+any family, and all of one kind: the reader imported the *Global Branching
+application's* Proposals-tab controls into the Ontology Manager's Proposals
+page, which is a different application and not a route here; **Automate and the
+inbox** 47, 5. Eleven not-gaps and fifteen unattested claims were overturned
+the other way — a striking share of them in our favour: seven strings the
+Actions reader called our invention are the page's own words
+(`Auto upgrade`, the non-breaking-version warning, the function-permissions
+callout, `OntologyEdit[]` as a return, the section-description sentence).
 
-**3.6 Action types and Functions** — `/ontology/action-types`
-(`ActionTypesPage.tsx`, 567), `/ontology/functions` (400). Survey residue:
-- override blocks (666: `action_type_parameter_overrides`, `guard_override_condition`) — an Overrides tab per parameter, "Every parameter can contain multiple override blocks" (`action-types/parameters-override`; three captures parsed in `readings/action-form.md` §2). **Large.**
-- the schedule rule (`action_type_rules.schedule_id`, 668) — a Schedule rule card; blocked on schedule scope (3.2): "The schedule must be in project-scoped mode" (`action-types/trigger-schedule-build`)
+**The through-line of this batch is not missing screens; it is engines the
+screen cannot reach.** Nine of the surviving gaps name a column, function or
+generated value that exists, is correct, and has no caller — and three name a
+stale *reason* written in our own source for why something is absent.
 
-**3.7 OMA governance** — proposals (315), main-branch-updates (122), health
-(121), cleanup (266) and flags (145), advanced (98), configuration (108),
-history (165), unsaved (49), `/value-types` (287). Survey: nothing beyond 3.5.
+#### 3.5 Ontology Manager core — chrome, Discover, object types, shared properties, link types, interfaces
 
-**3.8 Automate, Approvals, Checkpoints, Notifications** — `/automate`
-(`AutomatePage.tsx`, 504), `/approvals` (277), `/checkpoints` (512),
-`/notifications` (104). Sections: `automate` (37 / 113), `approvals` (3 / 14),
-`checkpoints` (7 / 14). Survey: `retry_approval_request` and the
-`action_required` state have no surface — an "Action required" tag, the
-gate's comment as the reason, a Retry button (`approvals/overview`,
-`task_checkpoints.png`).
+**Routes / ours:** `/ontology` (`DiscoverPage.tsx`, 83), `object-types` (877),
+`shared-properties` (101), `link-types` (73), `interfaces` (41), all inside
+`features/ontologyManager/OmaLayout.tsx` (381). **Captures opened:** 13 of 42.
+`ONTOLOGY-BUILD-MAP.md` and `ONTOLOGY-CREATION-REVIEW.md` already map this
+family's *content*; what follows is its *shape*, which they do not.
+
+**The chrome.** The top bar is an app tile, a centred search with `⌘K`, a
+`⑂ Main ▾` chip and an outlined **`New ▾`** — the single documented entry point
+into every creation helper, with nine entries. **Our header has no create
+control at all**; every page keeps a permanently-open creation form instead,
+which is also why four of this family's "unattested" findings are those forms.
+The sidebar's `Resources` block lists seven rows with counts; ours omits
+`Properties` (a flat index across every object type — `object_type_properties`
+has existed since 408 and nothing queries it across types), `Groups` (416, and
+it now has a writer), and files `Value types` outside OMA entirely. Searching
+from the header **re-facets the sidebar** — a `Search results N` row appears and
+every count becomes a match count — where ours opens a modal list.
+
+*Overturned:* our `⌘K` not-gap fails in two halves — `resources.ts` folds `rid`
+into the search terms for object types and interfaces only, and `aliases` for
+one kind. *Unattested but attested after all:* the sidebar's project control —
+both current-era Discover captures show a location control in that slot.
+
+**Discover.** Gaps: per-card `N dependents` and type-group chips — and
+`DiscoverPage.tsx`'s own comment gives "nothing counts either" as the reason,
+which is **false**: `object_type_dependent_counts` has existed since 580 and
+`features/objectTypes/groups.ts` reads and writes group membership. Favourites
+(no engine), favourite type-group cards drawn as miniature link graphs (large),
+`Configure` per section with the `Customize homepage` dialog (no store for a
+per-user arrangement), and the new-user fallback pair, which *replaces* the
+three default sections rather than joining them. Unattested and ours: an
+`OntologySummary` block no capture shows, a plain `Object types` section that is
+none of the three the page names, and a `Not indexed` tag where every card in
+every capture carries an object count.
+
+**Object types — the largest structural divergence in the family.** The list is
+a **table** (`NAME / STATUS / VISIBILITY / ISSUES`) with a funnel over
+visibility, development status and indexing issues, a column gear, row
+checkboxes and a bulk `Edit status`; ours is a card grid. And **opening a type
+replaces the sidebar** with that type's own rail plus a back link — ours nests
+vertical tabs inside the list page, so list and detail are one screen. The
+object type view also carries a bottom **datasource-preview panel** over the
+backing rows, which is the one gap here already engine-complete: `804`'s
+`dataset_preview` renders exactly that grid on `DatasetPage.tsx` today.
+Unattested: the permanently-expanded `New object type` card, a per-row `↻` full
+reindex, a `v{version}` tag, and an `Edit properties` mode Foundry does not have.
+
+**Shared properties — a defect, not a gap.** A shared property **cannot be
+edited after creation**, which is the entire reason the type exists.
+`useUpdateSharedProperty` is written, typed and wired to nothing;
+`save_shared_property` takes the whole definition. The `VISIBILITY` column is
+stored, fetched, mapped — and printed nowhere. *Overturned:* our "deletion
+refused while a type still inherits" not-gap is a **divergence running the
+wrong way** — the page documents bulk deletion.
+
+**Link types.** No `New link type` and no five-step helper (one of three
+documented entry points exists); no list table; the view should replace the
+sidebar with `← Link types` and a four-page rail. A `Properties` card on a link
+type has **no store** — `link_type_properties` is in no migration.
+
+**Interfaces.** No capture of the list page exists in the mirror. Gaps: both
+`New interface` entry points and the helper behind them; marking a property
+required or optional at authoring (`interface_properties.required` exists and
+every property lands `true`); dashed-border icons, which the refuter promoted
+from prose to capture-attested; and the project choice inside the helper.
+Unattested: a checkbox matrix of every object type on every interface row, and
+the inline `key:type · key:type` property list.
+
+#### 3.6 Action types and Functions
+
+**Routes / ours:** `/ontology/action-types` (`ActionTypesPage.tsx`, 567),
+`/ontology/functions` (400). **Captures opened:** 14 of 37.
+
+**There is no per-action-type resource page — the family's largest gap.** An
+action type cannot be opened, linked to or navigated back from; `App.tsx` routes
+only the list, and the OMA search deep-links *to the list*. `action_types` has
+carried a RID since 488. Six of the nine rail pages Foundry gives an action type
+have no counterpart at all: Overview, User Interface, Capabilities, Automations,
+History, Observability.
+
+**No wizard.** Foundry's creation is a modal with a five-step rail (Action type /
+Mapping / Metadata / Submission criteria / Save location) and a six-tab kind
+taxonomy; ours is one always-open form with a flat `<select>` of snake_case
+engine tokens. Step 4's submission criteria and step 5's save location cannot be
+set at creation — and `action_types.project_id` has existed since **454**, which
+the refuter established against the reader's "unknown".
+
+**Rules.** The whole `OTHER` half of the Add-new-rule menu — webhook and
+notification side-effects — does not exist, and has no engine. Three of the
+engine's seven value sources cannot be authored: `VALUE_SOURCES` is hand-written
+with four members while `action_rule_value_sources()` returns seven. `Add link`
+inside a Create-object rule is not offerable. The function-rule exclusivity rule
+**is** enforced (418 raises `Ontology:FunctionRuleIsExclusive`); what is missing
+is the builder greying the menu, so the author meets the refusal at save time.
+
+**Two defects the refuter surfaced.** `FormEditor.tsx` offers a fourth default
+source, `type_class`, that **cannot be saved**. And
+`action_type_parameters.value_type_id` — the binding that constrains a parameter
+with a value type — has existed since **452** and nothing in `apps/web/src`
+reads or writes it.
+
+**Seven of our strings are Foundry's.** The refuter overturned them all with
+citations: `Auto upgrade`, the amber non-breaking-version warning, the functions
+permissions callout, `OntologyEdit[]` as a selectable return, the section
+description sentence, the criteria `None`-over-groups warning, and the `Apply`
+control on an OMA action list (`view-usage.md` presupposes it).
+
+#### 3.7 Ontology Manager governance — proposals, rebase, health, cleanup, advanced, history, value types
+
+**Routes / ours:** ten `/ontology/*` pages plus `/value-types` (287).
+**Captures opened:** 14 of 98. **Thirteen of 35 gaps were overturned** — every
+one of them a Global Branching control imported into the OMA Proposals page.
+What the OMA capture actually lacks is a search box and a sort control; the
+checkbox-close, the bulk selection and the Status/Creator filter belong to an
+application this repo does not route, and our archive-closes-proposal behaviour
+is what the page documents.
+
+**Main branch updates — the page's primary content is absent.** Incoming changes
+from main are not rendered at all; only conflicts are. No `Cancel rebase` and no
+in-progress state, because `rebase_branch` (470) takes every resolution at once.
+
+**The proposal view** lacks the Preview-status and Changelog tabs, the
+three-step stage rail, per-task comments (no store), `Tasks requiring
+attention`, suggested reviewers, and the per-field diff of what the branch
+changed — and that last one is engine-complete:
+`branch_resource_changes.fields`/`.base` hold exactly it.
+
+**Health issues is entirely uncaptured**, and its own header cites
+`ontology-manager/health-issues`, **a page that does not exist in the mirror** —
+a false citation in our source, of the kind CLAUDE.md rule 1 exists to prevent.
+Index failures, the only content the docs attribute to this screen, do not
+appear on it. *Overturned:* the layout is not uncalibrated — `save-review-edits-error.png`
+shows the same four levels; what is unattested is only its placement here.
+
+**Advanced** is missing the `Ontology metadata` card entirely, and the
+`Ontology settings → Roles` card — **ontology-level role grants have no surface
+anywhere**, though `ontology_role_grants` exists with RLS and CRUD grants since
+454. **Ontology configuration** is missing the whole project-permission
+migration assistant (no engine).
+
+**Cleanup** lacks the GROUPS and ACTION columns and the `Propose your changes`
+toggle that turns a cleanup into a proposal — all three engine-backed.
+*Overturned:* the `not computed here` tag belongs on one flag, not two; 579 made
+`no_registered_usage` computable.
+
+**Value types**: the constraint picker is a fixed five, unfiltered by base type
+(`value_type_constraint_base_types` is generated and unused); `uniqueness`,
+`nested` and `element` cannot be authored; and metadata cannot be edited after
+creation though `useUpdateValueTypeMetadata` exists — the same written-and-unwired
+shape as shared properties.
+
+#### 3.8 Automate, Approvals, Checkpoints, Notifications
+
+**Routes / ours:** `/automate` and `/automate/:id` (`AutomatePage.tsx`, 504),
+`/approvals` (277), `/checkpoints` (512), `/notifications` (104).
+**Captures opened:** 15 of 41.
+
+**Automate.** Two large gaps and a stale reason apiece:
+- **Nothing can pause, mute, resume or unmute an automation**, while the
+  five-status filter pane counts `Muted` and `Paused`. The columns exist (609,
+  622, 624) and 622's `AFTER UPDATE` trigger already writes the metadata event —
+  two of the three verbs are one `.update()` away.
+- **There is no edit path.** An automation is create-once: no condition, effect,
+  scope, auto-mute or expiration can be changed after creation.
+- The Overview should draw an `Automation flow` graph (condition → effects)
+  beside an `Automation details` card; ours is three text sections.
+- The Event log has no per-event drawer — and `automation_runs.event_id` **does
+  exist** (622, indexed, written and asserted), against the reader's claim.
+- The `For you` card is omitted for a reason that went stale when 793 shipped,
+  and **that stale reason is written in two places**: `AutomatePage.tsx` and
+  `readings/automate.md` Decision 5.
+- The Creator column prints the word `Owner`, never a person; the condition chip
+  prints the raw cron where `automationScheduleCron` already parses it.
+
+**Approvals.** The whole `Additional filters` card is absent though every
+attribute is already in the listing payload. `action_required` — the sixth
+request state, re-added by 665 — is missing from the web's type union, so such a
+request renders an undefined label; `retry_approval_request` (665) has no caller.
+**None of the five Approvals notifications is sent**, though `sendNotification`
+has been live since 793. Comments cannot be scoped to a task although
+`comment_on_approval_request` takes `p_task`. No `+ Invite reviewers` — and that
+one has no engine. *Overturned:* the Reject dropdown's captions do **not** match
+the capture, and `Tasks ineligible for your approval` is attested verbatim in a
+capture the reader skipped.
+
+**Checkpoints.** Four of six documented filters are missing. Two not-gaps fell,
+both the same way — **a generated value exists and the page hardcodes instead**:
+`spaceScopable` is a hardcoded array where `spaceScopableCheckpointTypes` is
+generated, and the condition-kind select enumerates a local `KIND_LABEL` where
+`checkpointConditionKinds` is generated and never imported by `apps/web`.
+
+**Notifications.** `getting-started/images/notifications.png` is the
+notifications **panel** — an anchored popover with a `See all` footer — a second
+surface of this product that no reading had opened. Our page's claim to be built
+from the only capture of the *page* survives, narrowed.
 
 ### Batch C — governance and the application cards
 
@@ -646,16 +844,33 @@ Sections: `quiver` (292 / 442), `contour` (33 / 163), `vertex` (28 / 150),
 
 ## Order, and why
 
-1. **Datasets** — done above; it is the chain's first screen and the one the
-   operator named.
-2. **Batch A** next, because a user who has just landed data goes to Home,
-   to Compass, to the build and to the explorer in that order, and each of
-   those screens is what the dataset view's action bar links to.
-3. **Batch B**, because the Ontology Manager already has its own map and the
-   residue is small and precise.
-4. **Batch C** last: the governance surfaces are large and gated on one
-   another (portfolios on space roles; the schedule rule on schedule scope),
-   and the application cards each carry hundreds of captures.
+**Reading, then building, one family at a time.** A family is walked (a
+reader and a refuter against its captures), then read (`readings/<topic>.md`,
+its Decisions block read by a human), then built, then reconciled. Datasets
+went through all four; **Home and Projects is at step two** —
+`readings/compass-files-and-projects.md` is written and its Decisions block is
+waiting.
 
-Each batch lands as its own reconcile pass and rewrites its section here from
-"queued" to a table like §1's.
+1. **Datasets** — done: built 804–806, reconciled, merged.
+2. **Home and Projects** (§3.1) — read; building next. It is where a user
+   lands, it is what the dataset view's breadcrumb points at, and its `+ New`
+   palette is how a dataset gets created *in a folder*, which closes the
+   Compass end of the chain's first step.
+3. **The engine-cannot-be-reached list**, which is cheap and crosses families:
+   the stale reasons (§3.4 `For you`, §3.5 Discover's dependents, §3.8's two),
+   the written-and-unwired mutations (shared-property edit, value-type
+   metadata, `retry_approval_request`), the hardcoded arrays where a generated
+   value exists (§3.8 Checkpoints, §3.6 `VALUE_SOURCES`), and the two saveable-
+   looking controls that cannot save (`type_class` defaults, the
+   `Time since last updated` check).
+4. **Pipelines** (§3.2) and **Data Health** (§3.3) — the build report and the
+   alert debug page are the two largest screens whose data is already written.
+5. **Explorer and Object Views** (§3.4), then the rest of the Ontology
+   Manager's shape (§3.5–3.7).
+6. **Batch C** (§3.9–3.12) last, and unwalked until then: the governance
+   surfaces are gated on one another (portfolios on space roles; the schedule
+   rule on schedule scope) and the application cards carry hundreds of
+   captures each.
+
+Each build rewrites its section here the way §1 was rewritten — from a gap
+list into an element table with a verdict per row.
