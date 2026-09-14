@@ -17,7 +17,7 @@ import type {
 } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 import {
-  abortTransaction, commitTransaction, datasetBranchSchema, datasetColumnStats, datasetMarkings,
+  datasetBranchSchema, datasetColumnStats, datasetMarkings,
   datasetPreview, datasetPreviewCount, datasetView, uploadFileToDataset,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
@@ -183,42 +183,13 @@ export function useTransactions(datasetId: string | null, branchId: string | nul
   })
 }
 
-/** Settle an open transaction. Commit "is preserved and the Branch is updated
- *  to point to the Transaction"; abort "not preserved and the Branch is not
- *  updated" — the head trigger and the COMMITTED filter do the two halves. */
-export function useSettleTransaction(datasetId: string | null) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async ({ id, to }: { id: string; to: 'commit' | 'abort' }) => {
-      await client(to === 'commit' ? commitTransaction : abortTransaction)
-        .applyAction({ p_transaction: id })
-      return to
-    },
-    onSuccess: (to) => {
-      void qc.invalidateQueries({ queryKey: keys.transactions(datasetId ?? '') })
-      void qc.invalidateQueries({ queryKey: ['datasets'] })
-      toast.success(to === 'commit' ? 'Committed — the branch now points here' : 'Aborted')
-    },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-/** The schema of the latest view. Foundry attaches one per view, so the newest
- *  row is the current one. */
-export function useSchema(datasetId: string | null) {
-  return useQuery({
-    queryKey: keys.schema(datasetId ?? ''),
-    enabled: datasetId !== null,
-    queryFn: async (): Promise<DatasetField[] | null> => {
-      const { data, error } = await supabase.from('dataset_schemas')
-        .select('fields, created_at').eq('dataset_id', datasetId ?? '')
-        .order('created_at', { ascending: false }).limit(1)
-      if (error) throw new Error(error.message)
-      const rows = data as { fields: DatasetField[] }[]
-      return rows.length > 0 ? rows[0].fields : null
-    },
-  })
-}
+// `useSettleTransaction` and `useSchema` were deleted 2026-09-14, both orphaned
+// by the dataset view. The commit/abort pair went with the History controls the
+// reconcile pass removed — no page offers them, and the only open transaction
+// the tab meets is a running build's lock — and `useSchema` read the dataset's
+// newest schema where the view reads the one in force on the BRANCH
+// (`useBranchSchema`). Deleted rather than left: a hook nothing calls is
+// invisible to every guard here and reads as a built feature.
 
 /** The files in the branch's current view — the replay, not the table. */
 export function useView(branchId: string | null) {
