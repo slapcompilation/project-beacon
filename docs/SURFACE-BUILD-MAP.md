@@ -877,6 +877,44 @@ Sections: `quiver` (292 / 442), `contour` (33 / 163), `vertex` (28 / 150),
 
 ---
 
+## 4. Thirteen hooks nothing calls
+
+The map's recurring finding — an engine no screen reaches — has a web-side
+twin, and `scripts/probes/unwired-hooks.mjs` counts it: **a `use*` hook
+exported from a feature module that no other file names and whose own file
+never calls it.** On 2026-09-14 the answer was fifteen. Two were the
+shared-property editor and the value-type metadata editor, and both turned out
+to be user-visible defects — the mutation existed, was correct, and could not
+be reached (#974, #977). Two more were leftovers from this map's own dataset
+rewrite and are deleted. Thirteen remain:
+
+| module | hook | most likely |
+|---|---|---|
+| `checkpoints/api.ts` | `useCheckpointConditions` | a reader for a record's conditions, which the Review tab's detail does not show |
+| `codeRepositories/api.ts` | `useMergeModes` | a vocabulary picker (`merge_modes()`) with no control |
+| `fusion/api.ts` | `useCellTypes` | the same shape |
+| `modeling/api.ts` | `useTrainers`, `useCreateCheck` | `useCreateCheck` is the objective-checks surface §3 of the survey named |
+| `objectTypes/hooks.ts` | `useDeleteObjectType`, `useObjectTypeProblems` | deletion has a control elsewhere; the problems reader is what `ISSUES` on the list table wants (§3.5) |
+| `quiver/api.ts` | `useDataTypes`, `useConnectCards` | `useConnectCards` is the multi-slot card editor the survey recorded as undocumented |
+| `slate/api.ts` | `useIdentifierPrefixes` | a vocabulary picker |
+| `vertex/api.ts` | `useEventTypes` | a vocabulary picker |
+| `workshop/api.ts` | `useEventKinds`, `useUpdateModule` | both named by the survey: the widget event list and the module settings panel |
+
+**Six of the thirteen are vocabulary hooks** — a set the database publishes,
+fetched by a hook, offered by no picker. That is the same defect as the two
+Checkpoints hardcodes in #974 seen from the other end: there, the picker
+existed and ignored the vocabulary; here the vocabulary is fetched and no
+picker exists.
+
+**The probe is not a gate, deliberately.** `check:shape` and
+`check:vocabulary` were deleted with `shape_registry` because they needed an
+allowlist to tell "deliberately ahead of its runtime" from "dead", and
+CLAUDE.md's lesson is that **wanting an allowlist is the signal to index
+instead**. A hook written before its screen is legitimate here; a red build
+would only teach people to add exemptions. So it reports, and each entry is
+resolved one of three ways in the file itself: wire it, delete it, or say in a
+comment what it waits on.
+
 ## Order, and why
 
 **Reading, then building, one family at a time.** A family is walked (a
