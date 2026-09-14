@@ -7,7 +7,7 @@
 // the pencil.
 import { useState } from 'react'
 import {
-  Button, Card, HTMLSelect, Icon, InputGroup, Intent, Switch, Tag,
+  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Switch, Tag,
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
 import {
@@ -34,11 +34,15 @@ interface TypeForm {
   count?: boolean
   columnType?: boolean
   schemaComparison?: boolean
+  /** 659's CHECK wants this key alongside the threshold for
+   *  `time_since_last_updated`; without it the insert was refused, so the type
+   *  was offered by the picker and could never be created. */
+  ignoreEmpty?: boolean
 }
 const TYPE_FORM: Record<string, TypeForm> = {
   build_status: {}, job_status: {},
   build_duration: { threshold: 'time' },
-  time_since_last_updated: { threshold: 'time' },
+  time_since_last_updated: { threshold: 'time', ignoreEmpty: true },
   data_freshness: { column: true, threshold: 'time' },
   row_count: { threshold: 'count' },
   dataset_file_count: { threshold: 'count' },
@@ -202,6 +206,9 @@ function AddCheckForm({ datasetId, columns, onDone }: {
   const [count, setCount] = useState('')
   const [columnType, setColumnType] = useState('')
   const [comparison, setComparison] = useState(SCHEMA_COMPARISONS[0])
+  // "Transactions with no files will be ignored, as if they had not existed" —
+  // checks-reference gives the default as Y.
+  const [ignoreEmpty, setIgnoreEmpty] = useState(true)
   const [severity, setSeverity] = useState<Severity>('moderate')
   const [escalate, setEscalate] = useState(false)
   const [interval, setInterval] = useState('')
@@ -225,6 +232,7 @@ function AddCheckForm({ datasetId, columns, onDone }: {
     if (form.count === true) config.count = Number(count)
     if (form.columnType === true) config.type = columnType
     if (form.schemaComparison === true) { config.columns = columns; config.comparison_type = comparison }
+    if (form.ignoreEmpty === true) config.ignore_empty_transactions = ignoreEmpty
     add.mutate({
       datasetId, checkType, config, severity, escalate,
       refreshInterval: interval === '' ? null : interval,
@@ -259,6 +267,12 @@ function AddCheckForm({ datasetId, columns, onDone }: {
             )}
             {form.threshold === 'percent' && <span className="text-xs text-muted-foreground">%</span>}
           </>
+        )}
+        {form.ignoreEmpty === true && (
+          // The capture draws it under the rule, ticked. "Transactions with no
+          // files will be ignored, as if they had not existed."
+          <Checkbox className="!mb-0" checked={ignoreEmpty} label="Ignore empty transactions"
+            onChange={(e) => { setIgnoreEmpty(e.currentTarget.checked) }} />
         )}
         {form.values === true && (
           <InputGroup placeholder="Allowed values, comma-separated" value={values} fill

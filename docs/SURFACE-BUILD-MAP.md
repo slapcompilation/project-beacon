@@ -492,9 +492,12 @@ chart; the 30-day Alert history from `monitoring_alert_transitions`; Dive
 deeper links. Workflow Lineage's monitoring-status colouring has no engine.
 
 **The dataset Health tab (`health-checks-overview.png` new era; the 2018
-captures for the editor).** Beyond §1's row: the form cannot create a `Time
-since last updated` check (it never writes `ignore_empty_transactions`, which
-659's CHECK requires — a defect); the median-deviation clause; `Weekly…` with
+captures for the editor).** Beyond §1's row: **the `Time since last updated`
+defect is FIXED (2026-09-14)** — the form offered the type and never wrote
+`ignore_empty_transactions`, which 659's CHECK requires beside the threshold,
+so every such insert was refused. The capture draws the flag under the rule and
+`checks-reference` gives its default as **Y**; both are now what the form does.
+Still open: the median-deviation clause; `Weekly…` with
 day toggles and `On a custom schedule…`; `Notes`; Issues (no engine —
 recorded); **`Edit` an existing check** (policy exists, no mutation); `Watch ▾`
 as a menu (`watch-alerts.png`) and `Watch all ▾`; the per-check rail with
@@ -632,10 +635,13 @@ into the search terms for object types and interfaces only, and `aliases` for
 one kind. *Unattested but attested after all:* the sidebar's project control —
 both current-era Discover captures show a location control in that slot.
 
-**Discover.** Gaps: per-card `N dependents` and type-group chips — and
-`DiscoverPage.tsx`'s own comment gives "nothing counts either" as the reason,
-which is **false**: `object_type_dependent_counts` has existed since 580 and
-`features/objectTypes/groups.ts` reads and writes group membership. Favourites
+**Discover.** **The type-group chips are BUILT (2026-09-14)** — the card's own comment gave
+"nothing counts either" as the reason and 416's groups have had a reader and a
+writer since the F6.6 chunk; one query answers every card. **`N dependents`
+stays absent, with a corrected reason**: 580 does count them, but
+`object_type_dependent_counts` answers for ONE type, so a card grid would issue
+a request per card. It wants a batch reader, which is a migration rather than a
+wiring — the old reason was wrong in a way that hid a real one. Other gaps: Favourites
 (no engine), favourite type-group cards drawn as miniature link graphs (large),
 `Configure` per section with the `Customize homepage` dialog (no store for a
 per-user arrangement), and the new-user fallback pair, which *replaces* the

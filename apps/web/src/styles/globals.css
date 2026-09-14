@@ -2294,3 +2294,6 @@
 .dsv-launcher-rail button:hover { background:hsl(var(--muted)); }
 .dsv-launcher-rail button.active { background:hsl(var(--primary) / .12); color:hsl(var(--primary)); }
 .dsv-launcher-list { flex:1 1 0%; overflow-y:auto; min-width:0; }
+
+/* Discover: the type-group chips the capture puts on a card. */
+.oma-card-groups { display:flex; flex-wrap:wrap; gap:3px; margin-top:auto; padding-top:6px; }
