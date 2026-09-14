@@ -14,7 +14,8 @@ import {
 import { useAuthStore } from '@/stores/auth.store'
 import {
   checkpointTypeLabel, useCheckpointConfigs, useCheckpointRecords,
-  useCheckpointTypes, useConditionCatalog, useConfigAdminNames, useCreateConfig,
+  useCheckpointTypes, useConditionCatalog, useConditionKinds, useConfigAdminNames, useCreateConfig,
+  useSpaceScopableTypes,
   useDeleteConfig, type CheckpointRecord, type ConditionKind, type DropdownOption,
   type JustificationType, type NewCondition,
 } from '@/features/checkpoints/api'
@@ -235,15 +236,20 @@ function ConfigurationTab() {
   )
 }
 
-const KIND_LABEL: Record<ConditionKind, string> = {
+// Display names for the kinds the database publishes. A kind with no name here
+// still appears, humanised from its token, rather than vanishing from the picker.
+const KIND_LABEL: Partial<Record<string, string>> = {
   location: 'Location',
   user_submitting: 'User submitting checkpoint',
   selected_principal: 'Selected user or group',
   marking: 'Marking',
 }
+const kindLabel = (k: string): string =>
+  KIND_LABEL[k] ?? (k.charAt(0).toUpperCase() + k.slice(1)).replace(/_/g, ' ')
 
 function ConfigWizard({ onDone }: { onDone: () => void }) {
   const { data: allTypes = [] } = useCheckpointTypes()
+  const { data: spaceScopable = [] } = useSpaceScopableTypes()
   const { data: catalog } = useConditionCatalog()
   const organizationId = useAuthStore((s) => s.organizationId)
   const create = useCreateConfig()
@@ -266,7 +272,6 @@ function ConfigWizard({ onDone }: { onDone: () => void }) {
   const [description, setDescription] = useState('')
 
   // the published narrowing: only located interactions take a space scope
-  const spaceScopable = ['role_grant_addition', 'role_grant_removal']
   const spaceOk = scope === 'organization' || types.every((t) => spaceScopable.includes(t))
 
   const STEPS = ['Conditions', 'Prompt', 'Justification type', 'Name and description']
@@ -438,6 +443,7 @@ function ConditionRows({ conditions, setConditions, catalog }: {
   setConditions: (c: NewCondition[]) => void
   catalog: ReturnType<typeof useConditionCatalog>['data']
 }) {
+  const { data: kinds = [] } = useConditionKinds()
   const setAt = (i: number, patch: Partial<NewCondition>) => {
     const next = [...conditions]
     next[i] = { ...next[i], ...patch }
@@ -468,8 +474,7 @@ function ConditionRows({ conditions, setConditions, catalog }: {
             options={['AND', 'NOT']}
             onChange={(e) => { setAt(i, { negated: e.currentTarget.value === 'NOT' }) }} />
           <HTMLSelect value={c.kind}
-            options={(Object.keys(KIND_LABEL) as ConditionKind[])
-              .map((k) => ({ value: k, label: KIND_LABEL[k] }))}
+            options={kinds.map((k) => ({ value: k, label: kindLabel(k) }))}
             onChange={(e) => {
               setConditions(conditions.map((x, j) => j === i
                 ? { kind: e.currentTarget.value as ConditionKind, negated: x.negated } : x))

@@ -656,11 +656,14 @@ backing rows, which is the one gap here already engine-complete: `804`'s
 Unattested: the permanently-expanded `New object type` card, a per-row `↻` full
 reindex, a `v{version}` tag, and an `Edit properties` mode Foundry does not have.
 
-**Shared properties — a defect, not a gap.** A shared property **cannot be
-edited after creation**, which is the entire reason the type exists.
-`useUpdateSharedProperty` is written, typed and wired to nothing;
-`save_shared_property` takes the whole definition. The `VISIBILITY` column is
-stored, fetched, mapped — and printed nowhere. *Overturned:* our "deletion
+**Shared properties — the edit defect is FIXED (2026-09-14).** A shared property
+could not be edited after creation, which is the entire reason the type exists:
+`useUpdateSharedProperty` was written, typed and wired to nothing. The row now
+edits in place over the three fields `save_shared_property` accepts, and the
+`VISIBILITY` column — stored since 329 and printed nowhere — is the capture's
+third column. **What remains** is Foundry's four-tab editor (General / Display /
+Interaction / Details) with its Usage and Permissions tabs; the inline row is a
+subset of it. *Overturned:* our "deletion
 refused while a type still inherits" not-gap is a **divergence running the
 wrong way** — the page documents bulk deletion.
 
@@ -784,9 +787,14 @@ shape as shared properties.
   prints the raw cron where `automationScheduleCron` already parses it.
 
 **Approvals.** The whole `Additional filters` card is absent though every
-attribute is already in the listing payload. `action_required` — the sixth
-request state, re-added by 665 — is missing from the web's type union, so such a
-request renders an undefined label; `retry_approval_request` (665) has no caller.
+attribute is already in the listing payload. **The `action_required` hole is
+closed (2026-09-14):** the sixth request state, re-added by 665, was missing from
+the web's hand-written union, so such a request rendered an undefined label; the
+union is now the generated `ApprovalRequestsStatus`, the state counts as open,
+and a request parked there carries the page's own explanation and a
+`Complete and re-invoke` button running `retry_approval_request` through the
+checkpoint gate — which is what "eligible reviewers can complete checkpoints on
+behalf of the requesting user" describes.
 **None of the five Approvals notifications is sent**, though `sendNotification`
 has been live since 793. Comments cannot be scoped to a task although
 `comment_on_approval_request` takes `p_task`. No `+ Invite reviewers` — and that
@@ -795,10 +803,11 @@ the capture, and `Tasks ineligible for your approval` is attested verbatim in a
 capture the reader skipped.
 
 **Checkpoints.** Four of six documented filters are missing. Two not-gaps fell,
-both the same way — **a generated value exists and the page hardcodes instead**:
-`spaceScopable` is a hardcoded array where `spaceScopableCheckpointTypes` is
-generated, and the condition-kind select enumerates a local `KIND_LABEL` where
-`checkpointConditionKinds` is generated and never imported by `apps/web`.
+both the same way — a generated value existed and the page hardcoded instead —
+and **both are fixed (2026-09-14)**: `spaceScopable` asks
+`space_scopable_checkpoint_types()`, and the condition-kind picker asks
+`checkpoint_condition_kinds()` with `KIND_LABEL` as display names and a
+humanised fallback, so a fifth kind appears rather than vanishing.
 
 **Notifications.** `getting-started/images/notifications.png` is the
 notifications **panel** — an anchored popover with a `See all` footer — a second
