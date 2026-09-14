@@ -484,12 +484,27 @@ sections (no engine); alerting at a specific severity rather than "and
 above"; and subscribers receiving anything at all — no producer sends the
 in-platform notification the page promises.
 
-**The alert debug page (`alert-debug-page-overview.png`,
-`alert-debug-condition-breakdown.png`) — LARGE, not rendered.** Header `on
-<resource> since <time>`, Snooze, Edit monitor; Current value / Threshold with
-the status badge and condition popover; window duration; SOP; the executions
-chart; the 30-day Alert history from `monitoring_alert_transitions`; Dive
-deeper links. Workflow Lineage's monitoring-status colouring has no engine.
+**The alert debug page — WITHDRAWN as a gap (2026-09-14), with the page's own
+sentence.** This section listed it as a large unbuilt screen whose data was
+already written, and `readings/monitoring-views.md` had already recorded the
+reason it is absent; the Batch A reader did not carry that reason across, and
+this entry repeated the overstatement. The page scopes itself:
+
+> "The alert debug page only provides detailed diagnostics for function and action type resources with single-condition monitoring rules. If you open the page for a composite monitoring rule or a rule on another resource type, you are redirected to the **Troubleshoot alerts** tab."
+— monitoring-views/alert-debug-page.md
+
+**Every monitoring rule this platform can create is on another resource type**
+— function and action-type rules are the second-tranche families §3.3 records as
+unbuilt — so Foundry itself would redirect away from this page for all of them,
+to the tab we already render. Building it would be building a screen the
+product hides from our own data. It waits on the resource families, not on a
+surface, and `monitoring_alert_transitions` having no reader is that same wait
+rather than a defect. Workflow Lineage's monitoring-status colouring has no
+engine either.
+
+**This is the second map claim withdrawn against the source** (the first was the
+cron renderer in §3.8). Both were written as "the engine is there, build it",
+and in both the engine was there and the page said not to.
 
 **The dataset Health tab (`health-checks-overview.png` new era; the 2018
 captures for the editor).** Beyond §1's row: **the `Time since last updated`
@@ -506,9 +521,9 @@ ours: the empty-state copy, the `Escalates` tag, the interval as a clock tag,
 the inline watch select, `n passed / n failed / n error` header tags (the
 capture prints `Checks 15 ●7 ●8`).
 
-**Build order:** the `ignore_empty_transactions` defect and `Edit` on a check;
-the alert debug page (its data is already written); `Add health check` on the
-app and the wizard; then the tab's table shape from §1.
+**Build order:** `Edit` on a check (the `ignore_empty_transactions` defect is
+fixed); `Add health check` on the app and the four-step wizard; then the tab's
+table shape from §1. **Not** the alert debug page, per the withdrawal above.
 
 #### 3.4 Object Explorer and Object Views
 
