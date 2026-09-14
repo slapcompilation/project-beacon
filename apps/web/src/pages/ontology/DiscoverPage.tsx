@@ -4,9 +4,17 @@
 //
 // OMITTED BY NAME: `Favorite object types` and `Favourite type groups` —
 // nothing stars an object type and nothing draws a group's link graph, so both
-// sections would render their empty state forever. On a card, `9 dependents`
-// and the type-group chips go with them: nothing counts either. `Configure`
-// (the Customize homepage dialog) has no sections to reorder without them.
+// sections would render their empty state forever. `Configure` (the Customize
+// homepage dialog) has no store for a per-user arrangement.
+//
+// The card's type-group chips were omitted with them on the ground that
+// "nothing counts either". That was false: 416's groups have had a reader and a
+// writer since the F6.6 chunk, and one query answers every card. They are here.
+//
+// The card's `9 dependents` is still absent, and the reason is not the one that
+// was written: 580 does count them, but `object_type_dependent_counts` answers
+// for ONE type, so a card grid would issue a request per card. It needs a batch
+// reader, which is a migration, not a wiring.
 
 import { Icon, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
@@ -15,6 +23,7 @@ import type { ObjectTypeDef } from '@beacon/ontology'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { indexReady, useIndexStatuses } from '@/features/objectTypes/indexing'
+import { useTypeGroups } from '@/features/objectTypes/groups'
 import { NoOntologyCallout, OntologySummary } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { tileStyle, typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
@@ -36,7 +45,7 @@ export default function DiscoverPage() {
       {recent.length > 0 && (
         <section className="oma-section">
           <SectionHead title="Recently viewed object types" count={recent.length} />
-          <Cards types={recent} />
+          <Cards types={recent} ontologyId={ontology.id} />
         </section>
       )}
 
@@ -45,14 +54,15 @@ export default function DiscoverPage() {
           seeAll={<Link className="oma-see-all" to="/ontology/object-types">See all <Icon icon="arrow-right" size={12} /></Link>} />
         {types.length === 0
           ? <p className="text-xs text-muted-foreground">None yet — author one from Object types.</p>
-          : <Cards types={types} />}
+          : <Cards types={types} ontologyId={ontology.id} />}
       </section>
     </div>
   )
 }
 
-function Cards({ types }: { types: ObjectTypeDef[] }) {
+function Cards({ types, ontologyId }: { types: ObjectTypeDef[]; ontologyId: string }) {
   const { data: indexes } = useIndexStatuses()
+  const { data: groups = [] } = useTypeGroups(ontologyId)
   return (
     <div className="oma-cards">
       {types.map((t) => {
@@ -75,6 +85,14 @@ function Cards({ types }: { types: ObjectTypeDef[] }) {
             <span className={cn('oma-card-desc', !t.description && 'is-empty')}>
               {t.description || 'No description'}
             </span>
+            {/* The capture puts the type's groups on the card as chips. */}
+            {groups.some((g) => g.memberIds.includes(t.id)) && (
+              <span className="oma-card-groups">
+                {groups.filter((g) => g.memberIds.includes(t.id)).map((g) => (
+                  <Tag key={g.id} minimal className="!text-[10px]">{g.name}</Tag>
+                ))}
+              </span>
+            )}
           </Link>
         )
       })}
