@@ -1,24 +1,30 @@
 // The Automate application: Overview and Automations, as both screenshots draw
 // them — the app name, two tabs, and a primary New automation on the right.
 //
-// Read-only. "+ New automation" is deliberately absent: the creation wizard is
-// five pages over condition-settings, effect-actions and effect-function, none
-// of which are read, and a button that opens nothing is worse than none.
+// Pause and mute are here because the filter pane counts both and nothing could
+// produce either state: they are plain column updates, and 622's AFTER UPDATE
+// trigger writes the metadata event. The condition cell still prints the stored
+// cron rather than "At 09:00 AM" — that refusal stands (api.ts), because
+// `automation_schedule_cron` extracts a cron from an object-set payload and
+// does not render one into English.
 //
 // The engine has been running on the minute hand since 493-496 with no screen
 // at all. See readings/automate.md § The surface.
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Callout, Card, Checkbox, HTMLTable, Icon, InputGroup, Intent, NonIdealState, Tag,
+  Button, Callout, Card, Checkbox, HTMLTable, Icon, InputGroup, Intent, Menu, MenuItem,
+  NonIdealState, Popover, Tag,
 } from '@blueprintjs/core'
+import { useAuthStore } from '@/stores/auth.store'
+import { useUsers } from '@/features/users/api'
 import type { IconName } from '@blueprintjs/icons'
 import { NewAutomationDialog } from '@/features/automate/NewAutomationDialog'
 import { useExecuteNow } from '@/features/automate/authoring'
 import {
   CONDITION_META, EVENT_LABEL, STATUSES, STATUS_META, conditionSummary,
   latestByAutomation, statusOf, statusTag, useAutomationEvents, useAutomationRuns,
-  useAutomations, useEffectKinds,
+  useAutomations, useEffectKinds, useMyNotificationCount, useSetAutomationFlag,
   type Automation, type AutomationEvent, type AutomationRun, type AutomationStatus,
 } from '@/features/automate/api'
 
@@ -62,8 +68,12 @@ function AutomateHome() {
 function OverviewTab() {
   const { data: automations = [] } = useAutomations()
   const { data: runs = [] } = useAutomationRuns()
+  const { data: forYou = 0 } = useMyNotificationCount()
+  const me = useAuthStore((s) => s.userId)
 
   const paused = automations.filter((a) => a.paused).length
+  // "Owned by you" is the ones you own, not the ones you can see.
+  const mine = automations.filter((a) => a.owner_id !== null && a.owner_id === me).length
   // "failures within the last four weeks" — the page's own window.
   const cutoff = Date.now() - 28 * 24 * 3600 * 1000
   const failures = runs.filter((r) => r.outcome === 'failed' && new Date(r.ran_at).getTime() >= cutoff)
@@ -86,12 +96,11 @@ function OverviewTab() {
           <span className="text-sm font-semibold">Active automations</span>
           <Tag minimal className="tabular-nums">{automations.length - paused}</Tag>
         </div>
-        {/* "For you — You receive notifications" is deliberately absent: the
-            notification effect is executable=false here, so the card would
-            always read zero for a feature we do not have. */}
         <div className="flex gap-3">
-          <StatCard icon="user" label="Owned by you" hint="Executed on your behalf"
-            value={automations.length} />
+          <StatCard icon="user" label="Owned by you" hint="Executed on your behalf" value={mine} />
+          {/* Absent while the notification effect was executable=false; 793-803
+              built the engine and 794 flipped it, so the card counts again. */}
+          <StatCard icon="inbox" label="For you" hint="You receive notifications" value={forYou} />
           <StatCard icon="pause" label="Paused" hint="Automation is not evaluated" value={paused} />
         </div>
       </div>
@@ -136,8 +145,29 @@ function StatCard({ icon, label, hint, value }: {
   )
 }
 
+/** The row's `⋯`, and the same two verbs on the detail. Pause stops the
+ *  triggers; mute leaves evaluation running and stops the notifying. */
+function FlagMenu({ automation: a }: { automation: Automation }) {
+  const set = useSetAutomationFlag()
+  return (
+    <Popover placement="bottom-end" content={
+      <Menu>
+        <MenuItem icon={a.paused ? 'play' : 'pause'} text={a.paused ? 'Resume' : 'Pause'}
+          onClick={() => { set.mutate({ id: a.id, paused: !a.paused }) }} />
+        <MenuItem icon={a.muted ? 'volume-up' : 'disable'} text={a.muted ? 'Unmute' : 'Mute'}
+          onClick={() => { set.mutate({ id: a.id, muted: !a.muted }) }} />
+      </Menu>}>
+      <Button variant="minimal" size="small" icon="more" aria-label={`${a.display_name} actions`} />
+    </Popover>
+  )
+}
+
 function AutomationsTab() {
   const navigate = useNavigate()
+  // The capture's CREATOR cell holds a person, not the word Owner.
+  const { data: users = [] } = useUsers()
+  const ownerName = (id: string | null): string =>
+    id === null ? '—' : users.find((u) => u.id === id)?.username ?? '—'
   const { data: automations = [], isLoading } = useAutomations()
   const { data: runs = [] } = useAutomationRuns()
   const [query, setQuery] = useState('')
@@ -200,7 +230,7 @@ function AutomationsTab() {
         ) : (
           <Card compact className="!p-0">
             <HTMLTable interactive compact className="w-full text-xs">
-              <thead><tr><th>Name</th><th>Condition</th><th>Status</th><th>Creator</th></tr></thead>
+              <thead><tr><th>Name</th><th>Condition</th><th>Status</th><th>Creator</th><th /></tr></thead>
               <tbody>
                 {rows.map(({ a, status }) => {
                   const cm = CONDITION_META[a.condition.type]
@@ -226,7 +256,10 @@ function AutomationsTab() {
                           <Tag minimal>{statusTag(status, a.condition)}</Tag>
                         </span>
                       </td>
-                      <td className="text-muted-foreground">{a.owner_id ? 'Owner' : '—'}</td>
+                      <td className="text-muted-foreground">{ownerName(a.owner_id)}</td>
+                      <td onClick={(e) => { e.stopPropagation() }}>
+                        <FlagMenu automation={a} />
+                      </td>
                     </tr>
                   )
                 })}
@@ -278,10 +311,11 @@ function AutomationDetail({ id }: { id: string }) {
           onClick={() => { void navigate('/automate') }}>All automations</Button>
         <div className="flex items-center gap-2 px-3 py-2 border-t border-b">
           <span className="oma-cond-tile"><Icon icon={cm.icon as IconName} size={13} /></span>
-          <span className="text-xs">
+          <span className="text-xs flex-1 min-w-0">
             <span className="text-primary font-medium block">{a.display_name}</span>
             <span className="text-muted-foreground">{cm.label}</span>
           </span>
+          <FlagMenu automation={a} />
         </div>
         <div className="p-2">
           {RAIL.map((r) => (

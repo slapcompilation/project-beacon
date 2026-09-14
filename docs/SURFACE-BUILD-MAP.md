@@ -769,22 +769,34 @@ shape as shared properties.
 `/approvals` (277), `/checkpoints` (512), `/notifications` (104).
 **Captures opened:** 15 of 41.
 
-**Automate.** Two large gaps and a stale reason apiece:
-- **Nothing can pause, mute, resume or unmute an automation**, while the
-  five-status filter pane counts `Muted` and `Paused`. The columns exist (609,
-  622, 624) and 622's `AFTER UPDATE` trigger already writes the metadata event —
-  two of the three verbs are one `.update()` away.
+**Automate.** **Pause and mute are BUILT (2026-09-14)** — a `⋯` on every row of
+the Automations table and the same pair on the detail, writing the column that
+622's `AFTER UPDATE` trigger turns into the metadata event. The five-status
+filter pane had counted `Muted` and `Paused` since 609 with nothing able to
+produce either. Also built: the **`For you`** card, whose omission was reasoned
+when the notification effect was `executable = false` and stayed written in two
+places — `AutomatePage.tsx` and `readings/automate.md` Decision 5 — after 793–803
+built the engine and 794 flipped the effect; and the **Creator** column, which
+printed the word `Owner` where the capture holds a person. `Owned by you` now
+counts the ones you own rather than the ones you can see.
+
+**One map claim is withdrawn.** This section said the condition chip could print
+`At 09:00 AM` because `automationScheduleCron` "already parses the expression".
+It does not: its body extracts a cron from an object-set payload and returns
+NULL for a time condition. `features/automate/api.ts` refuses to half-parse a
+cron on the stated ground that "a half-done parser would mislabel the ones it
+cannot read", and that refusal stands. Rendering a cron into English is a real
+gap with no engine behind it.
+
+What remains:
 - **There is no edit path.** An automation is create-once: no condition, effect,
   scope, auto-mute or expiration can be changed after creation.
 - The Overview should draw an `Automation flow` graph (condition → effects)
   beside an `Automation details` card; ours is three text sections.
 - The Event log has no per-event drawer — and `automation_runs.event_id` **does
   exist** (622, indexed, written and asserted), against the reader's claim.
-- The `For you` card is omitted for a reason that went stale when 793 shipped,
-  and **that stale reason is written in two places**: `AutomatePage.tsx` and
-  `readings/automate.md` Decision 5.
-- The Creator column prints the word `Owner`, never a person; the condition chip
-  prints the raw cron where `automationScheduleCron` already parses it.
+- The condition chip prints the stored cron; rendering it as `At 09:00 AM`
+  needs a cron renderer nothing here has.
 
 **Approvals.** The whole `Additional filters` card is absent though every
 attribute is already in the listing payload. **The `action_required` hole is
