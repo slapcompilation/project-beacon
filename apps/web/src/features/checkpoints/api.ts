@@ -7,7 +7,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
-import { checkpointTypes, submitCheckpoint } from '@beacon/platform'
+import {
+  checkpointConditionKinds, checkpointTypes, spaceScopableCheckpointTypes, submitCheckpoint,
+} from '@beacon/platform'
 
 export type JustificationType = 'acknowledgment' | 'response' | 'dropdown'
 export type ConditionKind = 'location' | 'user_submitting' | 'selected_principal' | 'marking'
@@ -96,6 +98,26 @@ export function useCheckpointTypes() {
     queryKey: ['checkpoints', 'types'],
     queryFn: async () =>
       await client(checkpointTypes).executeFunction({}) as unknown as string[],
+  })
+}
+
+/** Which checkpoint types a SPACE-scoped configuration may name. The page had
+ *  this as a two-element array; the database publishes it, and a third type
+ *  becoming space-scopable should not need a code change here. */
+export function useSpaceScopableTypes() {
+  return useQuery({
+    queryKey: ['checkpoints', 'space-scopable'],
+    queryFn: async () =>
+      await client(spaceScopableCheckpointTypes).executeFunction({}) as unknown as string[],
+  })
+}
+
+/** The condition kinds, asked rather than restated — the same reason. */
+export function useConditionKinds() {
+  return useQuery({
+    queryKey: ['checkpoints', 'condition-kinds'],
+    queryFn: async () =>
+      await client(checkpointConditionKinds).executeFunction({}) as unknown as string[],
   })
 }
 

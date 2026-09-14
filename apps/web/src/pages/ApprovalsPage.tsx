@@ -4,13 +4,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Card, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Menu,
+  Button, Callout, Card, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Menu,
   MenuItem, NonIdealState, Popover, Spinner, Tag, TextArea, Intent,
 } from '@blueprintjs/core'
 import {
   useApprovals, useApprovalComments, useReviewTask, useCloseRequest,
   useRequestChanges, useEditRequest, useCommentOnRequest,
-  REQUEST_OPEN, REQUEST_STATUS_LABEL, TASK_KIND_LABEL, TASK_FIELD_ROWS,
+  REQUEST_OPEN, REQUEST_STATUS_LABEL, TASK_KIND_LABEL, TASK_FIELD_ROWS, useRetryRequest,
   type ApprovalRequest, type ApprovalTask,
 } from '@/features/approvals/api'
 import { cn } from '@/lib/utils'
@@ -24,6 +24,7 @@ const STATUS_INTENT: Record<ApprovalRequest['status'], Intent> = {
   completed: Intent.SUCCESS,
   closed: Intent.NONE,
   rejected_and_closed: Intent.DANGER,
+  action_required: Intent.WARNING,
 }
 
 const isOpen = (r: ApprovalRequest) => REQUEST_OPEN.includes(r.status)
@@ -117,6 +118,7 @@ function Inbox({ requests, isLoading }: { requests: ApprovalRequest[]; isLoading
 
 function RequestView({ id, requests, isLoading }:
   { id: string; requests: ApprovalRequest[] | undefined; isLoading: boolean }) {
+  const retry = useRetryRequest()
   const navigate = useNavigate()
   const request = requests?.find((r) => r.id === id)
   const { data: comments } = useApprovalComments(request?.id ?? null)
@@ -181,6 +183,23 @@ function RequestView({ id, requests, isLoading }:
             <p className="approvals-row-sub">
               Created by {request.creator ?? 'unknown'} on {new Date(request.created_at).toLocaleDateString()}
             </p>
+            {request.status === 'action_required' && (
+              // "the request cannot be invoked until the checkpoints are
+              //  submitted" — the retry runs through the gate, so submitting
+              //  the checkpoint here is what completes it (665).
+              <Callout intent={Intent.WARNING} icon="warning-sign" className="mt-2">
+                <p>
+                  Every task is approved, but the request could not be invoked without some
+                  user action. Eligible reviewers can complete checkpoints on behalf of the
+                  requesting user.
+                </p>
+                <Button size="small" intent={Intent.WARNING} icon="refresh" className="mt-2"
+                  loading={retry.isPending}
+                  onClick={() => { retry.mutate(request.id) }}>
+                  Complete and re-invoke
+                </Button>
+              </Callout>
+            )}
           </Card>
           <Card className="approvals-tasks-card">
             <h3>Reviewer tasks</h3>

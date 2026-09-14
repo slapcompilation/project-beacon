@@ -6,10 +6,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
+import { retryApprovalRequest, type ApprovalRequestsStatus } from '@beacon/platform'
+import { runWithCheckpoint } from '@/features/checkpoints/gate'
 
-export type ApprovalRequestStatus =
-  | 'pending_approval' | 'closed' | 'rejected_and_closed'
-  | 'changes_requested' | 'completed'
+// The generated union, not a copy of it: 665 re-added `action_required` and the
+// hand-written five missed it, so such a request rendered an undefined label.
+export type ApprovalRequestStatus = ApprovalRequestsStatus
 export type ApprovalTaskStatus = 'review' | 'approved' | 'rejected'
 export type ApprovalTaskKind =
   | 'group_membership' | 'project_role' | 'marking_member' | 'ontology_proposal'
@@ -47,7 +50,12 @@ export interface ApprovalComment {
   created_at: string
 }
 
-export const REQUEST_OPEN: ApprovalRequestStatus[] = ['pending_approval', 'changes_requested']
+// Open is "not finished": a request parked in action_required is waiting on a
+// person, not closed. "the request cannot be invoked until the checkpoints are
+// submitted" — approvals/overview.
+export const REQUEST_OPEN: ApprovalRequestStatus[] = [
+  'pending_approval', 'changes_requested', 'action_required',
+]
 
 export function useApprovals() {
   return useQuery({
@@ -121,6 +129,25 @@ export const useCommentOnRequest = approvalMutation<{ requestId: string; taskId:
   'comment_on_approval_request',
   (a) => ({ p_request: a.requestId, p_task: a.taskId, p_body: a.body }), 'Comment added')
 
+/** "eligible reviewers can complete checkpoints on behalf of the requesting
+ *  user" — so the retry runs through the gate: the refusal it meets is the
+ *  missing checkpoint, and submitting it re-invokes the request (665). */
+export function useRetryRequest() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      await runWithCheckpoint(async () => {
+        await client(retryApprovalRequest).applyAction({ p_request: requestId })
+      })
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['approvals'] })
+      toast.success('Re-invoked')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
 // Display vocabulary: the pages' own names for what the tokens store.
 export const REQUEST_STATUS_LABEL: Record<ApprovalRequestStatus, string> = {
   pending_approval: 'Pending approval',
@@ -128,6 +155,7 @@ export const REQUEST_STATUS_LABEL: Record<ApprovalRequestStatus, string> = {
   completed: 'Completed',
   closed: 'Closed',
   rejected_and_closed: 'Rejected and closed',
+  action_required: 'Action required',
 }
 
 export const TASK_KIND_LABEL: Record<ApprovalTaskKind, string> = {
