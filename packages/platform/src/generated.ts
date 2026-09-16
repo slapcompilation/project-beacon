@@ -2278,6 +2278,12 @@ export const canSeeHealthCheck = { apiName: 'can_see_health_check', kind: 'funct
   boolean
 >
 
+/**
+ *  Category visibility, per the four bullets of
+ *  platform-security-management/manage-markings.md. The marking-role arm is
+ *  administrator and remover only: apply is not a reason to see a Hidden
+ *  category.
+ */
 export const canSeeMarkingCategory = { apiName: 'can_see_marking_category', kind: 'function' } as FunctionType<
   { p_category: string },
   boolean

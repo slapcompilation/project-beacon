@@ -509,15 +509,32 @@ renders **six** sections, not five.
    column updatable. One statement removed a marking without the remove
    permission and applied another without the apply permission. **Closed by
    807**; the sweep for the same shape returns exactly one table.
-2. **`effective_file_markings` handles `p_kind = 'monitoring_view'` in both its
-   chain and project branches, and `resource_markings_resource_kind_check`
-   does not admit it** — so that arm can never execute. Harmless today,
-   misleading tomorrow.
-3. **`can_see_marking_category` is wider than the page.** The page grants
-   implicit viewership to holders of the *administrator* and *remover*
-   permissions; our arm admits any `holds_marking_permission`, which includes
-   apply. Being wider than Foundry on a *visibility* rule is the direction that
-   leaks.
+2. **A monitoring view can inherit a marking but cannot carry one.**
+   `effective_file_markings` handles `p_kind = 'monitoring_view'` in its chain
+   and project branches — and those **do** execute, so inheritance works — while
+   `resource_markings_resource_kind_check` admits only
+   `project | dataset | folder | restricted_view`, so the *direct-application*
+   clause can never match for that kind. (I first wrote this up as "an arm that
+   can never execute", which is wrong and is corrected here: three quarters of
+   the function's monitoring-view handling is live.)
+
+   **This is a divergence, not a bug, and it runs in the direction CLAUDE.md
+   cares about: we are STRICTER than Foundry.** `DATA_HEALTH_MONITORING_VIEW` is
+   one of the 85 published `Resource` kinds and `addMarkings` takes any
+   `resourceRid`, so Foundry lets a monitoring view be marked directly.
+   Widening our CHECK is not a one-line change: `guard_marking_application`'s
+   final `ELSE` resolves ownership through `datasets`, so a monitoring view
+   would find no row, `owns` would be false, and every non-admin would be
+   refused — a capability that looks present and is not. **Deferred rather than
+   half-built**, and scoped here: nothing in the product applies a marking to a
+   monitoring view, and the day something does, the guard gets its branch in the
+   same migration as the CHECK.
+3. **`can_see_marking_category` was wider than the page** — it admitted any
+   `holds_marking_permission`, which includes `apply`, where the page grants
+   implicit viewership to *administrator* and *remover* only. On a visibility
+   rule, wider is the direction that leaks, and seven RLS policies route through
+   it. **Closed by 808**, which proves the hole existed before the patch as well
+   as that it is shut after.
 
 ## Connects to
 
