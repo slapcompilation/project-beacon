@@ -21,6 +21,7 @@ const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
+const MarkingsPage = lazyWithRetry(() => import('@/pages/MarkingsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
 const ControlPanelPage = lazyWithRetry(() => import('@/pages/ControlPanelPage'))
@@ -99,6 +100,9 @@ function AppRoutes() {
             <Route path="/account"   element={<AccountPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings"  element={<SettingsPage />} />
+            {/* Foundry's Platform Settings lists Markings as its own entry,
+                between Groups and Organizations. */}
+            <Route path="/settings/markings" element={<MarkingsPage />} />
             <Route path="/ontology"  element={<OmaLayout />}>
               {/* "The Discover view offers a highly customizable landing page." */}
               <Route index element={<DiscoverPage />} />

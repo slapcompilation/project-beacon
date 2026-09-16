@@ -30,6 +30,8 @@ import {
 import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
 } from '@/features/compass/catalogApi'
+import { useNavigate } from 'react-router-dom'
+import { useMarkingCategories, useMarkings } from '@/features/markings/api'
 import { ScopedSessionsSection } from '@/features/security/ScopedSessionsSection'
 import { UsersSection } from '@/features/users/UsersSection'
 
@@ -59,9 +61,39 @@ export default function SettingsPage() {
         <ScopedSessionsSection />
         <UsersSection />
         <GroupsSection />
+        <MarkingsSection />
         <TagsSection />
       </div>
     </div>
+  )
+}
+
+// Markings has its own screen, because Foundry's Platform Settings gives it
+// one — the nav lists it between Groups and Organizations, and the page is a
+// drill-down of categories, markings and their two editors rather than a
+// stacked section. This is the doorway; readings/markings-admin-screen.md is
+// the shape.
+function MarkingsSection() {
+  const navigate = useNavigate()
+  const { data: categories = [] } = useMarkingCategories()
+  const { data: markings = [] } = useMarkings()
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold">Markings</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Create, edit, and organize security markings.
+          </p>
+        </div>
+        <Button icon="shield" onClick={() => { void navigate('/settings/markings') }}>
+          Manage markings
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        {categories.length} categor{categories.length === 1 ? 'y' : 'ies'} · {markings.length} marking{markings.length === 1 ? '' : 's'}
+      </p>
+    </Card>
   )
 }
 
