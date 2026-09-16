@@ -344,25 +344,35 @@ and are not built until they do.
 `builds-and-schedules.md`, `data-lineage.md`, `branch-overlay.md`. Captures
 opened: 14 of 69 — the refuter found four unread live-logs captures on disk.
 
-**The build report (`data-integration/images/builds.png`,
-`live-logs-build-page.png`; two eras, 2022 and 2024).** Foundry's is a page:
-`Build info` (Status in title-case with a spinner, Duration, Estimated,
-Started, Ended, Started by, Progress `0 of 4 jobs succeeded`, Build ID with
-copy); a `Build schedule` card (the schedule that started it, WHEN TO BUILD
-as dataset chips, RECENT RUNS dots, Metrics/Schedule); `Build progress` as a
-Gantt with the legend Queued/Waiting/Running/Succeeded/Failed/Canceled, a
-Job status filter and a Dataset path search; a per-job Datasets table (name +
-path, start, duration over `Typically …`, a stage progress bar, Logs,
-Actions, `Job type:`, the four-step timeline); `Cancel build`, `Explore
-lineage` and the three-count pill in the header; a log viewer (Wrap lines,
-Filter, View live, Download, colour-coded levels). Ours: a card per build
-with the API token (`SUCCEEDED` where the capture prints `Succeeded`), a
-truncated id, `12.3s`, and an inline job list. Engines: most of Build info and
-the Gantt's facts exist (493/506/507, `builds.schedule_id`); `cancel_build`
-and job logs do not. Unattested and ours: the header paragraph, the empty
-state's SQL-JobSpec sentence, the 8-character id, the accordion. The builds
-*list* itself has no capture — it is "all builds occurring across Foundry" in
-prose only.
+**The build report — BUILT (2026-09-16), `pages/BuildReportPage.tsx` at
+`/builds/:id`.** Reading: `readings/build-report.md` — 3 pages, 3 of the 7
+captures those pages reference, and the four skipped are named with the reason
+(each a detail of the log viewer, which has no engine). Built to
+`data-integration/images/builds.png`:
+
+| region | element | status |
+|---|---|---|
+| header | breadcrumb `Builds › Build of: <dataset> and N more` | **built**, including the single-job form the second capture shows |
+| header | `Explore lineage` | **built** — to the first output's lineage |
+| header | `View actions` / `Actions ▾`, `Cancel build` | **not built** — no `cancel_build` in the platform, and the menu's contents are uncaptured |
+| header | the three-count pill | **not built**, and the reading now shows the captures *rule out* the obvious reading: a Running build over four jobs shows `⟳ 0` while a Running build over one shows `⟳ 1`, so it is not this build's jobs |
+| Build info | Status, Duration, Started, Ended, Started by, Progress, Build ID + copy | **built**; Status renders title-case (`Running`) as the screen does while the ledger keeps `RUNNING` |
+| Build info | `Estimated` | **not built** by decision 5 — an ETA whose only honest input is the median already printed on the row |
+| Build schedule | name, `WHEN TO BUILD` sentence, trigger chips | **built**, with the any-of/all-of form following the trigger tree |
+| Build schedule | `RECENT RUNS` dots, `Last modified … by` | dots and the timestamp **built** from `schedule_runs`; the *by* is not — nothing records who edited a schedule |
+| Build schedule | `Metrics`, `Schedule` buttons | `Schedule` **built** (to `/lineage`, where the panel is); `Metrics` **not built** |
+| Build progress | `Gantt chart` toggle, `Job status` filter, `Dataset path…` search | filter and search **built**; the Gantt is always drawn, so the toggle is not |
+| Build progress | the Gantt, one bar per job over the build's span | **built** |
+| Build progress | the six-entry legend | **built**, mapped from our seven prose tokens (decision 3) |
+| Build progress | `Progress details`, `Critical path` | **not built** — neither is described by any page |
+| Datasets | `Datasets / Start time / Duration / Status`, name + path, the status bar | **built** |
+| Datasets | `Typically 19m 5` / `No previous runs` | **built** — the median of that job spec's completed runs, computed per decision 4 |
+| Datasets | `Logs`, `Actions ▾`, `Spark details` | **not built** — no `job_logs` table, and Spark is a stated non-goal |
+| Datasets | the per-job timeline | **built** for the steps our columns support; **no `Waited for resources` step is invented** (decision 6), and 507's `job_blocked_by` records a different wait |
+
+**The list's accordion is gone.** `/builds` expanded a card in place to show its
+jobs; the capture's breadcrumb makes a build a page, and §3.2 had recorded the
+accordion as unattested. A row navigates now.
 
 **Schedules (`data-lineage/images/manage-schedules.png`,
 `manage-schedule-details.png`, `building-pipelines/images/advanced-settings.png`,
