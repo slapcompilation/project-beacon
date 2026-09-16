@@ -1,4 +1,8 @@
-// Helpers used by every Settings section.
+// Helpers for the Settings sections. `SectionHeader` is used by both of them;
+// `SettingRow` is used by NEITHER — `unwired-exports.mjs` counts it, and it is
+// kept rather than deleted because the sections that would use a label/control
+// row are the Control Panel tabs the surface map records as absent (§3.9). It
+// is a leftover the moment that stops being true.
 
 export function SectionHeader({ title, description }: { title: string; description: string }) {
   return (
