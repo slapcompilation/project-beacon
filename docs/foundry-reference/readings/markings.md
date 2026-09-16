@@ -18,6 +18,16 @@ Images read closely:
 - `platform-security-management/images/markings-9.png` — the three marking permissions
 - `platform-security-management/images/markings-5.png` — a category's fields
 
+**A second pass exists, 2026-09-16, and it does not supersede this one.**
+`docs/foundry-reference/readings/markings-admin-screen.md` read the whole
+corpus — 43 pages, 35 of 84 captures — for the two things this reading had no
+need of: the administration screen's shape and the published wire model
+(the thirty pages under `api/v2/admin-v2-resources/`: five enums, eighteen
+endpoints, and no DELETE for a marking anywhere). It **confirms** this reading's three-versus-four permission
+split from the published enum, and adds a fourth and fifth spelling of the same
+three permissions that this page's own prose and `security/markings.md` carry.
+It also records three schema findings, one of which shipped as migration 807.
+
 ---
 
 ## What a marking is
