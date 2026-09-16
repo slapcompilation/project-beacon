@@ -177,8 +177,11 @@ captures — the critic pass of the map workflow — not one this map makes yet.
 
 ## 3. The other families
 
-**Batches A and B are walked** — eight families, against the captures, each
-gap refuted. **Batch C is not**, and its section says so rather than guessing.
+**All twelve families are walked** — against their captures, every gap refuted
+by a second agent. Batch C's section carries a caveat its own refuter earned:
+those four families hold 49 to 110 captures each against a reader cap near
+twelve, and under a cap the *gaps* hold up while the "we invented this" claims
+do not.
 
 Each family gives the routes, our page and its size, the captures opened
 against the total its pages reference, and the surviving gaps with the engine
@@ -186,9 +189,10 @@ behind each one named. A gap recorded with its reason is not a defect of this
 map; an element we render that no capture or sentence shows is, and those are
 listed as *unattested* per family.
 
-**What the walked half is actually made of.** Across the eight families the
-readers proposed 176 gaps and the refuters overturned 19 of them, added 23 the
-readers had missed, and reversed 23 not-gap and unattested claims. The
+**What the map is actually made of.** Across the twelve families the readers
+proposed roughly 340 gaps; the refuters overturned 32, added the misses, and
+reversed 60 not-gap and unattested claims — nearly all of the last in Batch C,
+for the reason that section gives. The
 recurring finding is not a missing screen — it is **an engine the screen cannot
 reach**, and second to it, **a stale reason in our own source** explaining an
 absence that stopped being true when some later migration shipped. Four of
@@ -868,42 +872,145 @@ notifications **panel** — an anchored popover with a `See all` footer — a se
 surface of this product that no reading had opened. Our page's claim to be built
 from the only capture of the *page* survives, narrowed.
 
-### Batch C — governance and the application cards
+### Batch C — walked against the captures 2026-09-16
 
-**3.9 Control Panel, Settings, Account** — `/control-panel` (242),
-`/settings` (732), `/account` (30). Survey findings, every one an engine with
-no surface:
-- markings administration (categories, members, permissions; `manage-markings.md`, 22 images) — **large**; two of the eleven checkpoint types can never fire until it exists
-- applying a marking to a resource (`resource_markings` write path; `security/markings.md` captures for project, folder, dataset)
-- space roles (`space_roles`, `space_role_grants`; `manage-orgs-and-spaces.md`, `manage-roles.md`)
-- portfolios (`portfolios`, `portfolio_curators`; `security/portfolios.md`, six captures) — blocked on space roles: nobody can create one today
-- organisation role grants and custom roles (`organization_role_grants`, `organization_roles`; `manage-roles.md`, `organization-permissions.png`)
-- audit exports (`audit_exports`, `create_audit_export`; `security/audit-logs-overview.md`, `audit3-export-control-panel.png`)
-- CBAC configuration — **no mirrored page shows a UI**; only `cbac_marking_restrictions` is safe to expose
+The last four families, same method. Counts: **Control Panel and Account** 40
+verdicts, 1 overturned; **Workshop and Slate** 48, 2; **Code, Workbook and
+Fusion** 52, 2; **Quiver, Contour, Vertex and Modeling** 23, **8**.
 
-**3.10 Workshop and Slate** — `/workshop` (417), `/slate` (636). Sections:
-`workshop` (122 / 504), `slate` (47 / 158). Survey: `workshop_events` and
-`workshop_overlays` (685/687) have no configuration panel — "Events in
-Workshop execute sequentially in their configured order" (`concepts-events`),
-and `concepts-layouts` enumerates "the header, pages, sections, and overlays";
-`workshop_modules`' settings (686) have no panel.
+**The refutations here ran the opposite way to Batch A and B, and the reason is
+structural.** These families carry 49 to 110 captures each and the readers were
+capped near twelve, so where the earlier batches produced stale *reasons*, this
+one produced **over-claimed inventions** — the reader calling one of our
+elements unattested because the page attesting it was among the forty it did not
+open. Thirteen such claims were overturned, every one by a citation:
 
-**3.11 Code Repositories, Code Workbook, Fusion** — `/code` (556),
-`/workbook` (441), `/fusion` (329). Survey: workbook templates (709 — the
-"Creating a Template" step of `templates-getting-started`), branch dataset
-pins (708 — the branch header showing the pinned transaction, and the
-fallback read rule the table's COMMENT quotes).
+- Workshop's module list is attested — `workshop/example-applications.md` opens
+  with a section headed **Workshop home page**, "Create ready-to-use
+  applications … directly from the Workshop home page";
+- Slate's creation site is attested by `slate/applications-create.md`, a page
+  that family's own reading lists among its unread;
+- Quiver has an index (`quiver/getting-started.md`) **and** a type choice at
+  creation (`quiver/analysis-types.md`, first sentence);
+- Contour's per-board disable is attested by a **deep-dive lesson**, which the
+  reader had listed as read and grepped only the mirror for — CLAUDE.md rule 3
+  exactly;
+- two Modeling controls are attested by a capture the reader skipped and a page
+  it never listed.
 
-**3.12 Quiver, Contour, Vertex, Modeling, Catalog** — `/quiver` (575),
-`/contour` (471), `/vertex` (411), `/modeling` (721), `/catalog` (131).
-Sections: `quiver` (292 / 442), `contour` (33 / 163), `vertex` (28 / 150),
-`model-studio` (10 / 11), `manage-models`. Survey:
-- Quiver dashboards (696/697) — the Dashboards side panel (`dashboards-create`, `dashboards-in-analysis`); card input slots (`quiver_card_inputs.slot`) — editor shape undocumented
-- Contour dashboards (704 — "Add to dashboard", `dashboards-getting-started`); the histogram aggregate and column pickers and the pivot toggle (706, `boards-descriptions`) — cheapest finding, engine already right
-- Vertex Search Around (711/712 — `explore-object-relationships`), Save as Template (712 — `graphs-template`), layers and versions (711 — `graphs-display-options`, `save-share`)
-- Modeling: objective checks and approvers (700 — `manage-models/set-up-checks`), metric sets and experiments (699 — `model-integration/objectives`, `experiments`)
+**The lesson for this map, recorded rather than smoothed over:** a capture cap
+buys coverage of the screens at the cost of accuracy about *us*. A gap found
+under a cap is worth trusting; an "we invented this" found under a cap is not,
+until someone greps the section whole. The three families below with the
+largest image counts should be re-read before anything in them is deleted as
+unattested.
 
----
+#### 3.9 Control Panel, Platform Settings and Account
+
+**Routes / ours:** `/control-panel` (`ControlPanelPage.tsx`, 242),
+`/settings` (`SettingsPage.tsx`, 732), `/account` (30). **Captures opened:** 14
+of 54, across `administration`, `platform-security-management` and `security`.
+**Two Control Panel eras** are in the mirror and they disagree on the rail's
+grouping and membership: a dark navy rail with `ENROLLMENT SETTINGS` and
+`ORGANIZATION SETTINGS` groups, and a newer white rail with a scope breadcrumb
+(`My enrollment / My organization / My space`), `All settings`, `Approvals` and
+`FAVORITE SETTINGS`.
+
+**The structural gap is that there is no Control Panel.** Foundry's is an index
+of about fifteen settings tabs at two strictly independent levels — enrollment
+and organization — with a search (`⌘J`) whose whole job is reaching a setting
+the rail does not show you. Ours is one page holding the single Authentication
+tab. Everything below hangs off that.
+
+| what | engine | note |
+|---|---|---|
+| **Markings — no page at all** | **yes, entirely** — `markings`, `marking_categories` with visibility, `marking_members` (widened to groups by 489), `marking_permissions`, `resource_markings`, `can_apply_marking`, `is_category_admin`, and `guard_marking_immutability` already enforcing the irreversibility the page warns about twice | the largest engine-without-surface in the repo: no category list, no membership, no application to a resource. `manage-markings.md` is 2,557 words and 22 captures |
+| **Space management — no surface** | yes — `spaces`, `space_organizations`, `create_space()`, `space_roles`, `space_role_workflows`, `space_role_grants` | and it gates §3.1's portfolios: a portfolio is created *inside* a space, so nothing can reach one |
+| **Nobody can be granted an organization role** | yes — `organization_role_grants` (540) exists and is read **for a count only** | the role card prints `Held by N` and no screen writes a grant |
+| **No `+ New role` / custom-role composer** | yes — a custom role is `organization_roles.organization_id` non-null, and the workflow catalogue that composes one renders right beside the roles | |
+| **No Enrollment level** | no | two independent levels; we have the organization one |
+| **Role sets and the role×operation matrix** | **no** — there is no `role_sets` table and no operations table | a different level again from the organization roles we render |
+| **Audit log export** | yes — `audit_exports` + `create_audit_export` + `run_audit_exports` | and nowhere to hang it until the rail exists |
+| **Users: no Create / Pre-register** | no | the list can be read and edited, never grown |
+| **Groups: no Project access tab, no realm/type cards, no description edit** | mostly yes — `project_role_grants` holds group grants, `groups.realm` and `.description` exist and `useUpdateGroup` is written | the page hardcodes the word `internal` where `groups.realm` is a column |
+| **Account: no profile, four of five USER SETTINGS entries absent** | partial | and the account settings are split across `/account` and `/settings` in a way no capture shows |
+
+**Unattested and ours:** the Control Panel subtitle, the standalone `Workflows`
+list in Platform Settings, the organization-is-a-marking sentence, groups as a
+card grid where every capture is a list with a details pane, the literal
+`internal` Tag, `ScopedSessionsSection` living in Platform Settings where
+Foundry puts scoped sessions in Control Panel, and the session role printed
+beside the account header.
+
+#### 3.10 Workshop and Slate
+
+**Routes / ours:** `/workshop` (417), `/slate` (636). **Captures opened:** 12 of
+64 — see the caveat above; this family had seven "unattested" claims overturned.
+
+**Workshop's right-hand settings panel does not exist**, and the way it does not
+exist is this map's own defect class: **`WidgetConfigPanel` is written,
+exported, and imported by no file.** Selecting a widget stores `selected` and
+styles the card, and nothing else happens. That is the same shape as the
+shared-property editor (#974) and the value-type metadata editor (#977), in a
+component rather than a hook — which is a gap in
+`scripts/probes/unwired-hooks.mjs`, recorded in §4.
+
+The rest, largest first: **a button in a Button Group does nothing** (no
+on-click binding to an action, an event or a URL); **the Filter list is
+decorative** — toggling a value does not filter the Object Table, which is the
+whole of the tutorial's Part III; **no way to bind a widget to an object set
+from the UI**; **no save, publish or versioning** at all; no canvas toolbar, no
+page settings, no `Overview` panel, no branch selector, no undo. The Variables
+panel shows no `Used in` / `Output from` provenance and can only ever create an
+`object_set` variable, though twelve value types and seven definition types are
+published vocabularies. Overlays exist as a table (`workshop_overlays`, and
+687's visibility and on-close columns) and can never be created, because the
+Layout rail's `+` has no menu.
+
+**Slate**: four of the eight panels — Queries, Functions, Platform,
+Dependencies — have no engine, and queries are Slate's data model, so the
+product's centre is absent. The Property tab is one line of text for every
+non-container widget. Handlebars is unsupported, so no widget can read
+another's value. And **`slate_events.body` is created, selected into the
+client, carried through the types — and every write hardcodes `body: ''`**:
+a third instance of the written-and-unreachable class, this time a column.
+
+#### 3.11 Code Repositories, Code Workbook and Fusion
+
+**Routes / ours:** `/code` (556), `/workbook` (441), `/fusion` (329).
+**Captures opened:** 10 of 49.
+
+The repository's Files panel is a flat list where Foundry has a tree with
+folders, sub-projects, a per-file `⋯` and a filename search. A transform's
+`alias` and `language` are columns that `useUpdateSource` never writes, so
+neither can be changed after creation — the same class again. Two not-gaps
+fell: the merge-mode picker is gated on `mergeModes.length > 1` while 690
+defaults the column to a single mode, so it never renders; and a new code
+branch inserts `{repository_id, name}` with no protection row, where the
+not-gap claimed defaults.
+
+#### 3.12 Quiver, Contour, Vertex, Modeling and Catalog
+
+**Routes / ours:** `/quiver` (575), `/contour` (471), `/vertex` (411),
+`/modeling` (721), `/catalog` (131). **Captures opened:** 12 of 110 — the
+thinnest coverage of any family, and the one where the refuter overturned eight
+of twenty-three.
+
+**Quiver: no card renders its result.** Foundry's cards draw the number, the
+chart, the grid and the row count they compute; ours print the kind string and
+the ids feeding them. There is no card editor panel at all. **Canvas geometry
+is stored, fetched, and thrown away** — `quiver_canvas_cards` carries `x, y,
+width, height` and the cards render as a wrapping flow. Dashboards
+(`quiver_dashboards`, `quiver_dashboard_cards`) have a full engine and no
+surface. Parameters are card kinds the engine already registers
+(`card-numeric-parameter`, `card-string-parameter`) and the contents panel has
+no Parameters group.
+
+**Contour**'s board picker, parameter rail and per-board disable are closer than
+the reader thought — three of its claims were overturned, one of them because
+`contour_board_kinds()` is `boards-descriptions`' own summary table row for
+row. **Modeling**'s release surface is likewise attested where it was called
+ours.
 
 ## 4. Thirteen hooks nothing calls
 
@@ -933,6 +1040,12 @@ fetched by a hook, offered by no picker. That is the same defect as the two
 Checkpoints hardcodes in #974 seen from the other end: there, the picker
 existed and ignored the vocabulary; here the vocabulary is fetched and no
 picker exists.
+
+**The probe has a blind spot this batch found.** It looks for exported `use*`
+hooks; `WidgetConfigPanel` (§3.10) is a **component** — written, exported,
+imported by nothing — and the same for any exported constant or helper. Widening
+the pattern is easy and widening the judgement is not, which is the next
+paragraph's point.
 
 **The probe is not a gate, deliberately.** `check:shape` and
 `check:vocabulary` were deleted with `shape_registry` because they needed an
@@ -968,10 +1081,12 @@ waiting.
    alert debug page are the two largest screens whose data is already written.
 5. **Explorer and Object Views** (§3.4), then the rest of the Ontology
    Manager's shape (§3.5–3.7).
-6. **Batch C** (§3.9–3.12) last, and unwalked until then: the governance
-   surfaces are gated on one another (portfolios on space roles; the schedule
-   rule on schedule scope) and the application cards carry hundreds of
-   captures each.
+6. **Batch C** (§3.9–3.12) last, and now walked. Its two largest items are
+   **Markings** — the biggest engine-without-surface in the repo, with every
+   table, predicate and guard already shipped — and **space management**, which
+   gates §3.1's portfolios because a portfolio is created inside a space. The
+   application cards mostly want their editors (Workshop's settings panel,
+   Quiver's card editor), which are large builds rather than wirings.
 
 Each build rewrites its section here the way §1 was rewritten — from a gap
 list into an element table with a verdict per row.
