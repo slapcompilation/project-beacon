@@ -392,8 +392,12 @@ function WidgetPicker({ isOpen, onClose, onPick }: {
   )
 }
 
-/** Bind a widget to an object set and its display options, as raw JSON —
- *  which is how Foundry itself exposes a widget's setup. */
+/** AHEAD OF ITS SURFACE, and nothing renders it — `unwired-exports.mjs` counts
+ *  it. It waits on a reading of Workshop's right-hand settings panel, which the
+ *  captures show as typed per-widget controls; this raw-JSON box is not that
+ *  shape, so wiring it in would be a half-built version that looks like a
+ *  foundation. The earlier comment here claimed JSON "is how Foundry itself
+ *  exposes a widget's setup" and cited no page — it is withdrawn. */
 export function WidgetConfigPanel({ moduleId, widget }: {
   moduleId: string
   widget: { id: string; config: Record<string, unknown> }
@@ -409,7 +413,8 @@ export function WidgetConfigPanel({ moduleId, widget }: {
           try {
             save.mutate({ id: widget.id, config: JSON.parse(draft) as Record<string, unknown> })
           } catch {
-            // an invalid draft is the author's to fix; the panel says so
+            // Swallowed, and the panel shows nothing — which the comment here
+            // used to deny. Whatever renders this owes the author an error.
           }
         }}>Save configuration</Button>
     </div>

@@ -953,7 +953,7 @@ exported, and imported by no file.** Selecting a widget stores `selected` and
 styles the card, and nothing else happens. That is the same shape as the
 shared-property editor (#974) and the value-type metadata editor (#977), in a
 component rather than a hook — which is a gap in
-`scripts/probes/unwired-hooks.mjs`, recorded in §4.
+`scripts/probes/unwired-exports.mjs`, recorded in §4 — and now closed there.
 
 The rest, largest first: **a button in a Button Group does nothing** (no
 on-click binding to an action, an event or a URL); **the Filter list is
@@ -1012,12 +1012,11 @@ the reader thought — three of its claims were overturned, one of them because
 row. **Modeling**'s release surface is likewise attested where it was called
 ours.
 
-## 4. Thirteen hooks nothing calls
+## 4. Sixteen exports nothing calls
 
 The map's recurring finding — an engine no screen reaches — has a web-side
-twin, and `scripts/probes/unwired-hooks.mjs` counts it: **a `use*` hook
-exported from a feature module that no other file names and whose own file
-never calls it.** On 2026-09-14 the answer was fifteen. Two were the
+twin, and `scripts/probes/unwired-exports.mjs` counts it: **an exported hook
+or component that no other file names and whose own file never calls it.** On 2026-09-14 the answer was fifteen. Two were the
 shared-property editor and the value-type metadata editor, and both turned out
 to be user-visible defects — the mutation existed, was correct, and could not
 be reached (#974, #977). Two more were leftovers from this map's own dataset
@@ -1041,11 +1040,24 @@ Checkpoints hardcodes in #974 seen from the other end: there, the picker
 existed and ignored the vocabulary; here the vocabulary is fetched and no
 picker exists.
 
-**The probe has a blind spot this batch found.** It looks for exported `use*`
-hooks; `WidgetConfigPanel` (§3.10) is a **component** — written, exported,
-imported by nothing — and the same for any exported constant or helper. Widening
-the pattern is easy and widening the judgement is not, which is the next
-paragraph's point.
+**The blind spot this batch found is now closed.** The probe looked only for
+exported `use*` hooks, so `WidgetConfigPanel` (§3.10) — a **component**, written,
+exported, imported by nothing — was invisible to it. It now covers exported
+PascalCase components too, and the worry that widening the pattern would outrun
+the judgement did not materialise: across 208 files it reports **two**
+components, and both are real. (A first attempt reported 79, which was a mangled
+word-boundary regex rather than 79 orphans. A probe that reports most of the
+codebase is measuring itself.) The file is renamed `unwired-exports.mjs`,
+because a probe that covers components should not be called `unwired-hooks`.
+
+The two components, each now carrying its own verdict in the source:
+`WidgetConfigPanel` is **ahead of its surface** and says what it waits on — a
+reading of Workshop's typed settings panel, which is not the raw-JSON box it
+implements; its old comment claimed JSON "is how Foundry itself exposes a
+widget's setup" with no citation, and that claim is withdrawn in place.
+`SettingRow` (`features/settings/sections/_shared.tsx`) is used by neither
+Settings section under a file comment that called it a helper "used by every
+Settings section" — a third instance of the expired-comment class, corrected.
 
 **The probe is not a gate, deliberately.** `check:shape` and
 `check:vocabulary` were deleted with `shape_registry` because they needed an
