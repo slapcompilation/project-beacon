@@ -21,11 +21,22 @@ import { EmbeddedModule } from '@/features/objectView/EmbeddedModule'
 import { FormattedValue } from '@/features/formatting/FormattedValue'
 import { useSensorSeries } from '@/features/objectTypes/sensors'
 
+/** A property value as a title: the two scalar kinds a name can be. */
+const scalar = (v: unknown): string | null =>
+  typeof v === 'string' || typeof v === 'number' ? String(v) : null
+
 export default function ObjectViewPage() {
   const { typeId = '', pk = '' } = useParams()
   const { data: typeRows = [], isLoading: typesLoading } = useObjectTypes()
   const type = typeRows.map(rowToObjectType).find((t) => t.id === typeId)
   const { data: view } = useObjectViewFor(typeId || null)
+  // The header names the OBJECT, not its key: the capture reads `John F.
+  // Kennedy International` over `Airport`. The same resolution the linked-
+  // objects section has always done for a far object, applied to this one.
+  const pkKey = type?.properties.find((p) => p.isPrimaryKey)?.key ?? null
+  const titleKey = type?.properties.find((p) => p.isTitleKey)?.key ?? null
+  const { data: record = null } = useObjectRecord(typeId || null, pkKey, pk || null)
+  const title = (record !== null && titleKey !== null ? scalar(record[titleKey]) : null) ?? pk
   // The toggle button packaged with the view: configured is the default,
   // the standard view one click away.
   const [forceStandard, setForceStandard] = useState(false)
@@ -40,7 +51,13 @@ export default function ObjectViewPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <ObjectHeader typeLabel={type.label} icon={(type.icon || 'cube') as IconName}
-        status={type.status ?? 'experimental'} pk={pk}
+        title={title}
+        actions={
+          // "In the Object View (top right), the Object Actions dropdown" —
+          // the capture puts Actions in the header, not inside Properties.
+          <ActionsMenu ontologyId={type.ontologyId ?? ''} objectTypeId={typeId}
+            targets={[pk]} selectedRow={record} application="object-views" />
+        }
         toggle={view ? (
           <Button size="small" variant="minimal" icon={forceStandard ? 'grid-view' : 'manual'}
             onClick={() => { setForceStandard(!forceStandard) }}>
@@ -54,18 +71,21 @@ export default function ObjectViewPage() {
   )
 }
 
-function ObjectHeader({ typeLabel, icon, status, pk, toggle }: {
-  typeLabel: string; icon: IconName; status: string; pk: string
-  toggle: React.ReactNode
+// The type's development status used to sit here as a Tag. No capture of an
+// Object View header shows one — icon, title, star and the type label are all
+// it carries — so it is gone with the other unattested elements this pass.
+function ObjectHeader({ typeLabel, icon, title, actions, toggle }: {
+  typeLabel: string; icon: IconName; title: string
+  actions: React.ReactNode; toggle: React.ReactNode
 }) {
   return (
     <div className="ov-header">
       <Icon icon={icon} size={16} className="text-violet-500" />
       <div className="flex-1 min-w-0">
-        <p className="ov-title">{pk}</p>
+        <p className="ov-title">{title}</p>
         <p className="ov-type">{typeLabel}</p>
       </div>
-      <Tag minimal className="!text-[9px]">{status}</Tag>
+      {actions}
       {toggle}
     </div>
   )
@@ -124,8 +144,6 @@ function LinkedSection({ typeId, pk, link, label, farId, farLabel, titleKey, pkK
       ) : (
         <div className="mt-1 space-y-0.5">
           {rows.map((r) => {
-            const scalar = (v: unknown) =>
-              typeof v === 'string' || typeof v === 'number' ? String(v) : null
             const farPk = (pkKey !== null ? scalar(r[pkKey]) : null) ?? ''
             const title = (titleKey !== null ? scalar(r[titleKey]) : null) ?? farPk
             return (
@@ -176,9 +194,6 @@ function StandardBody({ typeId, pk }: { typeId: string; pk: string }) {
         <Card compact>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Properties</span>
-            <div className="flex-1" />
-            <ActionsMenu ontologyId={type.ontologyId ?? ''} objectTypeId={typeId}
-              targets={[pk]} selectedRow={record ?? null} application="object-views" />
           </div>
           {isLoading ? <Spinner size={SpinnerSize.SMALL} /> : record === null ? (
             <p className="text-sm text-muted-foreground">

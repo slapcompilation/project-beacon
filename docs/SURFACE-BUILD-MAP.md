@@ -598,20 +598,23 @@ formatted cells; saved sets in the home search's Artifacts.
 standard view a toggle away (once an `object_views` row exists — for other
 types ours lands on the standard view with no toggle), tabs as Workshop
 modules, prominent above normal, linked objects by link type with paging, the
-OMA authoring tab. Gaps: the header shows the **primary key** where the
-capture shows the title property's value (small, in hand); header controls
+OMA authoring tab. **Three fixed (2026-09-16):** the header showed the **primary key** where the
+capture shows the title property's value — every object page named itself by its
+key — and the resolution the linked-objects section had always done for a *far*
+object now serves this one; `Actions ▾` moved from inside the Properties card
+into the header, where `use-actions` puts it; and the type's development-status
+Tag, which no capture of an Object View header carries, is gone with the other
+unattested elements. Still open: the remaining header controls
 (star, refresh, `View comments`, `More ▾ › Add to list / Export as Excel /
-Copy for Notepad / Advanced ▸`); `Actions ▾` in the header rather than inside
-the Properties card; the standard view's `★ Prominent` and `☰ Properties` as
+Copy for Notepad / Advanced ▸`); the standard view's `★ Prominent` and `☰ Properties` as
 two sections with `Media | Map | Time series` and per-base-type displays (the
 series formatter 782 has its consumer here); the **linked objects component**
 as a table with search, `Open N in ▾`, inline preview and the multi-hop
 breadcrumb; the panel form factor (no form-factor column on `object_views`);
 tab conditions, profiles and the `Link` badge; the Edit History widget's shape
 (actor, "changed N properties using <action>", the changed values — all
-stored in `object_edits`, unread). Unattested and ours: the type-status tag in
-the header, Edit history as a *standard*-view section, the `Sensors` card, the
-label-above-value prominent cards.
+stored in `object_edits`, unread). Unattested and ours: Edit history as a *standard*-view section, the `Sensors`
+card, the label-above-value prominent cards.
 
 **Build order:** the search bar as the filter hub and the Selection Preview
 (both engine-complete); the Object View header and Prominent/Properties split;
