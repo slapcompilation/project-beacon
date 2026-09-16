@@ -1,10 +1,16 @@
-// The Builds application — "You can explore builds in Foundry using the
-// Builds application" (data-integration/builds). A build's jobs and their
-// seven documented states; live logs are recorded in the reading, not built.
+// The Builds application — "allows you to view all builds occurring across
+// Foundry and explore details about each build" (data-integration/
+// application-reference). This is the list half; a row opens the report at
+// /builds/:id, which readings/build-report.md walks off its capture.
+//
+// The row used to expand in place to a job list. The capture's breadcrumb is
+// `Builds › Build of: …`, so a build is a PAGE, and the accordion was ours —
+// SURFACE-BUILD-MAP §3.2 recorded it as unattested. It navigates now.
 
-import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
-import { useBuildJobs, useBuilds, type Build } from '@/features/builds/api'
+import { buildStatusLabel, useBuilds, type Build } from '@/features/builds/api'
+import { duration } from '@/features/datasets/preview'
 
 // Builds speak the API vocabulary; the jobs below speak the prose one. The
 // exact confusion CLAUDE.md's two-vocabularies table warns about sat here.
@@ -13,15 +19,11 @@ const BUILD_INTENT: Record<Build['status'], Intent> = {
   FAILED: Intent.DANGER, CANCELED: Intent.NONE,
 }
 
-const JOB_INTENT: Record<string, Intent> = {
-  COMPLETED: Intent.SUCCESS, FAILED: Intent.DANGER, ABORTED: Intent.NONE,
-  RUNNING: Intent.WARNING, WAITING: Intent.NONE,
-  RUN_PENDING: Intent.WARNING, ABORT_PENDING: Intent.WARNING,
-}
+
 
 export default function BuildsPage() {
   const { data: builds = [], isLoading } = useBuilds()
-  const [openId, setOpenId] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -45,19 +47,19 @@ export default function BuildsPage() {
           <div className="space-y-2">
             {builds.map((b) => (
               <Card key={b.id} compact interactive
-                onClick={() => { setOpenId(openId === b.id ? null : b.id) }}>
+                onClick={() => { void navigate(`/builds/${b.id}`) }}>
                 <div className="flex items-center gap-2 text-xs">
                   <Icon icon="play" size={13} className="text-violet-500" />
                   <span className="font-mono text-[11px]">{b.id.slice(0, 8)}</span>
-                  <Tag minimal intent={BUILD_INTENT[b.status]} className="!text-[10px]">{b.status}</Tag>
+                  {/* Title-case on the screen, the API's token in the ledger. */}
+                  <Tag minimal intent={BUILD_INTENT[b.status]} className="!text-[10px]">
+                    {buildStatusLabel(b.status)}
+                  </Tag>
                   {b.force && <Tag minimal className="!text-[10px]" title="Staleness was ignored.">force</Tag>}
                   <span className="ml-auto text-muted-foreground">
-                    {new Date(b.startedAt).toLocaleString()}
-                    {b.finishedAt &&
-                      ` · ${String(Math.round((new Date(b.finishedAt).getTime() - new Date(b.startedAt).getTime()) / 100) / 10)}s`}
+                    {new Date(b.startedAt).toLocaleString()} · {duration(b.startedAt, b.finishedAt)}
                   </span>
                 </div>
-                {openId === b.id && <BuildJobs buildId={b.id} />}
               </Card>
             ))}
           </div>
@@ -67,17 +69,3 @@ export default function BuildsPage() {
   )
 }
 
-function BuildJobs({ buildId }: { buildId: string }) {
-  const { data: jobs = [] } = useBuildJobs(buildId)
-  return (
-    <ul className="mt-2 divide-y divide-border/30 border-t border-border">
-      {jobs.map((j) => (
-        <li key={j.id} className="flex items-start gap-2 py-1.5 text-xs">
-          <Tag minimal intent={JOB_INTENT[j.state] ?? Intent.NONE} className="!text-[9px] uppercase">{j.state}</Tag>
-          <span className="font-medium">{j.outputDatasetName}</span>
-          {j.error && <span className="text-muted-foreground flex-1">{j.error}</span>}
-        </li>
-      ))}
-    </ul>
-  )
-}

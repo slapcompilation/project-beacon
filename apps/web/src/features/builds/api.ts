@@ -322,3 +322,124 @@ export function useDeleteSchedule() {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+// ── the build report (readings/build-report.md) ─────────────────────────────
+
+/** The report's own vocabulary. "Status ⟳ Running" — the screen is title-case
+ *  where the ledger holds the API's tokens, and the job legend is a third set
+ *  again: the API's five title-cased plus Queued (§3 of the reading). */
+export type JobDisplay = 'Queued' | 'Waiting' | 'Running' | 'Succeeded' | 'Failed' | 'Canceled'
+
+const JOB_DISPLAY: Record<string, JobDisplay> = {
+  WAITING: 'Queued', RUN_PENDING: 'Waiting', RUNNING: 'Running',
+  COMPLETED: 'Succeeded', FAILED: 'Failed',
+  ABORTED: 'Canceled', ABORT_PENDING: 'Canceled',
+}
+export const jobDisplay = (state: string): JobDisplay => JOB_DISPLAY[state] ?? 'Queued'
+
+export const buildStatusLabel = (s: Build['status']): string =>
+  s.charAt(0) + s.slice(1).toLowerCase()
+
+export interface BuildReport extends Build {
+  scheduleId: string | null
+  scheduleName: string | null
+  scheduleTrigger: ScheduleTrigger | null
+  scheduleUpdatedAt: string | null
+}
+
+export function useBuild(id: string | null) {
+  return useQuery({
+    queryKey: ['build', id ?? ''],
+    enabled: id !== null,
+    queryFn: async (): Promise<BuildReport | null> => {
+      const { data, error } = await supabase.from('builds')
+        .select('id, status, force, started_at, finished_at, schedule_id, schedules(name, trigger, updated_at)')
+        .eq('id', id ?? '').maybeSingle()
+      if (error) throw new Error(error.message)
+      if (data === null) return null
+      const r = data as unknown as {
+        id: string; status: Build['status']; force: boolean
+        started_at: string; finished_at: string | null; schedule_id: string | null
+        schedules: { name: string; trigger: ScheduleTrigger; updated_at: string | null } | null
+      }
+      return {
+        id: r.id, status: r.status, force: r.force,
+        startedAt: r.started_at, finishedAt: r.finished_at,
+        scheduleId: r.schedule_id,
+        scheduleName: r.schedules?.name ?? null,
+        scheduleTrigger: r.schedules?.trigger ?? null,
+        scheduleUpdatedAt: r.schedules?.updated_at ?? null,
+      }
+    },
+  })
+}
+
+export interface ReportJob extends BuildJob {
+  jobSpecId: string
+  specVersion: number | null
+  /** The row's second line: the dataset's full path, as the capture underlines it. */
+  path: string
+}
+
+export function useReportJobs(buildId: string | null) {
+  return useQuery({
+    queryKey: ['build-report-jobs', buildId ?? ''],
+    enabled: buildId !== null,
+    queryFn: async (): Promise<ReportJob[]> => {
+      const { data, error } = await supabase.from('build_jobs')
+        .select(`id, output_dataset_id, state, error, started_at, finished_at, job_spec_id, spec_version,
+                 datasets(name, api_name, projects(api_name, spaces(path)))`)
+        .eq('build_id', buildId ?? '')
+      if (error) throw new Error(error.message)
+      return (data as unknown as {
+        id: string; output_dataset_id: string; state: string; error: string | null
+        started_at: string | null; finished_at: string | null
+        job_spec_id: string; spec_version: number | null
+        datasets: {
+          name: string; api_name: string
+          projects: { api_name: string; spaces: { path: string } | null } | null
+        } | null
+      }[]).map((r) => {
+        const p = r.datasets?.projects
+        return {
+          id: r.id, outputDatasetId: r.output_dataset_id,
+          outputDatasetName: r.datasets?.name ?? '',
+          state: r.state, error: r.error, startedAt: r.started_at, finishedAt: r.finished_at,
+          jobSpecId: r.job_spec_id, specVersion: r.spec_version,
+          path: p ? `${p.spaces?.path ?? ''}/${p.api_name}/${r.datasets?.api_name ?? ''}` : '',
+        }
+      })
+    },
+    staleTime: 10_000,
+  })
+}
+
+/** "Typically 19m 5" under the row's duration — the median of this job spec's
+ *  completed runs, computed rather than stored (decision 4). `No previous runs`
+ *  is the absence, which the capture shows as its own words. */
+export function useJobSpecMedians(specIds: string[]) {
+  const ids = [...new Set(specIds)].sort()
+  return useQuery({
+    queryKey: ['job-spec-medians', ids],
+    enabled: ids.length > 0,
+    queryFn: async (): Promise<Map<string, number>> => {
+      const { data, error } = await supabase.from('build_jobs')
+        .select('job_spec_id, started_at, finished_at')
+        .in('job_spec_id', ids).eq('state', 'COMPLETED').limit(1000)
+      if (error) throw new Error(error.message)
+      const by = new Map<string, number[]>()
+      for (const r of data as { job_spec_id: string; started_at: string | null; finished_at: string | null }[]) {
+        if (r.started_at === null || r.finished_at === null) continue
+        const s = (new Date(r.finished_at).getTime() - new Date(r.started_at).getTime()) / 1000
+        by.set(r.job_spec_id, [...(by.get(r.job_spec_id) ?? []), s])
+      }
+      const out = new Map<string, number>()
+      for (const [spec, list] of by) {
+        list.sort((a, b) => a - b)
+        const mid = Math.floor(list.length / 2)
+        out.set(spec, list.length % 2 === 1 ? list[mid] : (list[mid - 1] + list[mid]) / 2)
+      }
+      return out
+    },
+  })
+}

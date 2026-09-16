@@ -41,6 +41,7 @@ const HealthIssuesPage = lazyWithRetry(() => import('@/pages/ontology/HealthIssu
 const FunctionsPage = lazyWithRetry(() => import('@/pages/ontology/FunctionsPage'))
 const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
 const BuildsPage = lazyWithRetry(() => import('@/pages/BuildsPage'))
+const BuildReportPage = lazyWithRetry(() => import('@/pages/BuildReportPage'))
 const AutomatePage = lazyWithRetry(() => import('@/pages/AutomatePage'))
 const CatalogPage = lazyWithRetry(() => import('@/pages/CatalogPage'))
 
@@ -126,6 +127,7 @@ function AppRoutes() {
             <Route path="/value-types" element={<ValueTypesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/builds" element={<BuildsPage />} />
+            <Route path="/builds/:id" element={<BuildReportPage />} />
             <Route path="/automate" element={<AutomatePage />} />
             <Route path="/automate/:id" element={<AutomatePage />} />
             <Route path="/catalog" element={<CatalogPage />} />
