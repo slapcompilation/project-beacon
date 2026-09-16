@@ -302,6 +302,19 @@ eras: the newest capture of a project's Files table still prints an absolute
    sixteenth resource kind appears in the filesystem the day its table does.
    The alternative — an allowlist — is the signal CLAUDE.md says means "index
    instead".
+
+   **Revised 2026-09-16 — this decision asked the wrong question, and is
+   annotated rather than rewritten so the expiry stays visible.**
+   `docs/foundry-reference/readings/compass-filesystem-api.md` reads the 41
+   pages of `api/v2/filesystem-v2-resources`, which publish Compass as a wire
+   type: one `Resource` with identity, placement, naming, timestamps and trash
+   — and no payload. Compass is an *index over things stored elsewhere*, not a
+   union derived over the tables that hold them. `project_resources` is already
+   that index, primary-keyed `(resource_kind, resource_id)` and scoped by its
+   CHECK to two of our kinds. So the Files listing reads the index, and the open
+   work is widening what writes to it. The `information_schema` union above
+   survives as the migration path that **populates** the index — which is why it
+   is annotated and not deleted.
 2. **The row's columns are the capture's**: name, path, last modified, tags,
    and (on the landing page) portfolio and the organisation count. `promoted`
    renders as the checkmark `resource-status` describes. Nothing else.
