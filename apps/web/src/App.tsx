@@ -22,6 +22,7 @@ const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const MarkingsPage = lazyWithRetry(() => import('@/pages/MarkingsPage'))
+const SpacesPage = lazyWithRetry(() => import('@/pages/SpacesPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ApprovalsPage = lazyWithRetry(() => import('@/pages/ApprovalsPage'))
 const ControlPanelPage = lazyWithRetry(() => import('@/pages/ControlPanelPage'))
@@ -103,6 +104,8 @@ function AppRoutes() {
             {/* Foundry's Platform Settings lists Markings as its own entry,
                 between Groups and Organizations. */}
             <Route path="/settings/markings" element={<MarkingsPage />} />
+            {/* Foundry files this under ENROLLMENT as "Space management". */}
+            <Route path="/settings/spaces" element={<SpacesPage />} />
             <Route path="/ontology"  element={<OmaLayout />}>
               {/* "The Discover view offers a highly customizable landing page." */}
               <Route index element={<DiscoverPage />} />
