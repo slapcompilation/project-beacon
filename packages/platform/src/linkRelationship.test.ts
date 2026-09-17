@@ -148,6 +148,14 @@ describe.skipIf(noDb)('a link type declares its relationship', () => {
     }
     const srcEdge = await edge('ob_src_edge', a)
     const tgtEdge = await edge('ob_tgt_edge', b)
+    // The edges LAND before the link that names them is staged. save_working_state
+    // applies staged changes in no specified order, so staging all three together
+    // lets the object-backed link be inserted before its edges exist and die on
+    // link_types_source_edge_link_type_id_fkey. That is the order a user works in
+    // anyway — the edges are ordinary link types they already made — but it is
+    // worth naming, because the first version of this test staged all three and
+    // passed locally by luck and failed in CI.
+    await db.query('select public.save_working_state()')
 
     await one(`select public.save_link_type($1::jsonb) as id`, [
       JSON.stringify({ source_object_type_id: a, target_object_type_id: b,
