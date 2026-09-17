@@ -14,6 +14,7 @@ interface Chain extends PromiseLike<{ data: unknown[]; error: null }> {
 }
 
 const db = vi.hoisted(() => {
+  const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 3600 * 1000).toISOString()
   const automation = (id: string, name: string, over: Record<string, unknown> = {}) => ({
     id, display_name: name, description: '', owner_id: 'u1', scope: 'project',
     paused: false, muted: false, expires_at: null, execution: 'parallel',
@@ -39,18 +40,26 @@ const db = vi.hoisted(() => {
         ],
       }),
     ],
-    // a3's most recent run failed, which is what makes it Error
+    // a3's most recent run failed, which is what makes it Error.
+    //
+    // DATED RELATIVE TO NOW, and this is why: the Overview's Failures card
+    // counts "failures within the last four weeks" against
+    // `Date.now() - 28 days`. These rows were fixed at 2026-08-20, which sat
+    // inside that window when the test was written and crossed out of it on
+    // 2026-09-17 — so the suite passed for four weeks and then began failing
+    // on the calendar rather than on the code. An absolute fixture date inside
+    // a relative window is a test with a fuse.
     automation_runs: [
       { id: 'r1', automation_id: 'a3', effect_id: 'e1', outcome: 'failed',
-        error: 'Actions:ObjectVersionChanged', ran_at: '2026-08-20T10:00:00Z',
+        error: 'Actions:ObjectVersionChanged', ran_at: daysAgo(3),
         attempt: 1, next_attempt_at: null, event_id: 'ev1' },
     ],
     // 622: the event is the firing, the run is its effect half.
     automation_events: [
       { id: 'ev1', automation_id: 'a3', event_type: 'automation_triggered',
-        occurred_at: '2026-08-20T10:00:00Z', detail: null },
+        occurred_at: daysAgo(3), detail: null },
       { id: 'ev2', automation_id: 'a3', event_type: 'evaluation_failed',
-        occurred_at: '2026-08-20T11:00:00Z', detail: 'Ontology:ObjectSetNotFound' },
+        occurred_at: daysAgo(2), detail: 'Ontology:ObjectSetNotFound' },
     ],
   }
   rows.action_types = [

@@ -32,6 +32,7 @@ import {
 } from '@/features/compass/catalogApi'
 import { useNavigate } from 'react-router-dom'
 import { useMarkingCategories, useMarkings } from '@/features/markings/api'
+import { useSpaces } from '@/features/spaces/api'
 import { ScopedSessionsSection } from '@/features/security/ScopedSessionsSection'
 import { UsersSection } from '@/features/users/UsersSection'
 
@@ -62,9 +63,38 @@ export default function SettingsPage() {
         <UsersSection />
         <GroupsSection />
         <MarkingsSection />
+        <SpacesSection />
         <TagsSection />
       </div>
     </div>
+  )
+}
+
+// Space management, likewise its own screen: Foundry lists it under ENROLLMENT
+// and readings/spaces-and-the-resource-path.md takes space-settings.png as the
+// surface in full. This is the doorway, and the reason it matters is below the
+// fold — portfolios can only be created inside a space, so until now the
+// portfolios engine had no way to be reached at all.
+function SpacesSection() {
+  const navigate = useNavigate()
+  const { data: spaces = [] } = useSpaces()
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold">Space management</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            A space contains projects and carries the organizations that gate them.
+          </p>
+        </div>
+        <Button icon="folder-close" onClick={() => { void navigate('/settings/spaces') }}>
+          Manage spaces
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        {spaces.length} space{spaces.length === 1 ? '' : 's'}
+      </p>
+    </Card>
   )
 }
 
