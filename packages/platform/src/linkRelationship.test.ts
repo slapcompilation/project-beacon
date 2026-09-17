@@ -115,4 +115,57 @@ describe.skipIf(noDb)('a link type declares its relationship', () => {
        values ($1,$2,$3,'ob_bad','OB bad','many_to_many','object_backed',$3)`, [ont, a, b]))
     expect(err).toContain('link_types_object_backed_cardinality')
   })
+
+  // THE ONE KIND THIS FILE NEVER DROVE THROUGH ITS OWN FRONT DOOR, which is how
+  // it missed that the front door was broken. The two tests above stage through
+  // save_link_type; the one above this inserts directly to provoke a CHECK. So
+  // no test ever asked whether an object-backed link can be CREATED — and it
+  // could not: 765 added source_edge_link_type_id and target_edge_link_type_id
+  // with a CHECK making both mandatory, and save_link_type (written at 437,
+  // touched at 454 and 471) never carried them, so the save died on a raw
+  // constraint violation. Fixed in 815; this is the test that would have caught
+  // it, and the reason it is written as a landing assertion rather than a
+  // refusal one.
+  it('an object-backed link lands with both of its edges, through the front door', async () => {
+    const join = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'LinkRelJoin','LinkRelJoin') returning id`, [ont, f.projectId])).id
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source,
+          backing_column, is_primary_key, is_title_key, required)
+       values ($1,'pk','id','Id','string','column','pk',true,true,true)`, [join])
+
+    // The two edges the object-backed link names, each an ordinary many-to-one
+    // staged the same way.
+    const edge = async (api: string, target: string) => {
+      const id = (await one(`select public.save_link_type($1::jsonb) as id`, [
+        JSON.stringify({ source_object_type_id: join, target_object_type_id: target,
+          api_name: api, label: api, ontology_id: ont,
+          cardinality: 'many_to_one', backing_kind: 'foreign_key',
+          backing_column: 'pk' })])).id
+      return id
+    }
+    const srcEdge = await edge('ob_src_edge', a)
+    const tgtEdge = await edge('ob_tgt_edge', b)
+
+    await one(`select public.save_link_type($1::jsonb) as id`, [
+      JSON.stringify({ source_object_type_id: a, target_object_type_id: b,
+        api_name: 'ob_link', label: 'OB link', ontology_id: ont,
+        cardinality: 'many_to_one', backing_kind: 'object_backed',
+        backing_object_type_id: join,
+        source_edge_link_type_id: srcEdge, target_edge_link_type_id: tgtEdge })])
+    await db.query('select public.save_working_state()')
+
+    const row = await one(
+      `select backing_kind, backing_object_type_id,
+              source_edge_link_type_id, target_edge_link_type_id
+         from public.link_types where api_name='ob_link'`)
+    expect(row.backing_kind).toBe('object_backed')
+    expect(row.backing_object_type_id).toBe(join)
+    // The assertion that fails without 815: the edges arrive as NULL and the
+    // save never gets this far.
+    expect(row.source_edge_link_type_id).toBe(srcEdge)
+    expect(row.target_edge_link_type_id).toBe(tgtEdge)
+  })
 })
