@@ -256,6 +256,10 @@ export async function setObjectTypeStatus(
 
 export interface UpdateObjectTypeInput {
   id: string
+  /** Editable, and only while the type is experimental — the rule
+   *  guard_resource_lifecycle enforces as Ontology:ApiNameIsFixed. Omitted
+   *  leaves it untouched. */
+  apiName?: string
   label: string
   icon: string
   description: string
