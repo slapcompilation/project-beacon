@@ -6,7 +6,7 @@
 
 import type { ActionType, FunctionType, Json } from './client'
 
-// ── Value sets (133) ─────────────────────────────────────────────────
+// ── Value sets (132) ─────────────────────────────────────────────────
 // Every single-column CHECK whose legal values are a literal array, on a
 // table the app role may read. Hand-writing one of these is how it drifts.
 
@@ -286,9 +286,6 @@ export type OrgAssignmentRulesMatchKind = 'includes' | 'does_not_include' | 'is_
 /** `platform_logos.size` */
 export type PlatformLogosSize = 'favicon' | 'small' | 'medium' | 'large'
 
-/** `project_resources.resource_kind` */
-export type ProjectResourcesResourceKind = 'object_type' | 'object_set'
-
 /** `project_role_grants.role` */
 export type ProjectRoleGrantsRole = 'owner' | 'editor' | 'viewer' | 'discoverer'
 
@@ -412,7 +409,7 @@ export type WorkshopWidgetsSizeMode = 'auto' | 'absolute' | 'flex'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (124) ────────────────────────────────────────────────
+// ── ACTION TYPES (127) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -830,6 +827,18 @@ export const datasetRematerialize = { apiName: 'dataset_rematerialize', kind: 'a
 >
 
 /**
+ *  Permanently deletes an indexed resource through its owning table, as the
+ *  caller. The index row goes with it through 812's trigger. Does NOT require
+ *  the resource to be trashed first, which Foundry does — our trashed_at
+ *  cannot express directly-versus-ancestor trashing yet; see
+ *  readings/compass-filesystem-api.md.
+ */
+export const deleteFilesystemResource = { apiName: 'delete_filesystem_resource', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string },
+  void
+>
+
+/**
  *  Stage a deletion. The review dialog shows a deleted resource as an entry
  *  with a Deleted pill, so it is reviewable and discardable like any other
  *  change, and the row survives until save.
@@ -1060,6 +1069,15 @@ export const mergeWorkbookBranch = { apiName: 'merge_workbook_branch', kind: 'ac
 export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 'action' } as ActionType<
   { p_value_type: string; p_constraints?: Json },
   number
+>
+
+/**
+ *  Moves an indexed resource to a folder, as the caller, so the owning
+ *  table's RLS decides it. The index follows through 812's trigger.
+ */
+export const moveFilesystemResource = { apiName: 'move_filesystem_resource', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string; p_folder: string },
+  void
 >
 
 export const objectDatasetJobSpec = { apiName: 'object_dataset_job_spec', kind: 'action' } as ActionType<
@@ -1502,6 +1520,15 @@ export const sendNotification = { apiName: 'send_notification', kind: 'action' }
   string
 >
 
+/**
+ *  Trashes or restores an indexed resource, as the caller. Refuses a kind
+ *  whose table has no trashed_at rather than failing on a missing column.
+ */
+export const setFilesystemResourceTrashed = { apiName: 'set_filesystem_resource_trashed', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string; p_trashed: boolean },
+  void
+>
+
 export const setOntologyMetrics = { apiName: 'set_ontology_metrics', kind: 'action' } as ActionType<
   { p_ontology: string; p_enabled: boolean },
   void
@@ -1621,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (354) ───────────────────────────────────────────────────
+// ── FUNCTIONS (356) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2906,6 +2933,36 @@ export const exportWorkingState = { apiName: 'export_working_state', kind: 'func
  */
 export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_marking: string },
+  string
+>
+
+/**
+ *  The kinds project_resources indexes. Each maps to a member of the
+ *  Resource.type enum published on
+ *  api/v2/filesystem-v2-resources/resources-get-resource:
+ *  dataset=FOUNDRY_DATASET, code_repository=STEMMA_REPOSITORY,
+ *  code_workbook=VECTOR_WORKBOOK, workbook_template=VECTOR_TEMPLATE,
+ *  contour_analysis=CONTOUR_ANALYSIS, fusion_spreadsheet=FUSION_DOCUMENT,
+ *  modeling_objective=FOUNDRY_ML_OBJECTIVE, model=MODELS_MODEL,
+ *  monitoring_view=DATA_HEALTH_MONITORING_VIEW,
+ *  quiver_analysis=QUIVER_ANALYSIS, slate_app=SLATE_DOCUMENT,
+ *  vertex_graph=OPUS_GRAPH, workshop_module=WORKSHOP_MODULE. restricted_view
+ *  has NO enum member and is attested in prose by
+ *  platform-security-management/manage-markings instead. object_type and
+ *  object_set predate this (330) and are ontology kinds, not filesystem ones.
+ */
+export const filesystemResourceKinds = { apiName: 'filesystem_resource_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  The table that owns a filesystem resource kind, derived from the
+ *  index_in_filesystem triggers 812 attached rather than from a second list.
+ *  A kind that is indexed is resolvable; one that is not is neither.
+ */
+export const filesystemResourceTable = { apiName: 'filesystem_resource_table', kind: 'function' } as FunctionType<
+  { p_kind: string },
   string
 >
 

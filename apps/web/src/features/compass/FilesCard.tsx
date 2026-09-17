@@ -6,12 +6,37 @@
 
 import { useState } from 'react'
 import { Button, Card, HTMLSelect, Icon, InputGroup, Intent, Tag, TextArea } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import {
   useCreateFolder, useFiledResources, useFolders, useMoveToFolder,
   usePermanentDelete, useSetFolderDocumentation, useSetTrashed,
   type FiledResource, type Folder,
 } from './api'
 import { DocMarkdown } from './DocMarkdown'
+
+// One glyph per indexed kind. The listing reads `project_resources`, which now
+// holds fourteen kinds where this file used to fetch two, so a two-way ternary
+// would have drawn every Workshop module and code repository as a restricted
+// view. Unknown kinds fall back rather than disappearing — a fifteenth kind
+// reaches this list the day its table gains 812's trigger, and it should look
+// like a file, not like nothing.
+const KIND_ICON: Record<string, IconName> = {
+  dataset: 'th',
+  restricted_view: 'eye-off',
+  code_repository: 'git-repo',
+  code_workbook: 'code',
+  contour_analysis: 'timeline-line-chart',
+  fusion_spreadsheet: 'grid',
+  modeling_objective: 'target',
+  model: 'predictive-analysis',
+  monitoring_view: 'pulse',
+  quiver_analysis: 'chart',
+  slate_app: 'application',
+  vertex_graph: 'graph',
+  workbook_template: 'document',
+  workshop_module: 'control',
+}
+const iconFor = (kind: string): IconName => KIND_ICON[kind] ?? 'document'
 
 // "You can add documentation to any folder … selecting **Add description**
 // from the folder's Actions menu" — the README.md drop is not built (no
@@ -71,12 +96,12 @@ export function FilesCard({ projectId }: { projectId: string }) {
 
   const ResourceRow = ({ r }: { r: FiledResource }) => (
     <li className="flex items-center gap-2 py-1 text-xs">
-      <Icon icon={r.kind === 'dataset' ? 'th' : 'eye-off'} size={11} className="text-violet-500" />
+      <Icon icon={iconFor(r.kind)} size={11} className="text-violet-500" />
       <span className="flex-1 truncate">{r.name}</span>
       <HTMLSelect minimal value={r.folderId ?? ''}
         onChange={(e) => {
           move.mutate({
-            table: r.kind === 'dataset' ? 'datasets' : 'restricted_views',
+            kind: r.kind,
             id: r.id, folderId: e.currentTarget.value || null,
           })
         }}>
@@ -86,7 +111,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
       <Button variant="minimal" size="small" icon="trash" title="Move to trash"
         onClick={() => {
           setTrashed.mutate({
-            table: r.kind === 'dataset' ? 'datasets' : 'restricted_views', id: r.id, trashed: true,
+            kind: r.kind, id: r.id, trashed: true,
           })
         }} />
     </li>
@@ -98,7 +123,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
         <Icon icon="folder-close" size={12} className="text-muted-foreground" />
         <span className="font-medium flex-1">{f.name}</span>
         <Button variant="minimal" size="small" icon="trash" title="Move to trash (contents follow by the chain)"
-          onClick={() => { setTrashed.mutate({ table: 'folders', id: f.id, trashed: true }) }} />
+          onClick={() => { setTrashed.mutate({ kind: 'folder', id: f.id, trashed: true }) }} />
       </div>
       <FolderDescription f={f} projectId={projectId} />
       <ul className="ml-5 divide-y divide-border/30">
@@ -148,25 +173,25 @@ export function FilesCard({ projectId }: { projectId: string }) {
                 <Icon icon="folder-close" size={11} className="text-muted-foreground" />
                 <span className="flex-1 truncate line-through opacity-60">{f.name}</span>
                 <Button variant="minimal" size="small" icon="undo" title="Restore in place"
-                  onClick={() => { setTrashed.mutate({ table: 'folders', id: f.id, trashed: false }) }} />
+                  onClick={() => { setTrashed.mutate({ kind: 'folder', id: f.id, trashed: false }) }} />
                 <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER} title="Delete permanently"
-                  onClick={() => { purge.mutate({ table: 'folders', id: f.id }) }} />
+                  onClick={() => { purge.mutate({ kind: 'folder', id: f.id }) }} />
               </li>
             ))}
             {trashedResources.map((r) => (
               <li key={`${r.kind}:${r.id}`} className="flex items-center gap-2 py-1 text-xs">
-                <Icon icon={r.kind === 'dataset' ? 'th' : 'eye-off'} size={11} className="text-muted-foreground" />
+                <Icon icon={iconFor(r.kind)} size={11} className="text-muted-foreground" />
                 <span className="flex-1 truncate line-through opacity-60">{r.name}</span>
                 <Tag minimal className="!text-[9px]">{r.kind}</Tag>
                 <Button variant="minimal" size="small" icon="undo" title="Restore in place"
                   onClick={() => {
                     setTrashed.mutate({
-                      table: r.kind === 'dataset' ? 'datasets' : 'restricted_views', id: r.id, trashed: false,
+                      kind: r.kind, id: r.id, trashed: false,
                     })
                   }} />
                 <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER} title="Delete permanently"
                   onClick={() => {
-                    purge.mutate({ table: r.kind === 'dataset' ? 'datasets' : 'restricted_views', id: r.id })
+                    purge.mutate({ kind: r.kind, id: r.id })
                   }} />
               </li>
             ))}
