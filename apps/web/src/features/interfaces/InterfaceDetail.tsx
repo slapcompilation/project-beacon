@@ -7,8 +7,10 @@ import { useState } from 'react'
 import {
   Button, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Tab, Tabs, Tag,
 } from '@blueprintjs/core'
-import { toCamel, type ObjectTypeDef } from '@beacon/ontology'
-import { useStageClauses, useStageMetadata, useImplementations } from './hooks'
+import { toCamel, PROPERTY_TYPES, type ObjectTypeDef } from '@beacon/ontology'
+import {
+  useStageClauses, useStageMetadata, useImplementations, useStageInterfaceProperties,
+} from './hooks'
 import type { ActionConstraintRow, InterfaceRow } from './api'
 import { ActionConstraintDialog } from './ActionConstraintDialog'
 
@@ -78,24 +80,87 @@ function OverviewTab({ row, types }: { row: InterfaceRow; types: ObjectTypeDef[]
 }
 
 function PropertiesTab({ row }: { row: InterfaceRow }) {
+  const stage = useStageInterfaceProperties()
+  const sorted = [...row.interface_properties].sort((a, b) => a.position - b.position)
+  const [adding, setAdding] = useState(false)
+  const [key, setKey] = useState('')
+  const [label, setLabel] = useState('')
+  const [type, setType] = useState('string')
+
+  // Every mutation resends the WHOLE set: apply_interface deletes and
+  // re-inserts from the payload, so an omitted property is a deleted one.
+  const payload = (props: typeof sorted) => props.map((p) => ({
+    property_id: p.property_id, api_name: p.api_name, display_name: p.display_name,
+    description: p.description, base_type: p.base_type, required: p.required,
+    pk_constraint: p.pk_constraint, visibility: p.visibility,
+    shared_property_id: p.shared_property_id,
+  }))
+
   return (
     <div className="space-y-1 text-xs">
-      {row.interface_properties.length === 0 && (
+      {sorted.length === 0 && (
         <p className="text-muted-foreground">An interface with no properties promises nothing.</p>
       )}
-      {[...row.interface_properties].sort((a, b) => a.position - b.position).map((p) => (
+      {sorted.map((p) => (
         <div key={p.property_id} className="flex items-center gap-2">
           <span className="font-medium w-40">{p.display_name}</span>
           <code className="text-xs text-muted-foreground">{p.property_id}</code>
           <Tag minimal>{p.base_type}</Tag>
-          {p.required && <Tag minimal intent={Intent.WARNING}>Required</Tag>}
+          {/* "Required or Optional" is a property of the contract, so it is
+              edited here rather than frozen at creation. */}
+          <Checkbox checked={p.required} className="!mb-0"
+            labelElement={<span className="text-xs">Required</span>}
+            onChange={() => {
+              stage.mutate({
+                id: row.id,
+                properties: payload(sorted).map((q) =>
+                  q.property_id === p.property_id ? { ...q, required: !p.required } : q),
+              })
+            }} />
           {p.pk_constraint !== 'none' && (
             <Tag minimal>pk: {p.pk_constraint}</Tag>
           )}
+          <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER}
+            title="Remove this property from the interface"
+            onClick={() => {
+              stage.mutate({
+                id: row.id,
+                properties: payload(sorted.filter((q) => q.property_id !== p.property_id)),
+              })
+            }} />
         </div>
       ))}
+
+      {adding ? (
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <InputGroup size="small" placeholder="property id" value={key}
+            onChange={(e) => { setKey(e.currentTarget.value) }} className="w-40 font-mono" />
+          <InputGroup size="small" placeholder="Display name" value={label}
+            onChange={(e) => { setLabel(e.currentTarget.value) }} className="w-40" />
+          <HTMLSelect value={type} onChange={(e) => { setType(e.currentTarget.value) }}>
+            {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </HTMLSelect>
+          <Button size="small" intent={Intent.PRIMARY} icon="tick"
+            disabled={key.trim() === '' || label.trim() === ''} loading={stage.isPending}
+            onClick={() => {
+              stage.mutate({
+                id: row.id,
+                properties: [...payload(sorted), {
+                  property_id: key.trim(), api_name: key.trim(), display_name: label.trim(),
+                  description: '', base_type: type, required: false,
+                  pk_constraint: 'none', visibility: 'normal', shared_property_id: null,
+                }],
+              }, { onSuccess: () => { setKey(''); setLabel(''); setAdding(false) } })
+            }}>Add</Button>
+          <Button size="small" variant="minimal" onClick={() => { setAdding(false) }}>Cancel</Button>
+        </div>
+      ) : (
+        <Button size="small" variant="minimal" icon="add" className="mt-1"
+          onClick={() => { setAdding(true) }}>Add property</Button>
+      )}
+
       <p className="text-xs text-muted-foreground pt-1">
-        Properties are edited where the interface is created — the list page's form.
+        Staged like every other change — it reaches the ontology on save.
       </p>
     </div>
   )

@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import {
   fetchInterfaces, fetchImplementations, createInterface, deleteInterface,
   addImplementation, removeImplementation, stageInterfaceMetadata, stageInterfaceClauses,
+  stageInterfaceProperties,
   type CreateInterfaceInput, type MappingDraft, type InterfaceRow,
 } from './api'
 
@@ -56,6 +57,21 @@ export function useDeleteInterface() {
 
 /** Clause edits stage into the same working-state entry as the rest of the
  *  interface; the extension guards have their say when the save applies. */
+export function useStageInterfaceProperties() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, properties }: {
+      id: string; properties: Parameters<typeof stageInterfaceProperties>[1]
+    }) => stageInterfaceProperties(id, properties),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.interfaces })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — save to apply it')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
 export function useStageMetadata() {
   const qc = useQueryClient()
   return useMutation({

@@ -62,6 +62,12 @@ export interface InterfaceRow {
     id: string
     property_id: string; display_name: string; base_type: InterfacePropertyDef['type']
     required: boolean; pk_constraint: 'must' | 'cannot' | 'none'; position: number
+    /** Carried because apply_interface DELETEs the property set and re-inserts
+     *  it from the staged payload: anything not sent back is reset to its
+     *  column default. Editing one property must therefore resend all of them,
+     *  whole. */
+    api_name: string; description: string
+    visibility: string; shared_property_id: string | null
   }[]
   interface_link_constraints: LinkConstraintRow[]
   interface_action_constraints: ActionConstraintRow[]
@@ -90,7 +96,7 @@ export function rowToInterface(r: InterfaceRow): InterfaceDef {
 export async function fetchInterfaces(): Promise<InterfaceRow[]> {
   const { data, error } = await supabase.from('ontology_interfaces')
     .select(`*,
-      interface_properties(id, property_id, display_name, base_type, required, pk_constraint, position),
+      interface_properties(id, property_id, display_name, base_type, required, pk_constraint, position, api_name, description, visibility, shared_property_id),
       interface_link_constraints(id, api_name, display_name, required, cardinality, target_kind, target_interface_id, target_object_type_id),
       interface_action_constraints(api_name, display_name, description, required, interface_action_parameter_constraints(api_name, display_name, base_type, is_list, required, position)),
       extensions:interface_extensions!interface_extensions_interface_id_fkey(parent_interface_id)`)
@@ -140,6 +146,34 @@ export async function stageInterfaceMetadata(
 ): Promise<string> {
   return client(saveInterface).applyAction({
     p_interface: { id, ...patch } as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
+  })
+}
+
+/** Add, remove or re-require a property on an interface that already exists.
+ *
+ *  `save_interface` has always staged a `properties` payload for a LIVE
+ *  interface as readily as for a new one — the branch is unconditional — and
+ *  the web only ever sent one on create, which is why an interface's shape was
+ *  frozen the moment it was saved.
+ *
+ *  THE WHOLE SET GOES BACK EVERY TIME, and that is not defensive: apply_interface
+ *  DELETEs the interface's properties and re-inserts them from the payload, so a
+ *  property left out is a property deleted, and a field left out (description,
+ *  visibility, shared_property_id) comes back as its column default. */
+export async function stageInterfaceProperties(
+  id: string,
+  properties: {
+    property_id: string; api_name: string; display_name: string; description: string
+    base_type: string; required: boolean; pk_constraint: string
+    visibility: string; shared_property_id: string | null
+  }[],
+): Promise<string> {
+  return client(saveInterface).applyAction({
+    p_interface: {
+      id,
+      properties: properties.map((p, idx) => ({ ...p, position: idx })),
+    } as unknown as Json,
     p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }
