@@ -290,6 +290,23 @@ export function useAddSlateEvent(appId: string) {
   }, 'Event wired')
 }
 
+/** The optional JavaScript between an event and the action it drives.
+ *
+ *  "You can also define custom logic for events using Handlebar references and
+ *  JavaScript to control which values are sent to the triggered actions."
+ *  (slate/concepts-events). 688 gave the column its NOT NULL DEFAULT '' because
+ *  "no JavaScript is necessary for a plain pairing" — so the empty string is a
+ *  legitimate body, not a placeholder. What was missing is any way to write a
+ *  non-empty one: every insert passed '' and nothing ever updated it, so the
+ *  column was selected into the client, carried through the types, and
+ *  unreachable. */
+export function useSetSlateEventBody(appId: string) {
+  return useAppMutation<{ id: string; body: string }>(appId, async (i) => {
+    const { error } = await supabase.from('slate_events').update({ body: i.body }).eq('id', i.id)
+    if (error) throw new Error(error.message)
+  }, 'Event logic saved')
+}
+
 export function useRemoveSlateEvent(appId: string) {
   return useAppMutation<string>(appId, async (id) => {
     const { error } = await supabase.from('slate_events').delete().eq('id', id)

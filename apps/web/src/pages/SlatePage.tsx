@@ -25,6 +25,7 @@ import {
   useSlateApps, useSlateContents, useCreateSlateApp, useSlateWidgetKinds,
   useAddSlateWidget, useUpdateSlateWidget, useRemoveSlateWidget, useAddSlatePage,
   useAddSlateVariable, useSetStylesheet, useAddSlateEvent, useRemoveSlateEvent,
+  useSetSlateEventBody,
   type SlateApp, type SlateContents, type SlateWidget, type ContainerType,
 } from '@/features/slate/api'
 
@@ -508,6 +509,8 @@ function PanelBody({ app, contents, panelId, pageId }: {
   const addVar = useAddSlateVariable(app.id)
   const addEvent = useAddSlateEvent(app.id)
   const removeEvent = useRemoveSlateEvent(app.id)
+  const setEventBody = useSetSlateEventBody(app.id)
+  const [openEvent, setOpenEvent] = useState<string | null>(null)
   const setCss = useSetStylesheet(app.id)
   const addPage = useAddSlatePage(app.id)
   const [css, setCssDraft] = useState(app.stylesheet)
@@ -597,12 +600,38 @@ function PanelBody({ app, contents, panelId, pageId }: {
           const src = contents.identifiers.find((i) => i.id === e.eventIdentifierId)
           const dst = contents.identifiers.find((i) => i.id === e.actionIdentifierId)
           return (
-            <li key={e.id} className="flex items-center gap-2 text-xs py-0.5">
-              <span className="flex-1 truncate font-mono">
-                {src?.name}.{e.eventName} → {dst?.name}.{e.actionName}
+            <li key={e.id} className="text-xs py-0.5">
+              <span className="flex items-center gap-2">
+                <span className="flex-1 truncate font-mono">
+                  {src?.name}.{e.eventName} → {dst?.name}.{e.actionName}
+                </span>
+                <Button variant="minimal" size="small"
+                  endIcon={openEvent === e.id ? 'chevron-up' : 'chevron-down'}
+                  onClick={() => { setOpenEvent(openEvent === e.id ? null : e.id) }}>
+                  {e.body.trim() === '' ? 'Add logic' : 'Logic'}
+                </Button>
+                <Button variant="minimal" size="small" icon="cross"
+                  onClick={() => { removeEvent.mutate(e.id) }} />
               </span>
-              <Button variant="minimal" size="small" icon="cross"
-                onClick={() => { removeEvent.mutate(e.id) }} />
+              {openEvent === e.id && (
+                <div className="mt-1">
+                  {/* "You can also define custom logic for events using Handlebar
+                      references and JavaScript to control which values are sent to
+                      the triggered actions." Optional — 688's column defaults to
+                      '' because a plain pairing needs none. */}
+                  <TextArea fill size="small" rows={4} className="font-mono !text-xs"
+                    defaultValue={e.body}
+                    placeholder="Optional JavaScript — controls which values are sent to the action"
+                    onBlur={(ev) => {
+                      const next = ev.currentTarget.value
+                      if (next !== e.body) setEventBody.mutate({ id: e.id, body: next })
+                    }} />
+                  <p className="sl-hint">
+                    Event JavaScript has no access to the DOM or the Slate space, and no
+                    state is saved.
+                  </p>
+                </div>
+              )}
             </li>
           )
         })}
