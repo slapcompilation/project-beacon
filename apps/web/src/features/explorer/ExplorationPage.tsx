@@ -21,6 +21,7 @@ import { SaveDialog } from './SaveDialog'
 import { ActionsMenu } from './ActionsMenu'
 import { ExportMenu } from './ExportMenu'
 import { FormattedValue, valueText } from '@/features/formatting/FormattedValue'
+import { ObjectView } from '@/pages/ObjectViewPage'
 
 /** A jsonb cell as bare text — the primary key, the export, anywhere a string
  *  is what is wanted. A cell a user READS goes through FormattedValue, which
@@ -220,9 +221,68 @@ export default function ExplorationPage() {
             titleKey={props.find((p) => p.is_title_key)?.property_id ?? props.at(0)?.property_id ?? ''} />
         </div>
       ) : (
-        <ResultsTable type={type.id} props={props} filters={filters} sort={sort} setSort={setSort}
-          pkProp={pkProp} selected={selected} setSelected={setSelected} />
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <ResultsTable type={type.id} props={props} filters={filters} sort={sort} setSort={setSort}
+              pkProp={pkProp} selected={selected} setSelected={setSelected} />
+          </div>
+          <SelectionPreview typeId={type.id} selected={[...selected]}
+            onClose={() => { setSelected(new Set()) }} />
+        </div>
       )}
+    </div>
+  )
+}
+
+// ── selection preview ──────────────────────────────────────────────────────
+//
+// "selecting rows opens the Selection Preview panel from the right (the
+// collapse icon closes it). If multiple objects are selected, the object view
+// for any of the FIRST TWENTY is available for previewing."
+//
+// It renders the real Object View, not a reduced copy: "the Selection Preview
+// is a full Object View (tabs Overview / Properties / …, hero fields, an
+// Actions dropdown, refresh and comment icons)".
+//
+// NOT built, and named so it is not mistaken for an oversight: the panel's
+// `Compare objects` dropdown, which puts two Object Views side by side. There
+// is no comparison store, and the surface map records it with the rest of the
+// comparison family (undo/redo, `Compare ▾`).
+const PREVIEWABLE = 20
+
+function SelectionPreview({ typeId, selected, onClose }: {
+  typeId: string
+  selected: string[]
+  onClose: () => void
+}) {
+  const [shown, setShown] = useState<string | null>(null)
+  if (selected.length === 0) return null
+  // The first twenty, per the page. A selection can be thousands; the preview
+  // offers the head of it rather than pretending to offer all.
+  const previewable = selected.slice(0, PREVIEWABLE)
+  // selected.length > 0 above, so the head exists.
+  const pk = shown !== null && previewable.includes(shown) ? shown : previewable[0]
+  return (
+    <div className="w-96 border-l pl-3">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="text-xs font-semibold">Selection Preview</span>
+        <Button variant="minimal" size="small" icon="chevron-right" title="Collapse"
+          onClick={onClose} />
+      </div>
+      {selected.length > 1 && (
+        <div className="mb-2">
+          <HTMLSelect fill value={pk}
+            onChange={(e) => { setShown(e.currentTarget.value) }}>
+            {previewable.map((p) => <option key={p} value={p}>{p}</option>)}
+          </HTMLSelect>
+          {selected.length > PREVIEWABLE && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Previewing the first {PREVIEWABLE} of {selected.length} selected.
+            </p>
+          )}
+        </div>
+      )}
+      <ObjectView typeId={typeId} pk={pk} />
     </div>
   )
 }

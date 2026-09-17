@@ -27,6 +27,16 @@ const scalar = (v: unknown): string | null =>
 
 export default function ObjectViewPage() {
   const { typeId = '', pk = '' } = useParams()
+  return <ObjectView typeId={typeId} pk={pk} />
+}
+
+/** The Object View body, addressable by props rather than by route params.
+ *
+ *  "the Selection Preview is a full Object View (tabs Overview / Properties /
+ *  …, hero fields, an Actions dropdown…)" — so the Explorer's preview panel
+ *  renders THIS, not a reduced copy of it. A second implementation of the
+ *  object view is how the two drift. */
+export function ObjectView({ typeId, pk }: { typeId: string; pk: string }) {
   const { data: typeRows = [], isLoading: typesLoading } = useObjectTypes()
   const type = typeRows.map(rowToObjectType).find((t) => t.id === typeId)
   const { data: view } = useObjectViewFor(typeId || null)

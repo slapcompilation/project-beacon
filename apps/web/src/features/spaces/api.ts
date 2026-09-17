@@ -192,3 +192,130 @@ export function useCreatePortfolio() {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+// ── Space permissions ────────────────────────────────────────────────────
+//
+// `space-permissions.png`: "Grant roles to people and manage aspects of a
+// space." One card per role carrying its description, a `Default role` tag, the
+// people holding it, and a `Grants N workflows` footer that expands to the list.
+//
+// Our three seeded roles and Contributor's five workflows are exactly the
+// capture's, which readings/portfolios-and-space-roles.md Decision 2 required:
+// the other two roles' workflow lists are NOT published (the capture collapses
+// them behind "Grants 1 workflow" and "Grants 61 workflows"), so they have no
+// rows rather than invented ones.
+
+export interface SpaceRole {
+  id: string
+  apiName: string
+  displayName: string
+  description: string | null
+  /** Null means the role is not owned by one space — ours are all platform-wide. */
+  spaceId: string | null
+  workflows: string[]
+}
+
+export interface SpaceRoleGrant {
+  id: string
+  roleId: string
+  principalId: string
+  kind: 'user' | 'group'
+  label: string
+}
+
+export function useSpaceRoles() {
+  return useQuery({
+    queryKey: ['space-roles'] as const,
+    queryFn: async (): Promise<SpaceRole[]> => {
+      const { data, error } = await supabase
+        .from('space_roles')
+        .select('id, api_name, display_name, description, space_id, space_role_workflows(workflow)')
+        .order('display_name')
+      if (error) throw new Error(error.message)
+      return (data as {
+        id: string; api_name: string; display_name: string
+        description: string | null; space_id: string | null
+        space_role_workflows: { workflow: string }[]
+      }[]).map((r) => ({
+        id: r.id, apiName: r.api_name, displayName: r.display_name,
+        description: r.description, spaceId: r.space_id,
+        workflows: r.space_role_workflows.map((w) => w.workflow).sort(),
+      }))
+    },
+  })
+}
+
+export function useSpaceRoleGrants(spaceId: string | null) {
+  return useQuery({
+    queryKey: ['space-role-grants', spaceId ?? ''] as const,
+    enabled: !!spaceId,
+    queryFn: async (): Promise<SpaceRoleGrant[]> => {
+      const { data, error } = await supabase
+        .from('space_role_grants')
+        .select('id, role_id, user_id, group_id')
+        .eq('space_id', spaceId as string)
+      if (error) throw new Error(error.message)
+      const rows = data as {
+        id: string; role_id: string; user_id: string | null; group_id: string | null
+      }[]
+      const users = rows.map((r) => r.user_id).filter((x): x is string => !!x)
+      const groups = rows.map((r) => r.group_id).filter((x): x is string => !!x)
+      const [people, grps] = await Promise.all([
+        users.length ? supabase.from('users').select('id, email').in('id', users)
+          : Promise.resolve({ data: [] }),
+        groups.length ? supabase.from('groups').select('id, name').in('id', groups)
+          : Promise.resolve({ data: [] }),
+      ])
+      const label = new Map<string, string>()
+      for (const u of (people.data ?? []) as { id: string; email: string }[]) label.set(u.id, u.email)
+      for (const g of (grps.data ?? []) as { id: string; name: string }[]) label.set(g.id, g.name)
+      return rows
+        .map((r) => {
+          const id = r.user_id ?? r.group_id
+          return id ? {
+            id: r.id, roleId: r.role_id, principalId: id,
+            kind: r.user_id ? 'user' as const : 'group' as const,
+            label: label.get(id) ?? id,
+          } : null
+        })
+        .filter((x): x is SpaceRoleGrant => !!x)
+        .sort((a, b) => a.label.localeCompare(b.label))
+    },
+  })
+}
+
+export function useGrantSpaceRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: {
+      spaceId: string; roleId: string; principalId: string; kind: 'user' | 'group'
+    }) => {
+      const { error } = await supabase.from('space_role_grants').insert({
+        space_id: i.spaceId, role_id: i.roleId,
+        user_id: i.kind === 'user' ? i.principalId : null,
+        group_id: i.kind === 'group' ? i.principalId : null,
+      })
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: (_d, i) => {
+      void qc.invalidateQueries({ queryKey: ['space-role-grants', i.spaceId] })
+      toast.success('Role granted')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useRevokeSpaceRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { spaceId: string; grantId: string }) => {
+      const { error } = await supabase.from('space_role_grants').delete().eq('id', i.grantId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: (_d, i) => {
+      void qc.invalidateQueries({ queryKey: ['space-role-grants', i.spaceId] })
+      toast.success('Role revoked')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}

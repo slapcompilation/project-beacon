@@ -32,8 +32,10 @@ import {
 import {
   useSpaces, useOrganizations, useSpaceOrganizations, useCreateSpace,
   useUpdateSpace, useSetSpaceOrganization, usePortfolios, useCreatePortfolio,
+  useSpaceRoles, useSpaceRoleGrants, useGrantSpaceRole, useRevokeSpaceRole,
   type Space,
 } from '@/features/spaces/api'
+import { usePrincipalSearch } from '@/features/organization/api'
 
 function NewSpaceDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const create = useCreateSpace()
@@ -101,6 +103,139 @@ function NewPortfolioDialog({ space, open, onClose }: {
         </>
       } />
     </Dialog>
+  )
+}
+
+// `space-permissions.png`: "Grant roles to people and manage aspects of a
+// space." One card per role — description, a `Default role` tag, the people
+// holding it, and a `Grants N workflows` footer that expands.
+//
+// A role with no workflow rows reads "Workflow list not published", NOT
+// "Grants 0 workflows". The capture shows `Grants 1 workflow` and
+// `Grants 61 workflows` for the other two roles with their contents collapsed,
+// so we have no rows for them by decision, not because the roles grant nothing
+// — and 397 refused to build space roles at all precisely because a role that
+// looks like it grants nothing is worse than none.
+const workflowLabel = (w: string) => {
+  const words = w.replace(/_/g, ' ')
+  return words.charAt(0).toUpperCase() + words.slice(1)
+}
+
+function SpacePermissions({ space }: { space: Space }) {
+  const roles = useSpaceRoles()
+  const grants = useSpaceRoleGrants(space.id)
+  const grant = useGrantSpaceRole()
+  const revoke = useRevokeSpaceRole()
+  const [selected, setSelected] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<string | null>(null)
+  const [term, setTerm] = useState('')
+  const search = usePrincipalSearch(term)
+
+  const role = (roles.data ?? []).find((r) => r.id === selected) ?? null
+  const held = (roleId: string) => (grants.data ?? []).filter((g) => g.roleId === roleId)
+
+  return (
+    <Card>
+      <h2 className="text-base font-semibold">Space permissions</h2>
+      <p className="text-sm text-muted-foreground mt-0.5 mb-3">
+        Grant roles to people and manage aspects of a space.
+      </p>
+      <div className="flex items-start gap-4">
+        <div className="flex-1 min-w-0 space-y-2">
+          {roles.isLoading && <Spinner size={SpinnerSize.SMALL} />}
+          {(roles.data ?? []).map((r) => (
+            <div key={r.id}
+              className={`border rounded-sm ${selected === r.id ? 'border-primary' : ''}`}>
+              <button type="button" className="w-full text-left p-3"
+                onClick={() => { setSelected(r.id) }}>
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold">{r.displayName}</span>
+                  {/* Ours are all platform-wide (space_id is null), which is the
+                      same thing the capture's tag says. */}
+                  {r.spaceId === null && <Tag minimal className="!text-[10px]">Default role</Tag>}
+                </span>
+                <span className="block text-xs text-muted-foreground">{r.description}</span>
+                <span className="flex items-center gap-1 mt-1">
+                  {held(r.id).map((g) => (
+                    <Tag key={g.id} minimal title={g.label} className="!text-[10px]">
+                      {g.kind === 'group' ? <Icon icon="people" size={10} /> : g.label.slice(0, 2).toUpperCase()}
+                    </Tag>
+                  ))}
+                </span>
+              </button>
+              <div className="flex items-center justify-between gap-2 px-3 py-2 border-t">
+                <span className="text-xs text-muted-foreground">
+                  {r.workflows.length === 0
+                    ? 'Workflow list not published'
+                    : `Grants ${r.workflows.length} workflow${r.workflows.length === 1 ? '' : 's'}`}
+                </span>
+                {r.workflows.length > 0 && (
+                  <Button variant="minimal" size="small"
+                    endIcon={expanded === r.id ? 'chevron-up' : 'chevron-down'}
+                    onClick={() => { setExpanded(expanded === r.id ? null : r.id) }}>
+                    {expanded === r.id ? 'Hide details' : 'Show details'}
+                  </Button>
+                )}
+              </div>
+              {expanded === r.id && r.workflows.length > 0 && (
+                <div className="px-3 pb-3">
+                  <span className="text-xs font-semibold">Workflows</span>
+                  <ul>
+                    {r.workflows.map((w) => (
+                      <li key={w} className="text-xs text-muted-foreground">{workflowLabel(w)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="w-72 border-l pl-3">
+          <h3 className="text-sm font-semibold">Manage privileges</h3>
+          {!role ? (
+            <p className="text-xs text-muted-foreground mt-1">Select a role to grant it.</p>
+          ) : (
+            <>
+              <p className="text-xs text-muted-foreground mt-1 mb-2">
+                Grant people <strong>{role.displayName}</strong> to manage aspects of{' '}
+                <strong>{space.name}</strong>.
+              </p>
+              <InputGroup leftIcon="search" value={term} placeholder="Add a user or group…"
+                onChange={(e) => { setTerm(e.currentTarget.value) }} />
+              {term.trim() && (search.data ?? []).length > 0 && (
+                <div className="border rounded-sm mt-1">
+                  {(search.data ?? []).map((pr) => (
+                    <button key={pr.id} type="button"
+                      className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm"
+                      onClick={() => {
+                        grant.mutate({
+                          spaceId: space.id, roleId: role.id,
+                          principalId: pr.id, kind: pr.kind,
+                        })
+                        setTerm('')
+                      }}>
+                      {pr.kind === 'group' && <Icon icon="people" size={12} />}{pr.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <ul className="mt-2">
+                {held(role.id).map((g) => (
+                  <li key={g.id} className="flex items-center justify-between gap-2 py-1 text-xs">
+                    <span className="truncate flex items-center gap-1">
+                      {g.kind === 'group' && <Icon icon="people" size={12} />}{g.label}
+                    </span>
+                    <Button variant="minimal" size="small" icon="cross"
+                      onClick={() => { revoke.mutate({ spaceId: space.id, grantId: g.id }) }} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+      </div>
+    </Card>
   )
 }
 
@@ -205,6 +340,8 @@ function SpaceDetail({ space, onBack }: { space: Space; onBack: () => void }) {
           ))}
         </ul>
       </Card>
+
+      <SpacePermissions space={space} />
 
       {/* The footer of the capture: Cancel, then a primary naming the space. */}
       <div className="flex items-center justify-end gap-2">
