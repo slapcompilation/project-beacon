@@ -16,7 +16,7 @@
 // omitted because nothing evaluated them; apply_action has called
 // submission_criteria_verdict all along — see readings/submission-criteria-surface.md §5.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Button, Card, Checkbox,
   HTMLSelect, Icon, InputGroup, Intent, Tag, TextArea,
@@ -33,7 +33,7 @@ import { rowToInterface } from '@/features/interfaces/api'
 import { useLinkTypes } from '@/features/objectTypes/hooks'
 import { rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useActionTypes, useRuleKinds, useSaveActionType,
+  useActionTypes, useRuleKinds, useSaveActionType, useDeleteActionType,
   VALUE_SOURCES, type ActionRuleRow, type ActionTypeRow, type ValueSource,
 } from '@/features/actionTypes/api'
 import { CriteriaEditor } from '@/features/actionTypes/CriteriaEditor'
@@ -56,6 +56,8 @@ export default function ActionTypesPage() {
   const { types } = useOmaTypes()
   const { data: actions } = useActionTypes(ontology?.id ?? null)
   const [applying, setApplying] = useState<ActionTypeRow | null>(null)
+  const [editing, setEditing] = useState<ActionTypeRow | null>(null)
+  const remove = useDeleteActionType()
   const [open, setOpen] = useState<string | null>(null)
 
   if (!ontology) {
@@ -74,7 +76,8 @@ export default function ActionTypesPage() {
       </p>
 
       <div className="max-w-4xl space-y-6">
-        <ActionBuilder ontologyId={ontology.id} types={types} />
+        <ActionBuilder ontologyId={ontology.id} types={types} editing={editing}
+          onDone={() => { setEditing(null) }} />
 
         {actions.length === 0 ? (
           <Card compact className="text-xs text-muted-foreground">None yet — author one above.</Card>
@@ -99,6 +102,14 @@ export default function ActionTypesPage() {
                     {a.action_type_parameters.length} param{a.action_type_parameters.length === 1 ? '' : 's'}
                   </Tag>
                   <Button size="small" icon="play" onClick={() => { setApplying(a) }}>Apply</Button>
+                  <Button size="small" variant="minimal" icon="edit" title="Edit this action type"
+                    onClick={() => { setEditing(a); window.scrollTo({ top: 0 }) }} />
+                  {/* Staged, not live: delete_ontology_resource writes a
+                      `deleted` operation into the working state, so it is
+                      reviewed and saved like every other change. */}
+                  <Button size="small" variant="minimal" icon="trash" intent={Intent.DANGER}
+                    title="Delete this action type" loading={remove.isPending}
+                    onClick={() => { remove.mutate(a.id) }} />
                 </div>
                 {open === a.id && (
                   <div className="pl-5 pt-2">
@@ -253,7 +264,22 @@ function FunctionRuleCard({ ontologyId, rule, parameters, onChange }: {
   )
 }
 
-function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: ObjectTypeDef[] }) {
+// Editing an existing action type, which the engine has supported since the
+// beginning: save_action_type takes an id and useSaveActionType already sends
+// `d.id ?? null`. Nothing ever passed one, so every save created a new action
+// type and an authoring mistake was permanent.
+//
+// The prefill is LOSSLESS by construction — it is the exact inverse of submit()
+// below, over a query that already selects
+// `action_type_rules(*, action_type_rule_properties(*)), action_type_parameters(*)`.
+// A partial prefill would be worse than no edit at all: it would silently drop
+// the rule details it could not represent on the next save.
+function ActionBuilder({ ontologyId, types, editing, onDone }: {
+  ontologyId: string
+  types: ObjectTypeDef[]
+  editing: ActionTypeRow | null
+  onDone: () => void
+}) {
   const save = useSaveActionType()
   const { data: kinds = [] } = useRuleKinds()
   const { data: interfaceRows } = useInterfaces()
@@ -268,6 +294,60 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
   const [params, setParams] = useState<ParamDraft[]>([newParam()])
   const [rules, setRules] = useState<RuleDraft[]>([newRule()])
 
+  const reset = () => {
+    setLabel(''); setDescription(''); setParams([newParam()]); setRules([newRule()])
+  }
+
+  // The inverse of submit(), and it must stay lossless. The table stores
+  // parameter and constraint references as IDs where the save function takes
+  // api_names, so both are resolved back here — through the action's own
+  // parameters, and through the interfaces the page already loads.
+  useEffect(() => {
+    if (editing === null) { reset(); return }
+    setLabel(editing.label)
+    setDescription(editing.description)
+    const ps = [...editing.action_type_parameters].sort((a, b) => a.position - b.position)
+    const paramName = new Map(ps.map((p) => [p.id, p.api_name]))
+    // From the RAW rows: rowToInterface drops link constraints, so InterfaceDef
+    // cannot answer this.
+    const constraintName = new Map(
+      interfaceRows.flatMap((i) =>
+        i.interface_link_constraints.map((c) => [c.id, c.api_name] as const)))
+    setParams(ps.length === 0 ? [newParam()] : ps.map((p) => ({
+      label: p.display_name,
+      baseType: p.base_type ?? 'string',
+      required: p.required,
+      kind: p.data_kind === 'object' || p.data_kind === 'objectSet' ? p.data_kind : 'value',
+      objectTypeId: p.object_type_id ?? '',
+    })))
+    const rs = [...editing.action_type_rules].sort((a, b) => a.position - b.position)
+    setRules(rs.length === 0 ? [newRule()] : rs.map((r): RuleDraft => ({
+      kind: r.kind,
+      objectTypeId: r.object_type_id ?? '',
+      interfaceId: r.interface_id ?? '',
+      props: r.action_type_rule_properties.map((pr) => ({
+        propertyId: pr.property_id ?? pr.interface_property_id ?? '',
+        source: pr.value_source as ValueSource,
+        parameter: pr.parameter_id === null ? '' : paramName.get(pr.parameter_id) ?? '',
+        staticValue: typeof pr.static_value === 'string' ? pr.static_value : '',
+      })),
+      functionName: r.function_name ?? undefined,
+      functionVersionId: r.function_version_id ?? undefined,
+      autoUpgrade: r.auto_upgrade,
+      inputs: r.action_type_rule_inputs.map((m) => ({
+        inputName: m.input_name,
+        parameter: m.parameter_id === null ? '' : paramName.get(m.parameter_id) ?? '',
+      })),
+      linkTypeId: r.link_type_id ?? undefined,
+      sourceParameter: r.source_parameter_id === null ? undefined : paramName.get(r.source_parameter_id),
+      targetParameter: r.target_parameter_id === null ? undefined : paramName.get(r.target_parameter_id),
+      objectParameter: r.object_parameter_id === null ? undefined : paramName.get(r.object_parameter_id),
+      createNewObjectWith: r.create_new_object_with ?? undefined,
+      interfaceLinkConstraint: r.interface_link_constraint_id === null
+        ? undefined : constraintName.get(r.interface_link_constraint_id),
+    })))
+  }, [editing, interfaceRows])
+
   const apiName = toKebab(label)
   const named = params.filter((p) => p.label.trim())
   const setRule = (i: number, patch: Partial<RuleDraft>) =>
@@ -275,6 +355,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
 
   const submit = () => {
     save.mutate({
+      id: editing?.id,
       apiName, label: label.trim(), description: description.trim(), ontologyId,
       parameters: named.map((p, i) => ({
         api_name: toCamel(p.label), display_name: p.label.trim(),
@@ -334,14 +415,21 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
           })),
         }
       }),
-    }, { onSuccess: () => { setLabel(''); setDescription(''); setParams([newParam()]); setRules([newRule()]) } })
+    }, { onSuccess: () => { reset(); onDone() } })
   }
 
   return (
     <Card className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold">New action type</span>
+        <span className="text-sm font-semibold">
+          {editing ? `Edit ${editing.label}` : 'New action type'}
+        </span>
         {label && <Tag minimal className="font-mono">{apiName}</Tag>}
+        {editing && (
+          <Button variant="minimal" size="small" onClick={() => { reset(); onDone() }}>
+            Cancel edit
+          </Button>
+        )}
       </div>
       <InputGroup placeholder="Label (e.g. Assign root cause)" value={label}
         onChange={(e) => { setLabel(e.currentTarget.value) }} />

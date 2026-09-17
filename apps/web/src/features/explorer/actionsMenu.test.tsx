@@ -73,6 +73,8 @@ const action: ActionTypeRow = {
     function_name: 'closeTicket', function_version_id: 'fv1', auto_upgrade: false,
     source_parameter_id: null, target_parameter_id: null,
     object_parameter_id: null, create_new_object_with: null,
+    interface_id: null, interface_link_constraint_id: null,
+    action_type_rule_inputs: [],
     action_type_rule_properties: [],
   }],
   action_type_parameters: [{
