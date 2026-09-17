@@ -140,20 +140,26 @@ describe.skipIf(noDb)('access is a conjunction', () => {
     // "role grants inherit to child resources", so the placement ledger is
     // reachable through a role and not through the organization. The write
     // policy already required editor; the read policy did not.
-    await db.query(
+    // Scoped to the row this test plants, not to the whole project. Until 812
+    // project_resources was an index nothing wrote to, so counting the
+    // project's rows and counting this row were the same number; now every
+    // dataset, module and repository in the project is indexed there too, and
+    // a bare count asserts the fixture's contents rather than the policy.
+    const planted = (await one(
       `insert into public.project_resources (resource_kind, resource_id, project_id, organization_id)
-       values ('object_type', gen_random_uuid(), $1, $2)`, [f.projectId, f.orgId])
+       values ('object_type', gen_random_uuid(), $1, $2) returning resource_id`,
+      [f.projectId, f.orgId])).resource_id
 
     await claims(holder, f.orgId)
     const seen = await asAuthenticated(async () => Number(
-      (await one('select count(*) as n from public.project_resources where project_id=$1',
-        [f.projectId])).n))
+      (await one('select count(*) as n from public.project_resources where resource_id=$1',
+        [planted])).n))
     expect(seen).toBe(1)
 
     await claims(stranger, f.orgId)
     const hidden = await asAuthenticated(async () => Number(
-      (await one('select count(*) as n from public.project_resources where project_id=$1',
-        [f.projectId])).n))
+      (await one('select count(*) as n from public.project_resources where resource_id=$1',
+        [planted])).n))
     expect(hidden).toBe(0)
   })
 

@@ -71,15 +71,9 @@ export interface ProjectMember {
   grantedAt: string
 }
 
-export interface ProjectResource {
-  resourceKind: 'object_type' | 'module' | 'document' | 'object_set' | 'user_tool'
-  resourceId: string
-}
-
 const keys = {
   all: ['projects'] as const,
   members: (id: string) => ['project-members', id] as const,
-  resources: (id: string) => ['project-resources', id] as const,
   myRole: (id: string) => ['project-role', id] as const,
 }
 
@@ -308,22 +302,6 @@ export function useRevokeRole(projectId: string) {
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Access removed') },
     onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-/** What the project contains. Foundry: work and its output live together. */
-export function useProjectResources(projectId: string | null) {
-  return useQuery({
-    queryKey: keys.resources(projectId ?? ''),
-    enabled: !!projectId,
-    queryFn: async (): Promise<ProjectResource[]> => {
-      const { data, error } = await supabase.from('project_resources')
-        .select('resource_kind, resource_id').eq('project_id', projectId ?? '')
-      if (error) throw new Error(error.message)
-      return (data as { resource_kind: ProjectResource['resourceKind']; resource_id: string }[])
-        .map((r) => ({ resourceKind: r.resource_kind, resourceId: r.resource_id }))
-    },
-    staleTime: 30_000,
   })
 }
 

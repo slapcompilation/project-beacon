@@ -32,7 +32,7 @@ import { RequestAccessDialog } from '@/features/approvals/RequestAccessDialog'
 import { PolicyPanel } from '@/features/projects/PolicyPanel'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,
-  useGrantRole, useRevokeRole, useSetDefaultRole, useProjectResources, useOrgMembers,
+  useGrantRole, useRevokeRole, useSetDefaultRole, useOrgMembers,
   useDiscoverableCoverPages,
   type Project, type DiscoverableProject,
 } from '@/features/projects/api'
@@ -204,7 +204,6 @@ function ProjectDetails({ project }: { project: Project }) {
   const { data: myRole } = useMyProjectRole(project.id)
   const [requesting, setRequesting] = useState(false)
   const { data: members = [] } = useProjectMembers(project.id)
-  const { data: resources = [] } = useProjectResources(project.id)
   const role = useAuthStore((s) => s.role)
   // An org admin can always manage access — the bootstrap, since someone has to
   // grant the first Owner. Otherwise it is the project's own Owner.
@@ -228,28 +227,9 @@ function ProjectDetails({ project }: { project: Project }) {
       {/* Foundry's rail draws Cover page first, above the workspace. */}
       <CoverPagePanel project={project} canEdit={canGrant} />
 
-      <Card compact className="!p-0">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-          <Icon icon="box" size={12} className="text-muted-foreground" />
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contents</span>
-          <Tag minimal className="!text-[10px]">{resources.length}</Tag>
-        </div>
-        {resources.length === 0 ? (
-          <p className="px-3 py-3 text-xs text-muted-foreground">
-            Nothing in this project yet. A resource belongs to one project — work and its output live together.
-          </p>
-        ) : (
-          <ul className="divide-y divide-border/30">
-            {resources.map((r) => (
-              <li key={`${r.resourceKind}-${r.resourceId}`} className="flex items-center gap-2 px-3 py-1.5 text-xs">
-                <Tag minimal className="!text-[9px]">{r.resourceKind.replace('_', ' ')}</Tag>
-                <span className="font-mono text-[10px] text-muted-foreground truncate">{r.resourceId}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
+      {/* The Contents card is gone. It listed project_resources by raw uuid,
+          which no capture shows and no sentence describes; 812 gave the index a
+          name and FilesCard below now lists the same rows as files. */}
       <FilesCard projectId={project.id} />
 
       {/* "The Activity log ... is only visible at the Project level" — a
