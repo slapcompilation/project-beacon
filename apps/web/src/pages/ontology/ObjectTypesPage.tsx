@@ -713,6 +713,11 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const [targetEdgeId, setTargetEdgeId] = useState('')
   const [sourceSide, setSourceSide] = useState('')
   const [targetSide, setTargetSide] = useState('')
+  // "The API name will be automatically generated based on the display name,
+  // but you can modify it if needed." Empty means follow the display name;
+  // typing one pins it. 816 constrains the format the page prints.
+  const [sourceApi, setSourceApi] = useState('')
+  const [targetApi, setTargetApi] = useState('')
   const { data: datasets = [] } = useDatasets()
   // An object-backed link walks two many-to-one links from the intermediary
   // type to each side, and create-link-type makes them a prerequisite — so the
@@ -733,6 +738,13 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
     const legal = LINK_CARDINALITIES.filter((c) => canBack(c, k))
     if (!legal.includes(cardinality)) setCardinality(legal[0])
   }
+  const sourceApiEffective = sourceApi.trim() || (sourceSide.trim() ? toCamel(sourceSide) : '')
+  const targetApiEffective = targetApi.trim() || (targetSide.trim() ? toCamel(targetSide) : '')
+  // The two row-level rules of the four the page states; the other two
+  // (NFKC, reserved keywords) have no list to check against here or in 816.
+  const sideApiOk = (v: string) => v === '' || (/^[a-z][a-zA-Z0-9]*$/.test(v) && v.length <= 100)
+  const sideApiNamesOk = sideApiOk(sourceApiEffective) && sideApiOk(targetApiEffective)
+
   const backingComplete =
     backingKind === 'foreign_key' ? fkColumn !== ''
     : backingKind === 'join_table'
@@ -741,7 +753,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
       : backingObjectTypeId !== '' && sourceEdgeId !== '' && targetEdgeId !== ''
 
   const submit = () => {
-    if (!validation.ok || !backingComplete || !ontology) return
+    if (!validation.ok || !backingComplete || !sideApiNamesOk || !ontology) return
     create.mutate(
       { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(),
         ontologyId: ontology.id, projectId,
@@ -756,13 +768,13 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
         targetEdgeLinkTypeId: backingKind === 'object_backed' ? targetEdgeId : null,
         sourceLabel: sourceSide.trim() || null,
         targetLabel: targetSide.trim() || null,
-        sourceApiName: sourceSide.trim() ? toCamel(sourceSide) : null,
-        targetApiName: targetSide.trim() ? toCamel(targetSide) : null },
+        sourceApiName: sourceApiEffective || null,
+        targetApiName: targetApiEffective || null },
       { onSuccess: () => {
         setLabel(''); setFkColumn(''); setJoinDatasetId(''); setJoinBranchId('')
         setSourceKeyColumn(''); setTargetKeyColumn(''); setBackingObjectTypeId('')
         setSourceEdgeId(''); setTargetEdgeId('')
-        setSourceSide(''); setTargetSide('')
+        setSourceSide(''); setTargetSide(''); setSourceApi(''); setTargetApi('')
       } })
   }
 
@@ -869,9 +881,32 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
           value={sourceSide} onChange={(e) => { setSourceSide(e.currentTarget.value) }} className="flex-1 min-w-[150px]" />
         <InputGroup size="small" placeholder={`${labelOf(targetTypeId)} side (the reverse sentence)`}
           value={targetSide} onChange={(e) => { setTargetSide(e.currentTarget.value) }} className="flex-1 min-w-[150px]" />
-        <Button size="small" icon="add" disabled={!validation.ok || !backingComplete}
+        <Button size="small" icon="add"
+          disabled={!validation.ok || !backingComplete || !sideApiNamesOk}
           loading={create.isPending} onClick={submit}>Add link type</Button>
       </div>
+      {/* Step 3 of the page's Link type names: the API name follows the display
+          name until you type one. Shown only once a side has a display name,
+          because that is when there is something to override. */}
+      {(sourceSide.trim() !== '' || targetSide.trim() !== '') && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">API names</span>
+          <InputGroup size="small" placeholder={sourceApiEffective || 'source side API name'}
+            value={sourceApi} intent={sideApiOk(sourceApiEffective) ? undefined : Intent.DANGER}
+            onChange={(e) => { setSourceApi(e.currentTarget.value) }}
+            className="flex-1 min-w-[150px] font-mono" />
+          <InputGroup size="small" placeholder={targetApiEffective || 'target side API name'}
+            value={targetApi} intent={sideApiOk(targetApiEffective) ? undefined : Intent.DANGER}
+            onChange={(e) => { setTargetApi(e.currentTarget.value) }}
+            className="flex-1 min-w-[150px] font-mono" />
+        </div>
+      )}
+      {!sideApiNamesOk && (
+        <p className="text-xs text-red-600">
+          An API name begins with a lowercase character, consists of only alphanumeric
+          characters, and is between 1 and 100 characters long.
+        </p>
+      )}
     </Card>
   )
 }
