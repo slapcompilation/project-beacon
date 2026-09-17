@@ -15,7 +15,7 @@ import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import type { ObjectTypeStatus, PropertyType } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { saveActionType, applyAction, revertAction, actionRuleKinds, actionFormEffective, type Json } from '@beacon/platform'
+import { saveActionType, applyAction, revertAction, actionRuleKinds, actionFormEffective, deleteOntologyResource, type Json } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import { useReindex } from '@/features/objectTypes/indexing'
 
@@ -46,10 +46,23 @@ export interface ActionParameterRow {
 
 export interface ActionRulePropertyRow {
   id: string
-  property_id: string
+  property_id: string | null
+  /** 570 split the column: a rule names an object type's property or an
+   *  interface's, never both. Declared here because `select *` returns it and
+   *  the editor has to read it back. */
+  interface_property_id: string | null
   value_source: ValueSource | 'object_parameter_property'
   parameter_id: string | null
   static_value: Json
+}
+
+/** A function rule's input-to-parameter mapping, its own table. Selected now
+ *  because the action type editor round-trips it; without it a re-save of a
+ *  function rule would silently drop its inputs. */
+export interface ActionRuleInputRow {
+  id: string
+  input_name: string
+  parameter_id: string | null
 }
 
 export interface ActionRuleRow {
@@ -67,6 +80,10 @@ export interface ActionRuleRow {
    *  "Modify existing selected" chip is, and the "Or create a new object with"
    *  choice beside it. */
   object_parameter_id: string | null
+  /** Set instead of object_type_id on the three interface object rules. */
+  interface_id: string | null
+  interface_link_constraint_id: string | null
+  action_type_rule_inputs: ActionRuleInputRow[]
   create_new_object_with: 'auto_generated_primary_key' | 'user_submitted_primary_key' | null
   action_type_rule_properties: ActionRulePropertyRow[]
 }
@@ -95,7 +112,7 @@ export function useActionTypes(ontologyId: string | null) {
     staleTime: 30_000,
     queryFn: async (): Promise<ActionTypeRow[]> => {
       const { data, error } = await supabase.from('action_types')
-        .select('*, action_type_rules(*, action_type_rule_properties(*)), action_type_parameters(*)')
+        .select('*, action_type_rules(*, action_type_rule_properties(*), action_type_rule_inputs(*)), action_type_parameters(*)')
         .eq('ontology_id', ontologyId as string)
         .order('created_at')
       if (error) throw new Error(error.message)
@@ -164,6 +181,27 @@ export interface ActionDraft {
       parameter_api_name: string | null; static_value: string | null
     }[]
   }[]
+}
+
+/** Deleting an action type, which the engine has always supported and no screen
+ *  ever called. `delete_ontology_resource` is kind-agnostic — it looks the row
+ *  up through `ontology_resource_row`, which handles 'action_type' — and stages
+ *  a `deleted` operation rather than writing live, so the deletion goes through
+ *  the same save session as everything else. It refuses with
+ *  OntologyMetadata:NotSavedYet if the action exists only in the working state,
+ *  which is a discard rather than a delete; the toast carries that. */
+export function useDeleteActionType() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) =>
+      client(deleteOntologyResource).applyAction({ p_kind: 'action_type', p_id: id }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: KEY })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged for deletion — save to remove it from the ontology')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
 }
 
 export function useSaveActionType() {
