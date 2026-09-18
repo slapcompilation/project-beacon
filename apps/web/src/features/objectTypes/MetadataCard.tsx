@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 // Section ① of Foundry's object type Overview, which the page names outright:
 // "1. Object type metadata" (ontology-manager/overview). Two columns divided by
 // a rule — metadata left, a status panel right, with ID and RID below a second
@@ -8,7 +9,7 @@
 // This card is why 415's and 422's columns exist at all. Until it, plural_label,
 // point_of_contact, contributors and track_edit_history were stored and read by
 // nothing.
-import { HTMLSelect, Icon, Tag, TagInput } from '@blueprintjs/core'
+import { HTMLSelect, Icon, InputGroup, Tag, TagInput } from '@blueprintjs/core'
 import { useQuery } from '@tanstack/react-query'
 import type { ObjectTypeDef, OntologyVisibility } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
@@ -74,6 +75,9 @@ export function MetadataCard(
   const { data: indexes } = useIndexStatuses()
   const phase = indexPhase(indexes?.get(type.id))
   const setStatus = useSetObjectTypeStatus()
+  const apiNameEditable = (type.status ?? 'experimental') === 'experimental'
+  const [apiDraft, setApiDraft] = useState(type.apiName)
+  useEffect(() => { setApiDraft(type.apiName) }, [type.apiName])
   const contributors = type.contributors ?? []
   const { data: users = [] } = useUsers()
   const update = useUpdateObjectType()
@@ -149,7 +153,31 @@ export function MetadataCard(
           </span>
         </Row>
         <Row label="Ontology">{ontologyName}</Row>
-        <Row label="API name"><span className="font-mono truncate">{type.apiName}</span></Row>
+        {/* "An object type's API name can be edited in the object type's
+            Overview page" — and only while it is experimental:
+            "The API name of an active resource cannot be changed. Changing an
+            API name is only possible for those marked as experimental."
+            The database says the same thing as Ontology:ApiNameIsFixed, so a
+            read-only field here is the page's rule, not a limitation. */}
+        <Row label="API name"
+          help={apiNameEditable
+            ? 'Editable while the type is experimental.'
+            : 'The API name of an active resource cannot be changed.'}>
+          {apiNameEditable ? (
+            <InputGroup size="small" fill value={apiDraft} className="font-mono"
+              onChange={(e) => { setApiDraft(e.currentTarget.value) }}
+              onBlur={() => {
+                const next = apiDraft.trim()
+                if (next === '' || next === type.apiName) { setApiDraft(type.apiName); return }
+                update.mutate({
+                  id: type.id, apiName: next, label: type.label, icon: type.icon,
+                  description: type.description, properties: type.properties,
+                })
+              }} />
+          ) : (
+            <span className="font-mono truncate">{type.apiName}</span>
+          )}
+        </Row>
       </>}
       right={<>
           <Row label="Status">{status}</Row>
