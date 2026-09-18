@@ -267,7 +267,12 @@ export function useDeleteCandidates(configId: string | null) {
     onSuccess: (_d, ids) => {
       void qc.invalidateQueries({ queryKey: ['cleanup-candidates', configId] })
       void qc.invalidateQueries({ queryKey: ['object-types'] })
-      toast.success(`Deleted ${ids.length} object type${ids.length === 1 ? '' : 's'}`)
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      // "Deprecation and deletion are staged the same way as normal Ontology
+      // modifications" — so the queue's bulk delete stages too, and the count
+      // says so rather than claiming rows are gone.
+      toast.success(
+        `Staged ${ids.length} object type${ids.length === 1 ? '' : 's'} for deletion — save to apply`)
     },
     onError: (e: Error) => { toast.error(e.message) },
   })
