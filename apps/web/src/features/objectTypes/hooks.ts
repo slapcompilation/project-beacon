@@ -77,7 +77,11 @@ export function useDeleteObjectType() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => deleteObjectType(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.types }); toast.success('Object type deleted') },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.types })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged for deletion — save to remove it from the ontology')
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
@@ -88,7 +92,8 @@ export function useSetObjectTypeStatus() {
     mutationFn: (i: Parameters<typeof setObjectTypeStatus>[0]) => setObjectTypeStatus(i),
     onSuccess: (_d, v) => {
       void qc.invalidateQueries({ queryKey: keys.types })
-      toast.success(`Status set to ${STATUS_META[v.status].label}`)
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success(`Staged: status ${STATUS_META[v.status].label} — save to apply`)
     },
     onError: (e: Error) => { toast.error(e.message) },
   })

@@ -229,9 +229,19 @@ export async function saveObjectType(
   })
 }
 
+/** Staged, not deleted where it stands.
+ *
+ *  "Deprecation and deletion are staged the same way as normal Ontology
+ *  modifications" (ontology-manager/cleanup) — and readings/ontology-cleanup.md
+ *  Decision 8 took that as "staging is reused, not rebuilt". This deleted the
+ *  row directly, which is the one path in the ontology that skipped the save
+ *  session: every sibling kind already goes through delete_ontology_resource,
+ *  which stages a `deleted` operation and lands it on save.
+ *
+ *  That matters beyond consistency — the save session is where the linter
+ *  refuses, so a live delete was a delete nothing could review. */
 export async function deleteObjectType(id: string): Promise<void> {
-  const { error } = await supabase.from('object_types').delete().eq('id', id)
-  if (error) throw new Error(error.message)
+  await client(deleteOntologyResource).applyAction({ p_kind: 'object_type', p_id: id })
 }
 
 /** Retire a type instead of deleting it. The database refuses a deprecation
@@ -240,14 +250,28 @@ export async function deleteObjectType(id: string): Promise<void> {
 export async function setObjectTypeStatus(
   i: { id: string; status: ObjectTypeStatus; visibility: OntologyVisibility; deprecation: Deprecation | null },
 ): Promise<void> {
-  const { error } = await supabase.from('object_types').update({
-    status: i.status,
-    visibility: i.visibility,
-    deprecation_reason:   i.status === 'deprecated' ? i.deprecation?.reason ?? null : null,
-    deprecation_deadline: i.status === 'deprecated' ? i.deprecation?.deadline ?? null : null,
-    replaced_by:          i.status === 'deprecated' ? i.deprecation?.replacedBy ?? null : null,
-  }).eq('id', i.id)
-  if (error) throw new Error(error.message)
+  // Staged, not written. "Deprecation and deletion are staged the same way as
+  // normal Ontology modifications" (ontology-manager/cleanup) — this updated
+  // the row directly, so a deprecation reached the ontology without passing
+  // the save session, which is where the linter refuses.
+  //
+  // 818 taught save_object_type these six keys; before it, there was nowhere
+  // to put them. Only the keys named here are staged, so nothing else on the
+  // type is touched — and `properties` is deliberately null rather than an
+  // empty array, because an empty section is an instruction to delete
+  // everything in it.
+  await client(saveObjectTypeAction).applyAction({
+    p_object_type: {
+      id: i.id,
+      status: i.status,
+      visibility: i.visibility,
+      deprecation_reason:   i.status === 'deprecated' ? i.deprecation?.reason ?? null : null,
+      deprecation_deadline: i.status === 'deprecated' ? i.deprecation?.deadline ?? null : null,
+      replaced_by:          i.status === 'deprecated' ? i.deprecation?.replacedBy ?? null : null,
+    } as unknown as Json,
+    p_properties: null as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
+  })
 }
 
 // ── Schema edits + revision history (P2.5) ───────────────────────────────────
