@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (363) ───────────────────────────────────────────────────
+// ── FUNCTIONS (365) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3879,6 +3879,22 @@ export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', 
   string[]
 >
 
+/**
+ *  What an instance reader asks: is the caller in the ontology, and do they
+ *  satisfy the object type's markings. DELIBERATELY WEAKER than
+ *  object_type_row_visible, which the read policy uses — it omits placement,
+ *  because project_role has no org-admin arm and system paths such as the
+ *  automation recipient reader hold no grant (825). The placement half of
+ *  "Hide sensitive ontology resources by applying a marking or by placing
+ *  them in a project where the user lacks a role grant"
+ *  (object-permissioning/ontology-permissions) is therefore still unenforced
+ *  on the instance path, and is recorded as open rather than closed.
+ */
+export const objectTypeInstancesReadable = { apiName: 'object_type_instances_readable', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  boolean
+>
+
 export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'function' } as FunctionType<
   { p_object_type: string; p_property: string; p_query: number[]; p_k: number; p_function?: string },
   { object_key: string; distance: number }[]
@@ -3916,6 +3932,18 @@ export const objectTypePolicyFields = { apiName: 'object_type_policy_fields', ki
 export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'function' } as FunctionType<
   { p_object_type: string },
   { scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  Whether the caller may see an object type, evaluated over the row's own
+ *  columns so the read policy never queries object_types. "To see objects,
+ *  you must hold View permissions on the object type and access to the data"
+ *  (object-permissioning/ontology-permissions). object_type_visible(uuid) is
+ *  the same rule for callers holding only an id.
+ */
+export const objectTypeRowVisible = { apiName: 'object_type_row_visible', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_project: string; p_object_type: string },
+  boolean
 >
 
 /**
