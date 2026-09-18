@@ -19,7 +19,16 @@ Pages read in full:
   superseded models)
 
 Image read: `images/osp-permissions-ui-overview.png` — the Compose object security
-policy dialog. 21 further screenshots mirrored; they walk the same flow.
+policy dialog. 21 further screenshots mirrored; **I recorded them as walking the
+same flow without opening them, and that was wrong** — see the correction below.
+All 22 have since been opened (2026-09-19); the two that changed the build are
+`images/osp-add-granular-policy.png` and `images/osp-object-security-policy-properties.png`.
+
+Pages added on the 2026-09-19 pass, none of which this reading originally touched:
+- `mirror/platform-security-management/manage-granular-policies.md` — where the
+  comparison set, the user attributes and the weights are actually enumerated
+- `mirror/object-link-types/mandatory-control-properties.md` — the mechanism
+  behind the worked example's `VIP` row, linked from step 5 of a page read in full
 
 ---
 
@@ -103,8 +112,12 @@ Two things the prose does not make this vivid:
    datasource demands; the right is what the policy demands instead. The icon
    changes from table to cube — the requirement moves from the data to the type.
 2. **It is a fixed conjunction of four slots**, each independently managed:
-   viewer permission, granular policy, organizations, markings. Not free-form
-   rules.
+   viewer permission, granular policy, organizations, markings. ~~Not free-form
+   rules.~~ — **that last sentence is false; see the correction below.** The four
+   slots are right, and the `Granular policy` slot opens a rule composer. Two
+   details this section also got wrong by reading only the one capture: the LEFT
+   (datasource) column has **three** slots, not four — `Granular policy` exists
+   only on the right — and only the right-hand cards carry a Manage affordance.
 
 ### Granular policies and mandatory control properties
 
@@ -168,6 +181,66 @@ Property-level security does not travel to the resource a property points at.
   slot and nothing else. No markings, no classifications, no granular policy, no
   property-level anything.
 
+## Correction (2026-09-19) — proposal 3 was false, and one image caused it
+
+**Proposal 3 below is wrong.** It says not to invent a rule language because the
+dialog is four fixed slots ANDed together. The four slots are real, but one of
+them is `Granular policy`, and behind its Manage link is a full rule composer. I
+concluded otherwise from the single capture I had opened — which is the *outer*
+dialog — and recorded 21 others as walking the same flow. They do not.
+
+`images/osp-add-granular-policy.png` prints its own definition:
+
+> A granular policy is a combination of rules that describe what rows can be seen by different people
+> — object-permissioning/images/osp-add-granular-policy.png
+
+and carries a Match-All/any dropdown, a draggable rule row, an add-a-condition
+affordance (so nesting), and a right-hand Define condition panel with a left
+term, an operator dropdown and a right term. The rule it shows reads
+`Current user markings satisfies VIP`.
+
+Three further corrections from the same pass:
+
+1. **`Satisfies` is an operator the enumeration does not list.** The eight
+   comparison types are on `manage-granular-policies.md`; `Satisfies` is none of
+   them. The same page's weight table implies it independently by pricing three
+   condition kinds where the comparisons account for two:
+
+   > "A marking condition is given a weight of 3,000."
+
+   — `platform-security-management/manage-granular-policies.md`
+
+   Its right-hand term is a mandatory control property. Note the
+   two-vocabularies trap: `mandatory-control-properties.md` says to set the base
+   type to Mandatory Control, while `properties-overview.md`'s table — which our
+   vocabulary parses — enumerates `Marking`. The enumeration wins.
+
+2. **Object policies are narrower than restricted-view policies on the same
+   grammar**, which proposal 3 had no way to see:
+
+   > "Object security policies do not support less/greater than comparison operators."
+
+   — `platform-security-management/manage-granular-policies.md`
+
+3. **The two halves of a policy propagate differently**, which decides what may
+   be resolved at index time and what may not:
+
+   > "Granular row and column controls within an object or property security policy filter what a user can read. These controls do not extend to downstream outputs or exports. However, mandatory and classification-based controls within the same policy continue to apply to derived data."
+
+   — `object-permissioning/managing-object-security.md`
+
+**Proposal 2 has come due** — object instances now exist, and the row-level half
+shipped as 821. Proposals 1 and 4 stand.
+
+### What this reading could not have caught, and the method that did
+
+The false proposal rested on an image I had not opened while the header said the
+unopened ones added nothing. That claim is the falsifiable kind CLAUDE.md warns
+about, and it was false. The correction came from opening all 22 and pairing each
+reader with an adversary told to attack the *build shape* hardest — which also
+turned up two refuters disagreeing with each other about whether the policy is
+keyed to the object type or the datasource. Neither settled it; the prose did.
+
 ## What this means for the build — proposals
 
 1. **Our permission model is already Foundry-shaped in outline and thin in
@@ -177,8 +250,10 @@ Property-level security does not travel to the resource a property points at.
 2. **The object/property split should be built when object instances exist**, not
    before — there is nothing to secure per-row until an object type has a backing
    datasource. That places it immediately after the datasource work, not before.
-3. **Do not invent a rule language.** The dialog shows four fixed slots ANDed
-   together. If we build this, it is those four, and `NOT` on membership is a
+3. ~~**Do not invent a rule language.** The dialog shows four fixed slots ANDed
+   together. If we build this, it is those four~~ — **FALSE, see the correction
+   above.** The fourth slot opens a rule composer, and the grammar to reuse is
+   483's. The `NOT`-on-membership half of this proposal stands: it is a
    documented misconfiguration rather than a feature to support.
 4. **The primary key constraint is a second sighting.** `create-object-type`
    requires one; here the primary key is the property that *cannot* be hidden.
@@ -189,9 +264,16 @@ Property-level security does not travel to the resource a property points at.
 - What is a **marking** concretely, and how does it differ from an organization
   and a classification? Three mirrored pages, none read.
 - **Object Storage v2** gates MDOs and appears repeatedly. What is it?
-- How does a granular policy get evaluated at read time — is it compiled into the
-  index, or applied per query? The "near-instantaneous" claim versus RVs' "pipeline
-  rebuild" suggests the former.
+- ~~How does a granular policy get evaluated at read time — is it compiled into the
+  index, or applied per query?~~ **ANSWERED, and the guess above was backwards.**
+  Per query: the policy compiles to a predicate against the caller, which is why
+  a change takes effect without a rebuild. The index stays whole. That is also
+  how ours works — `object_read_predicate` (821). The two-halves rule in the
+  correction above bounds it: only the granular arm is read-time, while the
+  mandatory and classification arms follow derived data and so *can* be resolved
+  earlier.
+- ~~What is a **marking** concretely?~~ Answered by
+  `docs/foundry-reference/readings/markings-admin-screen.md` and shipped as 807-811, 819, 820.
 
 ---
 

@@ -40,13 +40,27 @@ way*.
 The largest single category, and the only one where a whole documented mechanism
 has no representation in any layer.
 
+**Corrected 2026-09-19, and the first row was the wrong one to get wrong.** It
+said the only row-level path "is bound to no object type". That is false, and I
+wrote it without asking the catalogue — the failure `feedback_proving_absence`
+exists to prevent. `restricted_view_predicate(p_object_type, p_alias)` takes an
+object type, finds its datasource carrying a `restricted_view_id`, compiles that
+view's policy through `granular_policy_sql`, and returns an `EXISTS` joined on
+the primary key; five readers apply it on every read. It was **wired but
+unexercised** — one datasource, none backed by a restricted view, no restricted
+views at all — which reads like absence from the data and is not absence in the
+code. The practical consequence was the opposite of what the row implied: the
+rule language, its compiler and the per-type predicate pattern were all already
+there to reuse, so 821 was a smaller build than this table predicted.
+
 | what Foundry has | ours |
 |---|---|
-| **Object security policies** — the recommended, non-legacy row-level control on an object type | nothing in any layer. The only row-level path is the legacy restricted-view one, and it is bound to no object type |
+| **Object security policies** — the recommended, non-legacy row-level control on an object type | ~~nothing in any layer~~ — **shipped, 821.** `object_security_policies`, one per object type, compiled by `object_security_predicate` and applied through `object_read_predicate` at all 13 reader call sites. Its granular policy reuses 483's grammar, plus the `satisfies` comparison Foundry's own worked example needs. Markings and organizations on the policy are the remaining slots |
 | **Property security policies** — column-level, whose documented failure mode is the same row returned with a null in one cell | no representation. `evaluate_object_set` can already drop hidden properties (`to_jsonb(o) - $1`), so the projection half exists and the policy half does not |
-| **A marking on an object type** | `resource_markings_resource_kind_check` does not admit `object_type`, and the Security tab queries for it anyway — a dead read against a kind the CHECK forbids |
+| **A marking on an object type** | ~~the CHECK does not admit `object_type`~~ — **shipped, 819/820.** The kind is admissible, `effective_object_type_markings` inherits from the project, and the read policy conjoins `satisfies_markings`, so a marking now actually hides the type |
 | **Test the policy before saving, as a named user** | nothing to test, because of the three rows above. Consequent, not separate |
 | **The Check access panel for an object type** | `check_access` RAISES on `object_type` |
+| **An object type's own visibility applies to its instances** | **OPEN, and the next thing to take.** `indexed_objects`, `evaluate_object_set`, `list_linked_objects` and `search_objects` are all `SECURITY DEFINER` and gate on `auth_in_ontology` alone — verified 2026-09-19 by reading all four definitions. `object_types`' read policy has three terms (`auth_in_ontology AND can_see_placed AND satisfies_markings`), and the two the readers skip are exactly the ones 819 added. So a marking hides an object type from the type list and **not** from anyone who asks for its instances by uuid. Pre-existing, not introduced by 821; the fix is one `object_type_visible(uuid)` used by both the policy and the four readers, so there is a single definition to drift |
 
 Each of these degrades rather than blocks — a user reaches a working object type
 without ever opening a security policy. But this is the part of the ontology a
