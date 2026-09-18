@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (358) ───────────────────────────────────────────────────
+// ── FUNCTIONS (363) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3677,6 +3677,29 @@ export const objectPrimaryKeyColumn = { apiName: 'object_primary_key_column', ki
 >
 
 /**
+ *  The row filter for one object type: its object security policy if it has
+ *  one, otherwise its datasource's restricted view policy. An override rather
+ *  than a conjunction — "to override data source policies with object
+ *  security policies" (object-permissioning/object-security-policies). Every
+ *  reader calls this instead of restricted_view_predicate.
+ */
+export const objectReadPredicate = { apiName: 'object_read_predicate', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_alias?: string },
+  string
+>
+
+/**
+ *  The row filter an object type's granular policy compiles to, against the
+ *  index table under p_alias. NULL when no policy applies, matching
+ *  restricted_view_predicate's contract so the readers COALESCE it the same
+ *  way.
+ */
+export const objectSecurityPredicate = { apiName: 'object_security_predicate', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_alias?: string },
+  string
+>
+
+/**
  *  The filter grammar generate-urls.md prints, widened by 776: a linkFilter
  *  carries either the flat presenceFilter value that page shows, or a nested
  *  "filters" list whose members are presenceFilter and propertyFilter — the
@@ -3859,6 +3882,30 @@ export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', 
 export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'function' } as FunctionType<
   { p_object_type: string; p_property: string; p_query: number[]; p_k: number; p_function?: string },
   { object_key: string; distance: number }[]
+>
+
+/**
+ *  Whether the caller holds Owner on the project containing an object type —
+ *  "this means you must hold the `Owner` role on the project that contains
+ *  the object type" (object-permissioning/object-security-policies). False
+ *  when the type has no project or does not exist.
+ */
+export const objectTypeOwner = { apiName: 'object_type_owner', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  boolean
+>
+
+/**
+ *  An object type's properties as the field list granular_policy_sql checks
+ *  columns against, named by property_id because that is what
+ *  index_object_type names the index columns. A marking property reports
+ *  MARKING so it can be the right-hand term of a satisfies comparison;
+ *  derived properties are omitted because the index table has no column for
+ *  them.
+ */
+export const objectTypePolicyFields = { apiName: 'object_type_policy_fields', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  Json
 >
 
 /**
@@ -4327,6 +4374,18 @@ export const ridValid = { apiName: 'rid_valid', kind: 'function' } as FunctionTy
 export const roleRank = { apiName: 'role_rank', kind: 'function' } as FunctionType<
   { p_role: string },
   number
+>
+
+/**
+ *  Whether the caller satisfies one mandatory control value: all of its
+ *  markings, and at least one of its organizations when it names any
+ *  (object-link-types/mandatory-control-properties). NULL is refused — "Rows
+ *  with null values in a policy column will be inaccessible to all users" —
+ *  while an empty array admits everyone.
+ */
+export const satisfiesMandatoryControl = { apiName: 'satisfies_mandatory_control', kind: 'function' } as FunctionType<
+  { p_value: Json },
+  boolean
 >
 
 /**
