@@ -16,6 +16,7 @@ import {
   useSetDatasourcePrimaryKeyColumn, useSetDatasourceControls, useAllMarkings, useAllOrganizations,
 } from '@/features/objectTypes/hooks'
 import type { ObjectTypeDatasource } from '@/features/objectTypes/api'
+import { useMarkings, useResourceMarkings, useSetResourceMarking } from '@/features/markings/api'
 import {
   useMaterializations, useEditsConfig, useSetEditsConfig,
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
@@ -94,6 +95,65 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
             items={['Protected — changes must be made on a branch and approved before merging']} />
         </>}
       </>} />
+      <MarkingEditor typeId={type.id} />
+    </div>
+  )
+}
+
+/** The other half of the Markings clause above. Until 819 the Security tab
+ *  asked resource_markings for `resource_kind = 'object_type'` and the CHECK
+ *  forbade the kind, so the clause could only ever read "None" — a dead read.
+ *  The kind is admissible now and the read policy honours it, so this is what
+ *  puts a marking there.
+ *
+ *  Conjunctive, which is worth knowing before you click: applying a marking you
+ *  are not a member of hides the object type from YOU. The database refuses the
+ *  apply unless you hold the marking's `apply` permission and Owner on the
+ *  resource, and its refusal is what the toast shows. */
+function MarkingEditor({ typeId }: { typeId: string }) {
+  const applied = useResourceMarkings('object_type', typeId)
+  const all = useMarkings()
+  const set = useSetResourceMarking()
+  const [picking, setPicking] = useState(false)
+  const held = new Set((applied.data ?? []).map((m) => m.markingId))
+
+  return (
+    <div className="rounded border p-3 space-y-2 flex-1 min-w-[260px]">
+      <h3 className="text-xs font-semibold text-center">Markings on this object type</h3>
+      <p className="text-xs text-muted-foreground text-center">
+        A marking hides the object type from anyone who is not a member of it.
+      </p>
+      {(applied.data ?? []).length === 0 && (
+        <p className="text-xs text-muted-foreground">None applied.</p>
+      )}
+      {(applied.data ?? []).map((m) => (
+        <div key={m.markingId} className="flex items-center justify-between gap-2">
+          <Tag minimal icon="shield">
+            {m.categoryName ? `${m.categoryName}: ${m.name}` : m.name}
+          </Tag>
+          <Button variant="minimal" size="small" icon="cross" title="Remove this marking"
+            onClick={() => {
+              set.mutate({ kind: 'object_type', resourceId: typeId, markingId: m.markingId, applied: true })
+            }} />
+        </div>
+      ))}
+      {picking ? (
+        <HTMLSelect fill value="" onChange={(e) => {
+          const v = e.currentTarget.value
+          if (v) {
+            set.mutate({ kind: 'object_type', resourceId: typeId, markingId: v, applied: false },
+              { onSuccess: () => { setPicking(false) } })
+          }
+        }}>
+          <option value="">Choose a marking…</option>
+          {(all.data ?? []).filter((m) => !held.has(m.id)).map((m) => (
+            <option key={m.id} value={m.id}>{m.categoryName}: {m.name}</option>
+          ))}
+        </HTMLSelect>
+      ) : (
+        <Button size="small" variant="minimal" icon="add"
+          onClick={() => { setPicking(true) }}>Apply a marking</Button>
+      )}
     </div>
   )
 }

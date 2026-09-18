@@ -390,3 +390,74 @@ export function useSetCategoryGrant() {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+// ── Markings on a resource ───────────────────────────────────────────────
+//
+// "Hide sensitive ontology resources by applying a marking or by placing them
+// in a project where the user lacks a role grant."
+// (object-permissioning/ontology-permissions)
+//
+// 819 admitted `object_type` to resource_markings and taught the object_types
+// read policy to honour it, so applying one here actually hides the type.
+// Keyed by kind so the same pair serves the other resource kinds when their
+// screens want them.
+
+export interface AppliedMarking {
+  markingId: string
+  name: string
+  categoryName: string
+}
+
+export function useResourceMarkings(kind: string, resourceId: string | null) {
+  return useQuery({
+    queryKey: ['resource-markings', kind, resourceId ?? ''] as const,
+    enabled: !!resourceId,
+    queryFn: async (): Promise<AppliedMarking[]> => {
+      const { data, error } = await supabase
+        .from('resource_markings')
+        .select('marking_id, markings(name, marking_categories(name))')
+        .eq('resource_kind', kind)
+        .eq('resource_id', resourceId as string)
+      if (error) throw new Error(error.message)
+      const rows = data as unknown as {
+        marking_id: string
+        markings: { name: string; marking_categories: { name: string } | null } | null
+      }[]
+      return rows.map((r) => ({
+        markingId: r.marking_id,
+        name: r.markings?.name ?? r.marking_id,
+        categoryName: r.markings?.marking_categories?.name ?? '',
+      }))
+    },
+  })
+}
+
+/** Apply or remove one. The database decides whether the caller may: applying
+ *  needs the marking's `apply` permission AND Owner on the resource, removing
+ *  needs `remove` as well — guard_marking_application raises
+ *  Markings:CannotApply / Markings:CannotRemove, and the toast carries it. */
+export function useSetResourceMarking() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: {
+      kind: string; resourceId: string; markingId: string; applied: boolean
+    }) => {
+      if (i.applied) {
+        const { error } = await supabase.from('resource_markings').delete()
+          .eq('resource_kind', i.kind).eq('resource_id', i.resourceId)
+          .eq('marking_id', i.markingId)
+        if (error) throw new Error(error.message)
+      } else {
+        const { error } = await supabase.from('resource_markings')
+          .insert({ resource_kind: i.kind, resource_id: i.resourceId, marking_id: i.markingId })
+        if (error) throw new Error(error.message)
+      }
+    },
+    onSuccess: (_d, i) => {
+      void qc.invalidateQueries({ queryKey: ['resource-markings', i.kind, i.resourceId] })
+      void qc.invalidateQueries({ queryKey: ['type-security', i.resourceId] })
+      toast.success(i.applied ? 'Marking removed' : 'Marking applied')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}

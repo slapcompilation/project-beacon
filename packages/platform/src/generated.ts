@@ -6,7 +6,7 @@
 
 import type { ActionType, FunctionType, Json } from './client'
 
-// ── Value sets (132) ─────────────────────────────────────────────────
+// ── Value sets (131) ─────────────────────────────────────────────────
 // Every single-column CHECK whose legal values are a literal array, on a
 // table the app role may read. Hand-writing one of these is how it drifts.
 
@@ -303,9 +303,6 @@ export type QuiverAnalysesAnalysisType = 'quiver' | 'time_series' | 'object_set_
 
 /** `quiver_dashboards.view_style` */
 export type QuiverDashboardsViewStyle = 'default' | 'compact' | 'stretch'
-
-/** `resource_markings.resource_kind` */
-export type ResourceMarkingsResourceKind = 'project' | 'dataset' | 'folder' | 'restricted_view'
 
 /** `resource_tags.resource_kind` */
 export type ResourceTagsResourceKind = 'project' | 'folder' | 'dataset' | 'restricted_view'
@@ -1648,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (356) ───────────────────────────────────────────────────
+// ── FUNCTIONS (358) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2885,6 +2882,16 @@ export const effectiveDataMarkings = { apiName: 'effective_data_markings', kind:
  */
 export const effectiveFileMarkings = { apiName: 'effective_file_markings', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string },
+  string[]
+>
+
+/**
+ *  The markings an object type carries: its own, plus its project's. Separate
+ *  from effective_file_markings because an object type has no folder_id — it
+ *  is placed in a project and inherits from there only.
+ */
+export const effectiveObjectTypeMarkings = { apiName: 'effective_object_type_markings', kind: 'function' } as FunctionType<
+  { p_object_type: string },
   string[]
 >
 
@@ -4245,6 +4252,22 @@ export const resourceFileAccess = { apiName: 'resource_file_access', kind: 'func
 export const resourceLocation = { apiName: 'resource_location', kind: 'function' } as FunctionType<
   { p_project: string; p_name: string },
   string
+>
+
+/**
+ *  What a marking may be applied to, each kind with its own page because no
+ *  one page carries them all. project, dataset, folder: security/markings
+ *  ("Markings provide an additional level of access control for files,
+ *  folders, and Projects"). restricted_view:
+ *  platform-security-management/manage-markings ("You can only remove
+ *  inherited Markings from Restricted Views and datasets"). object_type:
+ *  object-permissioning/ontology-permissions ("Hide sensitive ontology
+ *  resources by applying a marking"). Narrower than Foundry, whose Resource
+ *  type publishes 85 kinds.
+ */
+export const resourceMarkingKinds = { apiName: 'resource_marking_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 export const resourceProject = { apiName: 'resource_project', kind: 'function' } as FunctionType<
