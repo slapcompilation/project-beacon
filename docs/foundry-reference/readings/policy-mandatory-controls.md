@@ -283,12 +283,13 @@ matches the published pipeline behaviour and is now written down.
   the marking/organization/classification checks — so item three is added to item
   two. The decoupling sentence gives up Viewer on the DATA SOURCES only.
 - **Whether a property policy inherits from its own properties' datasources or
-  from the object type's.** On an MDO these differ. Measured: one hit in the whole
-  mirror for the inheritance sentence, and its subject is the *object* security
-  policy; the identity claim transfers the mechanism without transferring the
-  scope of the baseline. Its authoring screen shows no datasource at all — only a
-  name and property chips — and the worked example is single-datasource, so both
-  readings predict the same capture. **Genuinely unpublished**, and it blocks the
-  property half (830) until it is decided deliberately rather than by copying
-  829's join.
+  from the object type's.** Still **unpublished** — one hit in the whole mirror for
+  the inheritance sentence and its subject is the *object* policy; the authoring
+  screen shows no datasource; the worked example is single-datasource, so both
+  readings predict the same capture. **830 took the object type's datasources**, on
+  the identity claim, and refused the alternative because the sentence supporting it
+  (`mandatory-control-properties.md`) names a different enforcer — "The mandatory
+  controls are enforced by backing the object type with a restricted view which has
+  a policy that requires users to satisfy the markings in the mapped column". The
+  MDO case is not refused, because no page refuses it. Recorded in 830's header.
 - **What `Add` offers.** Still unopened, still not guessed.
