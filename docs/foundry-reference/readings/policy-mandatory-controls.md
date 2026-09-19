@@ -123,36 +123,121 @@ per-row at all, and it composes with the type-level check 819/825 already built.
   puts this very control there for time series syncs, so there is Foundry
   precedent for the surface as well as the storage.
 
+## Corrected 2026-09-19, after an adversarial pass
+
+The five Decisions below were written from the object-permissioning pages plus one
+capture. A verification pass opened the captures I had named as debt, swept for the
+control's own words, and attacked each Decision. **Two of five were overturned, a
+third was wrong in its wording, and a live defect in our own schema surfaced.** The
+Decisions are rewritten below; this section records what changed so the corrections
+are not silently absorbed.
+
+**Captures opened since.** I opened
+`object-permissioning/images/osp-add-marking-property-security-policy.png` and
+`action-types/images/read-write-authorizations-write-security.png` myself. The
+verification agents opened
+`media-sets-advanced-formats/images/configure-granular-policies-media-inherited-markings.png`
+and `time-series/images/time-series-advanced-setup-oma-manage-markings.png`.
+
+**The time-series capture is not the control, and my header said it was.** It is the
+Ontology Manager Capabilities tab showing a `Security markings` card with a
+`Configure` button — the launcher. The filename promised a management screen; the
+pixels are a button. That is my mischaracterisation, written from the filename.
+
+**Pages this reading did not have, and should have.**
+`building-pipelines/remove-inherited-markings.md`, titled "Remove inherited Markings
+and Organizations", is where the removable set is enumerated;
+`action-types/read-write-authorizations.md` carries the only per-category combinator
+table; `pipeline-builder/outputs-remove-markings-and-organizations.md` shows the
+organization removal control.
+
+### The organizations combinator is printed after all
+
+My first open question said I had not seen it. It is printed, in a different
+section entirely:
+
+> ORGANIZATIONS (One of)
+
+> OTHER MARKINGS (All of)
+
+— action-types/images/read-write-authorizations-write-security.png
+
+Both in one frame, in the same typographic form, directly above and below each
+other. `CLASSIFICATION MARKINGS` on the same screen carries no parenthetical.
+
+### A live defect in our schema, found by attacking a Decision
+
+490 minted the system `Organizations` marking category as `conjunctive`, with no
+comment and no sentence behind it — the unmarked option rather than a decision.
+Against:
+
+> "Access requirements for a resource are composed of Markings and Organizations. Organizations are disjunctive, while Markings are conjunctive."
+
+— `api/filesystem-v2-resources-resources-get-access-requirements.md`
+
+So `satisfies_markings` required membership in **all** organization markings while
+`satisfies_mandatory_control` (821) required **one** — two evaluators in this repo
+disagreeing. Measured latent rather than live (`resource_markings` held 0 rows), and
+fixed in **828** before building anything that would make it reachable.
+
 ## Decisions
 
-1. **Storage is a delta, never an absolute list.** Two tables or one table with
-   two modes, recording *added* and *stopped* against the inherited baseline.
-   The baseline is computed, not stored.
-2. **A stop is keyed by (policy, datasource, marking)** — the
-   `dataset_input_marking_stops` shape, not the `restricted_view_marking_stops`
-   shape, because an object type may have several datasources.
-3. **The marking arm is a conjunction and the organization arm is not.**
-   `All of` is printed in the capture for markings;
-   `mandatory-control-properties.md` gives organizations at-least-one. Two arms,
-   two combinators, and `satisfies_mandatory_control` (821) already implements
-   exactly this pair for a mandatory control property value.
-4. **It composes with the type-level check, not the row predicate.** The
-   mandatory arm follows derived data, so it belongs beside
-   `object_type_instances_readable` rather than inside
-   `object_security_predicate`.
-5. **Classifications are recorded and not built.** The enumeration names three
-   kinds; we have no CBAC and no page read for it here. Building two of three
-   and naming the third is honest; inventing a classification model is not.
+1. **Storage is a delta over a computed baseline**, never an absolute list — two
+   mutations, add and remove-an-inherited, stated in one paragraph of
+   `object-permissioning/object-security-policies.md`. *Corrected:* the baseline has
+   **two** sources and only one is stoppable. Datasources are stoppable;
+   the containing project is not — "Outputs inherit organizations from the project
+   they are in. Move your output to a separate project if you need to remove an
+   organization that is on the existing project."
+   (`pipeline-builder/outputs-remove-markings-and-organizations.md`).
+2. **A stop is scoped to the consuming path AND to the source within it.**
+   Confirmed three ways: `stopPropagatingMarkingIds` is nested inside each
+   `backingDatasets[]` entry, with "If multiple backing datasets have the same
+   marking applied, the marking must be listed for each backing dataset or it will
+   still be inherited" (`api/datasets-v2-resources-views-add-backing-datasets.md`);
+   "Each of these keyphrases must be specified on **every** input that requires
+   removal of Markings or Organizations"
+   (`building-pipelines/remove-inherited-markings.md`); and migration 401's own
+   header, which chose the edge key for this reason.
+   *Split, because the key as first written was wrong:* there are **two** policy
+   tables, so there are two stop tables — a polymorphic `(policy_kind, policy_id)`
+   over two real tables is the generic-table mistake, and 826 already refused its
+   mirror image. And the **organization arm takes no marking column** until a page
+   shows a per-organization control; the only published organization removal is
+   per input.
+3. **Markings combine BY CATEGORY, not as a flat conjunction.** *This replaces the
+   original wording, which described neither Foundry nor our own code.* Every
+   marking of a conjunctive category is required; at least one of each disjunctive
+   category. `satisfies_markings` has implemented exactly that since 674, and the
+   api publishes the discriminator as `categoryType · one of CONJUNCTIVE,
+   DISJUNCTIVE`. Organizations are a **disjunctive category** — which is what 828
+   fixed — so they need no special case in the evaluator.
+4. **The marking slot of an OBJECT policy may be set-valued; the marking slot of a
+   PROPERTY policy may not.** *This replaces the original Decision 4, which was
+   overturned.* Routing a property policy's markings into the shared type-level
+   check would withhold **every row** of the object type from a caller who should
+   instead see the row with some cells nulled — inverting the worked example on the
+   primary page, where step 4 stops PII and VIP so instances are visible and step 7
+   re-requires PII for three properties. A property policy's marking slot belongs
+   where 827 put its granular arm, in the projection. The original justification — *mandatory controls follow derived
+   data, therefore evaluate at the type level* — is a non-sequitur: Foundry's published handling of a per-row mandatory control
+   that must propagate is to over-approximate at materialization time, not to lift
+   the control.
+5. **There is one kind — a marking — split by category.** *This replaces "three
+   kinds".* The api publishes `markingType · one of MANDATORY, CBAC` on a marking
+   category, and "Markings associated with Organizations are placed in a category
+   with ID \"Organization\"". So organizations and classifications are both
+   categories of markings, not peer slots. We still build no CBAC; what that means
+   is a **column we do not populate**, not a slot we do not build.
 
 ## Questions I could not answer from these pages
 
-- **What the organizations slot looks like.** Every sentence I have treats
-  markings and organizations together, and the one capture I opened shows only
-  `Markings`. I have not seen its combinator printed, and point 3 above infers it
-  from a different page.
-- **Whether a property security policy inherits from its properties' datasources
-  or from the object type's.** On an MDO these differ, and the page says property
-  policies are "identical" in configuration without saying identical to what
-  baseline.
-- **What `Add ▾` offers.** A marking picker is the obvious reading and that is
-  exactly why it is written here as a question rather than a decision.
+- **Whether the object policy's marking slot composes conjunctively with the
+  object type's own markings** (819/825) or replaces them, as the granular arm
+  replaces the datasource policy (821). The overview capture joins the four slots
+  with `AND`, which is evidence about the slots and not about this.
+- **Whether a property policy inherits from its own properties' datasources or
+  from the object type's.** On an MDO these differ. The capture shows a property
+  policy inheriting the same two markings the object policy inherited, which is
+  consistent with a shared baseline and does not establish one.
+- **What `Add` offers.** Still unopened, still not guessed.
