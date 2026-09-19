@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (371) ───────────────────────────────────────────────────
+// ── FUNCTIONS (372) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -4270,6 +4270,20 @@ export const propertyColumnType = { apiName: 'property_column_type', kind: 'func
 export const propertyDatasetFieldType = { apiName: 'property_dataset_field_type', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
+>
+
+/**
+ *  A property security policy's effective mandatory controls, over the OBJECT
+ *  TYPE'S datasources — "The configuration settings for property security
+ *  policies are identical to object security policies"
+ *  (object-permissioning/object-security-policies). Whether an MDO should
+ *  instead scope the baseline to the covered properties' datasources is
+ *  unpublished and recorded in the 830 header; on a single-datasource type
+ *  the two are the same set.
+ */
+export const propertyPolicyMarkings = { apiName: 'property_policy_markings', kind: 'function' } as FunctionType<
+  { p_policy: string },
+  string[]
 >
 
 /**
