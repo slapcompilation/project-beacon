@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (365) ───────────────────────────────────────────────────
+// ── FUNCTIONS (368) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3191,6 +3191,16 @@ export const granularPolicySql = { apiName: 'granular_policy_sql', kind: 'functi
   string
 >
 
+/**
+ *  The summed comparison weight of one granular policy, for the combined
+ *  limit a property security policy shares with its object security policy
+ *  (object-permissioning/object-security-policies). 0 for no policy.
+ */
+export const granularPolicyWeight = { apiName: 'granular_policy_weight', kind: 'function' } as FunctionType<
+  { p_policy: Json; p_fields: Json },
+  number
+>
+
 export const granularTermShape = { apiName: 'granular_term_shape', kind: 'function' } as FunctionType<
   { p_term: Json; p_fields: Json },
   { kind: string; is_collection: boolean; is_marking: boolean }[]
@@ -3838,6 +3848,18 @@ export const objectTypeDependents = { apiName: 'object_type_dependents', kind: '
 >
 
 /**
+ *  The property ids a reader removes from the row entirely — "No hidden
+ *  object or property types will be displayed as search results here or
+ *  elsewhere in Object Explorer" (object-explorer/search-objects). Distinct
+ *  from a failed property security policy, which keeps the key and nulls the
+ *  value.
+ */
+export const objectTypeHiddenProperties = { apiName: 'object_type_hidden_properties', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string[]
+>
+
+/**
  *  Whether an object type can be read: its last index build job COMPLETED.
  *  The legacy scalar is no longer consulted — since 532 an index is only ever
  *  produced by a build job.
@@ -4213,6 +4235,17 @@ export const propertyColumnType = { apiName: 'property_column_type', kind: 'func
 
 export const propertyDatasetFieldType = { apiName: 'property_dataset_field_type', kind: 'function' } as FunctionType<
   { p_base_type: string },
+  string
+>
+
+/**
+ *  The projection suffix that nulls each property whose property security
+ *  policy the caller fails, evaluated per row because a granular policy may
+ *  name a property. Empty when the type has no property policies, so a reader
+ *  can append it unconditionally.
+ */
+export const propertyPolicyNulls = { apiName: 'property_policy_nulls', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_alias?: string },
   string
 >
 
