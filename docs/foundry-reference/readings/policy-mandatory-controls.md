@@ -230,14 +230,65 @@ fixed in **828** before building anything that would make it reachable.
    categories of markings, not peer slots. We still build no CBAC; what that means
    is a **column we do not populate**, not a slot we do not build.
 
+## Built, 2026-09-19 — 829, the Markings slot of an OBJECT policy
+
+Two further corrections were forced during the build, both by evidence rather than taste.
+
+**The denial shape decides the seam, and my first draft had it wrong.** I had the
+policy's markings composing into `object_type_instances_readable` — the guard 825
+pointed four readers at. That guard answers whether the object type exists for you,
+and three of its four callers RAISE. The page says otherwise, twice:
+
+> "If a user does not pass the object security policy, the object instance will not be viewable to that user."
+
+> "In the **Markings** configuration, stop inheriting the `PII` and `VIP` markings so that users without those markings can see object instances."
+
+— `object-permissioning/object-security-policies.md`
+
+So it went beside the granular arm, in `object_read_predicate`, where failing it
+yields **no rows**. The two marking sets now have two honest denial shapes: the
+object type's own markings (819, Compass) hide the TYPE; the policy's mandatory
+controls make the INSTANCES unviewable.
+
+**Organization markings are refused by the Markings slot, reversing what I wrote.**
+828 made organizations a disjunctive category so the EVALUATOR needs no special
+case, and I took that to mean the authoring surface needed none either. The api
+refuses exactly that conflation, by name:
+
+> "Adding an organization marking as a regular marking is not supported. Use the organization endpoints on a project resource instead."
+
+— `api/filesystem-v2-resources-resources-add-markings.md`
+
+An inherited organization marking still reaches the baseline and is still enforced;
+it simply cannot be stopped or added through this slot — which matches the fact
+that the only published organization removal is per pipeline input.
+
+**Three smaller things the build found.** `object_type_datasources`' CHECK
+enumerates FOUR backing kinds and my first `datasource_markings` covered two,
+returning a silent empty set for time-series and media-set datasources; the
+time-series arm is published ("Time series syncs inherit all markings of their
+input dataset") and is now implemented, while the media-set arm is empty *because
+we hold no media set markings*, which the code says in those words. A stop could
+name another object type's datasource and be silently ignored, so both parents
+gained composite unique keys and the child carries composite FKs, per 826's
+precedent. And a stop can reach a marking a dataset inherited from its project,
+while the object type's own project marking cannot be stopped — an asymmetry that
+matches the published pipeline behaviour and is now written down.
+
 ## Questions I could not answer from these pages
 
-- **Whether the object policy's marking slot composes conjunctively with the
-  object type's own markings** (819/825) or replaces them, as the granular arm
-  replaces the datasource policy (821). The overview capture joins the four slots
-  with `AND`, which is evidence about the slots and not about this.
+- ~~Whether the object policy's marking slot composes with the object type's own
+  markings or replaces them.~~ **ANSWERED and built.** The access conditions are a
+  three-item list — Viewer on the object type, passing a granular policy, passing
+  the marking/organization/classification checks — so item three is added to item
+  two. The decoupling sentence gives up Viewer on the DATA SOURCES only.
 - **Whether a property policy inherits from its own properties' datasources or
-  from the object type's.** On an MDO these differ. The capture shows a property
-  policy inheriting the same two markings the object policy inherited, which is
-  consistent with a shared baseline and does not establish one.
+  from the object type's.** On an MDO these differ. Measured: one hit in the whole
+  mirror for the inheritance sentence, and its subject is the *object* security
+  policy; the identity claim transfers the mechanism without transferring the
+  scope of the baseline. Its authoring screen shows no datasource at all — only a
+  name and property chips — and the worked example is single-datasource, so both
+  readings predict the same capture. **Genuinely unpublished**, and it blocks the
+  property half (830) until it is decided deliberately rather than by copying
+  829's join.
 - **What `Add` offers.** Still unopened, still not guessed.

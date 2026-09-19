@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (368) ───────────────────────────────────────────────────
+// ── FUNCTIONS (371) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2763,6 +2763,17 @@ export const datasourceMappingProblems = { apiName: 'datasource_mapping_problems
 >
 
 /**
+ *  The markings one object type datasource contributes to a policy's
+ *  inherited baseline, across all four backing kinds the table's CHECK
+ *  enumerates. A media-set datasource returns an empty set because we hold no
+ *  media set markings, not because it has none — see the migration header.
+ */
+export const datasourceMarkings = { apiName: 'datasource_markings', kind: 'function' } as FunctionType<
+  { p_datasource: string },
+  string[]
+>
+
+/**
  *  The date/timestamp format union: a strict stringFormat.pattern, or one of
  *  the seven localized formats. The prose table lists six;
  *  DATE_FORMAT_YEAR_AND_MONTH is published only by the api. Values from
@@ -3677,6 +3688,17 @@ export const objectExists = { apiName: 'object_exists', kind: 'function' } as Fu
 >
 
 /**
+ *  An object security policy's effective mandatory controls: everything its
+ *  datasources supply, minus what it stopped from each of them, plus what it
+ *  added. A marking stopped from one datasource still arrives from another
+ *  that supplies it.
+ */
+export const objectPolicyMarkings = { apiName: 'object_policy_markings', kind: 'function' } as FunctionType<
+  { p_policy: string },
+  string[]
+>
+
+/**
  *  The property_id of the primary key — which is the physical column name in
  *  the index table, because index_object_type names every column by
  *  property_id.
@@ -3687,11 +3709,12 @@ export const objectPrimaryKeyColumn = { apiName: 'object_primary_key_column', ki
 >
 
 /**
- *  The row filter for one object type: its object security policy if it has
- *  one, otherwise its datasource's restricted view policy. An override rather
- *  than a conjunction — "to override data source policies with object
- *  security policies" (object-permissioning/object-security-policies). Every
- *  reader calls this instead of restricted_view_predicate.
+ *  The row filter for one object type: false when the caller fails the
+ *  policy's mandatory controls, otherwise its object security policy if it
+ *  has one and its datasource's restricted view policy if not. Failing a
+ *  mandatory control yields NO ROWS rather than hiding the type — "the object
+ *  instance will not be viewable to that user"
+ *  (object-permissioning/object-security-policies).
  */
 export const objectReadPredicate = { apiName: 'object_read_predicate', kind: 'function' } as FunctionType<
   { p_object_type: string; p_alias?: string },
@@ -3944,6 +3967,17 @@ export const objectTypeOwner = { apiName: 'object_type_owner', kind: 'function' 
 export const objectTypePolicyFields = { apiName: 'object_type_policy_fields', kind: 'function' } as FunctionType<
   { p_object_type: string },
   Json
+>
+
+/**
+ *  The mandatory controls an object type's security policy demands, or none
+ *  when it has no policy. satisfies_markings of an empty array is true, so an
+ *  unpolicied type is unaffected. Safe as a scalar subquery because
+ *  object_security_policies.object_type_id is UNIQUE (821).
+ */
+export const objectTypePolicyMarkings = { apiName: 'object_type_policy_markings', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string[]
 >
 
 /**
