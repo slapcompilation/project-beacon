@@ -19,6 +19,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
+import { COMPARISONS, type DatasetField, type Policy } from '@/features/restrictedViews/api'
+
+/** "Object security policies do not support less/greater than comparison
+ *  operators." (platform-security-management/manage-granular-policies) — so
+ *  FOUR of the eight, and a marking condition alongside them as its own kind,
+ *  never a ninth entry here. 821 and 826 refuse the other four in the database. */
+export const POLICY_COMPARISONS = COMPARISONS.filter(
+  (c) => !['less_than', 'less_than_or_equal', 'greater_than_or_equal', 'greater_than'].includes(c.id),
+)
 
 export interface PolicyRow {
   id: string
@@ -27,6 +36,9 @@ export interface PolicyRow {
   datasetName: string | null
   organizations: number
   markings: number
+  /** The granular arm. null is a real state — the Overview renders it as None
+   *  and object_security_predicate filters nothing. */
+  policy: Policy | null
   /** null on the object policy, which covers "All properties". */
   propertyCount: number | null
 }
@@ -74,12 +86,12 @@ export function useSecurityPolicies(typeId: string) {
           .eq('object_type_id', typeId),
         supabase
           .from('object_security_policies')
-          .select('id, name')
+          .select('id, name, policy')
           .eq('object_type_id', typeId)
           .maybeSingle(),
         supabase
           .from('property_security_policies')
-          .select('id, name, property_security_policy_properties(property_id)')
+          .select('id, name, policy, property_security_policy_properties(property_id)')
           .eq('object_type_id', typeId)
           .order('created_at'),
       ])
@@ -103,7 +115,7 @@ export function useSecurityPolicies(typeId: string) {
         return (res.data ?? []).length
       }
 
-      const o = obj.data as unknown as { id: string; name: string } | null
+      const o = obj.data as unknown as { id: string; name: string; policy: Policy | null } | null
       const objectPolicy: PolicyRow | null = o
         ? {
             id: o.id,
@@ -111,6 +123,7 @@ export function useSecurityPolicies(typeId: string) {
             datasetName: datasources[0]?.label ?? null,
             organizations: orgs,
             markings: await countMarkings('object_policy_markings', o.id),
+            policy: o.policy,
             propertyCount: null,
           }
         : null
@@ -118,6 +131,7 @@ export function useSecurityPolicies(typeId: string) {
       const rows = (props.data ?? []) as unknown as {
         id: string
         name: string
+        policy: Policy | null
         property_security_policy_properties: { property_id: string }[]
       }[]
       const propertyPolicies = await Promise.all(
@@ -127,6 +141,7 @@ export function useSecurityPolicies(typeId: string) {
           datasetName: null,
           organizations: orgs,
           markings: await countMarkings('property_policy_markings', p.id),
+          policy: p.policy,
           propertyCount: p.property_security_policy_properties.length,
         })),
       )
@@ -305,6 +320,35 @@ export function useRemovePolicyMarking(kind: PolicyKind, typeId: string) {
     mutationFn: async ({ policyId, markingId }: { policyId: string; markingId: string }) => {
       const { error } = await supabase.from(addsTable(kind)).delete()
         .eq('policy_id', policyId).eq('marking_id', markingId)
+      if (error) refuse(error)
+    },
+    onSuccess: done,
+  })
+}
+
+/** The object type's properties as the field list the composer compares against
+ *  — the same {name,type} shape a dataset schema uses, which is why the
+ *  restricted-view composer can be reused unchanged. */
+export function usePolicyFields(typeId: string) {
+  return useQuery({
+    queryKey: ['policy-fields', typeId],
+    queryFn: async (): Promise<DatasetField[]> => {
+      const res = (await supabase.rpc('object_type_policy_fields', { p_object_type: typeId })) as
+        { data: DatasetField[] | null }
+      return res.data ?? []
+    },
+  })
+}
+
+/** Writes the granular arm. `null` removes it, which is the only way back to
+ *  the None state: granular_policy_check refuses a policy with zero rules
+ *  (Policies:MalformedPolicy), so an empty composer cannot be saved as empty. */
+export function useSetPolicyGranular(kind: PolicyKind, typeId: string) {
+  const done = useInvalidate(typeId)
+  return useMutation({
+    mutationFn: async ({ policyId, policy }: { policyId: string; policy: Policy | null }) => {
+      const table = kind === 'object' ? 'object_security_policies' : 'property_security_policies'
+      const { error } = await supabase.from(table).update({ policy }).eq('id', policyId)
       if (error) refuse(error)
     },
     onSuccess: done,
