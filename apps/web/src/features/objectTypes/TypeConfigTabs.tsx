@@ -23,6 +23,7 @@ import {
 } from '@/features/objectTypes/materializations'
 import { useRestrictedViews } from '@/features/restrictedViews/api'
 import { PolicyEditorDialog } from '@/features/restrictedViews/PolicyEditorDialog'
+import { SecurityPoliciesCard } from '@/features/objectTypes/SecurityPoliciesCard'
 
 /** The Security tab: the two requirement cards the screenshot shows —
  *  "A user must meet all of the following requirements to view/edit the
@@ -73,7 +74,8 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
 
   if (!data) return null
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-3">
       <Req title="View object type" lines={<>
         <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
           items={[data.projectName ? 'Viewer permissions — any role on the project' : 'Not placed in a project — visible to the ontology']} />
@@ -96,6 +98,14 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
         </>}
       </>} />
       <MarkingEditor typeId={type.id} />
+      </div>
+
+      {/* The other half of this tab, and a different question. The cards above
+          govern the DEFINITION — "to view/edit the definition of this resource".
+          Security policies govern the DATA: which instances a caller sees and
+          which property values come back. The page reaches it from here, in
+          step 1: "Navigate to the Security tab of the object type." */}
+      <SecurityPoliciesCard type={type} />
     </div>
   )
 }

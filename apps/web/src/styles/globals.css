@@ -1332,6 +1332,7 @@
 .items-baseline { align-items:baseline; }
 .justify-end { justify-content:flex-end; }
 .line-through { text-decoration-line:line-through; }
+.underline { text-decoration-line:underline; }
 .max-h-64 { max-height:16rem; }
 .max-w-\[130px\] { max-width:130px; }
 .max-w-3xl { max-width:48rem; }
