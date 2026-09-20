@@ -1645,7 +1645,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (372) ───────────────────────────────────────────────────
+// ── FUNCTIONS (374) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2774,6 +2774,17 @@ export const datasourceMarkings = { apiName: 'datasource_markings', kind: 'funct
 >
 
 /**
+ *  Whether the caller may read one object type datasource — View permissions
+ *  on the backing data source, per object-permissioning/ontology-permissions.
+ *  A media-set datasource answers true because we hold no media set resource
+ *  to ask; that is a recorded gap, not a claim that media sets are public.
+ */
+export const datasourceReadable = { apiName: 'datasource_readable', kind: 'function' } as FunctionType<
+  { p_datasource: string },
+  boolean
+>
+
+/**
  *  The date/timestamp format union: a strict stringFormat.pattern, or one of
  *  the seven localized formats. The prose table lists six;
  *  DATE_FORMAT_YEAR_AND_MONTH is published only by the api. Values from
@@ -3848,6 +3859,18 @@ export const objectTableName = { apiName: 'object_table_name', kind: 'function' 
 export const objectTypeCleanupFlags = { apiName: 'object_type_cleanup_flags', kind: 'function' } as FunctionType<
   { p_object_type: string; p_config: string },
   string[]
+>
+
+/**
+ *  Whether the caller may read this object type's DATA: true when a security
+ *  policy is configured (which replaces the requirement per
+ *  object-permissioning/object-security-policies), or when at least one
+ *  backing datasource is readable. The word any in the api's
+ *  ViewObjectPermissionDenied is what makes one enough.
+ */
+export const objectTypeDataReadable = { apiName: 'object_type_data_readable', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  boolean
 >
 
 /**

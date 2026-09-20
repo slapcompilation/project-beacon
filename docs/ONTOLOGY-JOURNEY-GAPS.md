@@ -115,6 +115,25 @@ kind — the API enumerates twelve, our CHECK has four — branching compatibili
 policies, classifications in the mandatory-control slot, `Viewer` on the backing
 datasource when no policy exists, and download permissions.
 
+**`Viewer` on the backing datasource — shipped, 833.** The refusal arm, which was the
+larger half. Four readers now ask `object_type_data_readable`, and a caller who can read
+**none** of a type's datasources is refused under the api's own name,
+`Ontology:ViewObjectPermissionDenied`, rather than the `ObjectTypeNotFound` we already
+had — the api classifies it PERMISSION_DENIED, and the page keeps the object type itself
+visible while its data is not. The deciding word is the error's own `any`: one readable
+datasource is enough, so refusing is the zero case and not the partial one. A configured
+object or property policy lifts it, per the exemption sentence. Three things the build
+measured rather than assumed: our `Viewer` is (same organization) AND markings AND the
+scoped session, with **no** project role in it, so the only thing that actually denies is
+a marking on the datasource; the dataset arm takes `can_read_dataset_data`, not
+`can_read_dataset`, because the page says *the dataset and its transactions*; and the
+restricted-view arm is decided by a two-item enumeration where **v1 does not require
+seeing the view and v2 does**, which overturned the bare existence check I first wrote.
+Latent on today's data — `resource_markings` is empty — so the proof mints its own
+marking and unwinds it in a subtransaction, markings being undeletable by design.
+**Still unbuilt: the per-datasource nulling**, which is the same rule's other half and
+needs a multi-datasource object type; the platform has one type with one datasource.
+
 **Two eras again.** `osp-testing-entry-point.png` shows a newer Security policies
 section — a table with a `Test policies` button — than the card list we built from.
 Whichever era we follow should be named in the surface.
