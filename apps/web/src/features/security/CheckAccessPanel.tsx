@@ -38,7 +38,13 @@ function ClauseRow({ c }: { c: Clause }) {
   )
 }
 
-export function CheckAccessPanel({ kind, resourceId }: { kind: 'project' | 'dataset' | 'restricted_view'; resourceId: string }) {
+// The kinds check_access dispatches on. Hand-written, because these are plpgsql
+// branches rather than a CHECK constraint, so gen:client emits no value set for
+// them — the database refuses an unknown kind by name and this union is what
+// stops the wrong one compiling. 834 added object_type.
+export type CheckAccessKind = 'project' | 'dataset' | 'restricted_view' | 'object_type'
+
+export function CheckAccessPanel({ kind, resourceId }: { kind: CheckAccessKind; resourceId: string }) {
   const { data: people = [] } = useOrgMembers()
   const [userId, setUserId] = useState('')
   const { data: clauses, isLoading, error } = useCheckAccess(kind, resourceId, userId || null)
