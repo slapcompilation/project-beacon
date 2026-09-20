@@ -4,6 +4,19 @@
 // column; right is a column or a specific value ("A string, Boolean, number,
 // or array"). The database validates the grammar, the arity and the weights —
 // this component only builds the JSON.
+//
+// TWO CONSUMERS, ONE GRAMMAR (483). A restricted view compares dataset columns;
+// an object or property security policy compares an object type's properties.
+// Everything that differs between them arrives as a prop, and every default
+// reproduces the restricted-view behaviour exactly, so that path is unchanged.
+//
+// A MARKING CONDITION IS NOT A NINTH COMPARISON. The comparisons page enumerates
+// eight and excludes it; the weight table prices "A marking condition" at 3,000
+// as its own kind beside constant-against-field at 1 and collection-against-field
+// at 1,000. In the JSON it is still one rule — `marking_ids satisfies <property>`
+// — but it has exactly one legal shape, so it gets its own affordance and its
+// terms are not free choices. osp-add-granular-policy.png renders it as
+// `Current user [markings] satisfies [shield] VIP`.
 
 import { Button, HTMLSelect, Icon, InputGroup, Tag } from '@blueprintjs/core'
 import {
@@ -35,10 +48,24 @@ function valueText(v: unknown): { text: string; list: boolean } {
   return { text: '', list: false }
 }
 
-export function PolicyComposer({ policy, columns, onChange }: {
+export function PolicyComposer({
+  policy, columns, onChange,
+  comparisons = COMPARISONS,
+  fieldLabel = 'Columns',
+  markingFields = [],
+}: {
   policy: Policy
   columns: DatasetField[]
   onChange: (next: Policy) => void
+  /** Narrower for an object policy: "Object security policies do not support
+   *  less/greater than comparison operators." */
+  comparisons?: { id: string; label: string }[]
+  /** Foundry calls these Properties in the Ontology Manager, not Columns. */
+  fieldLabel?: string
+  /** The MARKING-typed fields a marking condition may compare against. Empty
+   *  means the affordance is not offered at all, because there would be no
+   *  legal right-hand term and every save would fail. */
+  markingFields?: DatasetField[]
 }) {
   const setRule = (i: number, rule: PolicyComparison) => {
     onChange({ ...policy, rules: policy.rules.map((r, j) => j === i ? rule : r) })
@@ -71,6 +98,39 @@ export function PolicyComposer({ policy, columns, onChange }: {
       </div>
 
       {policy.rules.map((rule, i) => {
+        // A nested group is legal database state — 483 allows one level and the
+        // 821/826 guards walk it — and this editor cannot render one. Say so
+        // rather than dereferencing `rule.left` and crashing the whole tab.
+        if (!('left' in rule)) {
+          return (
+            <div key={i} className="flex items-center gap-2 border border-border rounded px-2 py-2 text-xs">
+              <Icon icon="warning-sign" size={12} />
+              <span className="text-muted-foreground">
+                A nested group. This editor builds flat rules only; edit it as JSON.
+              </span>
+            </div>
+          )
+        }
+
+        // The marking condition, whose two terms are fixed by the grammar.
+        if (rule.comparison === 'satisfies') {
+          const col = 'column' in rule.right ? rule.right.column : ''
+          return (
+            <div key={i} className="flex flex-wrap items-center gap-2 border border-border rounded px-2 py-2">
+              <Tag minimal className="!text-[9px] uppercase">{policy.match === 'any' ? 'or' : 'and'}</Tag>
+              <Tag minimal icon="person">Current user</Tag>
+              <Tag minimal>markings</Tag>
+              <span className="text-xs">satisfies</span>
+              <HTMLSelect value={col}
+                onChange={(e) => { setRule(i, { ...rule, right: { column: e.currentTarget.value } }) }}>
+                {markingFields.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
+              </HTMLSelect>
+              <Button variant="minimal" size="small" icon="cross" className="ml-auto"
+                onClick={() => { onChange({ ...policy, rules: policy.rules.filter((_, j) => j !== i) }) }} />
+            </div>
+          )
+        }
+
         const rightIsValue = 'value' in rule.right
         const { text, list } = rightIsValue ? valueText((rule.right as { value: unknown }).value) : { text: '', list: false }
         return (
@@ -80,17 +140,17 @@ export function PolicyComposer({ policy, columns, onChange }: {
               <optgroup label="The user's…">
                 {USER_ATTRIBUTES.map((a) => <option key={a.id} value={`a:${a.id}`}>{a.label}</option>)}
               </optgroup>
-              <optgroup label="Columns">
+              <optgroup label={fieldLabel}>
                 {columns.map((c) => <option key={c.name} value={`c:${c.name}`}>{c.name}</option>)}
               </optgroup>
             </HTMLSelect>
             <HTMLSelect value={rule.comparison}
               onChange={(e) => { setRule(i, { ...rule, comparison: e.currentTarget.value }) }}>
-              {COMPARISONS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {comparisons.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </HTMLSelect>
             <HTMLSelect value={termKey(rule.right)} onChange={(e) => { setRight(i, e.currentTarget.value) }}>
               <option value="v">Specific value…</option>
-              <optgroup label="Columns">
+              <optgroup label={fieldLabel}>
                 {columns.map((c) => <option key={c.name} value={`c:${c.name}`}>{c.name}</option>)}
               </optgroup>
             </HTMLSelect>
@@ -121,6 +181,17 @@ export function PolicyComposer({ policy, columns, onChange }: {
         }}>
         Add rule
       </Button>
+      {markingFields.length > 0 && (
+        <Button size="small" icon="shield" variant="outlined" className="ml-2"
+          onClick={() => {
+            onChange({ ...policy, rules: [...policy.rules, {
+              left: { user_attribute: 'marking_ids' }, comparison: 'satisfies',
+              right: { column: markingFields[0].name },
+            }] })
+          }}>
+          Add marking condition
+        </Button>
+      )}
       <p className="text-[11px] text-muted-foreground flex items-center gap-1">
         <Icon icon="info-sign" size={11} />
         At least one rule must compare a user attribute. NOT conditions are not supported.

@@ -7,6 +7,7 @@
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ObjectTypeDef } from '@beacon/ontology'
 
@@ -21,6 +22,7 @@ interface Chain extends PromiseLike<{ data: unknown; error: null }> {
 const db = vi.hoisted(() => ({
   rows: {} as Record<string, unknown>,
   markings: [] as string[],
+  fields: [] as { name: string; type: string }[],
 }))
 
 vi.mock('@/lib/supabase/client', () => {
@@ -41,7 +43,11 @@ vi.mock('@/lib/supabase/client', () => {
     supabase: {
       from: make,
       // object_policy_markings / property_policy_markings / datasource_markings
-      rpc: () => Promise.resolve({ data: db.markings, error: null }),
+      // answer with marking ids; object_type_policy_fields answers with fields.
+      rpc: (fn: string) => Promise.resolve({
+        data: fn === 'object_type_policy_fields' ? db.fields : db.markings,
+        error: null,
+      }),
     },
   }
 })
@@ -52,6 +58,7 @@ afterEach(() => {
   cleanup()
   db.rows = {}
   db.markings = []
+  db.fields = []
 })
 
 const type = {
@@ -142,5 +149,88 @@ describe('the Security policies section', () => {
     }
     show()
     expect(await screen.findByText(/no backing datasource/)).toBeTruthy()
+  })
+})
+
+describe('the Compose dialog', () => {
+  const withObjectPolicy = (policy: unknown = null) => {
+    db.rows = {
+      object_type_datasources: [
+        { id: 'ds1', allowed_organizations: ['o1'], datasets: { name: 'passenger' }, restricted_views: null },
+      ],
+      object_security_policies: { id: 'osp1', name: 'passenger', policy },
+      property_security_policies: [],
+    }
+    db.fields = [
+      { name: 'user_id', type: 'STRING' },
+      { name: 'seats', type: 'LONG' },
+    ]
+  }
+
+  it('lands on the Overview, not on a slot — the arrow is the point', async () => {
+    withObjectPolicy()
+    show()
+    await userEvent.click(await screen.findByRole('button', { name: /Edit passenger/ }))
+
+    // Both columns, which is what says a policy REPLACES the datasource's
+    // requirements rather than adding to them.
+    expect(await screen.findByText('Datasource access requirements')).toBeTruthy()
+    expect(screen.getByText('Policy access requirements')).toBeTruthy()
+    // The four policy-side slots.
+    expect(screen.getByText('Granular policy')).toBeTruthy()
+    expect(screen.getAllByText('Organizations').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('AND').length).toBeGreaterThan(0)
+  })
+
+  it('shows the granular arm as None until it has rules', async () => {
+    withObjectPolicy()
+    show()
+    await userEvent.click(await screen.findByRole('button', { name: /Edit passenger/ }))
+    expect(await screen.findByText('Granular policy')).toBeTruthy()
+    expect(screen.getAllByText('None').length).toBeGreaterThan(0)
+  })
+
+  it('offers only the four comparisons an object policy allows', async () => {
+    withObjectPolicy({
+      match: 'all',
+      rules: [{ left: { user_attribute: 'user_id' }, comparison: 'equal', right: { value: 'x' } }],
+    })
+    show()
+    await userEvent.click(await screen.findByRole('button', { name: /Edit passenger/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Manage Granular policy' }))
+
+    // "Object security policies do not support less/greater than comparison
+    // operators." — so the four that remain, and none of the four that do not.
+    expect(await screen.findByText('is equal to')).toBeTruthy()
+    expect(screen.getByText('intersects')).toBeTruthy()
+    expect(screen.queryByText('is less than')).toBeNull()
+    expect(screen.queryByText('is greater than')).toBeNull()
+  })
+
+  it('does not offer a marking condition when no property can satisfy one', async () => {
+    withObjectPolicy({
+      match: 'all',
+      rules: [{ left: { user_attribute: 'user_id' }, comparison: 'equal', right: { value: 'x' } }],
+    })
+    show()
+    await userEvent.click(await screen.findByRole('button', { name: /Edit passenger/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Manage Granular policy' }))
+
+    // Its only legal right-hand term is a MARKING property, and this type has
+    // none — so the affordance would be a guaranteed save failure.
+    expect(screen.queryByText('Add marking condition')).toBeNull()
+    expect(await screen.findByText(/no mandatory control property/)).toBeTruthy()
+  })
+
+  it('offers a marking condition once a mandatory control property exists', async () => {
+    withObjectPolicy({
+      match: 'all',
+      rules: [{ left: { user_attribute: 'user_id' }, comparison: 'equal', right: { value: 'x' } }],
+    })
+    db.fields = [...db.fields, { name: 'vip', type: 'MARKING' }]
+    show()
+    await userEvent.click(await screen.findByRole('button', { name: /Edit passenger/ }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Manage Granular policy' }))
+    expect(await screen.findByText('Add marking condition')).toBeTruthy()
   })
 })

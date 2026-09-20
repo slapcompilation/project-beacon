@@ -13,14 +13,17 @@ import { useState } from 'react'
 import { Button, Callout, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
 import { primaryKeyOf, type ObjectTypeDef } from '@beacon/ontology'
 import { useMarkings } from '@/features/markings/api'
+import { PolicyComposer } from '@/features/restrictedViews/PolicyComposer'
+import type { Policy } from '@/features/restrictedViews/api'
 import {
   useSecurityPolicies, useCreateObjectPolicy, useDeleteObjectPolicy,
   useCreatePropertyPolicy, useDeletePropertyPolicy,
   usePolicyMarkings, useSetInheriting, useAddPolicyMarking, useRemovePolicyMarking,
+  usePolicyFields, useSetPolicyGranular, POLICY_COMPARISONS,
   type PolicyRow,
 } from '@/features/objectTypes/securityPolicies'
 
-type Editing = { kind: 'object' | 'property'; id: string; name: string } | null
+type Editing = { kind: 'object' | 'property'; row: PolicyRow } | null
 
 /** The counts beside a row: an office-building glyph for organizations and a
  *  shield for markings, each omitted at zero as the captures show. */
@@ -123,7 +126,7 @@ export function SecurityPoliciesCard({ type }: { type: ObjectTypeDef }) {
               row={objectPolicy}
               tag="Object security policy"
               intent={Intent.PRIMARY}
-              onEdit={() => { setEditing({ kind: 'object', id: objectPolicy.id, name: objectPolicy.name }); }}
+              onEdit={() => { setEditing({ kind: 'object', row: objectPolicy }); }}
               onDelete={() => { deleteObject.mutate(objectPolicy.id); }}
             />
             {propertyPolicies.map((p) => (
@@ -132,7 +135,7 @@ export function SecurityPoliciesCard({ type }: { type: ObjectTypeDef }) {
                 row={p}
                 tag="Property security policy"
                 intent={Intent.PRIMARY}
-                onEdit={() => { setEditing({ kind: 'property', id: p.id, name: p.name }); }}
+                onEdit={() => { setEditing({ kind: 'property', row: p }); }}
                 onDelete={() => { deleteProperty.mutate(p.id); }}
               />
             ))}
@@ -147,11 +150,10 @@ export function SecurityPoliciesCard({ type }: { type: ObjectTypeDef }) {
         <PropertyPolicyDialog type={type} onClose={() => { setAdding(false); }} />
       )}
       {editing && (
-        <AccessRequirementsDialog
+        <ComposePolicyDialog
           type={type}
           kind={editing.kind}
-          policyId={editing.id}
-          policyName={editing.name}
+          row={editing.row}
           onClose={() => { setEditing(null); }}
         />
       )}
@@ -226,21 +228,221 @@ function PropertyPolicyDialog({ type, onClose }: { type: ObjectTypeDef; onClose:
   )
 }
 
-/** The Access requirements screen behind the pencil — the Markings slot only.
- *  Each inherited marking shows `Inherited` with Stop inheriting, or `Removed`
- *  with Start inheriting, per datasource, because a stop is recorded per source.
+/** The Compose dialog, in the shape osp-permissions-ui-overview.png draws it:
+ *  the landing view is an OVERVIEW of two columns — what the datasource demands,
+ *  an arrow, and what the policy will demand instead — with the policy side's
+ *  slots joined by AND and each manageable one carrying a Manage link to a
+ *  breadcrumbed sub-view.
  *
- *  The Granular policy and Organizations slots of the same dialog are not built:
- *  the granular composer is its own arc, and no capture of the Organizations
- *  sub-screen exists in the mirror. */
-function AccessRequirementsDialog({
-  type, kind, policyId, policyName, onClose,
+ *  My first version opened straight onto the Markings slot and skipped the
+ *  Overview. That hid the arrow, which is the one thing the capture is really
+ *  saying: a policy REPLACES the datasource's requirements rather than adding
+ *  to them.
+ *
+ *  ORGANIZATIONS IS SHOWN AND NOT MANAGEABLE, deliberately. The capture gives
+ *  it a Manage of its own and we have no screen behind it: no capture of that
+ *  sub-view exists in the mirror, and the only published organization removal
+ *  is per pipeline input rather than on a policy. An inherited organization
+ *  marking still reaches the policy and is still enforced — it just cannot be
+ *  edited here, and saying so beats a link that does nothing. */
+function ComposePolicyDialog({
+  type, kind, row, onClose,
 }: {
   type: ObjectTypeDef
   kind: 'object' | 'property'
-  policyId: string
-  policyName: string
+  row: PolicyRow
   onClose: () => void
+}) {
+  const [view, setView] = useState<'overview' | 'markings' | 'granular'>('overview')
+
+  return (
+    <Dialog isOpen onClose={onClose} title={`Compose ${kind} security policy`} style={{ width: 760 }}>
+      <DialogBody>
+        {view !== 'overview' && (
+          <div className="mb-3 flex items-center gap-1 text-xs">
+            <Button variant="minimal" size="small" onClick={() => { setView('overview'); }}>Overview</Button>
+            <Icon icon="chevron-right" size={11} />
+            <span>{view === 'markings' ? 'Access requirements' : 'Compose granular policy'}</span>
+          </div>
+        )}
+
+        {view === 'overview' && <PolicyOverview type={type} row={row} onManage={setView} />}
+        {view === 'markings' && <MarkingsSlot type={type} kind={kind} policyId={row.id} />}
+        {view === 'granular' && <GranularSlot type={type} kind={kind} row={row} />}
+      </DialogBody>
+      <DialogFooter actions={<Button onClick={onClose}>Close</Button>} />
+    </Dialog>
+  )
+}
+
+function Slot({ title, manage, children }: {
+  title: string
+  manage?: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded border">
+      <div className="flex items-center gap-2 border-b px-3 py-2">
+        <span className="text-sm font-semibold">{title}</span>
+        <span className="flex-1" />
+        {manage && (
+          // Named by slot: two Manage buttons with the same accessible name
+          // are ambiguous to anyone not looking at the column.
+          <Button variant="minimal" size="small" onClick={manage} aria-label={`Manage ${title}`}>
+            Manage
+          </Button>
+        )}
+      </div>
+      <div className="px-3 py-2 text-xs">{children}</div>
+    </div>
+  )
+}
+
+const And = () => <p className="py-1 text-center text-xs text-muted-foreground">AND</p>
+
+/** The two columns and the arrow between them. */
+function PolicyOverview({ type, row, onManage }: {
+  type: ObjectTypeDef
+  row: PolicyRow
+  onManage: (v: 'markings' | 'granular') => void
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="flex-1 space-y-1">
+        <h4 className="mb-2 text-sm font-semibold">Datasource access requirements</h4>
+        <Slot title="Viewer permissions">
+          <span className="flex items-center gap-2">
+            <Icon icon="th" size={13} intent={Intent.PRIMARY} />
+            {row.datasetName ?? 'the backing datasource'}
+          </span>
+        </Slot>
+        <And />
+        <Slot title="Organizations">{row.organizations || 'None'}</Slot>
+        <And />
+        <Slot title="Markings">Inherited from the datasource</Slot>
+      </div>
+
+      <div className="flex items-center"><Icon icon="arrow-right" /></div>
+
+      <div className="flex-1 space-y-1">
+        <h4 className="mb-2 text-sm font-semibold">Policy access requirements</h4>
+        <Slot title="Viewer permissions">
+          <span className="flex items-center gap-2">
+            <Icon icon="cube" size={13} intent={Intent.PRIMARY} />
+            {type.label}
+          </span>
+        </Slot>
+        <And />
+        <Slot title="Granular policy" manage={() => { onManage('granular'); }}>
+          {row.policy ? `${String(row.policy.rules.length)} rules` : 'None'}
+        </Slot>
+        <And />
+        <Slot title="Organizations">
+          <span className="text-muted-foreground">
+            {row.organizations || 'None'} — inherited and enforced, not editable here
+          </span>
+        </Slot>
+        <And />
+        <Slot title="Markings" manage={() => { onManage('markings'); }}>
+          {row.markings || 'None'}
+        </Slot>
+      </div>
+    </div>
+  )
+}
+
+/** The Granular policy sub-view. The composer is the one restricted views use —
+ *  same grammar, same validator, same compiler (483) — narrowed to the four
+ *  comparisons an object policy allows, and given the marking condition as its
+ *  own affordance rather than a ninth entry in the operator list. */
+function GranularSlot({ type, kind, row }: {
+  type: ObjectTypeDef
+  kind: 'object' | 'property'
+  row: PolicyRow
+}) {
+  const { data: fields = [] } = usePolicyFields(type.id)
+  const save = useSetPolicyGranular(kind, type.id)
+  const [draft, setDraft] = useState<Policy | null>(row.policy)
+
+  const markingFields = fields.filter((f) => f.type === 'MARKING')
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="text-sm font-semibold">Compose granular policy</h4>
+        <p className="text-xs text-muted-foreground">
+          A granular policy is a combination of rules that describe what rows can be seen by
+          different people.
+        </p>
+      </div>
+
+      {draft ? (
+        <PolicyComposer
+          policy={draft}
+          columns={fields}
+          comparisons={POLICY_COMPARISONS}
+          fieldLabel="Properties"
+          markingFields={markingFields}
+          onChange={setDraft}
+        />
+      ) : (
+        <Callout intent={Intent.NONE} className="text-xs">
+          None. This policy filters no rows until it has one.
+        </Callout>
+      )}
+
+      {markingFields.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          This object type has no mandatory control property, so a marking condition has
+          nothing to compare against.
+        </p>
+      )}
+
+      <div className="flex gap-2">
+        {!draft && (
+          <Button size="small" icon="add" onClick={() => { setDraft({ match: 'all', rules: [] }); }}>
+            Add a granular policy
+          </Button>
+        )}
+        {draft && (
+          <>
+            <Button
+              size="small"
+              intent={Intent.PRIMARY}
+              loading={save.isPending}
+              disabled={draft.rules.length === 0}
+              onClick={() => { save.mutate({ policyId: row.id, policy: draft }); }}
+            >
+              Confirm changes
+            </Button>
+            {/* The only way back to None: the database refuses a rules-empty
+                policy (Policies:MalformedPolicy), so clearing the composer is
+                not the same as removing the arm. */}
+            <Button
+              size="small"
+              intent={Intent.DANGER}
+              variant="minimal"
+              onClick={() => {
+                setDraft(null)
+                save.mutate({ policyId: row.id, policy: null })
+              }}
+            >
+              Remove granular policy
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/** The Markings slot: each inherited marking shows Inherited with Stop
+ *  inheriting, or Removed with Start inheriting, PER DATASOURCE, because a stop
+ *  is recorded per source. */
+function MarkingsSlot({ type, kind, policyId }: {
+  type: ObjectTypeDef
+  kind: 'object' | 'property'
+  policyId: string
 }) {
   const { data } = usePolicyMarkings(kind, policyId, type.id)
   const setInheriting = useSetInheriting(kind, type.id)
@@ -252,81 +454,69 @@ function AccessRequirementsDialog({
   const addedIds = new Set((data?.added ?? []).map((a) => a.markingId))
 
   return (
-    <Dialog isOpen onClose={onClose} title={`Compose ${kind} security policy — ${policyName}`}>
-      <DialogBody>
-        <h4 className="text-sm font-semibold">Access requirements</h4>
-        <p className="mb-3 text-xs text-muted-foreground">Configure changes to access requirements</p>
+    <div>
+      <h4 className="text-sm font-semibold">Access requirements</h4>
+      <p className="mb-3 text-xs text-muted-foreground">Configure changes to access requirements</p>
 
-        <div className="mb-2 flex items-center gap-2">
-          <span className="text-sm font-semibold">Markings</span>
-          <span className="text-xs text-muted-foreground">· All of</span>
-          <span className="flex-1" />
-          <Button variant="minimal" size="small" icon="plus" onClick={() => { setPicking((s) => !s); }}>Add</Button>
-        </div>
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-sm font-semibold">Markings</span>
+        <span className="text-xs text-muted-foreground">· All of</span>
+        <span className="flex-1" />
+        <Button size="small" variant="minimal" icon="plus" onClick={() => { setPicking((v) => !v); }}>Add</Button>
+      </div>
 
-        {picking && (
-          <div className="mb-3 flex flex-wrap gap-2 rounded border p-2">
-            {(all.data ?? [])
-              .filter((m) => !addedIds.has(m.id))
-              .map((m) => (
-                <Tag
-                  key={m.id}
-                  interactive
-                  minimal
-                  onClick={() =>
-                    { addMarking.mutate({ policyId, markingId: m.id }, { onSuccess: () => { setPicking(false); } }); }
-                  }
-                >
-                  {m.name}
-                </Tag>
-              ))}
-          </div>
-        )}
-
-        <div className="space-y-2">
-          {(data?.inherited ?? []).map((m) => (
-            <div key={`${m.datasourceId}:${m.markingId}`} className="flex items-center gap-3 rounded border p-2">
-              <Tag minimal icon="shield">{m.name}</Tag>
-              <Tag minimal intent={m.stopped ? Intent.DANGER : Intent.NONE}>
-                {m.stopped ? 'Removed' : 'Inherited'}
+      {picking && (
+        <div className="mb-3 flex flex-wrap gap-2 rounded border p-2">
+          {(all.data ?? [])
+            .filter((m) => !addedIds.has(m.id))
+            .map((m) => (
+              <Tag key={m.id} interactive minimal
+                onClick={() => {
+                  addMarking.mutate({ policyId, markingId: m.id }, { onSuccess: () => { setPicking(false) } })
+                }}>
+                {m.name}
               </Tag>
-              <span className="text-xs text-muted-foreground">from {m.datasourceLabel}</span>
-              <span className="flex-1" />
-              <Button
-                size="small"
-                onClick={() =>
-                  { setInheriting.mutate({
-                    policyId, datasourceId: m.datasourceId, markingId: m.markingId, stop: !m.stopped,
-                  }); }
-                }
-              >
-                {m.stopped ? 'Start inheriting' : 'Stop inheriting'}
-              </Button>
-            </div>
-          ))}
-
-          {(data?.added ?? []).map((a) => (
-            <div key={a.markingId} className="flex items-center gap-3 rounded border p-2">
-              <Tag minimal icon="shield">{a.name}</Tag>
-              <Tag minimal intent={Intent.PRIMARY}>Added</Tag>
-              <span className="flex-1" />
-              <Button
-                size="small"
-                onClick={() => { removeMarking.mutate({ policyId, markingId: a.markingId }); }}
-              >
-                Remove
-              </Button>
-            </div>
-          ))}
-
-          {!data?.inherited.length && !data?.added.length && (
-            <Callout intent={Intent.NONE} className="text-xs">
-              No datasource of this object type carries a marking, so there is nothing to inherit yet.
-            </Callout>
-          )}
+            ))}
         </div>
-      </DialogBody>
-      <DialogFooter actions={<Button onClick={onClose}>Close</Button>} />
-    </Dialog>
+      )}
+
+      <div className="space-y-2">
+        {(data?.inherited ?? []).map((m) => (
+          <div key={`${m.datasourceId}:${m.markingId}`} className="flex items-center gap-3 rounded border p-2">
+            <Tag minimal icon="shield">{m.name}</Tag>
+            <Tag minimal intent={m.stopped ? Intent.DANGER : Intent.NONE}>
+              {m.stopped ? 'Removed' : 'Inherited'}
+            </Tag>
+            <span className="text-xs text-muted-foreground">from {m.datasourceLabel}</span>
+            <span className="flex-1" />
+            <Button size="small"
+              onClick={() => {
+                setInheriting.mutate({
+                  policyId, datasourceId: m.datasourceId, markingId: m.markingId, stop: !m.stopped,
+                })
+              }}>
+              {m.stopped ? 'Start inheriting' : 'Stop inheriting'}
+            </Button>
+          </div>
+        ))}
+
+        {(data?.added ?? []).map((a) => (
+          <div key={a.markingId} className="flex items-center gap-3 rounded border p-2">
+            <Tag minimal icon="shield">{a.name}</Tag>
+            <Tag minimal intent={Intent.PRIMARY}>Added</Tag>
+            <span className="flex-1" />
+            <Button size="small" onClick={() => { removeMarking.mutate({ policyId, markingId: a.markingId }) }}>
+              Remove
+            </Button>
+          </div>
+        ))}
+
+        {!data?.inherited.length && !data?.added.length && (
+          <Callout intent={Intent.NONE} className="text-xs">
+            No datasource of this object type carries a marking, so there is nothing to inherit yet.
+          </Callout>
+        )}
+      </div>
+    </div>
   )
 }
