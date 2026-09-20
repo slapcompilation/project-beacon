@@ -239,12 +239,28 @@ function PropertyPolicyDialog({ type, onClose }: { type: ObjectTypeDef; onClose:
  *  saying: a policy REPLACES the datasource's requirements rather than adding
  *  to them.
  *
- *  ORGANIZATIONS IS SHOWN AND NOT MANAGEABLE, deliberately. The capture gives
- *  it a Manage of its own and we have no screen behind it: no capture of that
- *  sub-view exists in the mirror, and the only published organization removal
- *  is per pipeline input rather than on a policy. An inherited organization
- *  marking still reaches the policy and is still enforced — it just cannot be
- *  edited here, and saying so beats a link that does nothing. */
+ *  ORGANIZATIONS IS NOT BUILT, and the reason I first gave for that was wrong
+ *  twice over. I wrote that no capture of its sub-view exists and that the only
+ *  published organization removal is per pipeline input. A post-build
+ *  reconciliation falsified both:
+ *
+ *    · step 3 of the page says "You have the option to add a granular policy and
+ *      edit the organization and markings", and the Configure mandatory controls
+ *      section enumerates organizations as one of the three kinds the two
+ *      operations (add, remove-inherited) range over;
+ *    · the evidence I used was two CROPS. osp-stop-inheriting-markings.png is
+ *      2004x600 and osp-add-marking-property-security-policy.png is 1998x602,
+ *      against the same dialog at 2002x1392 in osp-permissions-ui-overview.png.
+ *      They end in grey canvas. I asserted what the images do not show.
+ *
+ *  It is UNBUILT, not unmanageable, and it is blocked on something real: the two
+ *  permissions that gate the operations — Apply organization and Expand access —
+ *  do not exist anywhere in this platform yet.
+ *
+ *  The second half of that old sentence was false as built too: an inherited
+ *  organization marking does NOT currently reach the policy, because
+ *  datasource_markings reads resource_markings and nothing mints an organization
+ *  marking into it. Measured: zero. */
 function ComposePolicyDialog({
   type, kind, row, onClose,
 }: {
@@ -317,7 +333,13 @@ function PolicyOverview({ type, row, onManage }: {
           </span>
         </Slot>
         <And />
-        <Slot title="Organizations">{row.organizations || 'None'}</Slot>
+        {/* allowed_organizations is "the organizations permitted on any mandatory
+            control property of this datasource" — the legal VALUES, not an access
+            requirement. Counting it here said the wrong thing, so it says nothing
+            until the real requirement is read. */}
+        <Slot title="Organizations">
+          <span className="text-muted-foreground">Not read yet</span>
+        </Slot>
         <And />
         <Slot title="Markings">Inherited from the datasource</Slot>
       </div>
@@ -338,9 +360,7 @@ function PolicyOverview({ type, row, onManage }: {
         </Slot>
         <And />
         <Slot title="Organizations">
-          <span className="text-muted-foreground">
-            {row.organizations || 'None'} — inherited and enforced, not editable here
-          </span>
+          <span className="text-muted-foreground">Not configured</span>
         </Slot>
         <And />
         <Slot title="Markings" manage={() => { onManage('markings'); }}>

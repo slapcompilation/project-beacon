@@ -57,7 +57,8 @@ there to reuse, so 821 was a smaller build than this table predicted.
 |---|---|
 | **Object security policies** — the recommended, non-legacy row-level control on an object type | ~~nothing in any layer~~ — **shipped, 821.** `object_security_policies`, one per object type, compiled by `object_security_predicate` and applied through `object_read_predicate` at all 13 reader call sites. Its granular policy reuses 483's grammar, plus the `satisfies` comparison Foundry's own worked example needs. Markings and organizations on the policy are the remaining slots |
 | **Property security policies** — column-level, whose documented failure mode is the same row returned with a null in one cell | ~~no representation~~ — **shipped, 826/827.** `property_security_policies` plus a membership table whose `UNIQUE (object_type_id, property_id)` is the documented one-policy-per-property rule; `property_policy_nulls` compiles a per-row `CASE` into the projection of all three readers. **Three denial shapes now coexist and do not share a code path**: the object policy withholds the ROW, `visibility='hidden'` removes the KEY, a failed property policy keeps the key and nulls the VALUE. 827 also closed a measured leak — `indexed_objects` emitted bare `to_jsonb(o)` while both siblings stripped hidden, so a hidden property was served by that reader alone. ~~Still open on both policy kinds: the markings and organizations slots~~ — **the Markings slot shipped, 829/830.** Both kinds now inherit their datasources' markings as a delta (stops keyed per source, adds keyed per policy), with the two denial shapes preserved: the object policy's markings yield NO ROWS, a property policy's null the covered cells. 830 also fixed a refusal whose reason had expired — `property_policy_nulls` skipped any markings-only policy, which is exactly the worked example's step 7 |
-| **The Organizations slot of a security policy** | **NOT BUILT, and deliberately.** Both Markings slots refuse organization markings, per the api's named error `OrganizationMarkingNotSupported` — "Adding an organization marking as a regular marking is not supported. Use the organization endpoints on a project resource instead." An inherited organization marking still reaches a policy's baseline and is still enforced (828 made the category disjunctive); it simply cannot be stopped or added through the Markings slot. The only published organization removal is per **pipeline input**, not on a policy — and removing one inherited organization removes them all, with the listed set routing approvals rather than selecting what is removed. `osp-permissions-ui-overview.png` shows an `Organizations` card with its own `Manage ›` on the policy side, so the slot exists; no capture of its sub-screen is in the mirror |
+| **The Organizations slot of a security policy** | **NOT BUILT — and my stated reason was false.** Corrected 2026-09-20 by the post-build reconciliation. I wrote that no capture of its sub-view exists and that the only published organization removal is per pipeline input. Both are wrong. Step 3 of `object-security-policies.md` says "You have the option to add a granular policy and **edit the organization and markings**", and the Configure mandatory controls section enumerates organizations among the three kinds its two operations range over. The evidence I used was two **crops** — 2004×600 and 1998×602 against the same dialog at 2002×1392 — which simply end above the row I was claiming was absent. There is also an Organizations sub-view capture in the corpus (`pipeline-builder/images/markings-organizations.png`) and four captures of the slot with an affordance, one of them inside `object-permissioning/images/` itself. **Blocked on something real**: the two permissions that gate the operations, `Apply organization` and `Expand access`, do not exist anywhere in this platform. Also measured: an inherited organization marking does not currently reach a policy's baseline at all, because nothing mints one into `resource_markings` |
+| ~~The Organizations slot, as first recorded~~ | **superseded by the row above.** Both Markings slots refuse organization markings, per the api's named error `OrganizationMarkingNotSupported` — "Adding an organization marking as a regular marking is not supported. Use the organization endpoints on a project resource instead." An inherited organization marking still reaches a policy's baseline and is still enforced (828 made the category disjunctive); it simply cannot be stopped or added through the Markings slot. The only published organization removal is per **pipeline input**, not on a policy — and removing one inherited organization removes them all, with the listed set routing approvals rather than selecting what is removed. `osp-permissions-ui-overview.png` shows an `Organizations` card with its own `Manage ›` on the policy side, so the slot exists; no capture of its sub-screen is in the mirror |
 | **A marking on an object type** | ~~the CHECK does not admit `object_type`~~ — **shipped, 819/820.** The kind is admissible, `effective_object_type_markings` inherits from the project, and the read policy conjoins `satisfies_markings`, so a marking now actually hides the type |
 | **Test the policy before saving, as a named user** | nothing to test, because of the three rows above. Consequent, not separate |
 | **The Check access panel for an object type** | `check_access` RAISES on `object_type` |
@@ -82,6 +83,41 @@ placement in a project does not gate the data. The documented model is
 project-scoped (`If you are an Editor in project A, you can edit the Building
 object type`). This was scored "parity" by the reader and promoted by the
 adversary, correctly: it is the claim most likely to stop someone looking.
+
+
+### Post-build reconciliation, 2026-09-20
+
+The first one of this arc. CLAUDE.md's rule is *adversary before building, re-read the
+source pages whole after*; across 821–832 I did the first half and skipped the second,
+updating the readings from what I already believed — which can only confirm it. The
+operator asked whether I reconcile after each build, and whether the documentation
+answers the questions I had called open. It does, more often than I said.
+
+**Corrected, not merely noted.** Two claims I had written into an applied migration and
+rendered to the user were false (the Organizations row above), and one was a live leak:
+`search_objects` returned and matched on a title value a property policy hides — fixed
+in **832**.
+
+**Filed as unpublished, actually only unbuilt** — the distinction I had been blurring:
+
+| item | what the docs already decide |
+|---|---|
+| nested-group authoring | the capture shows `+ Add a condition or a logical operator`; 483 stores one nesting level; both guards walk it |
+| the Test security policies modal | the whole section plus two captures — including that it tests the **unsaved** policy, which constrains the seam |
+| `check_access` on an object type | settled three ways: the panel works on "a Project, folder, or file", an object type **is** a file, and `ontology-in-project.png` shows it as a peer row of a dataset |
+| the MDO baseline for a property policy | a **third** identity claim on `pipeline-builder/outputs-add-ontology-output.md`, naming *mandatory control* by name. 830 chose correctly; recording it as undecided was the error |
+
+**Unbuilt and previously unrecorded**, found by reading the pages whole rather than
+chasing a known question: materialization permissions (a mandatory-control leak), the
+migrate-from-restricted-views tool and its five named unsupported configurations,
+per-datasource `Viewer` nulling (a **fourth** denial shape), streams as a datasource
+kind — the API enumerates twelve, our CHECK has four — branching compatibility for
+policies, classifications in the mandatory-control slot, `Viewer` on the backing
+datasource when no policy exists, and download permissions.
+
+**Two eras again.** `osp-testing-entry-point.png` shows a newer Security policies
+section — a table with a `Test policies` button — than the card list we built from.
+Whichever era we follow should be named in the surface.
 
 ## 2. Nothing can be edited after it is created
 
