@@ -24,13 +24,19 @@ import {
 import { useRestrictedViews } from '@/features/restrictedViews/api'
 import { PolicyEditorDialog } from '@/features/restrictedViews/PolicyEditorDialog'
 import { SecurityPoliciesCard } from '@/features/objectTypes/SecurityPoliciesCard'
+import { useSecurityPolicies } from '@/features/objectTypes/securityPolicies'
 
-/** The Security tab: the two requirement cards the screenshot shows —
+/** The Security tab: the requirement cards the page enumerates —
  *  "A user must meet all of the following requirements to view/edit the
  *  definition of this resource" — derived from the live model, never
  *  restated: placement (454), the space's organizations (441), and any
  *  markings on the resource. */
 export function SecurityTab({ type }: { type: ObjectTypeDef }) {
+  // The same read the policies card below makes; it already carries both the
+  // datasource labels and whether either policy kind exists, which is exactly
+  // the either/or the See instances card renders.
+  const { data: policies } = useSecurityPolicies(type.id)
+  const hasPolicy = !!policies && (!!policies.objectPolicy || policies.propertyPolicies.length > 0)
   const { data } = useQuery({
     queryKey: ['type-security', type.id],
     queryFn: async () => {
@@ -53,11 +59,11 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
     },
   })
 
-  const Req = ({ title, lines }: { title: string; lines: React.ReactNode }) => (
+  const Req = ({ title, what, lines }: { title: string; what: React.ReactNode; lines: React.ReactNode }) => (
     <div className="rounded border p-3 space-y-2 flex-1 min-w-[260px]">
       <h3 className="text-xs font-semibold text-center">{title}</h3>
       <p className="text-xs text-muted-foreground text-center">
-        A user must meet <b>all</b> of the following requirements to {title === 'View object type' ? 'view' : 'edit'} the definition of this resource.
+        A user must meet <b>all</b> of the following requirements to {what}.
       </p>
       {lines}
     </div>
@@ -76,7 +82,7 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
-      <Req title="View object type" lines={<>
+      <Req title="View object type" what="view the definition of this resource" lines={<>
         <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
           items={[data.projectName ? 'Viewer permissions — any role on the project' : 'Not placed in a project — visible to the ontology']} />
         <And />
@@ -84,7 +90,37 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
         <And />
         <Clause label="Markings" items={data.markings} />
       </>} />
-      <Req title="Edit object type" lines={<>
+      {/* The third card the page names: "The Security tab displays the required
+          permissions to view and edit an object type, and the required
+          permissions to see instances or run actions." We had the first two.
+          The prose enumerates the last clause's two mutually exclusive shapes
+          and 833 is what makes them true of this platform:
+            · "Object and property security policies: Object visibility is
+               governed by policies configured directly on the object type,
+               independent of the backing datasource permissions."
+            · "Data source policies: Object visibility is governed by the
+               permissions on the backing data source."
+          No capture of this card exists — osp-navigate-security-tab.png is the
+          sidebar, 604x716 — so the clause shape is the one its two siblings
+          already established, not an invented layout. Run actions stays
+          unbuilt; it reasons over action types, not this. */}
+      <Req title="See instances" what="see instances of this object type" lines={<>
+        <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
+          items={[data.projectName ? 'Viewer permissions — any role on the project' : 'Not placed in a project — visible to the ontology']} />
+        <And />
+        <Clause label="Organizations · Any of" items={data.orgs} />
+        <And />
+        <Clause label="Markings" items={data.markings} />
+        <And />
+        {policies && (hasPolicy
+          ? <Clause label="Object and property security policies"
+              items={['Governed by the policies on this object type, independent of the backing datasource permissions']} />
+          : <Clause label="Data source policies · Any of"
+              items={policies.datasources.length === 0
+                ? ['No backing datasource']
+                : policies.datasources.map((d) => `View permissions on ${d.label}`)} />)}
+      </>} />
+      <Req title="Edit object type" what="edit the definition of this resource" lines={<>
         <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
           items={[data.projectName ? 'Editor permissions on the project, or an organization administrator' : 'An organization administrator']} />
         <And />
