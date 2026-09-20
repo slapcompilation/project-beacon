@@ -25,6 +25,7 @@ import { useRestrictedViews } from '@/features/restrictedViews/api'
 import { PolicyEditorDialog } from '@/features/restrictedViews/PolicyEditorDialog'
 import { SecurityPoliciesCard } from '@/features/objectTypes/SecurityPoliciesCard'
 import { useSecurityPolicies } from '@/features/objectTypes/securityPolicies'
+import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
 
 /** The Security tab: the requirement cards the page enumerates —
  *  "A user must meet all of the following requirements to view/edit the
@@ -142,6 +143,13 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
           which property values come back. The page reaches it from here, in
           step 1: "Navigate to the Security tab of the object type." */}
       <SecurityPoliciesCard type={type} />
+
+      {/* "You can check someone's permissions on a Project, folder, or file by
+          using the Check access panel in the workspace sidebar or the Data
+          Lineage tool." An object type is a file, and 834 taught check_access
+          the kind — until then it refused with Compass:UnknownResourceKind, so
+          the panel existed and only DatasetPage could reach it. */}
+      <CheckAccessPanel kind="object_type" resourceId={type.id} />
     </div>
   )
 }

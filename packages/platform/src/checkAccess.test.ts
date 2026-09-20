@@ -18,6 +18,15 @@ describe.skipIf(noDb)('the access checker', () => {
   let member = ''
   let rv = ''
   let marking = ''
+  let objectType = ''
+
+  const otClause = async (like: string) =>
+    (await db.query(
+      `select section, requirement, detail, satisfied
+         from public.check_access('object_type', $1, $2) c
+        where c.requirement like $3`,
+      [objectType, member, like])).rows as
+        { section: string; requirement: string; detail: string; satisfied: boolean }[]
 
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
@@ -97,6 +106,20 @@ describe.skipIf(noDb)('the access checker', () => {
        values ($1,$2,'checka_rv486','Rows by holder',
          '{"match":"all","rules":[{"left":{"user_attribute":"user_id"},"comparison":"equal","right":{"column":"holder_id"}}]}')
        returning id`, [f.projectId, f.datasetId])).id
+
+    // An object type backed by that same dataset, for the kind 834 added. The
+    // lineage marking above reaches it through its datasource, which is the
+    // published requirement: "a Workshop module that displays a table of objects
+    // requires access to the object type & its datasources".
+    const ont = (await one(
+      `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
+       values ($1,'checka486ont','CheckA 486',false) returning id`, [f.spaceId])).id
+    objectType = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'CheckA486Type','CheckA 486 Type') returning id`, [ont, f.projectId])).id
+    await db.query(
+      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+       values ($1,$2,$3)`, [objectType, f.datasetId, f.branchId])
   }, 60_000)
   afterAll(async () => { await rollback(db) })
 
@@ -109,6 +132,51 @@ describe.skipIf(noDb)('the access checker', () => {
   it('the organization clause is its own verdict', async () => {
     const c = await clause('Organization')
     expect(c.satisfied).toBe(true)
+  })
+
+  // 834. These sit ahead of the lineage test deliberately: that test grants the
+  // member the marking partway through, so an assertion placed after it would
+  // read satisfied=true for the wrong reason.
+  it('an object type is a file the panel answers for (834)', async () => {
+    const org = await otClause('Organization')
+    expect(org).toHaveLength(1)
+    // An object type has no organization_id of its own — its organizations are
+    // the ontology space's, and any one of them admits.
+    expect(org[0].satisfied).toBe(true)
+    const roles = await otClause('Having one or more roles%')
+    expect(roles).toHaveLength(1)
+    expect(roles[0].satisfied).toBe(true)
+  })
+
+  it("an object type's datasource markings are its data requirements (834)", async () => {
+    const d = await otClause('Datasource marking%')
+    expect(d).toHaveLength(1)
+    expect(d[0].section).toBe('data')
+    expect(d[0].requirement).toContain('Access PII 486')
+    // Decided for the NAMED user, not the caller: the admin running this check
+    // holds apply on that marking and is not a member of it either.
+    expect(d[0].satisfied).toBe(false)
+  })
+
+  it('a configured policy replaces the datasource requirement (834)', async () => {
+    const p = (await one(
+      `insert into public.object_security_policies (object_type_id, name, created_by)
+       values ($1,'checka486 policy',$2) returning id`, [objectType, admin])).id
+    try {
+      expect(await otClause('Datasource marking%')).toHaveLength(0)
+      const pm = await otClause('Policy marking%')
+      expect(pm).toHaveLength(1)
+      expect(pm[0].requirement).toContain('Access PII 486')
+      expect(pm[0].satisfied).toBe(false)
+    } finally {
+      await db.query(`delete from public.object_security_policies where id=$1`, [p])
+    }
+  })
+
+  it('an unknown kind is still refused by name', async () => {
+    const err = await refused(db, () =>
+      db.query(`select * from public.check_access('banana',$1,$2)`, [objectType, member]))
+    expect(err).toContain('Compass:UnknownResourceKind')
   })
 
   it('a lineage marking fails until membership, then flips', async () => {
