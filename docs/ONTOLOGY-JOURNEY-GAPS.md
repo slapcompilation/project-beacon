@@ -138,6 +138,51 @@ needs a multi-datasource object type; the platform has one type with one datasou
 section — a table with a `Test policies` button — than the card list we built from.
 Whichever era we follow should be named in the surface.
 
+### Post-build reconciliation of 833, 2026-09-20
+
+Done *after* shipping this time, not instead of. Re-read whole:
+`ontology-permissions.md`, `configuring-rv-access-controls.md`.
+
+**Confirmed as built, which is also worth recording.** The exemption is an explicit
+either/or in the prose — you need the `Viewer` role on the object type "and either access
+to the backing datasource or access granted through object and property security
+policies, depending on how the object type's security is configured" — and the page names
+the two configurations as **Object and property security policies** vs **Data source
+policies**. That dichotomy is exactly `object_type_data_readable`.
+
+**Built off the back of it: the `See instances` card.** The page enumerates FOUR things
+the Security tab explains — "the required permissions to view and edit an object type,
+and the required permissions to see instances or run actions" — and we rendered two.
+833 made the third answerable and nothing showed it, which is the repo's dominant defect
+(an engine nothing reaches). `Run actions` stays unbuilt; it reasons over action types.
+No capture of the card exists — `osp-navigate-security-tab.png` is the 604x716 **sidebar**,
+checked before asserting — so it reuses the clause shape its two siblings established.
+
+**Found, and deliberately NOT built:** *"When objects are in projects, the backing
+datasource must be imported into the project for the object to index."* Unenforced —
+`guard_object_type_datasource` checks organization, uniqueness, the 70 cap and MAP
+columns, never the project. **The faithful version needs project references**, which
+Foundry has ("Project references grant FoundryTS access to resources outside of your
+project", `time-series/foundryts.md`) and we do not model: a dataset has one
+`project_id`. Enforcing `dataset.project_id = object_type.project_id` would refuse a
+configuration Foundry permits, and the page's own UX is a **prompt to import**, not a
+refusal. Recorded rather than approximated — a half-built version looks like a foundation.
+
+**An enumeration that does NOT apply to us, recorded so it is not built by mistake:**
+the three granular edit policies (**Read**, **Edit property**, **Edit policy property** —
+the last governing properties *used in a policy definition*) are scoped by their own page
+to Object Storage **v1** without `Only allow edits via actions`; "For all other object
+types, edit permissions are controlled via action types editing the object types". We are
+v2. Same page, same reason: OSv1's re-registration step after a policy change does not
+apply, because "Automatic policy propagation is available by default in Object Storage v2".
+
+**Two things to carry forward.** A worked `Ticket` example states that a user edit to a
+property referenced in security moves ontology-object access **without** moving
+restricted-view row visibility, in both directions — an asymmetry we have not modelled.
+And the CBAC rules sharpen the classifications gap into three: a file classification is
+required at creation, it must be at or below the project maximum, and **object type
+materializations fail if none is specified**.
+
 ## 2. Nothing can be edited after it is created
 
 A theme, not an item. It recurs in every stage and the recovery in each case is
