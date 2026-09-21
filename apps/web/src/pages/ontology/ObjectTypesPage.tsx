@@ -371,11 +371,15 @@ export default function ObjectTypesPage() {
     }
     return (
       <div className="oma-page">
-        {/* The capture's back control names where it returns to, and it returns
-            to the Ontology Manager home rather than to the list the resource was
-            opened from. */}
+        {/* "Once you have opened an object type, link type, or action type, you
+            have the option to select Back home from the top left corner of the
+            view's sidebar." (ontology-manager/navigation) — the feature page for
+            this control, with its own annotated capture at 3324x1690 showing the
+            label. I first shipped `Discover`, read off an incidental appearance
+            in a security-policy capture; the after-build read corrected it.
+            The hover quick-links the same paragraph describes are unbuilt. */}
         <Link to="/ontology" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
-          <Icon icon="arrow-left" size={14} />Discover
+          <Icon icon="arrow-left" size={14} />Back home
         </Link>
         <TypeDetail type={selected} allTypes={types} />
       </div>

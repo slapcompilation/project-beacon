@@ -145,15 +145,19 @@ describe('Ontology Manager chrome', () => {
   })
 
   // A resource has its OWN view at its own path — the capture shows it with the
-  // list nowhere on the screen, above a control naming where it returns to.
+  // list nowhere on the screen, above the Back home control the navigation page
+  // names and annotates.
   it('opens a resource in its own view, not as a section under the list', async () => {
     renderOma('/ontology/object-types/ot1')
-    const back = await screen.findByRole('link', { name: 'Discover' })
+    const back = await screen.findByRole('link', { name: 'Back home' })
     expect(back.getAttribute('href')).toBe('/ontology')
-    // The list's own heading and the sibling type are both gone: this is the
-    // resource's view, not the list with something selected under it.
+    // The list is gone — its heading and its blurb — so this is the resource's
+    // view, not the list with something selected under it. Asserted on the
+    // list's own chrome rather than on a sibling type's NAME: the view holds a
+    // link-type editor whose target picker legitimately lists every other type,
+    // so "Flight is nowhere on the screen" was never the right claim.
     expect(screen.queryByRole('heading', { name: 'Object types' })).toBeNull()
-    expect(screen.queryByText('Flight')).toBeNull()
+    expect(screen.queryByText(/Define a kind of thing with typed properties/)).toBeNull()
   })
 
   it('says so when the path names a resource that is not there', async () => {
