@@ -34,6 +34,81 @@ instructions. Every residual those six entries named is preserved below in
 
 ---
 
+## The parity queue (derived 2026-09-21)
+
+**The queue is back, and it is derived.** `docs/ONTOLOGY-PARITY.md` measured all
+433 capabilities of the ontology lifecycle: 173 have, 140 partial, 120 missing.
+This section orders the **260 open items** for building. It is the queue; the
+census is the measurement, and the census is the thing to re-run, not this.
+
+**Derived how, and from what.** Not by the size of the absence — that mistake is
+recorded above. `object-backend/overview.md` names the backend's three functions
+in order and its six services, and every tier edge below is one of that page's own
+sentences. Seven agents mapped `blocks` / `needs` across all 260 items; 15 pairs
+that were one capability filed under two stages were folded, leaving 245 nodes;
+each node took `tier = max(own service layer, layer of every prerequisite)` to a
+fixpoint. **Zero prerequisites sit in a later tier than their dependant**, so the
+flattened order is buildable end to end.
+
+| tier | service, in the page's own order | items |
+|---|---|---|
+| 1 | **OMS + datasource management** — what exists, and what feeds it | 79 |
+| 2 | **Object Data Funnel + object databases** — getting data in, keeping it current | 20 |
+| 3 | **Object Set Service** — reads, with filtering, aggregation and permissioning | 37 |
+| 4 | **Actions** — the structured write path | 22 |
+| 5 | **Functions on Objects + the OSDK** | 19 |
+| 6 | **Applications** over OMS/OSS/Actions — Object Views, Explorer, branching | 39 |
+| 7 | **Operational lifecycle** — metrics, monitoring, health, packaging | 29 |
+
+Ontology Manager's *per-resource authoring views* are in tier 1 rather than tier 6,
+deliberately: OMS is where object-type, link-type and action-type metadata is
+defined, and we build Ontology Manager. Tier 6 is the *consuming* applications.
+
+**Blocking and unreached are different, and are counted separately.** Highest
+transitive reach: item 52 (25), 43 (17), 33 (15), 208 (14), 49 (12), 210 (12).
+Separately, **61 of the 245 are engines already built that nothing calls** — the
+repo's recorded dominant defect. Only fourteen are both. Cheapness moved nothing
+into the first chunk; it decides the cheapest *follow-ups* once a tier is reached.
+
+### The first chunk
+
+| # | capability | reach | shape |
+|---|---|---|---|
+| 52 | The published object-type datasource kinds | 25 | migration |
+| 208 | Per-resource views and the route back | 14 | surface |
+| 157 | CBAC marking machinery (categories, implied, disallowed) | 11 | reading first, then migration |
+| 101 | The `attachment` property type | 9 | migration + surface |
+| 19 | Struct main fields | 7 | migration + surface |
+| 42 | Datasource/property type coherence, checked on sync | 7 | migration |
+
+### What the adversarial pass did NOT get to, and what I checked instead
+
+**Three challenge agents died on a session limit.** The ordering above is derived
+and dependency-checked but was never attacked by an independent adversary, and
+that is a real gap in its provenance rather than a footnote. I attacked the first
+chunk by hand instead, and it moved two things:
+
+- **Item 52's stated reason was the weaker one.** The queue argued from the api
+  having a discriminator. The real argument is that one published member is
+  *unrepresentable* in our model: `editsOnly` is "not backed by any external
+  Foundry resource" and carries **no fields at all**, while
+  `object_type_datasources_one_backing` requires exactly one backing arm to be
+  non-null. A kind with no resource pointer cannot be encoded by which pointer is
+  set. The union has **ten** members — `dataset`, `restrictedView`, `mediaSetView`,
+  `timeSeries`, `stream`, `direct`, `geotimeSeries`, `editsOnly`, `table`,
+  `unsupported` — and `unsupported` is an encoding artifact of an endpoint we do
+  not serve, so it is nine real kinds against our four.
+- **Item 19 is marked `[Beta]` by Foundry.** Beta is the newest thing, not an
+  obsolete one, so it is in scope — but it is pre-release, and that is worth
+  knowing before it is built rather than after.
+
+Two further checks stood: `attachment` really is one of the twenty-two members of
+`property_base_types()` with **zero** occurrences across tables, functions and
+CHECK constraints — a vocabulary member with no mechanism; and `App.tsx` really
+mounts one list page per resource kind under `/ontology` with no `:id` route.
+
+---
+
 ## The deprecation audit (2026-08-15)
 
 Every page carrying a **planned deprecation** callout was checked against what
