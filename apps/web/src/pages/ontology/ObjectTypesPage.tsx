@@ -4,11 +4,11 @@
 
 import { useMemo, useState } from 'react'
 import {
-  Button, Card, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
+  Button, Callout, Card, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
   InputGroup, Intent, NumericInput, Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   PROPERTY_TYPES, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
   attachProblem,
@@ -45,7 +45,7 @@ import { MetadataCard } from '@/features/objectTypes/MetadataCard'
 import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
-import { tileStyle, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
+import { tileStyle, typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
 import { useValueTypes } from '@/features/valueTypes/api'
 import { indexPhase, useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
@@ -336,19 +336,50 @@ export default function ObjectTypesPage() {
   const reindex = useReindex()
   const pushRecent = useAppStore((s) => s.pushOmaRecentType)
 
-  // The open type travels in the URL, so a Discover card, a search hit and a
-  // shared link all land on the same thing.
-  const [params, setParams] = useSearchParams()
-  const selectedId = params.get('type')
-  const selected = types.find((t) => t.id === selectedId) ?? null
+  // A resource has its OWN view at its own path, rather than an inline section
+  // under the grid reached by ?type=. osp-navigate-security-tab.png shows the
+  // shape: a back control above the resource's own header and section nav, with
+  // the list nowhere on the screen. This component serves both routes, which is
+  // why the detail still lives in this file — the sections it renders are built
+  // from components defined here, and moving them would be a larger change than
+  // the route it is here to add.
+  const { id: routeId } = useParams()
+  const navigate = useNavigate()
+  const selected = types.find((t) => t.id === routeId) ?? null
   const openType = (id: string) => {
-    if (id === selectedId) { setParams({}); return }
-    setParams({ type: id })
     pushRecent(id)
+    void navigate(typePath(id))
   }
 
   if (!ontology && !loadingOntology) {
     return <div className="oma-page max-w-2xl"><NoOntologyCallout /></div>
+  }
+
+  if (routeId) {
+    if (isLoading) {
+      return <div className="oma-page"><Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading…</Card></div>
+    }
+    if (!selected) {
+      return (
+        <div className="oma-page max-w-2xl">
+          <Callout intent={Intent.WARNING} title="No such object type">
+            It may have been deleted, or you may not have access to it.{' '}
+            <Link to="/ontology/object-types">Back to object types</Link>
+          </Callout>
+        </div>
+      )
+    }
+    return (
+      <div className="oma-page">
+        {/* The capture's back control names where it returns to, and it returns
+            to the Ontology Manager home rather than to the list the resource was
+            opened from. */}
+        <Link to="/ontology" className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+          <Icon icon="arrow-left" size={14} />Discover
+        </Link>
+        <TypeDetail type={selected} allTypes={types} />
+      </div>
+    )
   }
 
   return (
@@ -371,7 +402,6 @@ export default function ObjectTypesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {types.map((t) => (
                 <Card key={t.id} interactive compact
-                  className={selectedId === t.id ? '!border-primary' : ''}
                   onClick={() => { openType(t.id) }}>
                   <div className="flex items-center gap-2">
                     <span className="oma-tile is-sm" style={tileStyle(t)}>
@@ -410,8 +440,6 @@ export default function ObjectTypesPage() {
           )}
         </section>
 
-        {/* Link endpoints are just object types, and a link stays in one ontology. */}
-        {selected && <TypeDetail type={selected} allTypes={types} />}
       </div>
     </div>
   )

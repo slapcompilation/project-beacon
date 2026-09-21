@@ -102,6 +102,37 @@ chunk by hand instead, and it moved two things:
   obsolete one, so it is in scope — but it is pre-release, and that is worth
   knowing before it is built rather than after.
 
+### Reconciliation of 835 (the after-build read, 2026-09-22)
+
+Re-read whole: the `ObjectTypeDatasource` section of
+`api/ontologies-v2-resources-object-types-get-object-type-by-rid-batch.md`,
+including the parts 835 did not quote.
+
+**Confirmed, which is worth recording as much as a fault.** The edits-only
+DATASOURCE 835 built is genuinely distinct from the edit-only PROPERTY, and the
+api says so in its own words — the datasource "has no backing tabular datasource",
+while other datasources "have edit only *properties*, which are permissioned to
+the backing tabular datasource". We already had the second, under a different
+name: `object_type_properties_source_names_its_data` admits `source = 'user_input'`
+with a datasource set and no backing column, which IS `PropertyTypeMappingInfo.editOnly`.
+A two-vocabularies pair, not a duplicate. 835 did not rebuild an existing concept.
+
+**Found, and queued.**
+
+- **`ObjectTypeDatasource.rid` is `required` on the wire and our table has none.**
+  32 other tables carry a `rid`; `object_type_datasources` does not. Small, and it
+  belongs with the RID grammar work rather than with the datasource kinds.
+- **`PropertyTypeMappingInfo` is a THREE-member union** — `column`, `struct`,
+  `editOnly` — and we hold two of them. `property_struct_fields.backing_column`
+  maps each field to a column, whereas the api's `struct` member is ONE struct
+  `column` plus a `fields` map from backing struct field name to ontology
+  `apiName`. Whether ours encodes that shape or a flatter one is an open question
+  for the struct chunk (item 19), not a settled gap — recorded so it is asked.
+
+**Corroborates 833.** The api says the `datasources` list "may be empty if the
+user doesn't have access to any datasources", which is the read-side of the
+Viewer requirement 833 enforces, stated from the wire's side.
+
 Two further checks stood: `attachment` really is one of the twenty-two members of
 `property_base_types()` with **zero** occurrences across tables, functions and
 CHECK constraints — a vocabulary member with no mechanism; and `App.tsx` really

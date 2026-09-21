@@ -26,6 +26,7 @@ import {
   InputGroup, NonIdealState, Popover, Spinner, Tag,
 } from '@blueprintjs/core'
 import { useAppStore } from '@/stores/app.store'
+import { typePath } from '@/features/ontologyManager/resources'
 import {
   FLAG_LABEL, useCandidates, useCleanupConfig, useEffectiveFlags, useRunCleanup, useSnooze,
   useSnoozed, useUnsnooze, useDeprecateCandidates, useDeleteCandidates,
@@ -222,7 +223,7 @@ export default function CleanupPage() {
                           {c.reads === null ? '—' : c.reads}
                         </td>
                         <td className="text-right">
-                          <Link to={`/ontology/object-types?type=${c.object_type_id}`}>
+                          <Link to={typePath(c.object_type_id)}>
                             <Button variant="minimal" size="small" icon="arrow-right" />
                           </Link>
                         </td>

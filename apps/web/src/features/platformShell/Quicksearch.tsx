@@ -24,6 +24,7 @@ import { useAppStore } from '@/stores/app.store'
 import { ALL_APPS, titleForPath } from './apps'
 import { searchObjects } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
+import { typePath } from '@/features/ontologyManager/resources'
 
 /** The modifier this OS renders in the hint. The handler accepts both. */
 export const MOD = typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent) ? '⌘' : 'Ctrl+'
@@ -50,7 +51,7 @@ export function Quicksearch({ onClose }: { onClose: () => void }) {
     ...ALL_APPS.map((a) => hit(`app:${a.path}`, a.icon, a.name, a.tagline, 'Apps', a.path)),
     // An object type answers to both its label and its API name; both are titles.
     ...objectTypes.map((t) => hit(`ot:${t.id}`, 'cube', t.label, t.api_name, 'Objects',
-      `/ontology/object-types?type=${t.id}`, `${t.label} ${t.api_name}`)),
+      typePath(t.id), `${t.label} ${t.api_name}`)),
     ...datasets.map((d) => hit(`ds:${d.id}`, 'database', d.name, datasetLocation(d), 'Datasets', '/datasets')),
     ...projects.map((p) => hit(`pj:${p.id}`, 'folder-close', p.name, p.apiName, 'Files', '/projects')),
   ], [objectTypes, datasets, projects])
@@ -76,7 +77,7 @@ export function Quicksearch({ onClose }: { onClose: () => void }) {
         const rows = await client(searchObjects).executeFunction({ p_query: q, p_limit: 5 }) as unknown as
           { object_type_id: string; object_type_label: string; primary_key: string; title: string }[]
         return rows.map((r) => hit(`obj:${r.object_type_id}:${r.primary_key}`, 'cube-add',
-          r.title, r.object_type_label, 'Objects', `/ontology/object-types?type=${r.object_type_id}`))
+          r.title, r.object_type_label, 'Objects', typePath(r.object_type_id)))
       } catch {
         return []
       }
