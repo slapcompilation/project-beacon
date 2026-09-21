@@ -88,6 +88,22 @@ So, before building anything from a page:
    capture a number came from.** Scale is not a guess either: a 1px CSS rule is a
    hairline, so a divider's thickness in device pixels gives the capture's ratio.
 
+   **And when the eras disagree, build the NEWER one.** Standing instruction from
+   the operator, 2026-09-21: *we only focus on the latest capabilities, and
+   anything obsolete is disregarded.* So the era question is no longer a judgement
+   call to bring back — decide it, name the era in the surface, and move. The
+   deciding evidence is usually a feature: the generation that carries a capability
+   the current prose documents IS the current generation. `osp-testing-entry-point.png`
+   shows the Security policies section as a **table** with `Test policies`, a `⚙`
+   column control and a `•••` overflow; `osp-object-security-policy-properties.png`
+   shows the same section as **cards** with no `Test policies` anywhere. The prose
+   documents testing, so the table is current and the cards are not, however
+   faithful our card list was to the capture it was built from.
+
+   Being faithful to an obsolete capture is still wrong. If we already built the
+   older era, that is a **migration forward**, recorded and scheduled — not a
+   reason to keep it.
+
 **And say who skipped it.** Not "the image nobody had read" — every reading here
 has the same author as the code, and the passive voice turns an omission into a
 property of the corpus. Write "the image I skipped", in readings and migration
@@ -95,6 +111,27 @@ headers alike, because those are read next session as fact. The rule is here on
 results, not manners: **re-reading what I claimed to have read has the highest
 hit rate of anything in this repository** — a confirmed inference, three unbuilt
 Cleanup features and a falsified guard (597), all from images already claimed.
+
+### Build the latest generation only
+
+Rule 8 generalises past screenshots, and it is how the operator wants this repo
+built: **where the docs describe more than one generation of a mechanism, only the
+newest is a target.** Do not report an obsolete mechanism as a gap, and do not
+build one to "match" Foundry.
+
+The docs label the obsolete generation for us; look for the label before building:
+
+| signal in the page | what it means here |
+|---|---|
+| "Object Storage v1 (Phonograph)" beside a v2 sentence | build the v2 arm only — they can state *opposite* requirements, and `configuring-rv-access-controls.md` does exactly that about seeing a restricted view |
+| a section called **Previous permission models** | `Ontology roles` and `datasource-derived` permissioning are named there. Neither is a gap |
+| *deprecated*, *legacy*, *superseded*, *migrate to* | the target is what it says to migrate **to** |
+| a migration tool exists (e.g. restricted views → object security policies) | the tool's DESTINATION is current; its source is not |
+
+**What this does not license.** It is not permission to call something obsolete
+because it is inconvenient, and it is not a reason to delete a working mechanism
+the current docs still describe. An OSv1-only feature is out of scope; a feature
+that merely *also* existed in OSv1 is not.
 
 ### The agents, and what they may not do
 
@@ -227,6 +264,66 @@ table, real columns, per type. Links are backed by object type foreign keys or a
 join dataset (`create-link-type.md`). If a design needs a generic table with a
 `kind` column, it is this mistake again.
 
+## Reconcile AFTER the build. Every time. No exceptions.
+
+Reading a page before building is half the loop. **The other half is re-reading
+the source pages WHOLE once the thing is built**, and for a long time only the
+first half actually happened here: I read before building, then updated the
+readings from what I already believed, which can only ever confirm it. The
+operator asked whether I reconcile after each build. I did not, and the pass that
+followed the question was the most productive of that session.
+
+**This is not an optional later audit. It is part of the chunk.** The PR that
+ships a build ships its reconciliation, or the very next PR does and says so.
+A build is not finished when it is green; it is finished when the pages it came
+from have been read again against it.
+
+### How to do it
+
+1. **Re-read the source pages end to end — not the sentences you cited.** The
+   sentences you quoted are the ones you already believe. Every finding has come
+   from the paragraphs beside them: the section you skipped, the limitations
+   block, the neighbouring page, the bullet list under the sentence you used.
+2. **Read the enumerations again and COUNT.** A page that lists four things while
+   the surface renders two is the single most common finding, and it is invisible
+   until you count. `ontology-permissions.md` enumerates four explanations the
+   Security tab gives; we had built two.
+3. **Attack your own conclusions, not your code.** Point the adversary at a
+   reading's Decisions block, a migration header, a build plan. Guards check
+   grammar; the expensive errors are all in what I concluded.
+4. **Verify anything you asserted from an image, against the image's dimensions.**
+   Two crops of a 1392px dialog end in grey canvas, and I wrote "the dialog has no
+   Organizations row" from them. That claim reached an applied migration and the
+   user-facing surface. Never assert from a crop.
+5. **Separate UNBUILT from UNPUBLISHED, and default to UNBUILT.** "Unpublished" is
+   a claim about Palantir's documentation and is usually false; "unbuilt" is a
+   claim about us and is usually true. Nested-group authoring, the Test policies
+   modal and `check_access` on an object type were all filed as undecided when the
+   pages decide them plainly.
+6. **Correct forward, including what already shipped.** An applied migration
+   cannot be edited, so a false claim in its header is corrected by a new
+   migration that says what was false and why. The same goes for a comment in a
+   component and a row in a gap document — those are read next session as fact.
+7. **Record what the pages CONFIRMED, not only what they overturned.** A
+   reconciliation that only ever reports errors teaches the next reader nothing
+   about which decisions were sound.
+
+### What the after-read has actually caught
+
+Not a hypothetical. In one arc, the after-read alone produced: a **live read leak**
+(search returned and matched on a title a property policy hides — 832); **two false
+claims** of mine that had reached an applied migration and the UI; an **entire
+published requirement that was unenforced** (objects were readable without any
+access to their backing datasource — 833); a **wrong arm in a shipped design** (the
+restricted-view requirement is stated oppositely for v1 and v2, and I had built the
+v1 answer); a **refusal that should not exist** (`check_access` rejecting object
+types — 834); and a **published four-item enumeration rendered as two**.
+
+It also produced a deliberate *non*-build: the backing datasource must be in the
+project for an object to index, which we cannot enforce faithfully without project
+references. **Recording that is a result.** A half-built version looks like a
+foundation — see the top of this file.
+
 ## What is here
 
 ```
@@ -248,13 +345,15 @@ docs/substrate-reference/ 441 mirrored Supabase pages. What we build it WITH —
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
-The core began as eleven tables and the platform holds **106** as of
-2026-08-22, with 486 functions and 134 tables under RLS. **Ask the database what
-exists rather than a table in this file** — and note that this paragraph has now
-gone stale TWICE: it said ~65 while the answer was 106, in the same sentence that
-warns about it. Every count above is a snapshot with a date, not a fact;
-`information_schema` and `pg_proc` are the fact. The rule is unchanged: every
-value in every CHECK traces to a page.
+The core began as eleven tables and the platform holds **240** public tables and
+views as of 2026-09-21, with **847** functions and 526 CHECK constraints.
+**Ask the database what exists rather than a table in this file** — and note that
+this paragraph has now gone stale THREE times: it said ~65 while the answer was
+106, then 106 while the answer was 240, each time in the same sentence that warns
+about it. Do not trust the number you are reading right now either. Every count
+above is a snapshot with a date, not a fact; `pg_class`, `pg_proc` and
+`pg_constraint` are the fact. The rule is unchanged: every value in every CHECK
+traces to a page.
 
 **The ontology holds objects.** This paragraph used to say it could not, long
 after it stopped being true. `index_object_type` builds `objects.ot_<uuid>` — a
@@ -503,3 +602,7 @@ do take from their stack:
 
    Assertions in the migration prove the change at the moment it lands; the
    platform suite proves it still holds. Both, not either.
+
+6. **Reconcile after it lands.** Re-read the pages it came from, whole. See
+   *Reconcile AFTER the build* above — it is a step in this list, not a separate
+   discipline, and the chunk is not done until it has happened.
