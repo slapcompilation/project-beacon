@@ -6,7 +6,7 @@
 
 import type { ActionType, FunctionType, Json } from './client'
 
-// ── Value sets (131) ─────────────────────────────────────────────────
+// ── Value sets (132) ─────────────────────────────────────────────────
 // Every single-column CHECK whose legal values are a literal array, on a
 // table the app role may read. Hand-writing one of these is how it drifts.
 
@@ -219,6 +219,9 @@ export type ObjectSetsSetKind = 'exploration' | 'list'
 
 /** `object_type_datasources.conflict_resolution` */
 export type ObjectTypeDatasourcesConflictResolution = 'apply_user_edits' | 'apply_most_recent_value'
+
+/** `object_type_datasources.datasource_kind` */
+export type ObjectTypeDatasourcesDatasourceKind = 'dataset' | 'restrictedView' | 'mediaSetView' | 'timeSeries' | 'editsOnly'
 
 /** `object_type_materializations.propagation` */
 export type ObjectTypeMaterializationsPropagation = 'automatic' | 'periodic'
