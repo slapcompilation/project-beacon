@@ -129,6 +129,35 @@ A two-vocabularies pair, not a duplicate. 835 did not rebuild an existing concep
   `apiName`. Whether ours encodes that shape or a flatter one is an open question
   for the struct chunk (item 19), not a settled gap — recorded so it is asked.
 
+### Reconciliation of 208 (the after-build read, 2026-09-22)
+
+Re-read whole: `ontology-manager/navigation.md` and its two images.
+
+**It corrected the thing I had just shipped.** I labelled the back control
+`Discover`, read off `osp-navigate-security-tab.png` — where the control appears
+incidentally, in a capture whose subject is a security policy.
+`ontology-manager/navigation.md` is the FEATURE page for this control, its prose
+says **Back home**, and its own annotated capture
+(`oma-user-interface-navigation-back-home.png`, 3324x1690, a full view and not a
+crop) shows **Back home**. Corrected forward. The rule this re-proves is already
+written down: read the feature page, not the page where the thing merely appears.
+
+**Found, and queued.**
+
+- **The hover quick-links are unbuilt.** "Hovering over the **Back home** button
+  will also bring up quick links to recently edited object types, link types, and
+  action types, as well as all resources that are related to the one you are
+  currently viewing." We already store recents (`pushOmaRecentType`), so the data
+  is there and the affordance is not.
+- **The control is published for THREE kinds** — "an object type, link type, or
+  action type" — and only object types have a view. The other two are the rest of
+  item 208.
+- **The resource card carries a favourite star and a `•••` overflow**, and the
+  Overview header carries `Index status` and `Edits` beside `Status` and
+  `Visibility`. None of those are built.
+- **The Overview's `Action types (6)` card is confirmed absent**, which the census
+  already listed; the capture shows it beside `Properties (17)`.
+
 **Corroborates 833.** The api says the `datasources` list "may be empty if the
 user doesn't have access to any datasources", which is the read-side of the
 Viewer requirement 833 enforces, stated from the wire's side.
