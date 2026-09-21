@@ -87,6 +87,7 @@ const renderOma = (at = '/ontology') => {
           <Route path="/ontology" element={<OmaLayout />}>
             <Route index element={<DiscoverPage />} />
             <Route path="object-types" element={<ObjectTypesPage />} />
+            <Route path="object-types/:id" element={<ObjectTypesPage />} />
             <Route path="shared-properties" element={<SharedPropertiesPage />} />
             <Route path="link-types" element={<LinkTypesPage />} />
             <Route path="action-types" element={<ActionTypesPage />} />
@@ -124,7 +125,7 @@ describe('Ontology Manager chrome', () => {
   it('lands on Discover, whose cards link to the type they name', async () => {
     renderOma()
     const card = await screen.findByRole('link', { name: /Aircraft/ })
-    expect(card.getAttribute('href')).toBe('/ontology/object-types?type=ot1')
+    expect(card.getAttribute('href')).toBe('/ontology/object-types/ot1')
     // The index count is the moment a type goes live; an unindexed one says so.
     expect(await within(card).findByText('12 objects')).toBeDefined()
     expect(within(await screen.findByRole('link', { name: /Flight/ })).getByText('No description')).toBeDefined()
@@ -141,6 +142,23 @@ describe('Ontology Manager chrome', () => {
     renderOma(path)
     expect(await screen.findByRole('heading', { name: title })).toBeDefined()
     expect(await screen.findAllByText(row)).not.toHaveLength(0)
+  })
+
+  // A resource has its OWN view at its own path — the capture shows it with the
+  // list nowhere on the screen, above a control naming where it returns to.
+  it('opens a resource in its own view, not as a section under the list', async () => {
+    renderOma('/ontology/object-types/ot1')
+    const back = await screen.findByRole('link', { name: 'Discover' })
+    expect(back.getAttribute('href')).toBe('/ontology')
+    // The list's own heading and the sibling type are both gone: this is the
+    // resource's view, not the list with something selected under it.
+    expect(screen.queryByRole('heading', { name: 'Object types' })).toBeNull()
+    expect(screen.queryByText('Flight')).toBeNull()
+  })
+
+  it('says so when the path names a resource that is not there', async () => {
+    renderOma('/ontology/object-types/nope')
+    expect(await screen.findByText('No such object type')).toBeDefined()
   })
 
   // A new enrollment has no ontology, and nothing below can be authored without

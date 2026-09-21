@@ -61,7 +61,9 @@ const ICON_OF: Record<OmaKind, IconName> =
 
 /** Where an object type's detail lives. The id travels in the URL so a card, a
  *  search hit and a shared link all land on the same open type. */
-export const typePath = (id: string) => `/ontology/object-types?type=${id}`
+// A resource has its own path, not a selection on the list's path. The capture
+// shows the resource view with the list nowhere on the screen (835-era item 208).
+export const typePath = (id: string) => `/ontology/object-types/${id}`
 
 /** The ontology OMA is pointed at. The id is session state; the row is server
  *  state, so it is resolved here rather than stored. */
