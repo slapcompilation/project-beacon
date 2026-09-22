@@ -129,6 +129,55 @@ A two-vocabularies pair, not a duplicate. 835 did not rebuild an existing concep
   `apiName`. Whether ours encodes that shape or a flatter one is an open question
   for the struct chunk (item 19), not a settled gap — recorded so it is asked.
 
+### Reconciliation of 839 (the after-build read, 2026-09-22)
+
+Re-read whole: `object-indexing/data-restrictions.md`, of which 839 used one
+bullet. The page is 45 lines and carries several rules the census filed
+separately; reading it whole is what connects them.
+
+**Confirmed.** The page forbids five categories as primary keys — Geopoint,
+Geoshapes, Arrays, Time series properties, and "Real number types (decimal,
+double, float)". `primary_key_eligibility` answers `no` for every one of them and
+for nothing it should allow. Nothing to build.
+
+**Found, and now precisely sourced rather than vaguely queued.**
+
+- **The failure differs BY DATASOURCE KIND, and the page says so in its opening
+  paragraph:** "For object types backed by batch datasources, violations will
+  cause indexing jobs to fail. For object types backed by streaming datasources,
+  records that violate these restrictions are dropped." Streaming is a datasource
+  kind 835 recorded as published-and-unrepresentable, so the drop arm has no
+  subject here yet — but it is the same rule with two outcomes, and whoever
+  builds streams owns it.
+- **Property size limits are a published table:** String properties 12 MB, Array
+  properties 100,000 elements, and "Properties exceeding these limits will cause
+  indexing jobs to fail". Unbuilt. The page also gives the documented escape for
+  each — a media reference for large strings, a link type for large arrays.
+- **Value restrictions at index time**, all unbuilt and all on this one page: no
+  `NaN` or `±infinity`, no empty strings ("in OSv1, empty strings were silently
+  converted to nulls"), no nested arrays, no null elements inside an array.
+- **Schema migration on a base-type change** is its own rule with its own error —
+  "all existing values for that property must be strictly compatible with the
+  target type... the migration will fail with an error such as `A property could
+  not be cast to the new type`", and it "cannot automatically clean or coerce".
+
+**What building it found, which is the argument for building it.** The predicate
+immediately caught an incoherence in OUR OWN map: `property_column_type` sent
+`attachment` through its `ELSE` to `jsonb` while the published rule is that an
+attachment's backing column "must be a String". Corrected in 839 rather than
+exempted. It then caught two TEST FIXTURES that declared every column `STRING`
+regardless of the property bound to it — a `seats` column backing an `integer`
+property and a `flag` column backing a `boolean` one. Both were sloppy because
+nothing had ever checked; the fixture helper now takes a type per column.
+
+**And the shape of the rule mattered more than the rule.** The rule is published;
+the MAPPING is not. Two column-to-base-type statements exist in the whole mirror.
+So the predicate is derived from `dataset_field_sql_type` and
+`property_column_type` — the two functions the index build itself uses — and
+decided by `pg_cast` at implicit or assignment context, which is the question the
+page says the build asks. It fails OPEN where either side does not resolve,
+because a lint that cannot judge must not accuse.
+
 ### Reconciliation of 838 (the after-build read, 2026-09-22)
 
 Re-read whole: `object-link-types/struct-main-fields.md` and the

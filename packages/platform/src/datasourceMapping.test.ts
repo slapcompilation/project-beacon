@@ -33,7 +33,11 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
     (await db.query(sql, p)).rows[0] as Record<string, string>
 
   /** A dataset with a schema, on its own master branch. */
-  const dataset = async (slug: string, columns: string[]) => {
+  // A column may declare its type. Every column was STRING until 839 taught the
+  // linter to ask whether a column can become its property — which immediately
+  // caught `seats`, a STRING column backing an `integer` property. The fixture
+  // was sloppy because nothing had ever checked; the lint is right.
+  const dataset = async (slug: string, columns: Array<string | [string, string]>) => {
     const ds = (await one(
       `insert into public.datasets (organization_id, project_id, api_name, name)
        values ($1,$2,$3,$3) returning id`, [f.orgId, f.projectId, slug])).id
@@ -47,7 +51,9 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
       await db.query(
         `insert into public.dataset_schemas (dataset_id, transaction_id, fields)
          values ($1,$2,$3::jsonb)`,
-        [ds, txn, JSON.stringify(columns.map((name) => ({ name, type: 'STRING' })))])
+        [ds, txn, JSON.stringify(columns.map((c) => (typeof c === 'string'
+          ? { name: c, type: 'STRING' }
+          : { name: c[0], type: c[1] })))])
       await db.query(`update public.dataset_transactions set status='COMMITTED',
                       committed_at=now() where id=$1`, [txn])
     }
@@ -152,7 +158,7 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
 
   it('a datasource spelling the key differently is reported until it says so', async () => {
     // A second dataset whose key column is `tail`, not `tail_number`.
-    const b = await dataset('dsmap586_b', ['tail', 'seats'])
+    const b = await dataset('dsmap586_b', ['tail', ['seats', 'INTEGER']])
     const dsB = (await one(
       `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
        values ($1,$2,$3) returning id`, [type, b.ds, b.br])).id
@@ -185,7 +191,7 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
     // "Boolean limits your object type to two object instances." A CHECK
     // already refuses the `no` tier, so the middle tier is the only one that
     // can reach the database at all.
-    const d = await dataset('dsmap586_bool', ['flag'])
+    const d = await dataset('dsmap586_bool', [['flag', 'BOOLEAN']])
     const bt = (await one(
       `insert into public.object_types (ontology_id, project_id, api_name, label)
        values ($1,$2,'Flagged','Flagged') returning id`, [ont, f.projectId])).id

@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (375) ───────────────────────────────────────────────────
+// ── FUNCTIONS (376) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -4290,6 +4290,20 @@ export const propertyBaseTypes = { apiName: 'property_base_types', kind: 'functi
 export const propertyColumnCheck = { apiName: 'property_column_check', kind: 'function' } as FunctionType<
   { p_base_type: string; p_column: string },
   string
+>
+
+/**
+ *  Whether a dataset column's type can become a property's. OSv2 enforces
+ *  data type coherence between datasource schema and object type schema on
+ *  every sync (object-indexing/data-restrictions). The mapping is not
+ *  published, so it is derived from the two functions the index build itself
+ *  uses — dataset_field_sql_type and property_column_type — and decided by
+ *  pg_cast at implicit or assignment context. It answers true when either
+ *  side does not resolve, because a lint that cannot judge must not accuse.
+ */
+export const propertyColumnCoherent = { apiName: 'property_column_coherent', kind: 'function' } as FunctionType<
+  { p_base_type: string; p_field: Json },
+  boolean
 >
 
 /**
