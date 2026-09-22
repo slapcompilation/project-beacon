@@ -129,6 +129,53 @@ A two-vocabularies pair, not a duplicate. 835 did not rebuild an existing concep
   `apiName`. Whether ours encodes that shape or a flatter one is an open question
   for the struct chunk (item 19), not a settled gap — recorded so it is asked.
 
+### Reconciliation of 838 (the after-build read, 2026-09-22)
+
+Re-read whole: `object-link-types/struct-main-fields.md` and the
+`Combine property reducers with struct main fields` section of
+`object-link-types/property-reducers.md`.
+
+**What the reading bought BEFORE the build, which is the cheaper half.** The page
+states plainly what main fields are not: "main fields only affect how Foundry
+displays data and implements interfaces. The underlying struct contains all
+fields with full fidelity, so all fields remain queryable and accessible", and
+"Queries operate on all struct fields, not just main fields". So nothing in the
+index, the readers, the filter grammar or the projection moves. 838 is one column
+and a tag. Without that paragraph the obvious move is to thread main fields
+through the projection, and the page denies it.
+
+**The real capability is a 2x2, and 838 built one axis.** `property-reducers.md`
+prints the table for a struct-array property:
+
+| configured | can implement |
+|---|---|
+| neither | `Struct Array` |
+| main field only | `Struct Array`, `String Array` |
+| reducer only | `Struct Array`, `Struct` |
+| both | `Struct Array`, `String Array`, `Struct`, `String` |
+
+Measured against ours: **property reducers have ZERO representation** — no table,
+no function — so three of those four rows are unreachable. And the main-field row
+is not wired either: `interface_implementation_mappings.resolution` admits
+`choose_existing`, `replace_existing`, `choose_backing_column`, `edit_only`,
+`skip` and has **no member naming a struct field**, nor any column referencing
+one. So 838 is the flag; the implementation path it is supposed to widen does not
+exist yet. Recorded rather than half-built, and the migration says so.
+
+**A REFUSAL that must land with that work, not after it.** "Interface actions
+that edit a property implemented through a property reducer or struct main field
+will return an error when called on objects of that type... struct main fields
+that extract a subset of fields have no way to populate the remaining ones." It
+has no subject today because nothing implements an interface through a main
+field. The day something does, the refusal is part of the same chunk — a
+one-directional transformation with no inverse is exactly the shape that gets
+built without its guard.
+
+**Beta, and said so.** The page's own heading is `Struct main fields [Beta]` and
+its callout says functionality may change. In scope under *build the latest
+generation only* — beta is newest, not obsolete — but the migration records it so
+the next reader is not surprised when the shape moves.
+
 ### Reconciliation of 836/837 (the after-build read, 2026-09-22)
 
 Re-read whole: `action-types/upload-attachments.md` and the supported-property-types
