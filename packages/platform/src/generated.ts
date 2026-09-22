@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (374) ───────────────────────────────────────────────────
+// ── FUNCTIONS (375) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1781,6 +1781,18 @@ export const approvalTaskKinds = { apiName: 'approval_task_kinds', kind: 'functi
 
 export const approvalTaskPayloadValid = { apiName: 'approval_task_payload_valid', kind: 'function' } as FunctionType<
   { p_kind: string; p: Json },
+  boolean
+>
+
+/**
+ *  Permissions to view, edit, and delete an attachment are consistent with
+ *  the object to which they are uploaded (action-types/upload-attachments).
+ *  The uploader arm covers the published state before any link exists,
+ *  because an attachment is uploaded as soon as it is added to an action
+ *  form.
+ */
+export const attachmentReadable = { apiName: 'attachment_readable', kind: 'function' } as FunctionType<
+  { p_attachment: string },
   boolean
 >
 
