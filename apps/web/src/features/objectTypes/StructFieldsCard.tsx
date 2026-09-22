@@ -10,6 +10,7 @@ import { Button, Callout, Card, HTMLSelect, HTMLTable, InputGroup, Intent, Tag }
 import type { PropertyDef } from '@beacon/ontology'
 import {
   STRUCT_FIELD_TYPES, useAddStructField, useRemoveStructField, useStructFields,
+  useSetStructMainField,
   type StructFieldType,
 } from '@/features/objectTypes/structFields'
 
@@ -43,6 +44,7 @@ function StructProperty({ property, fields }: {
 }) {
   const add = useAddStructField()
   const remove = useRemoveStructField()
+  const setMain = useSetStructMainField()
   const [apiName, setApiName] = useState('')
   const [label, setLabel] = useState('')
   const [type, setType] = useState<StructFieldType>('string')
@@ -66,15 +68,32 @@ function StructProperty({ property, fields }: {
         </Callout>
       ) : (
         <HTMLTable compact className="w-full text-xs">
-          <thead><tr><th>Field</th><th>Type</th><th>Column</th><th /></tr></thead>
+          <thead><tr><th>Field</th><th>Type</th><th>Column</th><th /><th /></tr></thead>
           <tbody>
             {fields.map((f) => (
               <tr key={f.id}>
-                <td>{f.display_name} <span className="text-muted-foreground">{f.api_name}</span></td>
+                <td>
+                  {f.display_name} <span className="text-muted-foreground">{f.api_name}</span>
+                  {/* "Configured main fields display a Struct main field tag in
+                      the Struct fields list." */}
+                  {f.is_main_field &&
+                    <Tag minimal intent={Intent.PRIMARY} className="ml-1">Struct main field</Tag>}
+                </td>
                 <td><Tag minimal>{f.field_type}</Tag></td>
                 <td className="text-muted-foreground">{f.backing_column ?? '—'}</td>
                 <td className="text-right">
+                  {/* Designating one does not change what is stored or what can
+                      be queried — "all fields remain queryable and accessible" —
+                      so this is a display designation, not an edit to the data. */}
+                  <Button variant="minimal" size="small"
+                    icon={f.is_main_field ? 'star' : 'star-empty'}
+                    title={f.is_main_field ? 'Remove the main field designation' : 'Designate as a struct main field'}
+                    aria-label={`${f.is_main_field ? 'Remove' : 'Designate'} ${f.api_name} as a struct main field`}
+                    onClick={() => { setMain.mutate({ id: f.id, isMain: !f.is_main_field }) }} />
+                </td>
+                <td className="text-right">
                   <Button variant="minimal" size="small" icon="cross"
+                    aria-label={`Remove ${f.api_name}`}
                     onClick={() => { remove.mutate(f.id) }} />
                 </td>
               </tr>

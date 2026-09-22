@@ -32,6 +32,10 @@ export interface StructField {
   field_type: StructFieldType
   backing_column: string | null
   position: number
+  /** One of the struct's core values rather than supplementary metadata.
+   *  Display and interface-picker only (838): every field stays stored,
+   *  queryable and mappable whatever this says. */
+  is_main_field: boolean
 }
 
 const KEY = ['struct-fields'] as const
@@ -42,7 +46,7 @@ export function useStructFields(propertyIds: string[]) {
     enabled: propertyIds.length > 0,
     queryFn: async (): Promise<StructField[]> => {
       const { data, error } = await supabase.from('property_struct_fields')
-        .select('id, property_id, api_name, display_name, description, field_type, backing_column, position')
+        .select('id, property_id, api_name, display_name, description, field_type, backing_column, position, is_main_field')
         .in('property_id', propertyIds)
         .order('position')
       if (error) throw new Error(error.message)
@@ -97,6 +101,22 @@ export function useRemoveStructField() {
       void qc.invalidateQueries({ queryKey: ['health'] })
       toast.success('Field removed')
     },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** "Toggle on Struct main field in the Edit {propertyName} struct field popup
+ *  window before you select Confirm." Multiple fields may be designated, so
+ *  this sets one row rather than moving a pointer on the property. */
+export function useSetStructMainField() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, isMain }: { id: string; isMain: boolean }) => {
+      const { error } = await supabase.from('property_struct_fields')
+        .update({ is_main_field: isMain }).eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: KEY }) },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
