@@ -436,3 +436,83 @@ the precedence rule: the half-built foundation, exactly.
 6. **NEW: the temporary/permanent axis.** Two pages disagree on how long a
    temporary object set lives, so the lifetime is not settled by the corpus even
    though the axis is.
+
+---
+
+# Question 2, settled by re-reading (2026-09-23)
+
+The revision above promoted one question to the centre: Foundry publishes two
+filter grammars, and which one a saved exploration persists decides whether our
+`filters` column is already right. Four angles were re-read to answer it.
+
+**The corpus does not state it.** Two pages make the claim and neither names a
+representation:
+
+> "Dynamic object sets are saved as the representation of the filters applied."
+
+— `object-explorer/configure.md`
+
+> "Dynamic object sets are saved as a representation of the filters applied to create the object set. When new data matches the filters, the object set will be updated."
+
+— `object-backend/overview.md`
+
+**But the surrounding evidence is decisive about what each grammar IS**, and
+three of the four facts below I verified myself rather than accepting.
+
+1. **Grammar A lives in exactly one page of the mirror.** Grepping
+   `presenceFilter`, `valuesFilter`, `MUST_HAVE` and `timestampRangeFilter`
+   across all 4,123 pages returns `object-explorer/generate-urls.md` and nothing
+   else. `MUST_NOT_HAVE` returns **nothing at all** — which is 475's own note,
+   that it is our name for a documented but unnamed mode.
+2. **That page obtains grammar A from a browser console** — `await
+   hubble_get_current_search()` — and hedges the result: "This example may be
+   out of date". It is client search state in transit, not a published resource
+   representation.
+3. **A saved exploration is reached by RID, never by grammar A.**
+   `generate-urls.md` publishes three routes, and only the third carries filters
+   inline. The `saved` route carries a RID and nothing else.
+4. **The api never speaks grammar A.** The one api hit for `propertyFilter` is a
+   false friend — the v1 query-parameter operator slot
+   `properties.{propertyApiName}.{propertyFilter}=` — and `MUST_HAVE` appears in
+   no api page.
+
+**And our column is a cited, already-attacked build, not a drift.** 475's header
+opens by saying the filter grammar is not invented and that `generate-urls.md`
+prints it, then enumerates all seven value kinds and marks the one inference it
+took. 776 and
+777 then widened the link member against `workshop/widgets-filter-list.md` and
+supplied the proof. So this was decided, with a reason, and re-attacked once.
+
+**Neither grammar contains the other.** A expresses link-presence filtering,
+for which B has no member at all — the api expresses a link constraint as
+`searchAround`. B expresses `or`, `not`, geometry, intervals and composition,
+for which A has no member. They are two languages for two jobs.
+
+## The resolution, and it closes Decision 3
+
+**What we actually lack is composition, not a filter vocabulary.** `union`,
+`intersect`, `subtract` and nesting have no encoding here; our filter payload
+has a published source and a proof. So:
+
+- **The `definition` column takes the api union's STRUCTURE** — the leaves and
+  the combinators — because that is the part that is missing, published, and
+  recursive.
+- **Its `filter` arm carries our existing grammar A payload, unchanged.** This
+  is a **declared divergence**, and the declaration is the point: the published
+  slot is `where · union · required` with 27 members, and we are putting a
+  different language in it. The reason is that grammar A is the only filter
+  grammar the Object Explorer publishes, it is what our evaluator already
+  compiles, and 475 cited it before building it.
+- **The divergence is bounded**, which CLAUDE.md requires of any divergence: it
+  holds only while nothing serves the api's `loadObjectSet`. The day something
+  does, the `where` translation becomes required — and it is not total in either
+  direction, so that day needs its own reading rather than a coercion.
+- **`filters` stays on the row** as the degenerate, un-composed exploration, so
+  no consumer moves. That is Decision 3's original intent, now resting on a
+  grammar question that has been answered instead of assumed.
+
+**Confidence, graded per the rule:** *certain* on facts 1 and 4 and on 475's
+provenance, which I grepped and read directly; *strong* on facts 2 and 3, read
+this session by an agent and consistent across two of them; *inference* on the
+resolution itself, which is a design choice the corpus does not make for us and
+is marked as one.
