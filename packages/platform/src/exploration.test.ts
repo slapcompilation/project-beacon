@@ -451,4 +451,108 @@ describe.skipIf(noDb)('the exploration engine', () => {
     expect(await size(exploration)).toBe(3)
     expect(await size(list)).toBe(2)
   })
+
+  // 843. "Represents the definition of an `ObjectSet` in the `Ontology`" — a
+  // fifteen-member union, ten of them recursive. Before it, object_sets was a
+  // flat row with no column that could hold another set, so union, intersect
+  // and subtract had no encoding at all.
+  //
+  // These run LAST in the file and the file shares one transaction, so `origin`
+  // is hidden and `status` is unsearchable by the time they do — the hints test
+  // above did that. Every set below is built from `distance` and `airline_id`,
+  // which it leaves alone.
+  describe('an object set is a tree', () => {
+    const base = () => ({ base: { objectType: flight } })
+    const filtered = (filters: unknown[]) => ({ filter: { objectSet: base(), where: filters } })
+    const far = () => filtered([{ type: 'propertyFilter', propertyType: 'distance',
+      value: { type: 'numberRangeFilter', min: 1000 } }])                       // F2, F4, F9
+    const a1 = () => filtered([{ type: 'propertyFilter', propertyType: 'airline_id',
+      value: { type: 'valuesFilter', values: ['A1'] } }])                       // F1, F2, F3
+    const keys = async (def: unknown): Promise<string[]> => {
+      const { rows } = await db.query(
+        'select d.primary_key k from public.object_set_definition_keys($1::jsonb) d order by 1',
+        [JSON.stringify(def)])
+      return (rows as { k: string }[]).map((r) => r.k)
+    }
+
+    it('admits the fifteen published members and refuses anything else', async () => {
+      const members = (await one('select public.object_set_definition_members() as m')).m as unknown as string[]
+      expect(members).toHaveLength(15)
+      expect(members).toContain('interfaceLinkSearchAround')
+      expect(members).toContain('methodInput')
+      const valid = async (d: string | null) =>
+        (await one('select public.object_set_definition_valid($1::jsonb) as v', [d])).v
+      expect(await valid('{"base":{"objectType":"x"}}')).toBe(true)
+      expect(await valid('{"nope":{}}')).toBe(false)
+      // A discriminated union carries exactly one member.
+      expect(await valid('{"base":{"objectType":"x"},"methodInput":{}}')).toBe(false)
+      // NULL is the degenerate case, not a malformed one, so it is VALID —
+      // the function is deliberately not STRICT.
+      expect(await valid(null)).toBe(true)
+    })
+
+    it('evaluates base and filter against the real index', async () => {
+      // F1..F4 from the datasource, plus F9 created by the edit above.
+      expect(await keys(base())).toEqual(['F1', 'F2', 'F3', 'F4', 'F9'])
+      expect(await keys(far())).toEqual(['F2', 'F4', 'F9'])
+      expect(await keys(a1())).toEqual(['F1', 'F2', 'F3'])
+    })
+
+    it('composes — the thing that had no encoding before', async () => {
+      expect(await keys({ union: { objectSets: [far(), a1()] } }))
+        .toEqual(['F1', 'F2', 'F3', 'F4', 'F9'])
+      expect(await keys({ intersect: { objectSets: [far(), a1()] } })).toEqual(['F2'])
+      // "subtract" removes the later operands from the first, so order matters
+      // and the list is walked as written.
+      expect(await keys({ subtract: { objectSets: [far(), a1()] } })).toEqual(['F4', 'F9'])
+      expect(await keys({ subtract: { objectSets: [a1(), far()] } })).toEqual(['F1', 'F3'])
+    })
+
+    // A shape must be complete; an engine may be partial. The nine members we
+    // do not evaluate say which member they are rather than answering wrongly.
+    it('refuses an unbuilt member by name', async () => {
+      const why = await refused(db, () => db.query(
+        'select * from public.object_set_definition_keys($1::jsonb)',
+        [JSON.stringify({ asBaseObjectTypes: { objectSet: base() } })]))
+      expect(why).toContain('asBaseObjectTypes')
+      expect(why).toContain('ObjectSetMemberUnsupported')
+    })
+
+    it('saves a composed set and reads it back, and a null definition is the degenerate tree', async () => {
+      const composed = (await one('select public.save_object_set($1::jsonb) as id',
+        [JSON.stringify({
+          name: 'Long haul not on A1', subject_type_id: flight, project_id: f.projectId,
+          definition: { subtract: { objectSets: [far(), a1()] } },
+        })])).id
+      const { rows } = await db.query('select e from public.object_set_rows($1, 100, 0) e', [composed])
+      expect((rows as { e: { flight_id: string } }[]).map((r) => r.e.flight_id).sort())
+        .toEqual(['F4', 'F9'])
+
+      // An exploration saved without a definition still resolves to
+      // filter(base(subject), filters) and its rows are unchanged.
+      const plain = (await one('select public.save_object_set($1::jsonb) as id',
+        [JSON.stringify({
+          name: 'Long haul', subject_type_id: flight, project_id: f.projectId,
+          filters: [{ type: 'propertyFilter', propertyType: 'distance',
+            value: { type: 'numberRangeFilter', min: 1000 } }],
+        })])).id
+      expect((await one('select public.object_set_definition($1) as d', [plain])).d)
+        .toHaveProperty('filter')
+      expect(Number((await one('select public.object_set_size($1) as n', [plain])).n)).toBe(3)
+    })
+
+    // The defect 843 fixed: object_set_keys resolved the primary key as
+    // api_name and indexed a row the engine emits by property_id, so it
+    // returned an empty array silently into the Automate condition path.
+    it('object_set_keys returns keys, where it used to return nothing', async () => {
+      const set = (await one('select public.save_object_set($1::jsonb) as id',
+        [JSON.stringify({
+          name: 'A1 flights', subject_type_id: flight, project_id: f.projectId,
+          filters: [{ type: 'propertyFilter', propertyType: 'airline_id',
+            value: { type: 'valuesFilter', values: ['A1'] } }],
+        })])).id
+      const k = (await one('select public.object_set_keys($1) as k', [set])).k as unknown as string[]
+      expect(k).toEqual(['F1', 'F2', 'F3'])
+    })
+  })
 })

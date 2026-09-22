@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (380) ───────────────────────────────────────────────────
+// ── FUNCTIONS (385) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3789,6 +3789,47 @@ export const objectSecurityPredicate = { apiName: 'object_security_predicate', k
   string
 >
 
+export const objectSetDefinition = { apiName: 'object_set_definition', kind: 'function' } as FunctionType<
+  { p_set: string },
+  Json
+>
+
+/**
+ *  Folds an ObjectSet definition to the primary keys it denotes. Evaluates
+ *  base, static, filter, union, intersect and subtract; the other nine
+ *  published members raise Ontology:ObjectSetMemberUnsupported naming
+ *  themselves.
+ */
+export const objectSetDefinitionKeys = { apiName: 'object_set_definition_keys', kind: 'function' } as FunctionType<
+  { p_def: Json; p_limit?: number },
+  { primary_key: string }[]
+>
+
+/**
+ *  The fifteen members of the published ObjectSet union, in api order
+ *  (api/v2-ontologies-v2-resources-ontology-object-sets-load-object-set). Ten
+ *  of them carry a nested object set.
+ */
+export const objectSetDefinitionMembers = { apiName: 'object_set_definition_members', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const objectSetDefinitionType = { apiName: 'object_set_definition_type', kind: 'function' } as FunctionType<
+  { p_def: Json },
+  string
+>
+
+/**
+ *  Whether a jsonb document is a well-formed ObjectSet definition — exactly
+ *  one published member, its required fields present, and every nested set
+ *  valid to any depth. NULL is the degenerate case and is valid.
+ */
+export const objectSetDefinitionValid = { apiName: 'object_set_definition_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
 /**
  *  The filter grammar generate-urls.md prints, widened by 776: a linkFilter
  *  carries either the flat presenceFilter value that page shows, or a nested
@@ -3862,9 +3903,10 @@ export const objectSetSubjectApiName = { apiName: 'object_set_subject_api_name',
 >
 
 /**
- *  Grammar for object_sets.traversals — every element is {edgeType,
- *  direction: forward|reverse, filters?}, at most 3 hops (Foundry caps Search
- *  Around depth at 3).
+ *  The Search Around chain. The three-hop cap is PUBLISHED, not ours: "Object
+ *  sets loaded into memory `.all()` or `.allAsync()` are allowed to have a
+ *  maximum of 3 search arounds" (functions/api-object-sets). A 2026-09-22
+ *  reading called it an invention; that was wrong and is corrected here.
  */
 export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid', kind: 'function' } as FunctionType<
   { p: Json },
