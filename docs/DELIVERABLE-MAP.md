@@ -129,6 +129,43 @@ A two-vocabularies pair, not a duplicate. 835 did not rebuild an existing concep
   `apiName`. Whether ours encodes that shape or a flatter one is an open question
   for the struct chunk (item 19), not a settled gap — recorded so it is asked.
 
+### Reconciliation of 836/837 (the after-build read, 2026-09-22)
+
+Re-read whole: `action-types/upload-attachments.md` and the supported-property-types
+table of `object-link-types/properties-overview.md`.
+
+**Confirmed, three times, and that is the point of recording it.**
+
+- `Attachment` sits in the table row whose two columns are *Valid as title key?*
+  and *Valid as primary key?* — **No** and **No** — and we already enforce both:
+  `attachment` is in `TITLE_KEY_INELIGIBLE` and
+  `primary_key_eligibility('attachment')` answers `no`. Nothing to build.
+- "permissions to view, edit, and delete an attachment are inferred from the
+  user's permissions on the underlying object **type**" — object TYPE, not
+  instance. 836's read policy asks `object_type_instances_readable(object_type_id)`,
+  which is the type-level question. The wording and the build agree.
+- The unmapping case names its cause in a parenthesis I had not quoted —
+  attachments "no longer mapped to an object (which occurs when the corresponding
+  property is deleted)". `attachment_links.property_id` records exactly that, so
+  the case is representable when the sweeper is built. The column earns its place.
+
+**Two rules this repository already records bit again, on brand-new tables.**
+
+- **824's STABLE-snapshot defect.** 836's read policy first called
+  `attachment_readable(id)`, a helper that looks the row up. A STABLE helper
+  evaluates against the snapshot at statement start, so it cannot see the row the
+  same statement is inserting, and `INSERT ... RETURNING` failed its own SELECT
+  policy. Rewritten over the row's COLUMNS. The dry run caught it; nothing else
+  would have.
+- **619's InitPlan rule.** 836 called `auth_org_id()` bare in an insert policy and
+  `rlsInitPlan.test.ts` refused it — a bare STABLE zero-argument helper is
+  re-evaluated per row, where the wrapped `(SELECT auth_org_id())` is hoisted once.
+  Measured cost when it was first found: 18x and 47x. **837** is the forward
+  correction, since 836 was already applied.
+
+Both are written down. Both still happened. The value of the suite and the dry
+run is that neither depends on my remembering.
+
 ### Reconciliation of 208 (the after-build read, 2026-09-22)
 
 Re-read whole: `ontology-manager/navigation.md` and its two images.
