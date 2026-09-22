@@ -432,6 +432,13 @@ export interface ObjectTypeDatasource {
    *  linter reports it when a marking property sits here); [] admits everyone. */
   allowedMarkings: string[] | null
   allowedOrganizations: string[] | null
+  /** "Each datasource of the object type can have different resolution
+   *  strategies" — which value wins when a user edit meets a datasource
+   *  update (object-edits/how-edits-applied). */
+  conflictResolution: 'apply_user_edits' | 'apply_most_recent_value'
+  /** The timestamp property the second strategy compares against. Required by
+   *  it, and the date property type will not do. */
+  timestampPropertyId: string | null
   datasetName: string
   branchName: string
   restrictedViewName: string
@@ -450,6 +457,21 @@ export async function setDatasourceControls(
 /** "The Map primary key helper will appear and prompt you for a column with
  *  values matching the primary key of the object type." Stored as an override:
  *  null means the key property's own backing column. */
+/** "Conflict resolution strategies are configured at the object type level and
+ *  are only supported for OSv2 object types... Each datasource of the object
+ *  type can have different resolution strategies." Both columns move together,
+ *  because the guard refuses `apply_most_recent_value` without a timestamp
+ *  property and refuses one that is not of the timestamp type. */
+export async function setDatasourceConflictResolution(
+  id: string,
+  strategy: 'apply_user_edits' | 'apply_most_recent_value',
+  timestampPropertyId: string | null,
+): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources')
+    .update({ conflict_resolution: strategy, timestamp_property_id: timestampPropertyId }).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function setDatasourcePrimaryKeyColumn(id: string, column: string | null): Promise<void> {
   const { error } = await supabase.from('object_type_datasources')
     .update({ primary_key_column: column === '' ? null : column }).eq('id', id)
@@ -459,7 +481,7 @@ export async function setDatasourcePrimaryKeyColumn(id: string, column: string |
 export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
   const { data, error } = await supabase.from('object_type_datasources')
     .select('id, dataset_id, branch_id, restricted_view_id, media_set_view_rid, primary_key_column, ' +
-            'allowed_markings, allowed_organizations, ' +
+            'allowed_markings, allowed_organizations, conflict_resolution, timestamp_property_id, ' +
             'datasets(name), dataset_branches(name), restricted_views(name)')
     .eq('object_type_id', objectTypeId)
   if (error) throw new Error(error.message)
@@ -467,12 +489,15 @@ export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<
     id: string; dataset_id: string | null; branch_id: string | null; restricted_view_id: string | null
     media_set_view_rid: string | null; primary_key_column: string | null
     allowed_markings: string[] | null; allowed_organizations: string[] | null
+    conflict_resolution: 'apply_user_edits' | 'apply_most_recent_value'
+    timestamp_property_id: string | null
     datasets: { name: string } | null; dataset_branches: { name: string } | null
     restricted_views: { name: string } | null
   }[]).map((r) => ({
     id: r.id, datasetId: r.dataset_id, branchId: r.branch_id, restrictedViewId: r.restricted_view_id,
     mediaSetViewRid: r.media_set_view_rid, primaryKeyColumn: r.primary_key_column,
     allowedMarkings: r.allowed_markings, allowedOrganizations: r.allowed_organizations,
+    conflictResolution: r.conflict_resolution, timestampPropertyId: r.timestamp_property_id,
     datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
     restrictedViewName: r.restricted_views?.name ?? '',
   }))

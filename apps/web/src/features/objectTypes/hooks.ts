@@ -26,7 +26,8 @@ import {
   fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
-  setDatasourcePrimaryKeyColumn, setDatasourceControls, fetchMediaBindings, setMediaBinding,
+  setDatasourcePrimaryKeyColumn, setDatasourceControls, setDatasourceConflictResolution,
+  fetchMediaBindings, setMediaBinding,
   type UpdateObjectTypeInput, type CreateLinkTypeInput, type LinkTypeRow,
 } from './api'
 
@@ -245,6 +246,22 @@ export function useSetDatasourcePrimaryKeyColumn(objectTypeId: string) {
       void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
       void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
     },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** Which value wins when a user edit meets a datasource update, per datasource
+ *  (842). The strategy and its timestamp property are one mutation because the
+ *  guard refuses the conditional strategy without one. */
+export function useSetDatasourceConflictResolution(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { id: string; strategy: 'apply_user_edits' | 'apply_most_recent_value'
+                      timestampPropertyId: string | null }) =>
+      setDatasourceConflictResolution(i.id, i.strategy, i.timestampPropertyId),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) }) },
+    // Ontology:MostRecentValueNeedsATimestamp names its own cause; showing it
+    // verbatim beats a generic failure.
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

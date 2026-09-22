@@ -8,12 +8,13 @@ import {
   Button, Callout, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
   InputGroup, Intent, Radio, RadioGroup, Switch, Tag,
 } from '@blueprintjs/core'
-import type { ObjectTypeDef } from '@beacon/ontology'
+import type { ObjectTypeDef, PropertyDef } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 import { useDatasets, useBranches } from '@/features/datasets/api'
 import {
   useObjectTypeDatasources, useAddObjectTypeDatasource, useRemoveObjectTypeDatasource,
   useSetDatasourcePrimaryKeyColumn, useSetDatasourceControls, useAllMarkings, useAllOrganizations,
+  useSetDatasourceConflictResolution,
 } from '@/features/objectTypes/hooks'
 import type { ObjectTypeDatasource } from '@/features/objectTypes/api'
 import { useMarkings, useResourceMarkings, useSetResourceMarking } from '@/features/markings/api'
@@ -280,6 +281,12 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
                 }} />
             </div>
           )}
+          {/* "Resolution happens on a property-by-property basis." A media set
+              view backs media properties directly and receives no user edits,
+              so it has no conflict to resolve. */}
+          {!s.mediaSetViewRid && (
+            <ConflictResolutionRow source={s} typeId={type.id} properties={type.properties} />
+          )}
           {/* "Every datasource that contains a mandatory control property must
               define a constraint on what values can be added" — shown once the
               type carries a marking property. */}
@@ -380,6 +387,62 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
 /** The datasource's mandatory-control constraint: allowed markings and/or
  *  allowed organizations. Null is undeclared — the linter reports it; an
  *  empty set is a real declaration that admits every user. */
+/** "Users can configure this option in the Ontology Manager, under the
+ *  Datasources section. Each datasource of the object type can have different
+ *  resolution strategies." Laid out as the capture does it
+ *  (object-edits/images/edits-conflict-resolution-configuration.png): the
+ *  strategy on one row with `Default` on the first option, the timestamp
+ *  property on the next. */
+function ConflictResolutionRow({ source, typeId, properties }: {
+  source: ObjectTypeDatasource; typeId: string; properties: PropertyDef[]
+}) {
+  const set = useSetDatasourceConflictResolution(typeId)
+  const conditional = source.conflictResolution === 'apply_most_recent_value'
+  // "requires that the datasource contains a property with the timestamp type;
+  //  the date property type will not work for this option"
+  const stamps = properties.filter(
+    (p) => p.type === 'timestamp' && (p.datasourceId === source.id || p.datasourceId === null))
+
+  return (
+    <div className="space-y-1 pl-5 text-xs">
+      <div className="flex items-center gap-2">
+        <span className="text-muted-foreground w-40">Conflict resolution strategy</span>
+        <Button size="small" variant={conditional ? 'minimal' : 'outlined'}
+          intent={conditional ? Intent.NONE : Intent.PRIMARY}
+          onClick={() => { set.mutate({ id: source.id, strategy: 'apply_user_edits', timestampPropertyId: null }) }}>
+          Apply user edits
+        </Button>
+        <Tag minimal>Default</Tag>
+        <Button size="small" variant={conditional ? 'outlined' : 'minimal'}
+          intent={conditional ? Intent.PRIMARY : Intent.NONE}
+          disabled={stamps.length === 0}
+          title={stamps.length === 0
+            ? 'This option requires that the datasource contains a property with the timestamp type; the date property type will not work for this option.'
+            : 'User edits are only applied if the timestamp of the user edit is more recent than the timestamp value coming from the datasource.'}
+          onClick={() => {
+            set.mutate({ id: source.id, strategy: 'apply_most_recent_value',
+                         timestampPropertyId: source.timestampPropertyId ?? stamps[0].id ?? null })
+          }}>
+          Apply most recent value
+        </Button>
+      </div>
+      {conditional && (
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground w-40">Timestamp property</span>
+          <HTMLSelect value={source.timestampPropertyId ?? ''}
+            title="The timestamp property must be in Coordinated Universal Time (UTC)."
+            onChange={(e) => {
+              set.mutate({ id: source.id, strategy: 'apply_most_recent_value',
+                           timestampPropertyId: e.currentTarget.value })
+            }}>
+            {stamps.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </HTMLSelect>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function MandatoryControlsRow({ source, typeId }: {
   source: ObjectTypeDatasource; typeId: string
 }) {
