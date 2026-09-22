@@ -300,6 +300,93 @@ Two further checks stood: `attachment` really is one of the twenty-two members o
 CHECK constraints — a vocabulary member with no mechanism; and `App.tsx` really
 mounts one list page per resource kind under `/ontology` with no `:id` route.
 
+### Reconciliation of 842 (the after-build read, 2026-09-22)
+
+Re-read whole: `object-edits/how-edits-applied.md` and both of its visibility
+flowcharts, `object-edits/materializations.md`,
+`object-edits/schema-migrations.md`, `object-edits/overview.md`,
+`object-edits/user-edit-history.md`, `object-edits/permission-checks.md`, and
+the configuration capture `edits-conflict-resolution-configuration.png`.
+
+**The census had this item backwards, and that direction matters.** It was filed
+as *an engine nothing reaches* — this repo's recorded dominant defect, an engine
+with no caller. Measured, it was the inverse: `conflict_resolution`, its CHECK,
+`timestamp_property_id` and `guard_conflict_resolution` all existed and
+`object_state` read none of them. **A settable value that changes nothing is
+worse than an absent one**, because the surface can offer it and the guard can
+defend it while the engine ignores it, and every layer looks built. Worth adding
+to the census's vocabulary as its own category rather than being folded into
+"partial".
+
+**What the images decided that the prose did not.** Two, and both changed code:
+
+- **The create path has its own timestamp diamond.** The most-recent chart
+  (`object-edits-visibility-flowchart-most-recent-strategy.png`, 2079x1169, a
+  full view) has seven decision diamonds where the default chart has four. The
+  extra pair are `Is the object present in the datasource?` then `Does the
+  timestamp on datasource occur before the time the create instruction happens?`,
+  whose NO arm leaves the object visible with the create's edits ignored and only
+  datasource data present. The prose describes the create path for the DEFAULT
+  strategy only. Without the image a create would have kept winning
+  unconditionally.
+- **The configuration blurb states three unpublished facts.** The capture reads
+  "Resolution happens on a property-by-property basis. Properties that have not
+  received user edits will continue to use latest pipeline. **Regardless of
+  resolution, all values are still written.** Edit-only properties **without a
+  backing column** always use the latest user edit." The middle sentence is a
+  storage claim we do not implement — we merge to one value per property and keep
+  nothing else — and the last adds a qualifier the prose omits, since our
+  edit-only properties are exactly the ones with no backing column. Recorded, not
+  built: storing the losing value has no reader here, and building a second
+  column per property to hold it would be the half-built foundation.
+
+**Confirmed, and each one is a build that did not happen.** `object_state`
+already implemented the DEFAULT chart correctly, diamond for diamond, and the
+delete path is shared between both charts — "Deletions are not considered an
+edit. Once a deletion is applied, the object is no longer visible regardless of
+datasource state" — so 842 touches neither. `guard_conflict_resolution` already
+held the timestamp requirement and the date-type refusal in the page's own words.
+The whole of 842 is the second chart's conditional arms and the column that dates
+the switch.
+
+**Found in the neighbouring pages, none of it built, and now counted rather than
+gestured at.** `schema-migrations.md` is the densest unbuilt page in this family:
+
+- **seven breaking schema changes and three non-breaking ones**, enumerated — and
+  the non-breaking list names five property attributes explicitly (display name,
+  title key, render hints, type classes, visibility).
+- **eight supported schema migrations in OSv2** — Drop all property edits, Drop
+  all struct field edits, Drop all edits, Move edits, Move struct field edits,
+  Cast property to new type, Cast struct field to new type, Revert migration. The
+  markdown list has nine bullets; the ninth is a recovery note, not a migration.
+- **the cast tables are TWO DIFFERENT SETS**: 24 casts for a property, 20 for a
+  struct field. The four a property may do and a struct field may not are
+  `Attachment → String`, `Geoshape → String`, `Mandatory marking → String` and
+  `String → Geoshape`. The page prints both tables and never states the
+  difference, so anyone building one set for both would be wrong in four places.
+  This is the same rule 839 hit from the other side: the mapping is published,
+  and only in a table.
+- **the Review changes dialog has five tabs** — All changes, Warnings, Errors,
+  Migrations, Conflicts — where the prose names only Migrations.
+
+`materializations.md` adds: two build intervals (`automatic` and `periodic`),
+three restricted-view policy shapes that BLOCK configuring a materialization,
+two options when an object type has several input datasources, three mandatory
+controls a user must satisfy, and two branching limitations. And the column-name
+configuration of a materialized dataset is a **choice of two** — formatted
+property API names, or the backing column name, the latter "Not compatible with
+MDO or edit-only properties" — which appears only in the image.
+
+**What the pages refuse to settle, so it is not invented later.** The tie case
+under Apply most recent value: the page says an edit applies if it is "more
+recent than" the datasource timestamp, and never says what happens when the two
+are equal. 842 takes strictly-older, which is the reading that makes "more
+recent" true, and says so here. Also unstated: the ordering between two user
+edits to the same property (offset tracking is the only sentence on concurrency),
+what happens to an individual edit value that fails a cast, what `Move edits`
+does when the destination already holds edits, and whether the 500-migration cap
+is per save, per object type or per ontology.
+
 ### Tier 2, attacked before it was built — and the head moved (2026-09-22)
 
 **The queue said tier 2 was headed by the four-job Funnel decomposition. It is

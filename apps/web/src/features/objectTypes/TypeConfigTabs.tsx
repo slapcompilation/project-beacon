@@ -406,7 +406,16 @@ function ConflictResolutionRow({ source, typeId, properties }: {
   return (
     <div className="space-y-1 pl-5 text-xs">
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground w-40">Conflict resolution strategy</span>
+        {/* The capture puts an ⓘ beside this label and the section's own blurb
+            above it. The blurb states three things the prose never does, so it
+            is kept verbatim rather than paraphrased. */}
+        <span className="text-muted-foreground w-40"
+          title={'Configure what values to keep for properties of this object type. '
+            + 'Resolution happens on a property-by-property basis. Properties that have not received '
+            + 'user edits will continue to use latest pipeline. Regardless of resolution, all values '
+            + 'are still written. Edit-only properties without a backing column always use the latest user edit.'}>
+          Conflict resolution strategy
+        </span>
         <Button size="small" variant={conditional ? 'minimal' : 'outlined'}
           intent={conditional ? Intent.NONE : Intent.PRIMARY}
           onClick={() => { set.mutate({ id: source.id, strategy: 'apply_user_edits', timestampPropertyId: null }) }}>
