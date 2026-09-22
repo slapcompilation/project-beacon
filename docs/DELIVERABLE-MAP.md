@@ -300,6 +300,154 @@ Two further checks stood: `attachment` really is one of the twenty-two members o
 CHECK constraints — a vocabulary member with no mechanism; and `App.tsx` really
 mounts one list page per resource kind under `/ontology` with no `:id` route.
 
+### Tier 2, attacked before it was built — and the head moved (2026-09-22)
+
+**The queue said tier 2 was headed by the four-job Funnel decomposition. It is
+not, and the ordering's own provenance does not survive the attack.** Three
+adversaries were run against the plan, the substrate and the ordering itself —
+the pass the queue was published without, because the first three challenge
+agents died on a session limit. All three returned `refuted`.
+
+**What the decomposition proposal got wrong.** `funnel-batch-pipelines.md`
+decomposes a pipeline into Changelog, Merge changes, Indexing and Hydration, and
+the tempting move is to map our one job onto the four. Two legs of that mapping
+are false:
+
+- **Hydration is not the 644 swap.** The page defines hydration as object
+  databases "downloading the index files from the dataset into the disks of the
+  OSv2 database search nodes" — a physical transfer with a duration, which
+  `pipeline2.png` renders as a **90%** badge on the running node. Our swap is
+  three DDL statements that move nothing and have no quantity to be 90% of. And
+  those three statements already carry a *different* published name: applied
+  migration 644 is titled "a rebuild becomes a replacement pipeline" and quotes
+  the replacement-pipeline paragraphs. One mechanism cannot hold two published
+  names, and the page orders hydration *after* the replacement pipeline.
+- **`index_object_type` is not the Indexing job.** It merges the edit log by
+  primary key (Merge changes), builds the typed table (Indexing) and renames it
+  over the live one, on top of a whole-current-view gather that the Changelog job
+  exists to eliminate. It is three of the four jobs, not one.
+
+**Why the collapse stays, on substrate grounds and not taste.** 442 collapsed the
+four jobs deliberately and `readings/ontology-backend-architecture.md` Decision 3
+records it. The re-attack confirms it and adds reasons 442 could not have known:
+
+- **The changelog job's left-hand operand does not exist.** Foundry's changelog
+  job *computes* the diff; it is not handed one. `dataset_rematerialize` drops the
+  physical table before the new one lands, so for every SNAPSHOT the prior state
+  is destroyed before a diff could be taken.
+- **No code path here can emit a non-SNAPSHOT transaction on a dataset backing an
+  object type.** `run_build_job`, `record_batch_run`, `build_materialization` and
+  `sync_table_region` all emit SNAPSHOT. The incremental arm is unreachable by
+  construction; only a hand-uploaded CSV can produce an APPEND.
+- **The 80% threshold is computable and constant.** `row_count` is NOT NULL so the
+  ratio is one query — and it answers 100% for every transaction this platform can
+  emit, so the branch always takes the full arm. Decision 4 stands, with a better
+  reason than the one it was written with.
+- **Deletions cannot reach an incremental index at all.** Nothing sets
+  `dataset_files.removes = true` and `txn_type='DELETE'` is unreachable, so a
+  deletion can only arrive as a SNAPSHOT replacement. The one mechanism that could
+  carry one into an APPEND changelog is the deletion column, which the page scopes
+  to "legacy Object Storage v1 changelog metadata" — out of scope under *build the
+  latest generation only*, and Foundry fully reindexes for it anyway.
+
+**Recorded as deliberately unbuilt, which is a result.** Incremental indexing and
+the changelog/hydration jobs are not gaps to close; they are mechanisms whose
+preconditions this substrate does not have. Closing them would build the
+half-built foundation the top of CLAUDE.md warns about.
+
+**What the ordering itself got wrong**, and these are provenance defects in a
+document read next session as fact:
+
+- **The justification is false for most of the tier.** The queue argued that
+  tier-2 items "are all written in terms of jobs that do not exist here". Roughly
+  15 of the 19 open items in the census section are independent of the
+  decomposition; the stream / CDC / direct-datasource cluster is blocked by
+  **streams**, which is a tier-*1* datasource item, and direct datasources are
+  published as the escape hatch *from* the pipeline. Exactly one item — the
+  Funnel pipeline graph in the Datasources tab — genuinely needs the four names.
+- **"Zero prerequisites sit in a later tier than their dependant" fails its first
+  spot check.** The object-type health item needs a monitoring-rule family filed
+  in tier 7.
+- **The item numbers map to no artifact on disk.** The reach figures (52, 43, 33,
+  208, 49, 210) were assigned by the derivation agents over a folded list and
+  cannot be resolved against `ONTOLOGY-PARITY.md` by any ordering — numbering its
+  433 capabilities gives 103 for the datasource kinds where the queue says 52, and
+  numbering only the 260 open items gives 45. **So the queue is keyed by
+  capability text from here on**, and a number in it is a historical label, not a
+  lookup key.
+- **Tier 1 is not finished.** Six of its seventy-nine items have shipped, and
+  tier 2 was entered on the strength of the first chunk alone.
+
+**The head that survived is 840**, which was already written when the adversaries
+ran and which two of the three independently argued for. It is cheaper, it fixes
+a live defect, and the defect blocks the decomposition's own first stage: a
+Changelog dataset receiving APPEND transactions produces exactly the data shape
+`index_object_type` refuses.
+
+### Reconciliation of 840 (the after-build read, 2026-09-22)
+
+Re-read whole: `object-indexing/funnel-batch-pipelines.md` and its four images,
+`data-integration/{datasets,views,change-data-capture}.md`,
+`object-edits/{how-edits-applied,materializations,schema-migrations}.md`,
+`object-backend/overview.md`, `object-indexing/{overview,faq,_index}.md`.
+
+**What the read bought before the build.** The rule 840 fixes is three sentences
+on one page, and the third is the one that decides it: "You may not have
+duplicate primary keys **within a single transaction**" is a strange thing to
+write unless a repeat *across* transactions is legal. Our indexer refused both,
+so an object type backed by a dataset that ever receives an APPEND failed its
+build the first time a row was updated. **Proved by running the migration's own
+proof against the unpatched function**, which returned
+`non-unique primary keys: "A" appears more than once in the backing datasources`
+where the page says the newer row wins.
+
+**And it had already been read.** `readings/datasets-rid-and-object-storage.md`
+records all three sentences together. The reading was right; the code never
+followed it — the defect class this repo files under *a lesson written is not
+followed*. The refusal itself never traced to this rule at all: it traces to a
+deep-dive lesson phrase listing example failures, which 442 quoted for the error
+*surface* and then implemented as a far wider refusal.
+
+**Confirmed, and worth recording as much as the fault.** The cross-datasource
+case is genuinely undecided by the page — it speaks only about the transactions
+of one dataset — so that refusal stays, and its message now says which case it
+is. And 644's contract held under the new failure path: the refused build left
+the live index serving, asserted in the proof rather than assumed.
+
+**Found in the images, which had been claimed as unopened.** `ONTOLOGY-PARITY.md`
+says the graph's shape "is evidenced only by screenshots ... which I did not
+open". They are open now, and they carry more than the prose:
+
+- **One Changelog job PER DATASOURCE.** `pipeline1.png` (882x1068, a full panel)
+  shows two dataset nodes each with its own Changelog node, fanning into a single
+  Merge changes → Indexing → Object Storage V2 spine. The prose says "computes the
+  data difference for all datasources" and the picture says how.
+- **Four node status glyphs, none of them named in the prose**: a green tick
+  (complete), a dark minus-in-circle (not run), a red exclamation disc (failed,
+  in `pipeline3.jpg`), and a refresh badge carrying a percentage (running).
+- **The data store row carries two independent chips**, `Data:` and `Schema:`,
+  with observed values `2 hours ago` / `No data indexed` and `Updating...` /
+  `Up to date`, beside **+ Add new data store**.
+- **The `•••` overflow holds exactly two items** — `Copy diagnostic logs` and
+  `Reindex` — and `reindex.png` also shows an **Enable high-scale indexing**
+  toggle ("Increase resources above normal thresholds for extremely large object
+  types"), rendered off, which appears nowhere in the prose.
+- **`monitoring-views/rules-reference.md` enumerates eight rules** for these jobs,
+  including `Changelog jobs failing`, `Merge changes job failing` and `Sync
+  propagation delay`. The census filed the health entry point as having "no rule
+  family to land on"; the family is published and counted.
+
+**Queued from this read**, none of it built: the `Data:`/`Schema:` pair and the
+data-store list; the high-scale indexing toggle; the eight monitoring rules; the
+per-datasource Changelog fan-in as a *surface* even though the job stays
+collapsed.
+
+**Next, and chosen by the adversary rather than by the queue:** the OSv2
+index-time data restrictions — `object-indexing/data-restrictions.md`, 45 lines,
+already read, no new resource needed, landing as further arms in the enforcement
+loop `index_object_type` already runs four passes of, beside the type-coherence
+predicate 839 built.
+
 ---
 
 ## The deprecation audit (2026-08-15)
