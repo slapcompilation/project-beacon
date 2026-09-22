@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (378) ───────────────────────────────────────────────────
+// ── FUNCTIONS (380) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2568,6 +2568,17 @@ export const compileWorkbookTransform = { apiName: 'compile_workbook_transform',
 >
 
 /**
+ *  Whether an edit made at p_at survives this datasource's conflict
+ *  resolution strategy, given the unedited datasource row. True for
+ *  apply_user_edits, for a null datasource timestamp, and when that timestamp
+ *  is older than the edit (object-edits/how-edits-applied).
+ */
+export const conditionalEditApplies = { apiName: 'conditional_edit_applies', kind: 'function' } as FunctionType<
+  { p_datasource: string; p_at: string; p_datasource_row: Json },
+  boolean
+>
+
+/**
  *  The 25 boards contour/boards-descriptions enumerates as headings plus Map
  *  from its own page, with the five capability flags of that page's own
  *  summary matrix (Visualize / Filter Rows / Aggregate / Manipulate Columns /
@@ -2910,6 +2921,16 @@ export const displayTimezoneValid = { apiName: 'display_timezone_valid', kind: '
 export const dynamicRecipients = { apiName: 'dynamic_recipients', kind: 'function' } as FunctionType<
   { p_effect: string; p_object_type: string; p_keys: string[] },
   string[]
+>
+
+/**
+ *  The subset of one edit's properties that survive conflict resolution,
+ *  decided per property by the datasource that backs it
+ *  (object-edits/how-edits-applied).
+ */
+export const editPropertiesThatApply = { apiName: 'edit_properties_that_apply', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_edit: Json; p_at: string; p_datasource_row: Json },
+  Json
 >
 
 /**
@@ -3863,8 +3884,10 @@ export const objectSetValueFilterValid = { apiName: 'object_set_value_filter_val
 
 /**
  *  Resolves one object from its datasource row and its edit log, following
- *  the four-step decision in object-edits/how-edits-applied. Checked against
- *  that page's T0–T14 table in @beacon/platform.
+ *  both conflict resolution strategies in object-edits/how-edits-applied —
+ *  the default four-step decision, and the most-recent-value chart's seven.
+ *  Checked against that page's T0-T14 table and its Ticket example in
+ *  @beacon/platform.
  */
 export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
