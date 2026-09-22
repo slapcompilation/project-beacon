@@ -11,6 +11,7 @@
     "check:classes": "node scripts/check-classes.mjs",
     "check:edge": "node scripts/check-edge-syntax.mjs",
     "check:readings": "node scripts/check-readings.mjs",
+    "check:shapes": "node scripts/check-shapes.mjs",
     "check:surfaces": "node scripts/check-surfaces.mjs",
     "db": "node scripts/db.mjs",
     "db:status": "node scripts/db.mjs --status",

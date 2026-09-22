@@ -376,6 +376,7 @@ pnpm dev                         # all apps
 pnpm --filter @beacon/web dev
 pnpm turbo lint type-check test  # what CI runs
 pnpm check:readings              # citations trace, and coverage claims are true
+pnpm check:shapes                # a load-bearing shape was checked before it changed
 pnpm check:doc-drift             # has a page we built from changed upstream?
 pnpm check:surfaces              # every web file is reachable from main.tsx
 pnpm check:classes               # every class a component names has a CSS rule
@@ -575,6 +576,80 @@ do take from their stack:
 - **Comments stay human.** One short line, present tense, explaining a *why* or
   a gotcha. No banners, no marketing voice, no restating the code.
 
+## A shape must be complete before it has consumers. An engine may be partial forever.
+
+**This is the rule that decides what order to build in, and it is not the same
+as the dependency order.** A dependency graph answers *what can be built*. It
+does not answer *what, if wrong, forces everything downstream to be rewritten* —
+and that is the cost that actually recurs here.
+
+**The asymmetry, measured on this repo's own migrations rather than argued:**
+
+| | what it is | what correcting it costs |
+|---|---|---|
+| **engine gap** | the column, the CHECK and the guard exist; nothing executes the rule | **a constant.** 842 added a missing engine behind an existing column in one additive migration, and not one of its four callers moved |
+| **shape error** | the encoding itself is wrong — a flat row where the API publishes a recursive union, a boolean where it publishes an enum, a discriminator inferred from which pointer is non-null | **the number of consumers.** 840 corrected a wrong primary-key semantic and had to rewrite a test that had *encoded* it, green for 400 migrations |
+
+Consumers only ever grow. So a shape is cheapest to correct the day it is
+written and most expensive the day you finally need to. **Front-load the shape
+decisions and defer engine completeness**, which is the opposite of what feels
+productive: 835 widened the datasource shape so `editsOnly` became
+*representable* while streams still have no engine, and that is correct and
+costs nothing later.
+
+**Where an unimplemented member goes: into the vocabulary, refusing by name.**
+Not absent, and never silently mis-evaluated. A namespaced refusal is a member
+of the shape that says what it is; an absent member is a shape that lies.
+
+### The audit, and when it runs
+
+`docs/SHAPE-AUDIT.md` holds one entry per load-bearing table: our shape as the
+catalog returns it, the published shape it was checked against, and the verdict.
+**"Ours diverges, and here is why that is deliberate" is a verdict, not a gap** —
+recording it is the point, because the next survey will otherwise find the same
+divergence and file it as work.
+
+**`pnpm check:shapes` is tied to the work, not to a calendar.** It prints the
+whole backlog every run — tables ranked by how many functions name them — and
+fails only when a migration in the branch changes the **shape or the access** of
+a table that already has many consumers and has never been audited. That is the
+moment the check is cheap and the last moment it still is. It runs in
+`db-migrate.yml` rather than `ci.yml`, because it counts consumers from
+`pg_proc` and `ci.yml` carries no database secret on purpose.
+
+**And audit the shapes an arc will touch BEFORE starting the arc**, not when the
+gate fires on the last migration of it. The gate catches a shape you are
+changing; it cannot catch a shape that gained consumers through somebody else's
+migration, which is how `object_types` reached 84.
+
+### Where the published shape lives, in order
+
+1. **`api/`.** It carries no prose — it carries the spec at
+   `page.content.endpoint`, with request and response schemas, field
+   descriptions and **enums**, and it publishes unions WITH THEIR MEMBERS. It
+   has falsified our schema four times. Grep it before inventing a
+   discriminator, a set of kinds, or a wire encoding.
+2. **The page that ENUMERATES the set**, which beats the page that describes a
+   member — see *An enumeration beats a description* above.
+
+### The trap this audit walks into if it is not warned
+
+**A declared divergence reads as a gap.** Twice now a survey has reported as
+missing something that was deliberately not built, because the reason lives in
+two places a schema survey never looks: **a comment inside a live function body**
+(`pg_get_functiondef`, invisible to `information_schema`) and the **Decisions**
+block of a reading. The four-job Funnel collapse is recorded in both, and the
+derived queue still put "decompose the four jobs" at the head of a tier. Grep
+both before calling anything a divergence.
+
+**And the mirror image, which is worse: vocabulary with no engine.** A CHECK
+constraint is not evidence of behaviour. `conflict_resolution` had its column,
+its CHECK, its guard and its refusal message, and `object_state` read none of
+them — so a datasource set to the non-default strategy behaved exactly like the
+default, silently, and every layer corroborated every other. `pg_proc.prosrc ~
+'<column_name>'` answers it in one query: **if no function names the column, the
+vocabulary is decoration.**
+
 ## Adding anything
 
 1. **Find it in the mirror first.** Quote the sentence. If it is not there, say
@@ -583,8 +658,16 @@ do take from their stack:
 3. **What backs it?** An object type has a datasource. A link type has a
    datasource. If the answer is "a generic table", stop.
 4. **What reaches it?** If nothing does, it is not built yet — and an allowlist
-   is not the answer.
-5. **Where does the rule go?** Down the ladder, stopping at the first rung that
+   is not the answer. Ask it the other way too: if the column exists and no
+   FUNCTION names it, the vocabulary is decoration and the engine is the thing
+   to build.
+5. **Is the SHAPE right, and has anyone checked?** Before adding a column to a
+   table other things already read, check its shape against `api/` and record
+   the verdict in `docs/SHAPE-AUDIT.md`. `pnpm check:shapes` fails on this when
+   the table is load-bearing and unaudited. See *A shape must be complete before
+   it has consumers* above — a shape error costs its consumer count, and an
+   engine gap costs a constant.
+6. **Where does the rule go?** Down the ladder, stopping at the first rung that
    can hold it:
 
    **CHECK constraint** → a fact about one row, always true. *(A subquery is not
@@ -603,6 +686,6 @@ do take from their stack:
    Assertions in the migration prove the change at the moment it lands; the
    platform suite proves it still holds. Both, not either.
 
-6. **Reconcile after it lands.** Re-read the pages it came from, whole. See
+7. **Reconcile after it lands.** Re-read the pages it came from, whole. See
    *Reconcile AFTER the build* above — it is a step in this list, not a separate
    discipline, and the chunk is not done until it has happened.

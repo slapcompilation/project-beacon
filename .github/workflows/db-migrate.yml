@@ -66,6 +66,19 @@ jobs:
           fi
           pnpm db:status
 
+      # Asked BEFORE the migration lands, because that is the only moment the
+      # answer is cheap. An engine gap costs one additive migration; a wrong
+      # SHAPE costs the number of things that already read it, and consumers
+      # only grow. This fails only when a migration here changes the shape or
+      # the access of a table that already has many consumers and has never
+      # been checked against the shape Palantir publishes. It lives in this
+      # workflow and not ci.yml because it counts consumers from pg_proc, and
+      # ci.yml carries no SUPABASE_DB_URL on purpose.
+      - name: A load-bearing shape was checked before it was changed
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          pnpm check:shapes
+
       - name: Apply pending migrations
         if: github.event_name != 'pull_request'
         run: |
