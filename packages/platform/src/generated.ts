@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (377) ───────────────────────────────────────────────────
+// ── FUNCTIONS (378) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -4184,6 +4184,17 @@ export const opensearchAnalyzer = { apiName: 'opensearch_analyzer', kind: 'funct
 export const orgWorkflows = { apiName: 'org_workflows', kind: 'function' } as FunctionType<
   { p_organization: string },
   string[]
+>
+
+/**
+ *  Why OSv2 would refuse this value at index time, or null if it would not —
+ *  NaN and infinities, empty strings, the 12 MB string cap, the
+ *  100,000-element array cap, nested arrays and null array elements
+ *  (object-indexing/data-restrictions).
+ */
+export const osv2ValueProblem = { apiName: 'osv2_value_problem', kind: 'function' } as FunctionType<
+  { p_base_type: string; p_element_type: string; p_value: Json },
+  string
 >
 
 /**

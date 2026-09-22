@@ -462,4 +462,27 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect(await count(`select count(*) n from objects.${tbl}`),
       'a repeat is the same object, not another one').toBe(before)
   })
+
+  // 841. The predicate's own arms are asserted in dataRestrictions.test.ts;
+  // this is the wire. "These restrictions are validated during indexing. For
+  // object types backed by batch datasources, violations will cause indexing
+  // jobs to fail" (object-indexing/data-restrictions) — and the job has to say
+  // which value, because that is what the pipeline graph reports.
+  it('a value OSv2 refuses fails the build, and the job names the property and the object', async () => {
+    const phys = (await one('select physical_table as t from public.datasets where id=$1', [f.datasetId])).t
+    await db.query(`update datasets.${phys} set city='' where pk='B' and city='KOMOTINI'`)
+
+    let build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    let job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state).toBe('FAILED')
+    expect(job.error).toContain('empty strings are not allowed')
+    expect(job.error, 'the job says which property of which object').toContain('property "city" of object "B"')
+
+    // A legal value and the same build completes: the guard refuses a value,
+    // not a shape.
+    await db.query(`update datasets.${phys} set city='KOMOTINI' where pk='B' and city=''`)
+    build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
+  })
 })

@@ -437,10 +437,28 @@ open". They are open now, and they carry more than the prose:
   propagation delay`. The census filed the health entry point as having "no rule
   family to land on"; the family is published and counted.
 
+**And the four captures are TWO ERAS, which decides which one a surface copies.**
+`reindex.png` is the newest and `pipeline1.png` the oldest, on feature evidence —
+the deciding kind under rule 8. `reindex.png` alone carries **Enable high-scale
+indexing**, and it is the only one where the `...` overflow hangs off the **Live
+pipeline** section; in `pipeline1.png`, `pipeline2.png` and `pipeline3.jpg` the
+same glyph sits on the **data-store row** beside the `Schema:` badge. So they are
+two different menus in two different places, and reading them as one control
+would put `Reindex` on the wrong row. The older era also renders a separate
+**Replacement pipeline** panel, which the newest capture does not.
+
 **Queued from this read**, none of it built: the `Data:`/`Schema:` pair and the
 data-store list; the high-scale indexing toggle; the eight monitoring rules; the
 per-datasource Changelog fan-in as a *surface* even though the job stays
 collapsed.
+
+**What the pages refuse to settle, recorded so it is not invented later.** No
+freshness or latency figure exists for BATCH indexing anywhere — the FAQ's ~1s
+and 2 MB/s are streaming-only. Nothing states whether a mid-run pipeline serves
+partial data, whether batch indexing is atomic per object type, or whether a user
+edit is visible to the next query. And no page names a token for a Funnel job's
+status: the vocabulary is the graph's three glyphs, which is why 513's seven job
+states remain the only status we have.
 
 **Next, and chosen by the adversary rather than by the queue:** the OSv2
 index-time data restrictions — `object-indexing/data-restrictions.md`, 45 lines,
