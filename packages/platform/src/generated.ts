@@ -1648,7 +1648,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (376) ───────────────────────────────────────────────────
+// ── FUNCTIONS (377) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2738,6 +2738,16 @@ export const datasetSchemaValid = { apiName: 'dataset_schema_valid', kind: 'func
 export const datasetView = { apiName: 'dataset_view', kind: 'function' } as FunctionType<
   { p_branch: string; p_at?: string },
   { file_id: string; logical_path: string; row_count: number }[]
+>
+
+/**
+ *  Each file of a branch's current view with the sequence of the transaction
+ *  that wrote it — the ordering OSv2's "most recent transaction wins" needs
+ *  (object-indexing/funnel-batch-pipelines).
+ */
+export const datasetViewFileOrder = { apiName: 'dataset_view_file_order', kind: 'function' } as FunctionType<
+  { p_branch: string },
+  { file_id: string; seq: number }[]
 >
 
 /**

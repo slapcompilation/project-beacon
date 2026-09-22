@@ -234,17 +234,22 @@ describe.skipIf(noDb)('the index is a build', () => {
     expect(await count(
       `select count(*) n from pg_tables where schemaname='objects' and tablename=$1`, [tbl + '__next'])).toBe(0)
 
-    // an appended file that repeats a primary key fails the merge mid-loop
+    // A primary key repeated inside ONE transaction fails the merge mid-loop.
+    // It has to be one transaction: "Each transaction must contain at most one
+    // row per primary key", while a repeat across transactions is the newer
+    // value and not an error at all (840). This test used to break the build
+    // with the across case, which the page says should succeed.
     head = await commit(db, f.datasetId, f.branchId, 'APPEND', ['dup.parquet'], head)
     const dupFile = (await one(
       'select id from public.dataset_files where transaction_id=$1', [head])).id
     const phys = (await one('select physical_table as t from public.datasets where id=$1', [f.datasetId])).t
-    await db.query(`insert into datasets.${phys} (_file, pk, city) values ($1,'A','DUP')`, [dupFile])
+    await db.query(
+      `insert into datasets.${phys} (_file, pk, city) values ($1,'A','DUP'),($1,'A','ALSO')`, [dupFile])
 
     build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
     const job = await one('select state, error from public.build_jobs where build_id=$1', [build])
     expect(job.state).toBe('FAILED')
-    expect(job.error).toContain('non-unique primary keys')
+    expect(job.error).toContain('more than once in one transaction')
 
     // the failure never touched the live table: same name, same rows, still serving
     expect((await one(
@@ -427,5 +432,34 @@ describe.skipIf(noDb)('the index is a build', () => {
       [ont])).rows[0].e as { pk: string; city: string }
     expect(row.pk).toBe('B')
     expect(row.city).toBe('SKG')
+  })
+
+  // 840. "If a primary key appears in multiple transactions, the row from the
+  // most recent transaction will be kept" — the rule a changelog dataset is
+  // synced by, and the one this engine used to answer by failing the build.
+  it('a row updated in a later transaction wins, and does not become a second object', async () => {
+    const tbl = (await one(
+      'select index_table as t from public.object_type_indexes where object_type_id=$1', [type])).t
+    const before = await count(`select count(*) n from objects.${tbl}`)
+
+    // B again, in a new transaction, with a new value. Not A: A carries edits
+    // from the revert case above, and a user edit answering over a datasource
+    // update is a different published rule.
+    head = await commit(db, f.datasetId, f.branchId, 'APPEND', ['later.parquet'], head)
+    const later = (await one(
+      'select id from public.dataset_files where transaction_id=$1', [head])).id
+    const phys = (await one('select physical_table as t from public.datasets where id=$1', [f.datasetId])).t
+    await db.query(`insert into datasets.${phys} (_file, pk, city) values ($1,'B','KOMOTINI')`, [later])
+
+    const build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [type])).b
+    const job = await one('select state, error from public.build_jobs where build_id=$1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
+
+    const row = (await db.query(
+      `select e from public.evaluate_object_set_by_api_name($1,'IdxThing','[]'::jsonb,1,'B') e`,
+      [ont])).rows[0].e as { city: string }
+    expect(row.city, 'the most recent transaction wins').toBe('KOMOTINI')
+    expect(await count(`select count(*) n from objects.${tbl}`),
+      'a repeat is the same object, not another one').toBe(before)
   })
 })
