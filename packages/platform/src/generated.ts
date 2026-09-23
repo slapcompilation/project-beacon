@@ -6,7 +6,7 @@
 
 import type { ActionType, FunctionType, Json } from './client'
 
-// ── Value sets (132) ─────────────────────────────────────────────────
+// ── Value sets (133) ─────────────────────────────────────────────────
 // Every single-column CHECK whose legal values are a literal array, on a
 // table the app role may read. Hand-writing one of these is how it drifts.
 
@@ -102,6 +102,9 @@ export type CollectionResourcesResourceKind = 'project' | 'folder' | 'dataset' |
 
 /** `contour_parameters.param_type` */
 export type ContourParametersParamType = 'Date' | 'String' | 'Number'
+
+/** `dataset_schemas.dataframe_reader` */
+export type DatasetSchemasDataframeReader = 'AVRO' | 'CSV' | 'PARQUET' | 'DATASOURCE'
 
 /** `dataset_transactions.status` */
 export type DatasetTransactionsStatus = 'OPEN' | 'COMMITTED' | 'ABORTED'
@@ -1648,7 +1651,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (385) ───────────────────────────────────────────────────
+// ── FUNCTIONS (387) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -2679,6 +2682,17 @@ export const datasetCurrentFields = { apiName: 'dataset_current_fields', kind: '
   Json
 >
 
+/**
+ *  Completes one DatasetFieldSchema to the published shape: canonicalises the
+ *  prose spelling arraySubType to the api's arraySubtype, and stamps the
+ *  required `nullable` (defaulting true, an inference the api does not
+ *  publish). Recurses into array, map and struct members.
+ */
+export const datasetFieldNormalised = { apiName: 'dataset_field_normalised', kind: 'function' } as FunctionType<
+  { f: Json },
+  Json
+>
+
 export const datasetFieldSqlType = { apiName: 'dataset_field_sql_type', kind: 'function' } as FunctionType<
   { f: Json },
   string
@@ -2730,6 +2744,16 @@ export const datasetPreviewCount = { apiName: 'dataset_preview_count', kind: 'fu
 export const datasetRole = { apiName: 'dataset_role', kind: 'function' } as FunctionType<
   { p_dataset: string },
   string
+>
+
+/**
+ *  A whole field list completed to the published shape. The one rule: the
+ *  write trigger and every comparison against stored schemas call this,
+ *  because a normalising write path changes what equality means.
+ */
+export const datasetSchemaNormalised = { apiName: 'dataset_schema_normalised', kind: 'function' } as FunctionType<
+  { p_fields: Json },
+  Json
 >
 
 /**

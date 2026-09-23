@@ -106,9 +106,15 @@ export async function commit(
      values ($1,$2,$3,$4) returning id`, [ds, branch, type, parent ?? null])
   const id = (rows[0] as { id: string }).id
   for (const path of files) {
+    // `removes` is NOT computed here any more. The harness used to set it as
+    // `type === 'DELETE'` — the published rule — while nothing in the database
+    // set it at all, which is exactly how this suite matched the documentation's
+    // printed answer while the engine did not (844). The trigger stamps it from
+    // the transaction now, so writing it here would be a second copy of the rule
+    // and would hide the engine failing again.
     await client.query(
-      `insert into public.dataset_files (dataset_id, transaction_id, logical_path, removes, row_count)
-       values ($1,$2,$3,$4,$5)`, [ds, id, path, type === 'DELETE', type === 'DELETE' ? 0 : 1])
+      `insert into public.dataset_files (dataset_id, transaction_id, logical_path, row_count)
+       values ($1,$2,$3,1)`, [ds, id, path])
   }
   await client.query(
     `update public.dataset_transactions set status='COMMITTED', committed_at=clock_timestamp() where id=$1`,

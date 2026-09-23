@@ -196,12 +196,14 @@ describe.skipIf(noDb)('getting data in', () => {
         `s,n,d,b,dt${NL}x,1,1.5,true,2020-01-01${NL}y,2,2.5,false,2021-06-30${NL}`)
       const { rows } = await db.query(
         `select fields from public.dataset_schemas where transaction_id = $1`, [t])
+      // `nullable` is required on the wire and is stamped on write (844), so
+      // an inferred schema is stored in the published shape like any other.
       expect(rows[0].fields).toEqual([
-        { name: 's', type: 'STRING' },
-        { name: 'n', type: 'LONG' },
-        { name: 'd', type: 'DOUBLE' },
-        { name: 'b', type: 'BOOLEAN' },
-        { name: 'dt', type: 'DATE' },
+        { name: 's', type: 'STRING', nullable: true },
+        { name: 'n', type: 'LONG', nullable: true },
+        { name: 'd', type: 'DOUBLE', nullable: true },
+        { name: 'b', type: 'BOOLEAN', nullable: true },
+        { name: 'dt', type: 'DATE', nullable: true },
       ])
     })
 
