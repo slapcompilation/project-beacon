@@ -71,6 +71,28 @@ tables, 49 with eight or more consumers; this round covers 24 of them.
 the value of the exercise** — three of them overturned something this repo had
 written down as a gap.
 
+**A CAVEAT THE ROUND-1 REPORTS EARNED, added 2026-09-23 while building from
+them.** The findings held up — every one of the five wrong-encoding verdicts was
+real, and building each confirmed the divergence existed. **The COUNTS did not.**
+Four were wrong by one, in both directions:
+
+| the report said | it is | found while building |
+|---|---|---|
+| `object_sets` has 30 consumers | **14** | the first count matched helper functions named `object_set_*`, not consumers of the table |
+| the `where` union has 28 members | **27** | and my own first parse said 26, by starting one line late |
+| `branchName` is required on the published `Build` | required on the **response**, optional on the request | which is what makes the branch column additive rather than a refusal |
+| branch is required in six of ten `Trigger` arms | **five** of ten | jobSucceeded, newLogic, tableUpdated, datasetUpdated, mediaSetUpdated |
+
+And one report drew a conclusion its own evidence did not support: that the api
+"falsifies" a recorded Decision about interface implementations, when the two
+were describing different axes — see 847.
+
+**So read a verdict here as a lead and a count as a guess.** Every number in a
+migration built from this document was re-derived from the page or the catalog
+before it was written down, and that is the only reason the four above were
+caught. It is the same rule CLAUDE.md states for everything else: *a count is
+re-derived or it is not stated.*
+
 ---
 
 ## Fix in this order, because this is the order the cost is in
