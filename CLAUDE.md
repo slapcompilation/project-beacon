@@ -324,6 +324,49 @@ project for an object to index, which we cannot enforce faithfully without proje
 references. **Recording that is a result.** A half-built version looks like a
 foundation — see the top of this file.
 
+### If you are not 100% certain, read it again
+
+**Standing instruction from the operator, 2026-09-23.** Not a suggestion about
+diligence — a rule about what may be written down. A claim that is *probably*
+right goes into a reading, a migration header or a document as a fact, and the
+next session builds on it. Re-reading the page costs minutes. Building on a
+wrong claim costs the consumers.
+
+**The evidence is one reading, written the day before the rule.**
+`readings/object-set-definition.md` carried three false claims, and two of them
+were falsifiable against pages its own header listed as *read end to end*:
+
+- "A list has nowhere to store its membership" — `object_set_members` exists,
+  with a guard, wired. The other two defects in the same section were verified
+  against the live catalog; this one was carried from a subagent's census and
+  never checked.
+- "There is no published traversal-depth cap anywhere" —
+  `functions/api-object-sets.md` states a maximum of three search arounds,
+  twice. Our three-hop cap was Foundry's three, arrived at correctly and then
+  written up as an invention.
+- A member count of 26 that is 27, from a parse that began one line late.
+
+**The tell was there in every case: I knew I had not checked.** The first was
+taken from an agent, the second from a page skimmed for a different question,
+the third from a script whose output I did not re-derive. None of them felt
+certain at the time, and all three were written as though they were.
+
+**How to apply.**
+
+1. **Grade the claim before writing it.** Certain — I ran it, or I read the
+   sentence just now. Strong — I read it earlier, in another context. Weak — an
+   agent told me, or I am recalling. **Only *certain* goes in unqualified.**
+2. **An absence needs a probe, not a memory.** "No page states X" and "we do not
+   have Y" are the two claims most often wrong here; both have their own
+   sections above, and both were wrong again in that reading.
+3. **A count is re-derived or it is not stated.** Three counts in one document,
+   three different answers, and only the one that was parsed twice was right.
+4. **Say which grade you are on when it matters.** A reading that marks a claim
+   as inference is useful; one that presents inference as fact is worse than
+   silence, because it is quotable.
+5. **This costs less than it looks.** Every one of the three above was a single
+   grep or a single query away, and each had already cost a Decision built on it.
+
 ## What is here
 
 ```
