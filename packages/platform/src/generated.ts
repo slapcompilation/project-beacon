@@ -1651,7 +1651,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (387) ───────────────────────────────────────────────────
+// ── FUNCTIONS (391) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -3416,6 +3416,48 @@ export const inferFieldType = { apiName: 'infer_field_type', kind: 'function' } 
 export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'function' } as FunctionType<
   { p_interface: string },
   string[]
+>
+
+/**
+ *  The published implementation for a mapping row: the stored union when
+ *  there is one, otherwise the localPropertyImplementation every resolution
+ *  but `skip` implies. `skip` has no entry in the published map at all, which
+ *  is why it is a stored row here and absent there.
+ */
+export const interfaceImplementation = { apiName: 'interface_implementation', kind: 'function' } as FunctionType<
+  { p_mapping: string },
+  Json
+>
+
+/**
+ *  The four members of InterfacePropertyTypeImplementation
+ *  (api/ontologies-v2-resources-object-types-get-object-type-full-metadata).
+ *  A different axis from interface_implementation_mappings.resolution, which
+ *  is the wizard's menu and is ours.
+ */
+export const interfaceImplementationKinds = { apiName: 'interface_implementation_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  Interface implementations that name a struct field which does not exist. A
+ *  fact needing other tables, so it is a linter arm rather than a CHECK.
+ */
+export const interfaceImplementationProblems = { apiName: 'interface_implementation_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { mapping_id: string; problem: string }[]
+>
+
+/**
+ *  Whether a document is a well-formed InterfacePropertyTypeImplementation.
+ *  Depth-bounded on purpose: the reduced arm may nest one implementation and
+ *  that one may not be reduced, which is what the page means by preventing
+ *  arbitrarily nested implementations.
+ */
+export const interfaceImplementationValid = { apiName: 'interface_implementation_valid', kind: 'function' } as FunctionType<
+  { p: Json; p_allow_reduced?: boolean },
+  boolean
 >
 
 /**

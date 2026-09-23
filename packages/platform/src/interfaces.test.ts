@@ -497,4 +497,44 @@ describe.skipIf(noDb)('interfaces', () => {
         `update public.interface_link_constraints set cardinality = 'MANY' where id = $1`, [cObj])
     })
   })
+
+  // 847. `resolution` is the wizard's menu and is ours (450); this is the
+  // published axis beside it — "Describes how an object type implements an
+  // interface property" — and the two compose rather than compete.
+  describe('an interface property implementation is a union', () => {
+    const valid = async (d: string | null): Promise<boolean | null> =>
+      (await one('select public.interface_implementation_valid($1::jsonb) as v', [d]))
+        .v as unknown as boolean | null
+
+    it('admits the four published members', async () => {
+      const kinds = (await one('select public.interface_implementation_kinds() as k'))
+        .k as unknown as string[]
+      expect(kinds).toEqual([
+        'localPropertyImplementation', 'structFieldImplementation',
+        'structImplementation', 'reducedPropertyImplementation'])
+      expect(await valid('{"localPropertyImplementation":{"propertyApiName":"tailNumber"}}')).toBe(true)
+      expect(await valid('{"structFieldImplementation":{"structFieldOfProperty":{"propertyApiName":"address","structFieldApiName":"postalCode"}}}')).toBe(true)
+      expect(await valid('{"nope":{}}')).toBe(false)
+      // A discriminated union carries exactly one member.
+      expect(await valid('{"localPropertyImplementation":{"propertyApiName":"a"},"structImplementation":{"mapping":{}}}')).toBe(false)
+      // Absent is the degenerate case, not a malformed one.
+      expect(await valid(null)).toBe(true)
+    })
+
+    // "Specifies a mapping of interface struct fields to local struct fields or
+    // properties" — the inner value is itself a two-member union.
+    it('holds a struct mapping whose values are one of two things', async () => {
+      expect(await valid('{"structImplementation":{"mapping":{"street":{"structFieldOfProperty":{"propertyApiName":"address","structFieldApiName":"streetName"}},"city":{"property":{"propertyApiName":"town"}}}}}')).toBe(true)
+      expect(await valid('{"structImplementation":{"mapping":{"street":{"property":{},"structFieldOfProperty":{}}}}}')).toBe(false)
+      expect(await valid('{"structImplementation":{"mapping":{"street":{"nope":{}}}}}')).toBe(false)
+    })
+
+    // "Is missing a reduced property implementation to prevent arbitrarily
+    // nested implementations" — so the nesting is bounded at one level, which
+    // is what makes this cheaper to encode than the object set union (843).
+    it('bounds the reduced arm at one level', async () => {
+      expect(await valid('{"reducedPropertyImplementation":{"implementation":{"localPropertyImplementation":{"propertyApiName":"x"}}}}')).toBe(true)
+      expect(await valid('{"reducedPropertyImplementation":{"implementation":{"reducedPropertyImplementation":{"implementation":{"localPropertyImplementation":{"propertyApiName":"x"}}}}}}')).toBe(false)
+    })
+  })
 })
