@@ -233,4 +233,113 @@ describe.skipIf(noDb)('the dataset engine', () => {
       expect(t.committed_at).toBeNull()
     })
   })
+
+  // 844. The schema was built in 392 from the prose page rather than from the
+  // api page that publishes the wire encoding, and the two disagree.
+  describe('a dataset schema is the published one', () => {
+    const fieldOf = async (txn: string) =>
+      ((await db.query('select fields -> 0 f from public.dataset_schemas where transaction_id=$1', [txn]))
+        .rows[0] as { f: Record<string, unknown> }).f
+
+    // One OPEN transaction per branch is a real constraint
+    // (dataset_transactions_one_open_per_branch), so each of these commits
+    // immediately rather than leaving one open for the next test to collide
+    // with. A schema attaches to the transaction, not to its status.
+    const openAndCommit = async (): Promise<string> => {
+      const { rows } = await db.query(
+        `insert into public.dataset_transactions (dataset_id, branch_id, txn_type)
+         values ($1,$2,'SNAPSHOT') returning id`, [f.datasetId, f.branchId])
+      const id = (rows[0] as { id: string }).id
+      await db.query(
+        `update public.dataset_transactions set status='COMMITTED', committed_at=clock_timestamp()
+          where id=$1`, [id])
+      return id
+    }
+
+    it('stamps the required nullable, and never overwrites an explicit one', async () => {
+      const txn = { id: await openAndCommit() }
+      await db.query(
+        `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
+        [f.datasetId, txn.id, JSON.stringify([
+          { name: 'a', type: 'STRING' }, { name: 'b', type: 'LONG', nullable: false }])])
+      const { rows } = await db.query(
+        'select f from public.dataset_schemas s, jsonb_array_elements(s.fields) f where s.transaction_id=$1',
+        [txn.id])
+      const fields = (rows as { f: Record<string, unknown> }[]).map((r) => r.f)
+      expect(fields[0].nullable).toBe(true)
+      expect(fields[1].nullable).toBe(false)
+    })
+
+    // The api writes `arraySubtype` in eight pages; data-integration/datasets.md
+    // writes `arraySubType`, and 392 took the prose. api/ publishes the wire
+    // encoding, so it wins on a key name.
+    it('canonicalises the array key to the api spelling, and resolves the sql type', async () => {
+      const txn = { id: await openAndCommit() }
+      await db.query(
+        `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
+        [f.datasetId, txn.id, JSON.stringify([
+          { name: 'tags', type: 'ARRAY', arraySubType: { type: 'STRING' } }])])
+      const field = await fieldOf(txn.id)
+      expect(field).not.toHaveProperty('arraySubType')
+      expect(field).toHaveProperty('arraySubtype')
+      const t = (await db.query('select public.dataset_field_sql_type($1::jsonb) t', [JSON.stringify(field)]))
+        .rows[0] as { t: string }
+      expect(t.t).toBe('text[]')
+    })
+
+    // "versionId · string · required" — and one schema row per transaction made
+    // a second version unstorable, so this was not an additive gap.
+    it('carries more than one schema version on one transaction', async () => {
+      const txn = { id: await openAndCommit() }
+      for (const fields of [[{ name: 'a', type: 'STRING' }], [{ name: 'a', type: 'STRING' }, { name: 'b', type: 'LONG' }]]) {
+        await db.query(
+          `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
+          [f.datasetId, txn.id, JSON.stringify(fields)])
+      }
+      const { rows } = await db.query(
+        'select count(*) n, count(distinct version_id) v from public.dataset_schemas where transaction_id=$1',
+        [txn.id])
+      expect(Number((rows[0] as { n: string }).n)).toBe(2)
+      expect(Number((rows[0] as { v: string }).v)).toBe(2)
+    })
+
+    // Four published members, where "is parser_params NULL" collapsed three of
+    // them into the same answer.
+    it('admits exactly the four published dataframe readers', async () => {
+      const txn = { id: await openAndCommit() }
+      await db.query(
+        `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,'[]'::jsonb)`,
+        [f.datasetId, txn.id])
+      const { rows } = await db.query(
+        'select dataframe_reader r from public.dataset_schemas where transaction_id=$1', [txn.id])
+      expect((rows[0] as { r: string }).r).toBe('PARQUET')
+      for (const r of ['AVRO', 'CSV', 'DATASOURCE']) {
+        await db.query('update public.dataset_schemas set dataframe_reader=$2 where transaction_id=$1', [txn.id, r])
+      }
+      expect(await refused(db, () => db.query(
+        'update public.dataset_schemas set dataframe_reader=$2 where transaction_id=$1', [txn.id, 'ORC'])))
+        .toContain('dataframe_reader')
+    })
+  })
+
+  // 844. Nothing in the database set dataset_files.removes — all six writers
+  // inserted (dataset_id, transaction_id, logical_path, row_count) only — so a
+  // committed DELETE transaction removed nothing from the view. The harness
+  // computed the flag itself, which is why this suite matched the printed
+  // answer while the engine did not; it no longer does.
+  describe('a committed DELETE removes', () => {
+    it('stamps removes from the transaction type, not from the caller', async () => {
+      const txn = await commit(db, f.datasetId, f.branchId, 'SNAPSHOT', ['gone.parquet'])
+      expect(await view(db, f.branchId)).toContain('gone.parquet')
+
+      const del = await commit(db, f.datasetId, f.branchId, 'DELETE', ['gone.parquet'], txn)
+      const { rows } = await db.query(
+        'select removes, row_count from public.dataset_files where transaction_id=$1', [del])
+      expect((rows[0] as { removes: boolean }).removes, 'stamped by the engine').toBe(true)
+      // The existing CHECK says a removing file carries no rows, so the count
+      // follows the flag rather than being asserted by the caller.
+      expect((rows[0] as { row_count: number }).row_count).toBe(0)
+      expect(await view(db, f.branchId)).not.toContain('gone.parquet')
+    })
+  })
 })
