@@ -1651,7 +1651,7 @@ export const writeLinkEdit = { apiName: 'write_link_edit', kind: 'action' } as A
   void
 >
 
-// ── FUNCTIONS (391) ───────────────────────────────────────────────────
+// ── FUNCTIONS (396) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1703,6 +1703,17 @@ export const actionOverrideEffectsValid = { apiName: 'action_override_effects_va
 >
 
 /**
+ *  The published parameter type: the stored union when there is one, else
+ *  what the flat columns state. NULL means not derivable — our base types and
+ *  the published parameter types are not the same set, so a shared name is
+ *  required rather than a guess.
+ */
+export const actionParameterType = { apiName: 'action_parameter_type', kind: 'function' } as FunctionType<
+  { p_parameter: string },
+  Json
+>
+
+/**
  *  The actions namespace's published type classes
  *  (object-link-types/metadata-typeclasses): two server-honoured prefills and
  *  one toast hint. Emit-only — a class arrives with the code that honours it.
@@ -1710,6 +1721,36 @@ export const actionOverrideEffectsValid = { apiName: 'action_override_effects_va
 export const actionParameterTypeClasses = { apiName: 'action_parameter_type_classes', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+/**
+ *  The twenty-one members of the Ontology Action parameter type union
+ *  (api/ontologies-v2-resources-action-types-get-action-type-by-rid).
+ *  Distinct from the struct-field primitive union below.
+ */
+export const actionParameterTypeMembers = { apiName: 'action_parameter_type_members', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+/**
+ *  Array or struct action parameters with no stored parameter_type, so their
+ *  element or field type is unstated. Advisory: the page does not refuse such
+ *  a parameter, it simply has nowhere to say what it holds.
+ */
+export const actionParameterTypeProblems = { apiName: 'action_parameter_type_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { parameter_id: string; problem: string }[]
+>
+
+/**
+ *  Whether a document is a well-formed Ontology Action parameter type. Freely
+ *  recursive through array.subType, and a struct field is checked against the
+ *  PRIMITIVE union rather than this one.
+ */
+export const actionParameterTypeValid = { apiName: 'action_parameter_type_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
 >
 
 /**
@@ -4199,6 +4240,17 @@ export const objectViewFor = { apiName: 'object_view_for', kind: 'function' } as
 export const ontologyColumnType = { apiName: 'ontology_column_type', kind: 'function' } as FunctionType<
   { p_table: string; p_column: string },
   string
+>
+
+/**
+ *  The primitive types a struct field may be
+ *  (api/ontologies-v2-resources-action-types-get-action-type-by-rid). A
+ *  DIFFERENT union from the action parameter one: it carries cipherText and
+ *  set, and has no array, objectSet or object.
+ */
+export const ontologyPrimitiveTypeMembers = { apiName: 'ontology_primitive_type_members', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**

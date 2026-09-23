@@ -533,4 +533,50 @@ describe.skipIf(noDb)('actions', () => {
     expect(await count('select count(*) n from public.action_types where id = $1', [action])).toBe(0)
     expect(await count('select count(*) n from public.action_type_parameters where action_type_id = $1', [action])).toBe(0)
   })
+
+  // 848. "A union of all the types supported by Ontology Action parameters" —
+  // twenty-one members, two of which carry a payload the flat (data_kind,
+  // base_type) pair cannot hold.
+  describe('a parameter type is a union', () => {
+    const valid = async (d: string | null): Promise<boolean | null> =>
+      (await one('select public.action_parameter_type_valid($1::jsonb) as v', [d]))
+        .v as unknown as boolean | null
+
+    it('is twenty-one members, and a different union from the struct-field one', async () => {
+      const params = (await one('select public.action_parameter_type_members() as m'))
+        .m as unknown as string[]
+      const prims = (await one('select public.ontology_primitive_type_members() as m'))
+        .m as unknown as string[]
+      expect(params).toHaveLength(21)
+      // The two sets differ in both directions, which is the thing most easily
+      // lost by treating "the union" as one thing.
+      expect(params).toContain('array')
+      expect(prims).not.toContain('array')
+      expect(prims).toContain('cipherText')
+      expect(params).not.toContain('cipherText')
+    })
+
+    // "`subType` · union · required", described as the whole parameter union —
+    // so this one is freely recursive, unlike 847's bounded implementation.
+    it('recurses through an array subtype', async () => {
+      expect(await valid('{"array":{"subType":{"array":{"subType":{"string":{}}}}}}')).toBe(true)
+      expect(await valid('{"array":{}}')).toBe(false)
+    })
+
+    it('checks a struct field against the primitive union, not this one', async () => {
+      expect(await valid('{"struct":{"fields":[{"name":"key","fieldType":{"cipherText":{}}}]}}')).toBe(true)
+      expect(await valid('{"struct":{"fields":[{"name":"tags","fieldType":{"array":{"subType":{"string":{}}}}}]}}')).toBe(false)
+      expect(await valid('{"struct":{"fields":[{"fieldType":{"string":{}}}]}}')).toBe(false)
+    })
+
+    it('holds each member to the fields the page marks required', async () => {
+      expect(await valid('{"object":{"objectApiName":"Flight","objectTypeApiName":"Flight"}}')).toBe(true)
+      expect(await valid('{"object":{"objectApiName":"Flight"}}')).toBe(false)
+      expect(await valid('{"marking":{"markingType":"CBAC"}}')).toBe(true)
+      expect(await valid('{"marking":{"markingType":"NOPE"}}')).toBe(false)
+      expect(await valid('{"nope":{}}')).toBe(false)
+      // Absent is the degenerate case the flat columns already state.
+      expect(await valid(null)).toBe(true)
+    })
+  })
 })
